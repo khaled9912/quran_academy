@@ -9,7 +9,7 @@ const SliderText = ({ title, description, url }: SliderTextProps) => {
         {title}
       </h1>
       <Link href={url}>
-        <button className="rounded-md bg-black text-white py-3 px-4 ">
+        <button className="mt-6 px-4 py-2 bg-green-500 text-white rounded ">
           Free trial
         </button>
       </Link>
