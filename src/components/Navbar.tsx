@@ -3,7 +3,7 @@ import React from 'react';
 import Menu from './Menu';
 import Image from 'next/image';
 
-import LogoSVG from '/public/logo-1.png';
+import LogoSVG from '/public/logo.svg';
 
 
 const Navbar = () => {
@@ -27,9 +27,9 @@ const Navbar = () => {
           {/* LINKS */}
           <div className="hidden xl:flex gap-4">
             <Link href="/">HomePage</Link>
-            <Link href="/">About Us</Link>
-            <Link href="/">Courses</Link>
-            <Link href="/">Contacts</Link>
+            <Link href="#about">About Us</Link>
+            <Link href="#courses">Courses</Link>
+            <Link href="#contacts">Contacts</Link>
           </div>
         </div>
         {/* RIGHT */}

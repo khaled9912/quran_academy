@@ -3,22 +3,22 @@
         {
             title: "Quran Reading",
             description: "Learn to read the Quran with Tajweed.",
-            imageUrl: "/images/quran-reading.jpg", 
+            imageUrl: "/courses-img-1.jpg", 
         },
         {
             title: "Arabic Language",
             description: "Master the basics of Arabic for better understanding.",
-            imageUrl: "/images/arabic-language.jpg",
+            imageUrl: "/courses-img-2.jpg",
         },
         {
             title: "Islamic Studies",
             description: "Gain knowledge about essential Islamic principles.",
-            imageUrl: "/images/islamic-studies.jpg",
+            imageUrl: "/courses-img-3.jpg",
         },
     ];
 
     return (
-        <section className="p-10 text-center">
+        <section className="p-10 text-center" id="courses">
             <h2 className="text-3xl font-semibold">Our Courses</h2>
             <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
                 {courses.map((course, index) => (

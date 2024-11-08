@@ -2,7 +2,7 @@ import { FaFacebook, FaYoutube, FaHandPeace   } from 'react-icons/fa';
 
  const Footer = ()  => {
     return (
-        <section className="w-full p-10 bg-gray-100 text-center md:text-left">
+        <section className="w-full p-10 bg-gray-100 text-center md:text-left" id='contacts'>
             <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10">
                 
                 {/* Left Column - Message */}
