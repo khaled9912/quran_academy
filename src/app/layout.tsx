@@ -2,13 +2,17 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
+import HeroSection from '@/components/HeroSection';
+import AboutSection from '@/components/AboutSection';
+import CoursesSection from '@/components/CoursesSection';
 import Footer from '@/components/Footer';
+
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Ecommerce app',
-  description: 'It is an ecommerce app for sales new brands! ',
+  title: 'AnaaQuran Academy',
+  description: 'AnaaQuran Academy specializes in teaching the Quran, Arabic, and Islamic studies to non-Arabs. Our experienced teachers make learning accessible and enjoyable for everyone. ',
 };
 
 export default function RootLayout({
@@ -24,7 +28,10 @@ export default function RootLayout({
       <body className={inter.className}>
         <Navbar />
         {children}
-        <Footer />
+        <HeroSection />
+            <AboutSection />
+            <CoursesSection />
+            <Footer />
       </body>
     </html>
   );
