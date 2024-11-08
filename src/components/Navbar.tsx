@@ -5,7 +5,6 @@ import Image from 'next/image';
 
 import LogoSVG from '/public/logo.svg';
 
-
 const Navbar = () => {
   return (
     <div className="navbar">
