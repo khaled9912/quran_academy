@@ -10,7 +10,12 @@ export async function POST(request) {
     html: `<div>${message}</div><p>Sent from:
     ${email}</p>`,
   };
-
+  console.log(
+    "env",
+    process.env.NEXT_PUBLIC_EMAIL_USER,
+    process.env.NEXT_PUBLIC_EMAIL_APP_PASSWORD,
+    mailData
+  );
   const transporter = nodemailer.createTransport({
     service: "gmail",
 
@@ -20,12 +25,8 @@ export async function POST(request) {
     },
     secure: true,
   });
-  console.log(
-    "env",
-    process.env.NEXT_PUBLIC_EMAIL_USER,
-    process.env.NEXT_PUBLIC_EMAIL_APP_PASSWORD);
-    
-    transporter.sendMail(mailData, function (err, info) {
+
+  transporter.sendMail(mailData, function (err, info) {
     if (err) console.log(err);
     else console.log(info);
   });
