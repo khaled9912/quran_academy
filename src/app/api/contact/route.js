@@ -23,9 +23,9 @@ export async function POST(request) {
   console.log(
     "env",
     process.env.NEXT_PUBLIC_EMAIL_USER,
-    process.env.NEXT_PUBLIC_EMAIL_APP_PASSWORD,
-ORD)
-porter.sendMail(mailData, function (err, info) {
+    process.env.NEXT_PUBLIC_EMAIL_APP_PASSWORD);
+    
+    transporter.sendMail(mailData, function (err, info) {
     if (err) console.log(err);
     else console.log(info);
   });
