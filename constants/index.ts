@@ -10,7 +10,7 @@ export const slides = [
   },
   {
     id: 2,
-    title: 'Welcome to Nibras At-Tilawah Academy!',
+    title: 'Welcome to AnaaQuran Academy!',
     description: 'Your Path to Mastering the Quran with Certified Teachers',
     img: 'https://images.pexels.com/photos/8522576/pexels-photo-8522576.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
     url: '/',

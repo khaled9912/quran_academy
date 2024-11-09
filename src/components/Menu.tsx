@@ -19,12 +19,10 @@ const Menu = () => {
       />
       {open && (
         <div className="menu-items">
-          <Link href="/">HomePage</Link>
-          <Link href="/">Shope</Link>
-          <Link href="/">Deals</Link>
-          <Link href="/">About</Link>
-          <Link href="/">Contacts</Link>
-          <Link href="/">Logout</Link>
+            <Link href="/">HomePage</Link>
+            <Link href="/">About Us</Link>
+            <Link href="/">Courses</Link>
+            <Link href="/">Contacts</Link>
         </div>
       )}
     </div>
