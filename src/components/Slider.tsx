@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import Image from "next/image";
+import { useEffect, useState } from "react";
 //
-import { slides } from '../../constants/index';
-import SliderText from './SliderText';
+import { slides } from "../../constants/index";
+import SliderText from "./SliderText";
 
 const Slider = () => {
   const [current, setCurrent] = useState(0);
@@ -51,7 +51,7 @@ const Slider = () => {
         {slides.map((slide, index) => (
           <div
             className={`w-3 h-3  rounded-full ring-1 ring-gray-600 cursor-pointer flex items-center justify-center ${
-              current === index ? 'scale-150' : ''
+              current === index ? "scale-150" : ""
             }`}
             key={slide.id}
             onClick={() => setCurrent(index)}

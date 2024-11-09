@@ -7,7 +7,6 @@
   --foreground: #171717;
 }
 
-
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -52,5 +51,5 @@ body {
 
 .success-alert {
   background-color: #d4edda; /* Light green background */
-  color: #155724;           /* Dark green text */
+  color: #155724; /* Dark green text */
 }

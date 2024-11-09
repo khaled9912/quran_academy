@@ -1,5 +1,5 @@
-import Link from 'next/link';
-import { SliderTextProps } from '../../types/index';
+import Link from "next/link";
+import { SliderTextProps } from "../../types/index";
 
 const SliderText = ({ title, description, url }: SliderTextProps) => {
   return (

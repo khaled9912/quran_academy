@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { useState } from 'react';
+import Image from "next/image";
+import Link from "next/link";
+import { useState } from "react";
 
 const Menu = () => {
   const [open, setOpen] = useState(false);
@@ -19,10 +19,10 @@ const Menu = () => {
       />
       {open && (
         <div className="menu-items" onClick={() => setOpen(false)}>
-             <Link href="/">HomePage</Link>
-            <Link href="#about">About Us</Link>
-            <Link href="#courses">Courses</Link>
-            <Link href="#contacts">Contacts</Link>
+          <Link href="/">HomePage</Link>
+          <Link href="#about">About Us</Link>
+          <Link href="#courses">Courses</Link>
+          <Link href="#contacts">Contacts</Link>
         </div>
       )}
     </div>
