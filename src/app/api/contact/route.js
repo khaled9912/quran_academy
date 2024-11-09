@@ -4,7 +4,7 @@ export async function POST(request) {
   const { name, email, message } = await request.json();
   const mailData = {
     from: email,
-    to: process.env.RECEIVER_EMAIL,
+    to: process.env.NEXT_PUBLIC_RECEIVER_EMAIL,
     subject: `You have a new message from ${name}`,
     text: message + " | Sent from: " + email,
     html: `<div>${message}</div><p>Sent from:
@@ -15,19 +15,17 @@ export async function POST(request) {
     service: "gmail",
 
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_APP_PASSWORD,
+      user: process.env.NEXT_PUBLIC_EMAIL_USER,
+      pass: process.env.NEXT_PUBLIC_EMAIL_APP_PASSWORD,
     },
     secure: true,
   });
   console.log(
     "env",
-    process.env.EMAIL_USER,
-    process.env.EMAIL_APP_PASSWORD,
-    mailData
-  );
-
-  transporter.sendMail(mailData, function (err, info) {
+    process.env.NEXT_PUBLIC_EMAIL_USER,
+    process.env.NEXT_PUBLIC_EMAIL_APP_PASSWORD,
+ORD)
+porter.sendMail(mailData, function (err, info) {
     if (err) console.log(err);
     else console.log(info);
   });
