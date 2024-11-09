@@ -18,7 +18,7 @@ const Menu = () => {
         onClick={() => setOpen((prev) => !prev)}
       />
       {open && (
-        <div className="menu-items">
+        <div className="menu-items" onClick={() => setOpen(false)}>
              <Link href="/">HomePage</Link>
             <Link href="#about">About Us</Link>
             <Link href="#courses">Courses</Link>
