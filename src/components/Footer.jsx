@@ -56,7 +56,7 @@ const Footer = ()  => {
                     </div>
                     <p className="text-xl text-gray-700">Ready to start your Quran journey today? We are here to help you every step of the way.</p>
                     <div className="flex space-x-4 mt-6">
-                        <a href="https://facebook.com/YourAcademy" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                        <a href="https://www.facebook.com/people/Quran/61568090070901/" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
                             <FaFacebook className="text-3xl text-blue-600 hover:text-blue-800" />
                         </a>
                         <a href="https://youtube.com/YourAcademy" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
@@ -110,10 +110,7 @@ const Footer = ()  => {
           Submit
         </button>
       </form>
-       {/* Success message */}
-       {successMessage && (
-        <p className="success-message">{successMessage}</p>
-      )}
+      
                 </div>
             </div>
             <p className="mt-10 text-gray-500">&copy; {new Date().getFullYear()} AnaaQuran Academy. All rights reserved.</p>
