@@ -32,6 +32,7 @@ const CoursesSection = () => {
               src={course.imageUrl}
               alt={course.title}
               className="w-full h-48 object-cover"
+              fill
             />
             <div className="p-6 bg-white">
               <h3 className="text-2xl font-bold">{course.title}</h3>
