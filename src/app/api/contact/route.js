@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import "../../../../envConfig.ts";
 
 export async function POST(request) {
   const { name, email, message } = await request.json();
