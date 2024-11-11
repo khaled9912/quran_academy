@@ -4,7 +4,7 @@ export async function POST(request) {
   const { name, email, message } = await request.json();
   const mailData = {
     from: email,
-    to: process.env.NEXT_PUBLIC_RECEIVER_EMAIL,
+    to: process.env.RECEIVER_EMAIL,
     subject: `You have a new message from ${name}`,
     text: message + " | Sent from: " + email,
     html: `<div>${message}</div><p>Sent from:
@@ -16,19 +16,46 @@ export async function POST(request) {
     process.env.NEXT_PUBLIC_EMAIL_APP_PASSWORD,
     mailData
   );
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
 
+  const transporter = nodemailer.createTransport({
+    port: 465,
+    host: "smtp.gmail.com",
     auth: {
-      user: process.env.NEXT_PUBLIC_EMAIL_USER,
-      pass: process.env.NEXT_PUBLIC_EMAIL_APP_PASSWORD,
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_APP_PASSWORD,
     },
     secure: true,
   });
 
-  transporter.sendMail(mailData, function (err, info) {
-    if (err) console.log(err);
-    else console.log(info);
+  console.log(
+    "env",
+    process.env.EMAIL_USER,
+    process.env.EMAIL_APP_PASSWORD,
+    mailData
+  );
+  await new Promise((resolve, reject) => {
+    // verify connection configuration
+    transporter.verify(function (error, success) {
+      if (error) {
+        console.log(error);
+        reject(error);
+      } else {
+        console.log("Server is ready to take our messages");
+        resolve(success);
+      }
+    });
+  });
+  await new Promise((resolve, reject) => {
+    // send mail
+    transporter.sendMail(mailData, (err, info) => {
+      if (err) {
+        console.error(err);
+        reject(err);
+      } else {
+        console.log(info);
+        resolve(info);
+      }
+    });
   });
 
   return new Response(
