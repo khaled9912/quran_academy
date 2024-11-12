@@ -14,9 +14,11 @@ const Footer = () => {
   } = useForm();
   const [successMessage, setSuccessMessage] = useState("");
   const [showAlert, setShowAlert] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const onSubmit = (e) => {
     let data = getValues();
+    setLoading(true);
 
     fetch("/api/contact", {
       method: "POST",
@@ -27,6 +29,7 @@ const Footer = () => {
       body: JSON.stringify(data),
     })
       .then((res) => {
+        setLoading(false);
         console.log("Response received");
         if (res.status === 200) {
           console.log("Response succeeded!");
@@ -138,8 +141,9 @@ const Footer = () => {
             <button
               type="submit"
               className="p-2 bg-green-500 text-white rounded  mt-4"
+              disabled={loading}
             >
-              Submit
+              {loading ? "Loading..." : "Submit"}
             </button>
           </form>
         </div>
