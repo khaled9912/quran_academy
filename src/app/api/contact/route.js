@@ -4,7 +4,7 @@ export async function POST(request) {
   const { name, email, message } = await request.json();
   const mailData = {
     from: email,
-    to: process.env.RECEIVER_EMAIL,
+    to: process.env.EMAIL_USER,
     subject: `You have a new message from ${name}`,
     text: message + " | Sent from: " + email,
     html: `<div>${message}</div><p>Sent from:
@@ -12,25 +12,16 @@ export async function POST(request) {
   };
 
   const transporter = nodemailer.createTransport({
-    service: "gmail",
-
+    port: 465,
+    host: "smtp.gmail.com",
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_APP_PASSWORD,
     },
     secure: true,
   });
-  console.log(
-    "env",
-    process.env.EMAIL_USER,
-    process.env.EMAIL_APP_PASSWORD,
-    mailData
-  );
 
-  transporter.sendMail(mailData, function (err, info) {
-    if (err) console.log(err);
-    else console.log(info);
-  });
+  await transporter.sendMail(mailData);
 
   return new Response(
     JSON.stringify({ message: "Form submitted successfully!" }),
