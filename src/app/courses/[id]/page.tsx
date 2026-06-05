@@ -3,7 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { FaClock, FaUser, FaBook, FaArrowLeft, FaCheckCircle } from "react-icons/fa";
+import {
+  FaClock,
+  FaUser,
+  FaBook,
+  FaArrowLeft,
+  FaCheckCircle,
+} from "react-icons/fa";
 
 interface CourseDetailData {
   id: number;
@@ -100,8 +106,7 @@ const getCourseData = (id: string): CourseDetailData => {
     "4": {
       id: 4,
       title: "Quranic Arabic for Beginners",
-      description:
-        "Understand the Arabic used in the Quran.",
+      description: "Understand the Arabic used in the Quran.",
       fullDescription:
         "This course teaches the classical Arabic found in the Quran. Learn vocabulary specific to Quranic texts, grammatical structures unique to Quranic language, and translation techniques to better understand the meaning of the Quran.",
       teacher: "Dr. Layla Hassan",
@@ -184,7 +189,10 @@ const CourseDetailPage = ({ params }: { params: { id: string } }) => {
     <div className="min-h-screen bg-background text-foreground pt-24 pb-16">
       <div className="max-w-5xl mx-auto px-4 md:px-8 lg:px-16">
         {/* Back Button */}
-        <Link href="/courses" className="inline-flex items-center gap-2 text-green-500 hover:text-green-600 mb-8">
+        <Link
+          href="/courses"
+          className="inline-flex items-center gap-2 text-green-500 hover:text-green-600 mb-8"
+        >
           <FaArrowLeft />
           <span>Back to Courses</span>
         </Link>
@@ -203,14 +211,18 @@ const CourseDetailPage = ({ params }: { params: { id: string } }) => {
             </div>
 
             <h1 className="text-4xl font-bold mb-4">{course.title}</h1>
-            <p className="text-lg text-foreground opacity-80 mb-6">{course.description}</p>
+            <p className="text-lg text-foreground opacity-80 mb-6">
+              {course.description}
+            </p>
 
             {/* Instructor Info */}
             <div className="bg-card-bg border border-card-border rounded-lg p-6 mb-8">
               <div className="flex items-center gap-3 mb-4">
                 <FaUser className="text-green-500 text-xl" />
                 <div>
-                  <p className="text-sm text-foreground opacity-70">Instructor</p>
+                  <p className="text-sm text-foreground opacity-70">
+                    Instructor
+                  </p>
                   <p className="text-lg font-semibold">{course.teacher}</p>
                 </div>
               </div>
@@ -234,9 +246,11 @@ const CourseDetailPage = ({ params }: { params: { id: string } }) => {
               </p>
             </div>
 
-            {/* What You'll Learn */}
+            {/* What You&apos;ll Learn */}
             <div className="bg-card-bg border border-card-border rounded-lg p-8">
-              <h2 className="text-2xl font-semibold mb-6">What You'll Learn</h2>
+              <h2 className="text-2xl font-semibold mb-6">
+                What You&apos;ll Learn
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {course.learningPoints.map((point, index) => (
                   <div key={index} className="flex gap-3">
@@ -254,7 +268,9 @@ const CourseDetailPage = ({ params }: { params: { id: string } }) => {
             <div className="bg-card-bg border border-card-border rounded-lg p-6 sticky top-24 space-y-4">
               <div>
                 <p className="text-sm text-foreground opacity-70 mb-1">Price</p>
-                <p className="text-2xl font-bold text-green-500">{course.price}</p>
+                <p className="text-2xl font-bold text-green-500">
+                  {course.price}
+                </p>
               </div>
 
               <div className="border-t border-card-border pt-4">
@@ -264,14 +280,20 @@ const CourseDetailPage = ({ params }: { params: { id: string } }) => {
                 </div>
                 <div className="flex items-center gap-2 text-foreground opacity-80">
                   <FaBook className="text-green-500" />
-                  <span className="text-sm">{course.enrolled} students enrolled</span>
+                  <span className="text-sm">
+                    {course.enrolled} students enrolled
+                  </span>
                 </div>
               </div>
 
               {/* Schedule */}
               <div className="border-t border-card-border pt-4">
-                <p className="text-sm text-foreground opacity-70 mb-2">Schedule</p>
-                <p className="text-foreground opacity-90 font-semibold">{course.schedule}</p>
+                <p className="text-sm text-foreground opacity-70 mb-2">
+                  Schedule
+                </p>
+                <p className="text-foreground opacity-90 font-semibold">
+                  {course.schedule}
+                </p>
               </div>
 
               <button className="w-full px-6 py-3 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white rounded-lg font-semibold transition">

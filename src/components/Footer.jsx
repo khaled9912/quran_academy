@@ -62,7 +62,9 @@ const Footer = () => {
         <div className="flex flex-col justify-center items-center md:items-start p-6 space-y-4">
           <div className="flex items-center space-x-2">
             <FaHandPeace className="text-3xl text-yellow-500" />
-            <h2 className="text-4xl font-semibold text-green-500 dark:text-green-400">Reach Out</h2>
+            <h2 className="text-4xl font-semibold text-green-500 dark:text-green-400">
+              Reach Out
+            </h2>
           </div>
           <p className="text-xl text-foreground">
             Ready to start your Quran journey today? We are here to help you
@@ -95,19 +97,25 @@ const Footer = () => {
             className="flex flex-col gap-4 mt-4"
           >
             <div className="flex flex-col">
-              <label htmlFor="name" className="text-foreground">Name</label>
+              <label htmlFor="name" className="text-foreground">
+                Name
+              </label>
               <input
                 id="name"
                 {...register("name", { required: "Name is required" })}
                 className="p-2 border border-card-border rounded bg-card-bg text-foreground focus:outline-none focus:border-green-500"
               />
               {errors.name && (
-                <span className="text-red-500 dark:text-red-400">{errors.name.message}</span>
+                <span className="text-red-500 dark:text-red-400">
+                  {errors.name.message}
+                </span>
               )}
             </div>
 
             <div className="flex flex-col">
-              <label htmlFor="email" className="text-foreground">Email</label>
+              <label htmlFor="email" className="text-foreground">
+                Email
+              </label>
               <input
                 id="email"
                 type="email"
@@ -121,12 +129,16 @@ const Footer = () => {
                 className="p-2 border border-card-border rounded bg-card-bg text-foreground focus:outline-none focus:border-green-500"
               />
               {errors.email && (
-                <span className="text-red-500 dark:text-red-400">{errors.email.message}</span>
+                <span className="text-red-500 dark:text-red-400">
+                  {errors.email.message}
+                </span>
               )}
             </div>
 
             <div className="flex flex-col">
-              <label htmlFor="message" className="text-foreground">Message</label>
+              <label htmlFor="message" className="text-foreground">
+                Message
+              </label>
               <textarea
                 id="message"
                 {...register("message", { required: "Message is required" })}
@@ -134,7 +146,9 @@ const Footer = () => {
                 rows="4"
               />
               {errors.message && (
-                <span className="text-red-500 dark:text-red-400">{errors.message.message}</span>
+                <span className="text-red-500 dark:text-red-400">
+                  {errors.message.message}
+                </span>
               )}
             </div>
 
@@ -149,8 +163,7 @@ const Footer = () => {
         </div>
       </div>
       <p className="mt-10 text-foreground opacity-70">
-        &copy; {new Date().getFullYear()} Rayan Academy. All rights
-        reserved.
+        &copy; {new Date().getFullYear()} Rayan Academy. All rights reserved.
       </p>
     </section>
   );

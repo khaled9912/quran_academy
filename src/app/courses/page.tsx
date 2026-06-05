@@ -99,7 +99,9 @@ const CoursesPage = () => {
     },
   ]);
 
-  const categories = [...new Set(courses.map((c) => c.category))];
+  const categories = courses
+    .map((c) => c.category)
+    .filter((category, index, arr) => arr.indexOf(category) === index);
 
   return (
     <div className="min-h-screen bg-background text-foreground pt-24 pb-16">
@@ -108,7 +110,8 @@ const CoursesPage = () => {
         <div className="mb-12">
           <h1 className="text-4xl font-bold mb-4">Our Courses</h1>
           <p className="text-lg text-foreground opacity-75">
-            Explore our comprehensive selection of Islamic and Arabic courses, designed for all levels.
+            Explore our comprehensive selection of Islamic and Arabic courses,
+            designed for all levels.
           </p>
         </div>
 
@@ -148,7 +151,9 @@ const CoursesPage = () => {
                   <div className="mb-3 pb-3 border-b border-card-border">
                     <div className="flex items-center gap-2 text-sm">
                       <FaUser className="text-green-500" />
-                      <span className="text-foreground opacity-75">{course.teacher}</span>
+                      <span className="text-foreground opacity-75">
+                        {course.teacher}
+                      </span>
                     </div>
                   </div>
 
@@ -156,7 +161,9 @@ const CoursesPage = () => {
                   <div className="mb-4">
                     <div className="flex items-start gap-2 text-sm">
                       <FaClock className="text-green-500 mt-0.5" />
-                      <span className="text-foreground opacity-75">{course.schedule}</span>
+                      <span className="text-foreground opacity-75">
+                        {course.schedule}
+                      </span>
                     </div>
                   </div>
 
@@ -181,15 +188,21 @@ const CoursesPage = () => {
           <h2 className="text-2xl font-semibold mb-6">Course Categories</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {categories.map((category) => {
-              const categoryCount = courses.filter((c) => c.category === category).length;
+              const categoryCount = courses.filter(
+                (c) => c.category === category
+              ).length;
               return (
                 <div
                   key={category}
                   className="border border-card-border rounded-lg p-6 hover:border-green-500 transition text-center"
                 >
                   <h3 className="text-lg font-semibold mb-2">{category}</h3>
-                  <p className="text-3xl font-bold text-green-500">{categoryCount}</p>
-                  <p className="text-foreground opacity-70 text-sm mt-2">courses available</p>
+                  <p className="text-3xl font-bold text-green-500">
+                    {categoryCount}
+                  </p>
+                  <p className="text-foreground opacity-70 text-sm mt-2">
+                    courses available
+                  </p>
                 </div>
               );
             })}

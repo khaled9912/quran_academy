@@ -35,7 +35,9 @@ const CoursesSection = () => {
               fill
             />
             <div className="p-6 bg-card-bg">
-              <h3 className="text-2xl font-bold text-foreground">{course.title}</h3>
+              <h3 className="text-2xl font-bold text-foreground">
+                {course.title}
+              </h3>
               <p className="mt-4 text-foreground">{course.description}</p>
             </div>
           </div>

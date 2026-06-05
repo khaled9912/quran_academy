@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { FaClock, FaCalendar, FaUser, FaBook, FaArrowLeft } from "react-icons/fa";
+import {
+  FaClock,
+  FaCalendar,
+  FaUser,
+  FaBook,
+  FaArrowLeft,
+} from "react-icons/fa";
 
 interface ClassSession {
   id: number;
@@ -17,7 +23,15 @@ interface ClassSession {
   meetLink: string;
 }
 
-const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const DAYS_OF_WEEK = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
 
 const TIME_SLOTS = [
   "8:00 AM",
@@ -175,7 +189,9 @@ const StudentSchedulePage = () => {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
 
-  const courses = [...new Set(CLASS_SESSIONS.map((session) => session.courseTitle))];
+  const courses = CLASS_SESSIONS.map((session) => session.courseTitle).filter(
+    (course, index, arr) => arr.indexOf(course) === index
+  );
 
   const [joinedSessions, setJoinedSessions] = useState<number[]>([]);
 
@@ -193,11 +209,13 @@ const StudentSchedulePage = () => {
   };
 
   const getSessionsByDay = (day: string) => {
-    return CLASS_SESSIONS.filter((session) => session.day === day).sort((a, b) => {
-      const timeA = parseInt(a.time);
-      const timeB = parseInt(b.time);
-      return timeA - timeB;
-    });
+    return CLASS_SESSIONS.filter((session) => session.day === day).sort(
+      (a, b) => {
+        const timeA = parseInt(a.time);
+        const timeB = parseInt(b.time);
+        return timeA - timeB;
+      }
+    );
   };
 
   return (
@@ -205,7 +223,10 @@ const StudentSchedulePage = () => {
       <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16">
         {/* Header */}
         <div className="mb-8">
-          <Link href="/student-dashboard" className="inline-flex items-center gap-2 text-green-500 hover:text-green-600 mb-4">
+          <Link
+            href="/student-dashboard"
+            className="inline-flex items-center gap-2 text-green-500 hover:text-green-600 mb-4"
+          >
             <FaArrowLeft />
             <span>Back to Dashboard</span>
           </Link>
@@ -277,18 +298,31 @@ const StudentSchedulePage = () => {
               <h3 className="text-xl font-semibold mb-4">Schedule Summary</h3>
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-foreground opacity-70 mb-1">Total Classes</p>
-                  <p className="text-3xl font-bold text-green-500">{CLASS_SESSIONS.length}</p>
+                  <p className="text-sm text-foreground opacity-70 mb-1">
+                    Total Classes
+                  </p>
+                  <p className="text-3xl font-bold text-green-500">
+                    {CLASS_SESSIONS.length}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm text-foreground opacity-70 mb-1">Filtered Results</p>
-                  <p className="text-3xl font-bold text-green-500">{filteredSessions.length}</p>
+                  <p className="text-sm text-foreground opacity-70 mb-1">
+                    Filtered Results
+                  </p>
+                  <p className="text-3xl font-bold text-green-500">
+                    {filteredSessions.length}
+                  </p>
                 </div>
                 <div className="pt-4 border-t border-card-border">
-                  <p className="text-sm font-semibold text-foreground mb-2">Your Courses</p>
+                  <p className="text-sm font-semibold text-foreground mb-2">
+                    Your Courses
+                  </p>
                   <div className="space-y-2">
                     {courses.slice(0, 3).map((course) => (
-                      <p key={course} className="text-sm text-foreground opacity-75 line-clamp-2">
+                      <p
+                        key={course}
+                        className="text-sm text-foreground opacity-75 line-clamp-2"
+                      >
                         • {course}
                       </p>
                     ))}
@@ -324,12 +358,18 @@ const StudentSchedulePage = () => {
                               key={session.id}
                               className="text-sm border-l-4 border-green-500 pl-3 py-2"
                             >
-                              <p className="font-semibold text-foreground">{session.time}</p>
-                              <p className="text-foreground opacity-70 text-xs">{session.courseTitle}</p>
+                              <p className="font-semibold text-foreground">
+                                {session.time}
+                              </p>
+                              <p className="text-foreground opacity-70 text-xs">
+                                {session.courseTitle}
+                              </p>
                             </div>
                           ))
                         ) : (
-                          <p className="text-foreground opacity-50 text-sm">No classes scheduled</p>
+                          <p className="text-foreground opacity-50 text-sm">
+                            No classes scheduled
+                          </p>
                         )}
                       </div>
                     </div>
@@ -350,19 +390,27 @@ const StudentSchedulePage = () => {
                     >
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <h3 className="text-xl font-semibold mb-4">{session.courseTitle}</h3>
+                          <h3 className="text-xl font-semibold mb-4">
+                            {session.courseTitle}
+                          </h3>
                           <div className="space-y-3">
                             <div className="flex items-center gap-3">
                               <FaUser className="text-green-500" />
                               <div>
-                                <p className="text-sm text-foreground opacity-70">Instructor</p>
-                                <p className="font-semibold">{session.teacher}</p>
+                                <p className="text-sm text-foreground opacity-70">
+                                  Instructor
+                                </p>
+                                <p className="font-semibold">
+                                  {session.teacher}
+                                </p>
                               </div>
                             </div>
                             <div className="flex items-center gap-3">
                               <FaClock className="text-green-500" />
                               <div>
-                                <p className="text-sm text-foreground opacity-70">Time</p>
+                                <p className="text-sm text-foreground opacity-70">
+                                  Time
+                                </p>
                                 <p className="font-semibold">
                                   {session.time} - {session.endTime}
                                 </p>
@@ -371,7 +419,9 @@ const StudentSchedulePage = () => {
                             <div className="flex items-center gap-3">
                               <FaCalendar className="text-green-500" />
                               <div>
-                                <p className="text-sm text-foreground opacity-70">Location</p>
+                                <p className="text-sm text-foreground opacity-70">
+                                  Location
+                                </p>
                                 <p className="font-semibold">{session.room}</p>
                               </div>
                             </div>
@@ -390,7 +440,10 @@ const StudentSchedulePage = () => {
                                   {session.students}/{session.capacity}
                                 </p>
                                 <p className="text-sm font-semibold text-green-600 dark:text-green-400">
-                                  {Math.round((session.students / session.capacity) * 100)}%
+                                  {Math.round(
+                                    (session.students / session.capacity) * 100
+                                  )}
+                                  %
                                 </p>
                               </div>
                               <div className="w-full bg-gray-300 dark:bg-gray-600 rounded-full h-3">
@@ -403,14 +456,17 @@ const StudentSchedulePage = () => {
                               </div>
                             </div>
                             <p className="text-sm text-foreground opacity-70">
-                              {session.capacity - session.students} spots available
+                              {session.capacity - session.students} spots
+                              available
                             </p>
                           </div>
 
                           <div className="space-y-3">
                             <button
                               type="button"
-                              onClick={() => handleJoinSession(session.id, session.meetLink)}
+                              onClick={() =>
+                                handleJoinSession(session.id, session.meetLink)
+                              }
                               className={`w-full px-4 py-3 rounded-lg font-semibold transition ${
                                 session.students < session.capacity
                                   ? "bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white"
@@ -422,8 +478,12 @@ const StudentSchedulePage = () => {
                                 ? "Class Full"
                                 : "Join Class"}
                             </button>
-                            <p className={`text-sm font-semibold ${joinedSessions.includes(session.id) ? "text-green-600" : "text-gray-500"}`}>
-                              {joinedSessions.includes(session.id) ? "Joined link clicked" : "Not joined yet"}
+                            <p
+                              className={`text-sm font-semibold ${joinedSessions.includes(session.id) ? "text-green-600" : "text-gray-500"}`}
+                            >
+                              {joinedSessions.includes(session.id)
+                                ? "Joined link clicked"
+                                : "Not joined yet"}
                             </p>
                           </div>
                         </div>
@@ -432,7 +492,9 @@ const StudentSchedulePage = () => {
                   ))
                 ) : (
                   <div className="bg-card-bg border border-card-border rounded-lg p-12 text-center">
-                    <p className="text-foreground opacity-70 text-lg">No classes match your filters</p>
+                    <p className="text-foreground opacity-70 text-lg">
+                      No classes match your filters
+                    </p>
                   </div>
                 )}
               </div>

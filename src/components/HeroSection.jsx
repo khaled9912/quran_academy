@@ -1,7 +1,9 @@
 const HeroSection = () => {
   return (
     <section className="text-center p-10">
-      <h1 className="text-4xl font-bold text-foreground">Welcome to Rayan Academy</h1>
+      <h1 className="text-4xl font-bold text-foreground">
+        Welcome to Rayan Academy
+      </h1>
       <p className="text-lg mt-4 text-foreground">
         Your path to learning the Quran and Arabic with ease.
       </p>

@@ -32,7 +32,15 @@ interface NewTimeSlot {
   capacity: number;
 }
 
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const DAYS = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
 const TIME_SLOTS = [
   "8:00 AM",
   "9:00 AM",
@@ -93,7 +101,9 @@ const TeacherSchedulePage = () => {
     capacity: 25,
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -158,11 +168,13 @@ const TeacherSchedulePage = () => {
   };
 
   const getSlotsByDay = (day: string) => {
-    return timeSlots.filter((slot) => slot.day === day).sort((a, b) => {
-      const timeA = parseInt(a.time);
-      const timeB = parseInt(b.time);
-      return timeA - timeB;
-    });
+    return timeSlots
+      .filter((slot) => slot.day === day)
+      .sort((a, b) => {
+        const timeA = parseInt(a.time);
+        const timeB = parseInt(b.time);
+        return timeA - timeB;
+      });
   };
 
   return (
@@ -170,7 +182,10 @@ const TeacherSchedulePage = () => {
       <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16">
         {/* Header */}
         <div className="mb-8">
-          <Link href="/student-dashboard" className="inline-flex items-center gap-2 text-green-500 hover:text-green-600 mb-4">
+          <Link
+            href="/student-dashboard"
+            className="inline-flex items-center gap-2 text-green-500 hover:text-green-600 mb-4"
+          >
             <FaArrowLeft />
             <span>Back</span>
           </Link>
@@ -198,24 +213,36 @@ const TeacherSchedulePage = () => {
               <h3 className="text-xl font-semibold mb-4">Schedule Overview</h3>
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-foreground opacity-70 mb-1">Total Time Slots</p>
-                  <p className="text-3xl font-bold text-green-500">{timeSlots.length}</p>
+                  <p className="text-sm text-foreground opacity-70 mb-1">
+                    Total Time Slots
+                  </p>
+                  <p className="text-3xl font-bold text-green-500">
+                    {timeSlots.length}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm text-foreground opacity-70 mb-1">Total Capacity</p>
+                  <p className="text-sm text-foreground opacity-70 mb-1">
+                    Total Capacity
+                  </p>
                   <p className="text-3xl font-bold text-green-500">
                     {timeSlots.reduce((sum, slot) => sum + slot.capacity, 0)}
                   </p>
                 </div>
                 <div className="pt-4 border-t border-card-border">
-                  <p className="text-sm font-semibold text-foreground mb-2">By Day</p>
+                  <p className="text-sm font-semibold text-foreground mb-2">
+                    By Day
+                  </p>
                   <div className="space-y-2">
                     {DAYS.map((day) => {
                       const count = getSlotsByDay(day).length;
                       return count > 0 ? (
                         <div key={day} className="flex justify-between text-sm">
-                          <span className="text-foreground opacity-75">{day}</span>
-                          <span className="font-semibold text-green-500">{count}</span>
+                          <span className="text-foreground opacity-75">
+                            {day}
+                          </span>
+                          <span className="font-semibold text-green-500">
+                            {count}
+                          </span>
                         </div>
                       ) : null;
                     })}
@@ -374,7 +401,10 @@ const TeacherSchedulePage = () => {
               {DAYS.map((day) => {
                 const daySlots = getSlotsByDay(day);
                 return (
-                  <div key={day} className="bg-card-bg border border-card-border rounded-lg p-6">
+                  <div
+                    key={day}
+                    className="bg-card-bg border border-card-border rounded-lg p-6"
+                  >
                     <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
                       <FaCalendar className="text-green-500" />
                       {day}
@@ -389,7 +419,9 @@ const TeacherSchedulePage = () => {
                           >
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div>
-                                <p className="font-semibold text-lg mb-2">{slot.courseTitle}</p>
+                                <p className="font-semibold text-lg mb-2">
+                                  {slot.courseTitle}
+                                </p>
                                 <div className="space-y-2 text-sm text-foreground opacity-75">
                                   <div className="flex items-center gap-2">
                                     <FaClock className="text-green-500" />
@@ -429,7 +461,9 @@ const TeacherSchedulePage = () => {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-foreground opacity-50">No classes scheduled for {day}</p>
+                      <p className="text-foreground opacity-50">
+                        No classes scheduled for {day}
+                      </p>
                     )}
                   </div>
                 );

@@ -27,21 +27,24 @@ const StudentDashboard = () => {
       title: "Quran Reading Basics",
       instructor: "Sheikh Ahmed",
       progress: 65,
-      thumbnail: "https://images.pexels.com/photos/16066399/pexels-photo-16066399/free-photo-of-man-reading-koran.jpeg",
+      thumbnail:
+        "https://images.pexels.com/photos/16066399/pexels-photo-16066399/free-photo-of-man-reading-koran.jpeg",
     },
     {
       id: 2,
       title: "Arabic Language Fundamentals",
       instructor: "Sister Fatima",
       progress: 45,
-      thumbnail: "https://images.pexels.com/photos/8522576/pexels-photo-8522576.jpeg",
+      thumbnail:
+        "https://images.pexels.com/photos/8522576/pexels-photo-8522576.jpeg",
     },
     {
       id: 3,
       title: "Islamic Studies",
       instructor: "Sheikh Mohammad",
       progress: 80,
-      thumbnail: "https://images.pexels.com/photos/2608353/pexels-photo-2608353.jpeg",
+      thumbnail:
+        "https://images.pexels.com/photos/2608353/pexels-photo-2608353.jpeg",
     },
   ]);
 
@@ -84,7 +87,9 @@ const StudentDashboard = () => {
         {/* Header */}
         <div className="mb-12">
           <h1 className="text-4xl font-bold mb-2">Student Dashboard</h1>
-          <p className="text-lg text-foreground opacity-75">Welcome back! Here's your learning overview.</p>
+          <p className="text-lg text-foreground opacity-75">
+            Welcome back! Here&apos;s your learning overview.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -117,8 +122,12 @@ const StudentDashboard = () => {
                         <p className="text-sm text-green-500 font-semibold uppercase">
                           {lesson.courseTitle}
                         </p>
-                        <h3 className="text-lg font-semibold mt-2">{lesson.topicTitle}</h3>
-                        <p className="text-foreground opacity-70 mt-2">{lesson.scheduledTime}</p>
+                        <h3 className="text-lg font-semibold mt-2">
+                          {lesson.topicTitle}
+                        </h3>
+                        <p className="text-foreground opacity-70 mt-2">
+                          {lesson.scheduledTime}
+                        </p>
                       </div>
                       <div className="flex flex-col items-end gap-2">
                         <button
@@ -128,8 +137,12 @@ const StudentDashboard = () => {
                         >
                           Join Class
                         </button>
-                        <span className={`text-sm font-semibold ${joinedLessons.includes(lesson.id) ? "text-green-600" : "text-gray-500"}`}>
-                          {joinedLessons.includes(lesson.id) ? "Present" : "Not joined"}
+                        <span
+                          className={`text-sm font-semibold ${joinedLessons.includes(lesson.id) ? "text-green-600" : "text-gray-500"}`}
+                        >
+                          {joinedLessons.includes(lesson.id)
+                            ? "Present"
+                            : "Not joined"}
                         </span>
                       </div>
                     </div>
@@ -164,7 +177,9 @@ const StudentDashboard = () => {
                       {/* Progress Bar */}
                       <div className="mt-4">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-sm text-foreground opacity-75">Progress</span>
+                          <span className="text-sm text-foreground opacity-75">
+                            Progress
+                          </span>
                           <span className="text-sm font-semibold text-green-500">
                             {course.progress}%
                           </span>
@@ -194,19 +209,31 @@ const StudentDashboard = () => {
               <h3 className="text-lg font-semibold mb-4">Quick Stats</h3>
               <div className="space-y-4">
                 <div>
-                  <p className="text-foreground opacity-70 text-sm">Enrolled Courses</p>
-                  <p className="text-3xl font-bold text-green-500">{myCourses.length}</p>
+                  <p className="text-foreground opacity-70 text-sm">
+                    Enrolled Courses
+                  </p>
+                  <p className="text-3xl font-bold text-green-500">
+                    {myCourses.length}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-foreground opacity-70 text-sm">Upcoming Classes</p>
-                  <p className="text-3xl font-bold text-green-500">{upcomingLessons.length}</p>
+                  <p className="text-foreground opacity-70 text-sm">
+                    Upcoming Classes
+                  </p>
+                  <p className="text-3xl font-bold text-green-500">
+                    {upcomingLessons.length}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-foreground opacity-70 text-sm">Average Progress</p>
+                  <p className="text-foreground opacity-70 text-sm">
+                    Average Progress
+                  </p>
                   <p className="text-3xl font-bold text-green-500">
                     {Math.round(
-                      myCourses.reduce((sum, course) => sum + course.progress, 0) /
-                        myCourses.length
+                      myCourses.reduce(
+                        (sum, course) => sum + course.progress,
+                        0
+                      ) / myCourses.length
                     )}
                     %
                   </p>
