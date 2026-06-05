@@ -29,6 +29,11 @@ const Navbar = () => {
             <Link href="#contacts">Contacts</Link>
           </div>
         </div>
+        <Link href="/student-dashboard">
+          <button className="px-4 py-2 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white rounded font-semibold transition">
+            Student Dashboard
+          </button>
+        </Link>
       </div>
     </div>
   );
