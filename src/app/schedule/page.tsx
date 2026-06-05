@@ -14,6 +14,7 @@ interface ClassSession {
   room: string;
   students: number;
   capacity: number;
+  meetLink: string;
 }
 
 const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -46,6 +47,7 @@ const CLASS_SESSIONS: ClassSession[] = [
     room: "Room A",
     students: 25,
     capacity: 30,
+    meetLink: "https://zoom.us/j/example",
   },
   {
     id: 2,
@@ -57,6 +59,7 @@ const CLASS_SESSIONS: ClassSession[] = [
     room: "Room B",
     students: 20,
     capacity: 25,
+    meetLink: "https://meet.google.com/example",
   },
   {
     id: 3,
@@ -68,6 +71,7 @@ const CLASS_SESSIONS: ClassSession[] = [
     room: "Room A",
     students: 25,
     capacity: 30,
+    meetLink: "https://zoom.us/j/example",
   },
   {
     id: 4,
@@ -79,6 +83,7 @@ const CLASS_SESSIONS: ClassSession[] = [
     room: "Room B",
     students: 20,
     capacity: 25,
+    meetLink: "https://meet.google.com/example",
   },
   {
     id: 5,
@@ -90,6 +95,7 @@ const CLASS_SESSIONS: ClassSession[] = [
     room: "Room C",
     students: 30,
     capacity: 35,
+    meetLink: "https://zoom.us/j/example2",
   },
   {
     id: 6,
@@ -101,6 +107,7 @@ const CLASS_SESSIONS: ClassSession[] = [
     room: "Room C",
     students: 30,
     capacity: 35,
+    meetLink: "https://zoom.us/j/example2",
   },
   {
     id: 7,
@@ -112,6 +119,7 @@ const CLASS_SESSIONS: ClassSession[] = [
     room: "Room D",
     students: 18,
     capacity: 22,
+    meetLink: "https://meet.google.com/example2",
   },
   {
     id: 8,
@@ -123,6 +131,7 @@ const CLASS_SESSIONS: ClassSession[] = [
     room: "Room D",
     students: 18,
     capacity: 22,
+    meetLink: "https://meet.google.com/example2",
   },
   {
     id: 9,
@@ -134,6 +143,7 @@ const CLASS_SESSIONS: ClassSession[] = [
     room: "Room A",
     students: 12,
     capacity: 15,
+    meetLink: "https://zoom.us/j/example3",
   },
   {
     id: 10,
@@ -145,6 +155,7 @@ const CLASS_SESSIONS: ClassSession[] = [
     room: "Room E",
     students: 22,
     capacity: 28,
+    meetLink: "https://meet.google.com/example3",
   },
   {
     id: 11,
@@ -156,6 +167,7 @@ const CLASS_SESSIONS: ClassSession[] = [
     room: "Room E",
     students: 22,
     capacity: 28,
+    meetLink: "https://meet.google.com/example3",
   },
 ];
 
@@ -165,11 +177,20 @@ const StudentSchedulePage = () => {
 
   const courses = [...new Set(CLASS_SESSIONS.map((session) => session.courseTitle))];
 
+  const [joinedSessions, setJoinedSessions] = useState<number[]>([]);
+
   const filteredSessions = CLASS_SESSIONS.filter((session) => {
     if (selectedDay && session.day !== selectedDay) return false;
     if (selectedCourse && session.courseTitle !== selectedCourse) return false;
     return true;
   });
+
+  const handleJoinSession = (sessionId: number, link: string) => {
+    if (!joinedSessions.includes(sessionId)) {
+      setJoinedSessions((prev) => [...prev, sessionId]);
+    }
+    window.open(link, "_blank");
+  };
 
   const getSessionsByDay = (day: string) => {
     return CLASS_SESSIONS.filter((session) => session.day === day).sort((a, b) => {
@@ -386,18 +407,25 @@ const StudentSchedulePage = () => {
                             </p>
                           </div>
 
-                          <button
-                            className={`w-full px-4 py-3 rounded-lg font-semibold transition ${
-                              session.students < session.capacity
-                                ? "bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white"
-                                : "bg-gray-400 text-gray-600 cursor-not-allowed opacity-50"
-                            }`}
-                            disabled={session.students >= session.capacity}
-                          >
-                            {session.students >= session.capacity
-                              ? "Class Full"
-                              : "Join Class"}
-                          </button>
+                          <div className="space-y-3">
+                            <button
+                              type="button"
+                              onClick={() => handleJoinSession(session.id, session.meetLink)}
+                              className={`w-full px-4 py-3 rounded-lg font-semibold transition ${
+                                session.students < session.capacity
+                                  ? "bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white"
+                                  : "bg-gray-400 text-gray-600 cursor-not-allowed opacity-50"
+                              }`}
+                              disabled={session.students >= session.capacity}
+                            >
+                              {session.students >= session.capacity
+                                ? "Class Full"
+                                : "Join Class"}
+                            </button>
+                            <p className={`text-sm font-semibold ${joinedSessions.includes(session.id) ? "text-green-600" : "text-gray-500"}`}>
+                              {joinedSessions.includes(session.id) ? "Joined link clicked" : "Not joined yet"}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -21,9 +21,11 @@ const Menu = () => {
         <div className="menu-items" onClick={() => setOpen(false)}>
           <Link href="/">HomePage</Link>
           <Link href="/courses">Courses</Link>
+          <Link href="/schedule">Schedule</Link>
           <Link href="#about">About Us</Link>
           <Link href="#contacts">Contacts</Link>
           <Link href="/student-dashboard">Dashboard</Link>
+          <Link href="/admin">Admin</Link>
         </div>
       )}
     </div>

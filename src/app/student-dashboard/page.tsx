@@ -69,6 +69,15 @@ const StudentDashboard = () => {
     },
   ]);
 
+  const [joinedLessons, setJoinedLessons] = useState<number[]>([]);
+
+  const handleJoin = (lessonId: number, link: string) => {
+    if (!joinedLessons.includes(lessonId)) {
+      setJoinedLessons((prev) => [...prev, lessonId]);
+    }
+    window.open(link, "_blank");
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground pt-24 pb-16">
       <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16">
@@ -111,14 +120,18 @@ const StudentDashboard = () => {
                         <h3 className="text-lg font-semibold mt-2">{lesson.topicTitle}</h3>
                         <p className="text-foreground opacity-70 mt-2">{lesson.scheduledTime}</p>
                       </div>
-                      <a
-                        href={lesson.meetLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-4 py-2 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white rounded font-semibold transition whitespace-nowrap"
-                      >
-                        Join Class
-                      </a>
+                      <div className="flex flex-col items-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleJoin(lesson.id, lesson.meetLink)}
+                          className="px-4 py-2 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white rounded font-semibold transition whitespace-nowrap"
+                        >
+                          Join Class
+                        </button>
+                        <span className={`text-sm font-semibold ${joinedLessons.includes(lesson.id) ? "text-green-600" : "text-gray-500"}`}>
+                          {joinedLessons.includes(lesson.id) ? "Present" : "Not joined"}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 ))}
