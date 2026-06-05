@@ -12,7 +12,6 @@ const Navbar = () => {
         {/* Mobile */}
         <Link href="/" className="flex items-center gap-3">
           <Image src={LogoSVG} alt="Logo" className="rounded w-24 h-auto" />
-          <h1 className="text-blue-500">AnaaQuran</h1>
         </Link>
         <Menu />
       </div>
@@ -20,8 +19,7 @@ const Navbar = () => {
       <div className="hidden md:flex items-center justify-between gap-8 h-full">
         <div className="flex items-center gap-12  ">
           <Link href="/" className="flex items-center gap-3">
-            <Image src={LogoSVG} alt="Logo" className="rounded w-24 h-auto" />
-            <h1 className="text-blue-500">AnaaQuran</h1>
+            <Image src={LogoSVG} alt="Logo" className="rounded w-24 h-auto mt-4" />
           </Link>
           {/* LINKS */}
           <div className="hidden md:flex gap-4 ">

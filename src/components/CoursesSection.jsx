@@ -21,12 +21,12 @@ const CoursesSection = () => {
 
   return (
     <section className="p-10 text-center" id="courses">
-      <h2 className="text-3xl font-semibold">Our Courses</h2>
+      <h2 className="text-3xl font-semibold text-foreground">Our Courses</h2>
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
         {courses.map((course, index) => (
           <div
             key={index}
-            className="relative border rounded-lg shadow-lg overflow-hidden"
+            className="relative border border-card-border rounded-lg shadow-lg overflow-hidden"
           >
             <Image
               src={course.imageUrl}
@@ -34,9 +34,9 @@ const CoursesSection = () => {
               className="w-full h-48 object-cover"
               fill
             />
-            <div className="p-6 bg-white">
-              <h3 className="text-2xl font-bold">{course.title}</h3>
-              <p className="mt-4">{course.description}</p>
+            <div className="p-6 bg-card-bg">
+              <h3 className="text-2xl font-bold text-foreground">{course.title}</h3>
+              <p className="mt-4 text-foreground">{course.description}</p>
             </div>
           </div>
         ))}
