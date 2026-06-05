@@ -11,7 +11,7 @@ const Navbar = () => {
       <div className="h-full flex items-center justify-between md:hidden">
         {/* Mobile */}
         <Link href="/" className="flex items-center gap-3">
-          <Image src={LogoSVG} alt="Logo" className="rounded w-24 h-auto" />
+          <Image src={LogoSVG} alt="Logo" className="w-16 h-16" />
         </Link>
         <Menu />
       </div>
@@ -19,7 +19,7 @@ const Navbar = () => {
       <div className="hidden md:flex items-center justify-between gap-8 h-full">
         <div className="flex items-center gap-12  ">
           <Link href="/" className="flex items-center gap-3">
-            <Image src={LogoSVG} alt="Logo" className="rounded w-24 h-auto mt-4" />
+            <Image src={LogoSVG} alt="Logo" className="w-16 h-16" />
           </Link>
           {/* LINKS */}
           <div className="hidden md:flex gap-4 ">

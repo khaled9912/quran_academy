@@ -11,10 +11,10 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: #1a3a52;
     --foreground: #ededed;
-    --card-bg: #1a1a1a;
-    --card-border: #333333;
+    --card-bg: #243a52;
+    --card-border: #3a5a7a;
   }
 }
 
@@ -32,6 +32,19 @@ body {
 
 .navbar {
   @apply h-20 px-4 md:px-8 lg:px-16 xl:px-32 2xl:px-64 relative;
+  @apply sticky top-0 z-50 bg-background border-b border-card-border;
+}
+
+.navbar img {
+  mix-blend-mode: multiply;
+  opacity: 0.9;
+}
+
+@media (prefers-color-scheme: dark) {
+  .navbar img {
+    mix-blend-mode: screen;
+    opacity: 1;
+  }
 }
 
 .menu-items {
