@@ -20,9 +20,10 @@ const Menu = () => {
       {open && (
         <div className="menu-items" onClick={() => setOpen(false)}>
           <Link href="/">HomePage</Link>
+          <Link href="/courses">Courses</Link>
           <Link href="#about">About Us</Link>
-          <Link href="#courses">Courses</Link>
           <Link href="#contacts">Contacts</Link>
+          <Link href="/student-dashboard">Dashboard</Link>
         </div>
       )}
     </div>

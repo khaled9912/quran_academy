@@ -24,8 +24,8 @@ const Navbar = () => {
           {/* LINKS */}
           <div className="hidden md:flex gap-4 ">
             <Link href="/">HomePage</Link>
+            <Link href="/courses">Courses</Link>
             <Link href="#about">About Us</Link>
-            <Link href="#courses">Courses</Link>
             <Link href="#contacts">Contacts</Link>
           </div>
         </div>
