@@ -81,6 +81,19 @@ const StudentDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
+            {/* Quick Actions */}
+            <div className="grid grid-cols-2 gap-4">
+              <Link href="/schedule">
+                <button className="w-full px-4 py-3 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white rounded-lg font-semibold transition">
+                  View Schedule
+                </button>
+              </Link>
+              <Link href="/courses">
+                <button className="w-full px-4 py-3 border border-green-500 text-green-500 hover:bg-green-500 hover:text-white rounded-lg font-semibold transition">
+                  Browse Courses
+                </button>
+              </Link>
+            </div>
             {/* Upcoming Lessons */}
             <section className="bg-card-bg border border-card-border rounded-lg p-8">
               <h2 className="text-2xl font-semibold mb-6">Upcoming Lessons</h2>
