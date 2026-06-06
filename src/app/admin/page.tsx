@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase-client";
+import { backendFetch } from "@/lib/backend-client";
 
 interface Teacher {
   id: number;
@@ -87,7 +87,8 @@ const DEFAULT_ASSIGNMENTS: StudentAssignment[] = [
 const AdminPage = () => {
   const [teachers, setTeachers] = useState<Teacher[]>(DEFAULT_TEACHERS);
   const [courses, setCourses] = useState<CourseItem[]>(DEFAULT_COURSES);
-  const [assignments, setAssignments] = useState<StudentAssignment[]>(DEFAULT_ASSIGNMENTS);
+  const [assignments, setAssignments] =
+    useState<StudentAssignment[]>(DEFAULT_ASSIGNMENTS);
   const [teacherName, setTeacherName] = useState("");
   const [teacherEmail, setTeacherEmail] = useState("");
   const [teacherSubject, setTeacherSubject] = useState("");
@@ -99,27 +100,29 @@ const AdminPage = () => {
 
   useEffect(() => {
     const loadAdminData = async () => {
-      const { data: teacherData } = await supabase.from("teachers").select("*");
-      if (teacherData) {
-        setTeachers(teacherData as Teacher[]);
-      }
+      try {
+        const teacherData = await backendFetch("/api/teachers");
+        if (teacherData) {
+          setTeachers(teacherData as Teacher[]);
+        }
 
-      const { data: courseData } = await supabase.from("courses").select("*");
-      if (courseData) {
-        setCourses(courseData as CourseItem[]);
-      }
+        const courseData = await backendFetch("/api/courses");
+        if (courseData) {
+          setCourses(courseData as CourseItem[]);
+        }
 
-      const { data: assignmentData } = await supabase
-        .from("enrollments")
-        .select("*");
-      if (assignmentData) {
-        setAssignments(
-          assignmentData.map((row: any) => ({
-            id: row.id,
-            studentName: row.student_name ?? row.studentName ?? "Student",
-            courseTitle: row.course_title ?? row.courseTitle ?? "Course",
-          }))
-        );
+        const assignmentData = await backendFetch("/api/enrollments");
+        if (assignmentData) {
+          setAssignments(
+            assignmentData.map((row: any) => ({
+              id: row.id,
+              studentName: row.student_name ?? row.studentName ?? "Student",
+              courseTitle: row.course_title ?? row.courseTitle ?? "Course",
+            }))
+          );
+        }
+      } catch (error) {
+        console.warn("Unable to load admin data:", error);
       }
     };
 
@@ -130,20 +133,20 @@ const AdminPage = () => {
     e.preventDefault();
     if (!teacherName || !teacherEmail || !teacherSubject) return;
 
-    const { data, error } = await supabase
-      .from("teachers")
-      .insert([
-        {
+    try {
+      const data = await backendFetch("/api/teachers", {
+        method: "POST",
+        body: JSON.stringify({
           name: teacherName,
           email: teacherEmail,
           subject: teacherSubject,
-        },
-      ])
-      .select("*");
+        }),
+      });
 
-    if (data?.[0]) {
-      setTeachers((prev) => [...prev, data[0] as Teacher]);
-    } else {
+      if (data) {
+        setTeachers((prev) => [...prev, data as Teacher]);
+      }
+    } catch (error) {
       setTeachers((prev) => [
         ...prev,
         {
@@ -164,20 +167,20 @@ const AdminPage = () => {
     e.preventDefault();
     if (!courseTitle || !courseTeacher || !courseSchedule) return;
 
-    const { data, error } = await supabase
-      .from("courses")
-      .insert([
-        {
+    try {
+      const data = await backendFetch("/api/courses", {
+        method: "POST",
+        body: JSON.stringify({
           title: courseTitle,
           teacher: courseTeacher,
           schedule: courseSchedule,
-        },
-      ])
-      .select("*");
+        }),
+      });
 
-    if (data?.[0]) {
-      setCourses((prev) => [...prev, data[0] as CourseItem]);
-    } else {
+      if (data) {
+        setCourses((prev) => [...prev, data as CourseItem]);
+      }
+    } catch (error) {
       setCourses((prev) => [
         ...prev,
         {
@@ -198,40 +201,53 @@ const AdminPage = () => {
     e.preventDefault();
     if (!studentName || !studentCourse) return;
 
-    const { data, error } = await supabase
-      .from("enrollments")
-      .insert([
-        {
+    try {
+      const data = await backendFetch("/api/enrollments", {
+        method: "POST",
+        body: JSON.stringify({
           student_name: studentName,
           course_title: studentCourse,
-        },
-      ])
-      .select("*");
+        }),
+      });
 
-    const newAssignment = data?.[0]
-      ? {
-          id: data[0].id,
-          studentName: data[0].student_name ?? studentName,
-          courseTitle: data[0].course_title ?? studentCourse,
-        }
-      : {
-          id: Math.max(0, ...assignments.map((a) => a.id)) + 1,
-          studentName,
-          courseTitle: studentCourse,
-        };
+      const newAssignment = data
+        ? {
+            id: data.id,
+            studentName: data.student_name ?? studentName,
+            courseTitle: data.course_title ?? studentCourse,
+          }
+        : {
+            id: Math.max(0, ...assignments.map((a) => a.id)) + 1,
+            studentName,
+            courseTitle: studentCourse,
+          };
 
-    setAssignments((prev) => [...prev, newAssignment]);
-    setStudentName("");
-    setStudentCourse("");
+      setAssignments((prev) => [...prev, newAssignment]);
+      setStudentName("");
+      setStudentCourse("");
+    } catch (error) {
+      const newAssignment = {
+        id: Math.max(0, ...assignments.map((a) => a.id)) + 1,
+        studentName,
+        courseTitle: studentCourse,
+      };
+      setAssignments((prev) => [...prev, newAssignment]);
+      setStudentName("");
+      setStudentCourse("");
+    }
   };
 
   const handleRemoveTeacher = async (id: number) => {
-    await supabase.from("teachers").delete().eq("id", id);
+    await backendFetch(`/api/teachers/${id}`, {
+      method: "DELETE",
+    });
     setTeachers((prev) => prev.filter((teacher) => teacher.id !== id));
   };
 
   const handleRemoveCourse = async (id: number) => {
-    await supabase.from("courses").delete().eq("id", id);
+    await backendFetch(`/api/courses/${id}`, {
+      method: "DELETE",
+    });
     setCourses((prev) => prev.filter((course) => course.id !== id));
   };
 
@@ -282,7 +298,8 @@ const AdminPage = () => {
           <div className="bg-card-bg border border-card-border rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4">Notes</h2>
             <p className="text-sm text-foreground opacity-75">
-              This admin view now stores your changes in Supabase. Keep building on it for persistence.
+              This admin view now stores your changes in Supabase. Keep building
+              on it for persistence.
             </p>
           </div>
         </div>

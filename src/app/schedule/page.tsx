@@ -2,13 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  FaClock,
-  FaCalendar,
-  FaUser,
-  FaArrowLeft,
-} from "react-icons/fa";
-import { supabase } from "@/lib/supabase-client";
+import { FaClock, FaCalendar, FaUser, FaArrowLeft } from "react-icons/fa";
 import { backendFetch } from "@/lib/backend-client";
 
 interface ClassSession {
@@ -140,7 +134,8 @@ const StudentSchedulePage = () => {
           setSessions(
             data.map((session: any, index: number) => ({
               id: session.id ?? index,
-              courseTitle: session.course_title ?? session.courseTitle ?? "Live session",
+              courseTitle:
+                session.course_title ?? session.courseTitle ?? "Live session",
               teacher: session.teacher ?? "Teacher",
               day: session.day ?? "Monday",
               time: session.time ?? "TBD",
@@ -148,19 +143,28 @@ const StudentSchedulePage = () => {
               room: session.room ?? "Room",
               students: session.students ?? 0,
               capacity: session.capacity ?? 20,
-              meetLink: session.live_link ?? session.meet_link ?? session.meetLink ?? "#",
+              meetLink:
+                session.live_link ??
+                session.meet_link ??
+                session.meetLink ??
+                "#",
             }))
           );
         }
       } catch (error) {
-        console.warn("Unable to load sessions from backend:", error instanceof Error ? error.message : error);
+        console.warn(
+          "Unable to load sessions from backend:",
+          error instanceof Error ? error.message : error
+        );
       }
     };
 
     loadSessions();
   }, []);
 
-  const courses = Array.from(new Set(sessions.map((session) => session.courseTitle)));
+  const courses = Array.from(
+    new Set(sessions.map((session) => session.courseTitle))
+  );
 
   const filteredSessions = sessions.filter((session) => {
     if (selectedDay && session.day !== selectedDay) return false;
@@ -176,7 +180,9 @@ const StudentSchedulePage = () => {
   };
 
   const getSessionsByDay = (day: string) => {
-    return sessions.filter((session) => session.day === day).sort((a, b) => (a.time > b.time ? 1 : -1));
+    return sessions
+      .filter((session) => session.day === day)
+      .sort((a, b) => (a.time > b.time ? 1 : -1));
   };
 
   return (

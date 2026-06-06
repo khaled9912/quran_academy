@@ -118,7 +118,8 @@ const TeacherSchedulePage = () => {
           setTimeSlots(
             sessions.map((session: any, index: number) => ({
               id: session.id ?? index,
-              courseTitle: session.course_title ?? session.courseTitle ?? "Course",
+              courseTitle:
+                session.course_title ?? session.courseTitle ?? "Course",
               day: session.day ?? "Monday",
               time: session.time ?? "TBD",
               endTime: session.end_time ?? session.endTime ?? "TBD",
@@ -186,7 +187,8 @@ const TeacherSchedulePage = () => {
         }),
       });
 
-      const newId = created?.id ?? Math.max(0, ...timeSlots.map((slot) => slot.id)) + 1;
+      const newId =
+        created?.id ?? Math.max(0, ...timeSlots.map((slot) => slot.id)) + 1;
       setTimeSlots([
         ...timeSlots,
         {

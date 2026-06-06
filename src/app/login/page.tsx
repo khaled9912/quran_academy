@@ -119,7 +119,10 @@ const LoginPage = () => {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-semibold mb-2">
+            <label
+              htmlFor="password"
+              className="block text-sm font-semibold mb-2"
+            >
               Password
             </label>
             <input
@@ -134,9 +137,7 @@ const LoginPage = () => {
 
           {isRegistering && (
             <div>
-              <label className="block text-sm font-semibold mb-2">
-                Role
-              </label>
+              <label className="block text-sm font-semibold mb-2">Role</label>
               <select
                 value={role}
                 onChange={(event) => setRole(event.target.value)}
@@ -157,8 +158,8 @@ const LoginPage = () => {
             {loading
               ? "Processing..."
               : isRegistering
-              ? "Create account"
-              : "Sign in"}
+                ? "Create account"
+                : "Sign in"}
           </button>
         </form>
 
@@ -169,7 +170,7 @@ const LoginPage = () => {
         <div className="mt-8 text-center text-sm text-foreground opacity-75">
           {isRegistering ? (
             <>
-              Already a member?{' '}
+              Already a member?{" "}
               <button
                 onClick={() => setIsRegistering(false)}
                 className="font-semibold text-green-500 hover:underline"
@@ -179,7 +180,7 @@ const LoginPage = () => {
             </>
           ) : (
             <>
-              New here?{' '}
+              New here?{" "}
               <button
                 onClick={() => setIsRegistering(true)}
                 className="font-semibold text-green-500 hover:underline"

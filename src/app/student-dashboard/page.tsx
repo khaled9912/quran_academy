@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase-client";
+import { backendFetch } from "@/lib/backend-client";
 
 interface Course {
   id: number;
@@ -76,7 +77,8 @@ const fallbackLessons: Lesson[] = [
 const StudentDashboard = () => {
   const router = useRouter();
   const [myCourses, setMyCourses] = useState<Course[]>(fallbackCourses);
-  const [upcomingLessons, setUpcomingLessons] = useState<Lesson[]>(fallbackLessons);
+  const [upcomingLessons, setUpcomingLessons] =
+    useState<Lesson[]>(fallbackLessons);
   const [joinedLessons, setJoinedLessons] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -110,13 +112,13 @@ const StudentDashboard = () => {
         return;
       }
 
-      const { data: coursesData } = await supabase.from("courses").select("*").limit(6);
+      const coursesData = await backendFetch("/api/courses");
       if (coursesData) {
         setMyCourses(
           coursesData.map((course: any, index: number) => ({
             id: course.id ?? index,
             title: course.title ?? course.name ?? `Course ${index + 1}`,
-            instructor: course.instructor ?? course.teacher ?? "Instructor",
+            instructor: course.teacher ?? course.instructor ?? "Instructor",
             progress: course.progress ?? 45,
             thumbnail:
               course.thumbnail ||
@@ -126,22 +128,21 @@ const StudentDashboard = () => {
         );
       }
 
-      const { data: lessonsData } = await supabase
-        .from("sessions")
-        .select("*")
-        .order("scheduled_time", { ascending: true })
-        .limit(6);
-
+      const lessonsData = await backendFetch("/api/sessions");
       if (lessonsData) {
         setUpcomingLessons(
-          lessonsData.map((lesson: any, index: number) => ({
+          lessonsData.slice(0, 6).map((lesson: any, index: number) => ({
             id: lesson.id ?? index,
-            courseTitle: lesson.course_title ?? lesson.courseTitle ?? "Live Session",
+            courseTitle:
+              lesson.course_title ?? lesson.courseTitle ?? "Live Session",
             topicTitle:
-              lesson.topic_title ?? lesson.topicTitle ?? "Live class",
+              lesson.topic_title ?? lesson.topicTitle ??
+              `${lesson.course_title ?? lesson.courseTitle ?? "Session"}`,
             scheduledTime:
-              lesson.scheduled_time ?? lesson.scheduledTime ?? "Coming soon",
-            meetLink: lesson.meet_link ?? lesson.meetLink ?? "#",
+              lesson.day && lesson.time
+                ? `${lesson.day} ${lesson.time}`
+                : lesson.scheduled_time ?? lesson.scheduledTime ?? "Coming soon",
+            meetLink: lesson.live_link ?? lesson.meet_link ?? lesson.meetLink ?? "#",
           }))
         );
       }
@@ -309,8 +310,10 @@ const StudentDashboard = () => {
                   </p>
                   <p className="text-3xl font-bold text-green-500">
                     {Math.round(
-                      myCourses.reduce((sum, course) => sum + course.progress, 0) /
-                        myCourses.length || 1
+                      myCourses.reduce(
+                        (sum, course) => sum + course.progress,
+                        0
+                      ) / myCourses.length || 1
                     )}
                     %
                   </p>

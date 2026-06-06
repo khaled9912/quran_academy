@@ -61,11 +61,14 @@ const TeacherAttendancePage = () => {
           setRecords(
             data.map((record: any) => ({
               id: record.id,
-              studentName: record.student_name ?? record.studentName ?? "Student",
-              courseTitle: record.course_title ?? record.courseTitle ?? "Course",
+              studentName:
+                record.student_name ?? record.studentName ?? "Student",
+              courseTitle:
+                record.course_title ?? record.courseTitle ?? "Course",
               sessionTime: record.session_time ?? record.sessionTime ?? "TBD",
               status: record.status ?? "pending",
-              joinedLinkClicked: record.joined_link_clicked ?? record.joinedLinkClicked ?? false,
+              joinedLinkClicked:
+                record.joined_link_clicked ?? record.joinedLinkClicked ?? false,
             }))
           );
         }
@@ -82,10 +85,7 @@ const TeacherAttendancePage = () => {
     loadAttendance();
   }, [router]);
 
-  const syncRecord = async (
-    id: number,
-    values: Partial<AttendanceRecord>
-  ) => {
+  const syncRecord = async (id: number, values: Partial<AttendanceRecord>) => {
     setRecords((prev) =>
       prev.map((record) =>
         record.id === id ? { ...record, ...values } : record
@@ -102,7 +102,10 @@ const TeacherAttendancePage = () => {
   };
 
   const markStatus = (id: number, status: "present" | "absent") => {
-    syncRecord(id, { status, joinedLinkClicked: status === "present" ? true : false });
+    syncRecord(id, {
+      status,
+      joinedLinkClicked: status === "present" ? true : false,
+    });
   };
 
   const markJoined = (id: number) => {
@@ -146,15 +149,15 @@ const TeacherAttendancePage = () => {
                       record.status === "present"
                         ? "bg-green-100 text-green-700"
                         : record.status === "absent"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-gray-100 text-gray-700"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-gray-100 text-gray-700"
                     }`}
                   >
                     {record.status === "present"
                       ? "Present"
                       : record.status === "absent"
-                      ? "Absent"
-                      : "Pending"}
+                        ? "Absent"
+                        : "Pending"}
                   </span>
                   {record.joinedLinkClicked && (
                     <span className="px-3 py-1 rounded-full bg-green-50 text-green-700 text-sm font-semibold">
