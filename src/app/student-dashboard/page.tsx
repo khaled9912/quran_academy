@@ -4,19 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { supabase } from "@/lib/supabase-client";
-import { backendFetch } from "@/lib/backend-client";
-
-interface Course {
-  id: number;
-  title: string;
-  instructor: string;
-  progress: number;
-  thumbnail: string;
-}
+import { Course } from "@/types/course";
+import { useAuth } from "@/hooks/useAuth";
+import { useStudentDashboard } from "@/features/students/hooks/useStudentDashboard";
 
 interface Lesson {
-  id: number;
+  id: string;
   courseTitle: string;
   topicTitle: string;
   scheduledTime: string;
@@ -25,25 +18,25 @@ interface Lesson {
 
 const fallbackCourses: Course[] = [
   {
-    id: 1,
+    id: "1",
     title: "Quran Reading Basics",
-    instructor: "Sheikh Ahmed",
+    teacherName: "Sheikh Ahmed",
     progress: 65,
     thumbnail:
       "https://images.pexels.com/photos/16066399/pexels-photo-16066399/free-photo-of-man-reading-koran.jpeg",
   },
   {
-    id: 2,
+    id: "2",
     title: "Arabic Language Fundamentals",
-    instructor: "Sister Fatima",
+    teacherName: "Sister Fatima",
     progress: 45,
     thumbnail:
       "https://images.pexels.com/photos/8522576/pexels-photo-8522576.jpeg",
   },
   {
-    id: 3,
+    id: "3",
     title: "Islamic Studies",
-    instructor: "Sheikh Mohammad",
+    teacherName: "Sheikh Mohammad",
     progress: 80,
     thumbnail:
       "https://images.pexels.com/photos/2608353/pexels-photo-2608353.jpeg",
@@ -52,21 +45,21 @@ const fallbackCourses: Course[] = [
 
 const fallbackLessons: Lesson[] = [
   {
-    id: 1,
+    id: "1",
     courseTitle: "Quran Reading Basics",
     topicTitle: "Surah Al-Fatiha",
     scheduledTime: "Today at 6:00 PM",
     meetLink: "https://zoom.us/j/example",
   },
   {
-    id: 2,
+    id: "2",
     courseTitle: "Arabic Language Fundamentals",
     topicTitle: "Verb Conjugation",
     scheduledTime: "Tomorrow at 4:00 PM",
     meetLink: "https://meet.google.com/example",
   },
   {
-    id: 3,
+    id: "3",
     courseTitle: "Islamic Studies",
     topicTitle: "The Five Pillars",
     scheduledTime: "June 7 at 5:00 PM",
@@ -76,88 +69,50 @@ const fallbackLessons: Lesson[] = [
 
 const StudentDashboard = () => {
   const router = useRouter();
-  const [myCourses, setMyCourses] = useState<Course[]>(fallbackCourses);
-  const [upcomingLessons, setUpcomingLessons] =
-    useState<Lesson[]>(fallbackLessons);
-  const [joinedLessons, setJoinedLessons] = useState<number[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { profile, loading: authLoading } = useAuth();
+  const { coursesQuery, sessionsQuery } = useStudentDashboard();
+  const [joinedLessons, setJoinedLessons] = useState<string[]>([]);
 
   useEffect(() => {
-    const loadDashboard = async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData.session?.user;
-      if (!user) {
-        router.push("/login");
-        return;
-      }
+    if (authLoading) return;
+    if (!profile) {
+      router.push("/login");
+      return;
+    }
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
-
-      if (!profile?.role) {
-        router.push("/login");
-        return;
-      }
-
+    if (profile.role !== "student") {
       if (profile.role === "teacher") {
-        router.push("/teacher/schedule");
-        return;
+        router.push("/teacher/dashboard");
+      } else if (profile.role === "admin") {
+        router.push("/admin/dashboard");
+      } else if (profile.role === "parent") {
+        router.push("/parent/dashboard");
+      } else {
+        router.push("/login");
       }
+    }
+  }, [authLoading, profile, router]);
 
-      if (profile.role === "admin") {
-        router.push("/admin");
-        return;
-      }
+  const courses: Course[] =
+    coursesQuery.data && coursesQuery.data.length > 0
+      ? coursesQuery.data
+      : fallbackCourses;
 
-      const coursesData = await backendFetch("/api/courses");
-      if (coursesData) {
-        setMyCourses(
-          coursesData.map((course: any, index: number) => ({
-            id: course.id ?? index,
-            title: course.title ?? course.name ?? `Course ${index + 1}`,
-            instructor: course.teacher ?? course.instructor ?? "Instructor",
-            progress: course.progress ?? 45,
-            thumbnail:
-              course.thumbnail ||
-              course.image ||
-              fallbackCourses[index % fallbackCourses.length].thumbnail,
-          }))
-        );
-      }
+  const upcomingLessons: Lesson[] =
+    sessionsQuery.data && sessionsQuery.data.length > 0
+      ? sessionsQuery.data.slice(0, 6).map((session) => ({
+          id: session.id ?? `session-${Math.random().toString(36).slice(2)}`,
+          courseTitle: session.courseTitle ?? "Live Session",
+          topicTitle: session.topicTitle ?? "Upcoming Lesson",
+          scheduledTime: session.scheduledAt ?? "Coming soon",
+          meetLink: session.meetLink ?? "#",
+        }))
+      : fallbackLessons;
 
-      const lessonsData = await backendFetch("/api/sessions");
-      if (lessonsData) {
-        setUpcomingLessons(
-          lessonsData.slice(0, 6).map((lesson: any, index: number) => ({
-            id: lesson.id ?? index,
-            courseTitle:
-              lesson.course_title ?? lesson.courseTitle ?? "Live Session",
-            topicTitle:
-              lesson.topic_title ??
-              lesson.topicTitle ??
-              `${lesson.course_title ?? lesson.courseTitle ?? "Session"}`,
-            scheduledTime:
-              lesson.day && lesson.time
-                ? `${lesson.day} ${lesson.time}`
-                : (lesson.scheduled_time ??
-                  lesson.scheduledTime ??
-                  "Coming soon"),
-            meetLink:
-              lesson.live_link ?? lesson.meet_link ?? lesson.meetLink ?? "#",
-          }))
-        );
-      }
+  const loading =
+    authLoading || coursesQuery.isLoading || sessionsQuery.isLoading;
 
-      setLoading(false);
-    };
-
-    loadDashboard();
-  }, [router]);
-
-  const handleJoin = (lessonId: number, link: string) => {
+  const handleJoin = (lessonId: string, link: string) => {
     if (!joinedLessons.includes(lessonId)) {
       setJoinedLessons((prev) => [...prev, lessonId]);
     }
@@ -258,7 +213,7 @@ const StudentDashboard = () => {
                     <div className="p-5">
                       <h3 className="text-lg font-semibold">{course.title}</h3>
                       <p className="text-sm text-foreground opacity-70 mt-1">
-                        Instructor: {course.instructor}
+                        Instructor: {course.teacherName}
                       </p>
 
                       <div className="mt-4">

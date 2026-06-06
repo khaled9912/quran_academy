@@ -2,34 +2,36 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase-client";
+import {
+  signIn,
+  signUp,
+  getSession,
+  getProfileById,
+  createProfile,
+} from "@/services/auth.service";
+import { UserRole } from "@/types/user";
 
 const LoginPage = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("student");
+  const [role, setRole] = useState<UserRole>("student");
   const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  const setRoleCookie = (roleValue: string) => {
+    document.cookie = `user-role=${roleValue}; path=/; max-age=${60 * 60 * 24}`;
+  };
+
   const redirectByRole = useCallback(
-    async (userId: string) => {
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", userId)
-        .single();
-
-      if (error) {
-        console.warn("Profile lookup failed", error.message);
-        return;
-      }
-
-      if (profile?.role === "teacher") {
+    (roleValue: string) => {
+      if (roleValue === "teacher") {
         router.push("/teacher/schedule");
-      } else if (profile?.role === "admin") {
+      } else if (roleValue === "admin") {
         router.push("/admin");
+      } else if (roleValue === "parent") {
+        router.push("/parent/dashboard");
       } else {
         router.push("/student-dashboard");
       }
@@ -39,11 +41,21 @@ const LoginPage = () => {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session?.user) {
-        await redirectByRole(data.session.user.id);
+      try {
+        const session = await getSession();
+        const userId = session?.user?.id;
+        if (!userId) return;
+
+        const profile = await getProfileById(userId);
+        if (!profile?.role) return;
+
+        setRoleCookie(profile.role);
+        redirectByRole(profile.role);
+      } catch (error) {
+        console.error(error);
       }
     };
+
     checkSession();
   }, [redirectByRole]);
 
@@ -54,43 +66,44 @@ const LoginPage = () => {
 
     try {
       if (isRegistering) {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
+        const signUpResponse = await signUp(email, password, role);
 
-        if (error) {
-          setMessage(error.message);
+        if (!signUpResponse?.user) {
+          setMessage("Registration failed. Please try again.");
           return;
         }
 
-        if (data.user) {
-          await supabase.from("profiles").upsert({
-            id: data.user.id,
-            email,
-            role,
-          });
-          setMessage(
-            "Check your inbox for confirmation email. Redirecting shortly..."
-          );
-          await redirectByRole(data.user.id);
-        }
+        await createProfile({
+          id: signUpResponse.user.id,
+          email,
+          role,
+        });
+
+        setRoleCookie(role);
+        setMessage(
+          "Check your inbox for confirmation email. Redirecting shortly..."
+        );
+        redirectByRole(role);
         return;
       }
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const signInResponse = await signIn(email, password);
 
-      if (error) {
-        setMessage(error.message);
+      if (!signInResponse?.user) {
+        setMessage("Login failed. Please check your credentials.");
         return;
       }
 
-      if (data.user) {
-        await redirectByRole(data.user.id);
+      const profile = await getProfileById(signInResponse.user.id);
+      if (!profile?.role) {
+        setMessage("Unable to determine your role. Contact support.");
+        return;
       }
+
+      setRoleCookie(profile.role);
+      redirectByRole(profile.role);
+    } catch (error: any) {
+      setMessage(error?.message ?? "Authentication failed.");
     } finally {
       setLoading(false);
     }

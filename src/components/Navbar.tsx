@@ -3,15 +3,19 @@ import React from "react";
 import Menu from "./Menu";
 import Image from "next/image";
 
-import LogoSVG from "/public/logo.svg";
-
 const Navbar = () => {
   return (
     <div className="navbar">
       <div className="h-full flex items-center justify-between md:hidden">
         {/* Mobile */}
         <Link href="/" className="flex items-center gap-3">
-          <Image src={LogoSVG} alt="Logo" className="w-16 h-16" />
+          <Image
+            src="/logo.svg"
+            alt="Logo"
+            width={64}
+            height={64}
+            className="w-16 h-16"
+          />
         </Link>
         <Menu />
       </div>
@@ -19,7 +23,13 @@ const Navbar = () => {
       <div className="hidden md:flex items-center justify-between gap-8 h-full">
         <div className="flex items-center gap-12  ">
           <Link href="/" className="flex items-center gap-3">
-            <Image src={LogoSVG} alt="Logo" className="w-16 h-16" />
+            <Image
+              src="/logo.svg"
+              alt="Logo"
+              width={64}
+              height={64}
+              className="w-16 h-16"
+            />
           </Link>
           {/* LINKS */}
           <div className="hidden md:flex gap-4 ">
