@@ -53,6 +53,27 @@ body {
   @apply border-t border-card-border;
 }
 
+/* Slightly darken the menu background in dark mode for extra contrast */
+@media (prefers-color-scheme: dark) {
+  .menu-items {
+    background-color: rgba(10, 30, 40, 0.95);
+  }
+}
+
+/* Make the small menu icon visible in dark mode (invert + boost brightness) */
+.menu-icon {
+  transition:
+    filter 0.15s ease-in-out,
+    opacity 0.15s ease-in-out;
+}
+
+@media (prefers-color-scheme: dark) {
+  .menu-icon {
+    filter: invert(1) brightness(2) saturate(1.2);
+    opacity: 1;
+  }
+}
+
 .alert {
   position: fixed;
   top: 0;

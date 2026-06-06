@@ -11,10 +11,10 @@ const Menu = () => {
     <div>
       <Image
         src="/menu.png"
-        alt=""
+        alt="Menu"
         width={28}
         height={28}
-        className="cursor-pointer"
+        className="menu-icon cursor-pointer"
         onClick={() => setOpen((prev) => !prev)}
       />
       {open && (
