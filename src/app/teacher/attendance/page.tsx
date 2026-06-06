@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FaCheckCircle, FaTimesCircle, FaArrowLeft } from "react-icons/fa";
+import { supabase } from "@/lib/supabase-client";
+import { backendFetch } from "@/lib/backend-client";
 
 interface AttendanceRecord {
   id: number;
@@ -41,22 +44,69 @@ const initialRecords: AttendanceRecord[] = [
 ];
 
 const TeacherAttendancePage = () => {
+  const router = useRouter();
   const [records, setRecords] = useState<AttendanceRecord[]>(initialRecords);
 
-  const markStatus = (id: number, status: "present" | "absent") => {
+  useEffect(() => {
+    const loadAttendance = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session?.user) {
+        router.push("/login");
+        return;
+      }
+
+      try {
+        const data = await backendFetch("/api/attendance");
+        if (data) {
+          setRecords(
+            data.map((record: any) => ({
+              id: record.id,
+              studentName: record.student_name ?? record.studentName ?? "Student",
+              courseTitle: record.course_title ?? record.courseTitle ?? "Course",
+              sessionTime: record.session_time ?? record.sessionTime ?? "TBD",
+              status: record.status ?? "pending",
+              joinedLinkClicked: record.joined_link_clicked ?? record.joinedLinkClicked ?? false,
+            }))
+          );
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (message.includes("401")) {
+          router.push("/login");
+          return;
+        }
+        console.warn("Unable to load attendance from backend:", message);
+      }
+    };
+
+    loadAttendance();
+  }, [router]);
+
+  const syncRecord = async (
+    id: number,
+    values: Partial<AttendanceRecord>
+  ) => {
     setRecords((prev) =>
-      prev.map((record) => (record.id === id ? { ...record, status } : record))
+      prev.map((record) =>
+        record.id === id ? { ...record, ...values } : record
+      )
     );
+
+    await backendFetch(`/api/attendance/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        status: values.status,
+        joined_link_clicked: values.joinedLinkClicked,
+      }),
+    });
+  };
+
+  const markStatus = (id: number, status: "present" | "absent") => {
+    syncRecord(id, { status, joinedLinkClicked: status === "present" ? true : false });
   };
 
   const markJoined = (id: number) => {
-    setRecords((prev) =>
-      prev.map((record) =>
-        record.id === id
-          ? { ...record, joinedLinkClicked: true, status: "present" }
-          : record
-      )
-    );
+    syncRecord(id, { joinedLinkClicked: true, status: "present" });
   };
 
   return (
@@ -92,13 +142,19 @@ const TeacherAttendancePage = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <span
-                    className={`px-3 py-1 rounded-full text-sm font-semibold ${record.status === "present" ? "bg-green-100 text-green-700" : record.status === "absent" ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-700"}`}
+                    className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                      record.status === "present"
+                        ? "bg-green-100 text-green-700"
+                        : record.status === "absent"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-gray-100 text-gray-700"
+                    }`}
                   >
                     {record.status === "present"
                       ? "Present"
                       : record.status === "absent"
-                        ? "Absent"
-                        : "Pending"}
+                      ? "Absent"
+                      : "Pending"}
                   </span>
                   {record.joinedLinkClicked && (
                     <span className="px-3 py-1 rounded-full bg-green-50 text-green-700 text-sm font-semibold">

@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   FaClock,
   FaCalendar,
   FaUser,
-  FaBook,
   FaArrowLeft,
 } from "react-icons/fa";
+import { supabase } from "@/lib/supabase-client";
+import { backendFetch } from "@/lib/backend-client";
 
 interface ClassSession {
   id: number;
@@ -50,7 +51,7 @@ const TIME_SLOTS = [
   "9:00 PM",
 ];
 
-const CLASS_SESSIONS: ClassSession[] = [
+const SESSION_FALLBACK: ClassSession[] = [
   {
     id: 1,
     courseTitle: "Quran Tajweed Essentials",
@@ -123,79 +124,45 @@ const CLASS_SESSIONS: ClassSession[] = [
     capacity: 35,
     meetLink: "https://zoom.us/j/example2",
   },
-  {
-    id: 7,
-    courseTitle: "Quranic Arabic for Beginners",
-    teacher: "Dr. Layla Hassan",
-    day: "Monday",
-    time: "7:00 PM",
-    endTime: "8:30 PM",
-    room: "Room D",
-    students: 18,
-    capacity: 22,
-    meetLink: "https://meet.google.com/example2",
-  },
-  {
-    id: 8,
-    courseTitle: "Quranic Arabic for Beginners",
-    teacher: "Dr. Layla Hassan",
-    day: "Friday",
-    time: "7:00 PM",
-    endTime: "8:30 PM",
-    room: "Room D",
-    students: 18,
-    capacity: 22,
-    meetLink: "https://meet.google.com/example2",
-  },
-  {
-    id: 9,
-    courseTitle: "Advanced Tajweed Techniques",
-    teacher: "Sheikh Ahmed Al-Mansouri",
-    day: "Wednesday",
-    time: "8:00 PM",
-    endTime: "9:30 PM",
-    room: "Room A",
-    students: 12,
-    capacity: 15,
-    meetLink: "https://zoom.us/j/example3",
-  },
-  {
-    id: 10,
-    courseTitle: "Islamic History & Civilization",
-    teacher: "Professor Ibrahim Ali",
-    day: "Tuesday",
-    time: "3:00 PM",
-    endTime: "4:30 PM",
-    room: "Room E",
-    students: 22,
-    capacity: 28,
-    meetLink: "https://meet.google.com/example3",
-  },
-  {
-    id: 11,
-    courseTitle: "Islamic History & Civilization",
-    teacher: "Professor Ibrahim Ali",
-    day: "Saturday",
-    time: "3:00 PM",
-    endTime: "4:30 PM",
-    room: "Room E",
-    students: 22,
-    capacity: 28,
-    meetLink: "https://meet.google.com/example3",
-  },
 ];
 
 const StudentSchedulePage = () => {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
-
-  const courses = CLASS_SESSIONS.map((session) => session.courseTitle).filter(
-    (course, index, arr) => arr.indexOf(course) === index
-  );
-
+  const [sessions, setSessions] = useState<ClassSession[]>(SESSION_FALLBACK);
   const [joinedSessions, setJoinedSessions] = useState<number[]>([]);
 
-  const filteredSessions = CLASS_SESSIONS.filter((session) => {
+  useEffect(() => {
+    const loadSessions = async () => {
+      try {
+        const data = await backendFetch("/api/sessions");
+        if (data) {
+          setSessions(
+            data.map((session: any, index: number) => ({
+              id: session.id ?? index,
+              courseTitle: session.course_title ?? session.courseTitle ?? "Live session",
+              teacher: session.teacher ?? "Teacher",
+              day: session.day ?? "Monday",
+              time: session.time ?? "TBD",
+              endTime: session.end_time ?? session.endTime ?? "TBD",
+              room: session.room ?? "Room",
+              students: session.students ?? 0,
+              capacity: session.capacity ?? 20,
+              meetLink: session.live_link ?? session.meet_link ?? session.meetLink ?? "#",
+            }))
+          );
+        }
+      } catch (error) {
+        console.warn("Unable to load sessions from backend:", error instanceof Error ? error.message : error);
+      }
+    };
+
+    loadSessions();
+  }, []);
+
+  const courses = Array.from(new Set(sessions.map((session) => session.courseTitle)));
+
+  const filteredSessions = sessions.filter((session) => {
     if (selectedDay && session.day !== selectedDay) return false;
     if (selectedCourse && session.courseTitle !== selectedCourse) return false;
     return true;
@@ -209,13 +176,7 @@ const StudentSchedulePage = () => {
   };
 
   const getSessionsByDay = (day: string) => {
-    return CLASS_SESSIONS.filter((session) => session.day === day).sort(
-      (a, b) => {
-        const timeA = parseInt(a.time);
-        const timeB = parseInt(b.time);
-        return timeA - timeB;
-      }
-    );
+    return sessions.filter((session) => session.day === day).sort((a, b) => (a.time > b.time ? 1 : -1));
   };
 
   return (
@@ -302,7 +263,7 @@ const StudentSchedulePage = () => {
                     Total Classes
                   </p>
                   <p className="text-3xl font-bold text-green-500">
-                    {CLASS_SESSIONS.length}
+                    {sessions.length}
                   </p>
                 </div>
                 <div>

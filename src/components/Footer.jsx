@@ -20,7 +20,7 @@ const Footer = () => {
     let data = getValues();
     setLoading(true);
 
-    fetch("/api/contact", {
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/contact`, {
       method: "POST",
       headers: {
         Accept: "application/json, text/plain, */*",

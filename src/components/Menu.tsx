@@ -26,6 +26,8 @@ const Menu = () => {
           <Link href="#contacts">Contacts</Link>
           <Link href="/student-dashboard">Dashboard</Link>
           <Link href="/admin">Admin</Link>
+          <Link href="/login">Login</Link>
+          <Link href="/logout">Logout</Link>
         </div>
       )}
     </div>

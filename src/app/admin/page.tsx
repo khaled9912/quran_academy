@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase-client";
 
 interface Teacher {
   id: number;
@@ -23,67 +24,70 @@ interface StudentAssignment {
   courseTitle: string;
 }
 
+const DEFAULT_TEACHERS: Teacher[] = [
+  {
+    id: 1,
+    name: "Sheikh Ahmed Al-Mansouri",
+    email: "ahmed@example.com",
+    subject: "Quran Tajweed",
+  },
+  {
+    id: 2,
+    name: "Sister Fatima Al-Rashid",
+    email: "fatima@example.com",
+    subject: "Arabic Basics",
+  },
+  {
+    id: 3,
+    name: "Professor Ibrahim Ali",
+    email: "ibrahim@example.com",
+    subject: "Islamic Studies",
+  },
+];
+
+const DEFAULT_COURSES: CourseItem[] = [
+  {
+    id: 1,
+    title: "Quran Tajweed Essentials",
+    teacher: "Sheikh Ahmed Al-Mansouri",
+    schedule: "Mon & Wed 6:00 PM",
+  },
+  {
+    id: 2,
+    title: "Arabic Language Basics",
+    teacher: "Sister Fatima Al-Rashid",
+    schedule: "Tue & Thu 4:00 PM",
+  },
+  {
+    id: 3,
+    title: "Islamic Studies Fundamentals",
+    teacher: "Professor Ibrahim Ali",
+    schedule: "Sat & Sun 5:00 PM",
+  },
+];
+
+const DEFAULT_ASSIGNMENTS: StudentAssignment[] = [
+  {
+    id: 1,
+    studentName: "Amina Hassan",
+    courseTitle: "Quran Tajweed Essentials",
+  },
+  {
+    id: 2,
+    studentName: "Omar Khalid",
+    courseTitle: "Arabic Language Basics",
+  },
+  {
+    id: 3,
+    studentName: "Sara Ali",
+    courseTitle: "Islamic Studies Fundamentals",
+  },
+];
+
 const AdminPage = () => {
-  const [teachers, setTeachers] = useState<Teacher[]>([
-    {
-      id: 1,
-      name: "Sheikh Ahmed Al-Mansouri",
-      email: "ahmed@example.com",
-      subject: "Quran Tajweed",
-    },
-    {
-      id: 2,
-      name: "Sister Fatima Al-Rashid",
-      email: "fatima@example.com",
-      subject: "Arabic Basics",
-    },
-    {
-      id: 3,
-      name: "Professor Ibrahim Ali",
-      email: "ibrahim@example.com",
-      subject: "Islamic Studies",
-    },
-  ]);
-
-  const [courses, setCourses] = useState<CourseItem[]>([
-    {
-      id: 1,
-      title: "Quran Tajweed Essentials",
-      teacher: "Sheikh Ahmed Al-Mansouri",
-      schedule: "Mon & Wed 6:00 PM",
-    },
-    {
-      id: 2,
-      title: "Arabic Language Basics",
-      teacher: "Sister Fatima Al-Rashid",
-      schedule: "Tue & Thu 4:00 PM",
-    },
-    {
-      id: 3,
-      title: "Islamic Studies Fundamentals",
-      teacher: "Professor Ibrahim Ali",
-      schedule: "Sat & Sun 5:00 PM",
-    },
-  ]);
-
-  const [assignments, setAssignments] = useState<StudentAssignment[]>([
-    {
-      id: 1,
-      studentName: "Amina Hassan",
-      courseTitle: "Quran Tajweed Essentials",
-    },
-    {
-      id: 2,
-      studentName: "Omar Khalid",
-      courseTitle: "Arabic Language Basics",
-    },
-    {
-      id: 3,
-      studentName: "Sara Ali",
-      courseTitle: "Islamic Studies Fundamentals",
-    },
-  ]);
-
+  const [teachers, setTeachers] = useState<Teacher[]>(DEFAULT_TEACHERS);
+  const [courses, setCourses] = useState<CourseItem[]>(DEFAULT_COURSES);
+  const [assignments, setAssignments] = useState<StudentAssignment[]>(DEFAULT_ASSIGNMENTS);
   const [teacherName, setTeacherName] = useState("");
   const [teacherEmail, setTeacherEmail] = useState("");
   const [teacherSubject, setTeacherSubject] = useState("");
@@ -93,66 +97,141 @@ const AdminPage = () => {
   const [studentName, setStudentName] = useState("");
   const [studentCourse, setStudentCourse] = useState("");
 
-  const handleAddTeacher = (e: React.FormEvent) => {
+  useEffect(() => {
+    const loadAdminData = async () => {
+      const { data: teacherData } = await supabase.from("teachers").select("*");
+      if (teacherData) {
+        setTeachers(teacherData as Teacher[]);
+      }
+
+      const { data: courseData } = await supabase.from("courses").select("*");
+      if (courseData) {
+        setCourses(courseData as CourseItem[]);
+      }
+
+      const { data: assignmentData } = await supabase
+        .from("enrollments")
+        .select("*");
+      if (assignmentData) {
+        setAssignments(
+          assignmentData.map((row: any) => ({
+            id: row.id,
+            studentName: row.student_name ?? row.studentName ?? "Student",
+            courseTitle: row.course_title ?? row.courseTitle ?? "Course",
+          }))
+        );
+      }
+    };
+
+    loadAdminData();
+  }, []);
+
+  const handleAddTeacher = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!teacherName || !teacherEmail || !teacherSubject) return;
 
-    setTeachers((prev) => [
-      ...prev,
-      {
-        id: Math.max(0, ...prev.map((t) => t.id)) + 1,
-        name: teacherName,
-        email: teacherEmail,
-        subject: teacherSubject,
-      },
-    ]);
+    const { data, error } = await supabase
+      .from("teachers")
+      .insert([
+        {
+          name: teacherName,
+          email: teacherEmail,
+          subject: teacherSubject,
+        },
+      ])
+      .select("*");
+
+    if (data?.[0]) {
+      setTeachers((prev) => [...prev, data[0] as Teacher]);
+    } else {
+      setTeachers((prev) => [
+        ...prev,
+        {
+          id: Math.max(0, ...prev.map((t) => t.id)) + 1,
+          name: teacherName,
+          email: teacherEmail,
+          subject: teacherSubject,
+        },
+      ]);
+    }
 
     setTeacherName("");
     setTeacherEmail("");
     setTeacherSubject("");
   };
 
-  const handleAddCourse = (e: React.FormEvent) => {
+  const handleAddCourse = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!courseTitle || !courseTeacher || !courseSchedule) return;
 
-    setCourses((prev) => [
-      ...prev,
-      {
-        id: Math.max(0, ...prev.map((c) => c.id)) + 1,
-        title: courseTitle,
-        teacher: courseTeacher,
-        schedule: courseSchedule,
-      },
-    ]);
+    const { data, error } = await supabase
+      .from("courses")
+      .insert([
+        {
+          title: courseTitle,
+          teacher: courseTeacher,
+          schedule: courseSchedule,
+        },
+      ])
+      .select("*");
+
+    if (data?.[0]) {
+      setCourses((prev) => [...prev, data[0] as CourseItem]);
+    } else {
+      setCourses((prev) => [
+        ...prev,
+        {
+          id: Math.max(0, ...prev.map((c) => c.id)) + 1,
+          title: courseTitle,
+          teacher: courseTeacher,
+          schedule: courseSchedule,
+        },
+      ]);
+    }
 
     setCourseTitle("");
     setCourseTeacher("");
     setCourseSchedule("");
   };
 
-  const handleAssignStudent = (e: React.FormEvent) => {
+  const handleAssignStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!studentName || !studentCourse) return;
 
-    setAssignments((prev) => [
-      ...prev,
-      {
-        id: Math.max(0, ...prev.map((a) => a.id)) + 1,
-        studentName,
-        courseTitle: studentCourse,
-      },
-    ]);
+    const { data, error } = await supabase
+      .from("enrollments")
+      .insert([
+        {
+          student_name: studentName,
+          course_title: studentCourse,
+        },
+      ])
+      .select("*");
 
+    const newAssignment = data?.[0]
+      ? {
+          id: data[0].id,
+          studentName: data[0].student_name ?? studentName,
+          courseTitle: data[0].course_title ?? studentCourse,
+        }
+      : {
+          id: Math.max(0, ...assignments.map((a) => a.id)) + 1,
+          studentName,
+          courseTitle: studentCourse,
+        };
+
+    setAssignments((prev) => [...prev, newAssignment]);
     setStudentName("");
     setStudentCourse("");
   };
 
-  const handleRemoveTeacher = (id: number) => {
+  const handleRemoveTeacher = async (id: number) => {
+    await supabase.from("teachers").delete().eq("id", id);
     setTeachers((prev) => prev.filter((teacher) => teacher.id !== id));
   };
 
-  const handleRemoveCourse = (id: number) => {
+  const handleRemoveCourse = async (id: number) => {
+    await supabase.from("courses").delete().eq("id", id);
     setCourses((prev) => prev.filter((course) => course.id !== id));
   };
 
@@ -203,8 +282,7 @@ const AdminPage = () => {
           <div className="bg-card-bg border border-card-border rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4">Notes</h2>
             <p className="text-sm text-foreground opacity-75">
-              This admin view is designed for MVP use and uses local page state.
-              Connect it to a real backend later for persistence.
+              This admin view now stores your changes in Supabase. Keep building on it for persistence.
             </p>
           </div>
         </div>

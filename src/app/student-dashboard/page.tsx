@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { supabase } from "@/lib/supabase-client";
 
 interface Course {
   id: number;
@@ -20,59 +22,135 @@ interface Lesson {
   meetLink: string;
 }
 
+const fallbackCourses: Course[] = [
+  {
+    id: 1,
+    title: "Quran Reading Basics",
+    instructor: "Sheikh Ahmed",
+    progress: 65,
+    thumbnail:
+      "https://images.pexels.com/photos/16066399/pexels-photo-16066399/free-photo-of-man-reading-koran.jpeg",
+  },
+  {
+    id: 2,
+    title: "Arabic Language Fundamentals",
+    instructor: "Sister Fatima",
+    progress: 45,
+    thumbnail:
+      "https://images.pexels.com/photos/8522576/pexels-photo-8522576.jpeg",
+  },
+  {
+    id: 3,
+    title: "Islamic Studies",
+    instructor: "Sheikh Mohammad",
+    progress: 80,
+    thumbnail:
+      "https://images.pexels.com/photos/2608353/pexels-photo-2608353.jpeg",
+  },
+];
+
+const fallbackLessons: Lesson[] = [
+  {
+    id: 1,
+    courseTitle: "Quran Reading Basics",
+    topicTitle: "Surah Al-Fatiha",
+    scheduledTime: "Today at 6:00 PM",
+    meetLink: "https://zoom.us/j/example",
+  },
+  {
+    id: 2,
+    courseTitle: "Arabic Language Fundamentals",
+    topicTitle: "Verb Conjugation",
+    scheduledTime: "Tomorrow at 4:00 PM",
+    meetLink: "https://meet.google.com/example",
+  },
+  {
+    id: 3,
+    courseTitle: "Islamic Studies",
+    topicTitle: "The Five Pillars",
+    scheduledTime: "June 7 at 5:00 PM",
+    meetLink: "https://zoom.us/j/example2",
+  },
+];
+
 const StudentDashboard = () => {
-  const [myCourses] = useState<Course[]>([
-    {
-      id: 1,
-      title: "Quran Reading Basics",
-      instructor: "Sheikh Ahmed",
-      progress: 65,
-      thumbnail:
-        "https://images.pexels.com/photos/16066399/pexels-photo-16066399/free-photo-of-man-reading-koran.jpeg",
-    },
-    {
-      id: 2,
-      title: "Arabic Language Fundamentals",
-      instructor: "Sister Fatima",
-      progress: 45,
-      thumbnail:
-        "https://images.pexels.com/photos/8522576/pexels-photo-8522576.jpeg",
-    },
-    {
-      id: 3,
-      title: "Islamic Studies",
-      instructor: "Sheikh Mohammad",
-      progress: 80,
-      thumbnail:
-        "https://images.pexels.com/photos/2608353/pexels-photo-2608353.jpeg",
-    },
-  ]);
-
-  const [upcomingLessons] = useState<Lesson[]>([
-    {
-      id: 1,
-      courseTitle: "Quran Reading Basics",
-      topicTitle: "Surah Al-Fatiha",
-      scheduledTime: "Today at 6:00 PM",
-      meetLink: "https://zoom.us/j/example",
-    },
-    {
-      id: 2,
-      courseTitle: "Arabic Language Fundamentals",
-      topicTitle: "Verb Conjugation",
-      scheduledTime: "Tomorrow at 4:00 PM",
-      meetLink: "https://meet.google.com/example",
-    },
-    {
-      id: 3,
-      courseTitle: "Islamic Studies",
-      topicTitle: "The Five Pillars",
-      scheduledTime: "June 7 at 5:00 PM",
-      meetLink: "https://zoom.us/j/example2",
-    },
-  ]);
-
+  const router = useRouter();
+  const [myCourses, setMyCourses] = useState<Course[]>(fallbackCourses);
+  const [upcomingLessons, setUpcomingLessons] = useState<Lesson[]>(fallbackLessons);
   const [joinedLessons, setJoinedLessons] = useState<number[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadDashboard = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData.session?.user;
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile?.role) {
+        router.push("/login");
+        return;
+      }
+
+      if (profile.role === "teacher") {
+        router.push("/teacher/schedule");
+        return;
+      }
+
+      if (profile.role === "admin") {
+        router.push("/admin");
+        return;
+      }
+
+      const { data: coursesData } = await supabase.from("courses").select("*").limit(6);
+      if (coursesData) {
+        setMyCourses(
+          coursesData.map((course: any, index: number) => ({
+            id: course.id ?? index,
+            title: course.title ?? course.name ?? `Course ${index + 1}`,
+            instructor: course.instructor ?? course.teacher ?? "Instructor",
+            progress: course.progress ?? 45,
+            thumbnail:
+              course.thumbnail ||
+              course.image ||
+              fallbackCourses[index % fallbackCourses.length].thumbnail,
+          }))
+        );
+      }
+
+      const { data: lessonsData } = await supabase
+        .from("sessions")
+        .select("*")
+        .order("scheduled_time", { ascending: true })
+        .limit(6);
+
+      if (lessonsData) {
+        setUpcomingLessons(
+          lessonsData.map((lesson: any, index: number) => ({
+            id: lesson.id ?? index,
+            courseTitle: lesson.course_title ?? lesson.courseTitle ?? "Live Session",
+            topicTitle:
+              lesson.topic_title ?? lesson.topicTitle ?? "Live class",
+            scheduledTime:
+              lesson.scheduled_time ?? lesson.scheduledTime ?? "Coming soon",
+            meetLink: lesson.meet_link ?? lesson.meetLink ?? "#",
+          }))
+        );
+      }
+
+      setLoading(false);
+    };
+
+    loadDashboard();
+  }, [router]);
 
   const handleJoin = (lessonId: number, link: string) => {
     if (!joinedLessons.includes(lessonId)) {
@@ -81,10 +159,17 @@ const StudentDashboard = () => {
     window.open(link, "_blank");
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-8">
+        <p className="text-lg font-semibold">Loading your dashboard...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground pt-24 pb-16">
       <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16">
-        {/* Header */}
         <div className="mb-12">
           <h1 className="text-4xl font-bold mb-2">Student Dashboard</h1>
           <p className="text-lg text-foreground opacity-75">
@@ -93,9 +178,7 @@ const StudentDashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Quick Actions */}
             <div className="grid grid-cols-2 gap-4">
               <Link href="/schedule">
                 <button className="w-full px-4 py-3 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white rounded-lg font-semibold transition">
@@ -108,7 +191,7 @@ const StudentDashboard = () => {
                 </button>
               </Link>
             </div>
-            {/* Upcoming Lessons */}
+
             <section className="bg-card-bg border border-card-border rounded-lg p-8">
               <h2 className="text-2xl font-semibold mb-6">Upcoming Lessons</h2>
               <div className="space-y-4">
@@ -151,7 +234,6 @@ const StudentDashboard = () => {
               </div>
             </section>
 
-            {/* My Courses */}
             <section className="bg-card-bg border border-card-border rounded-lg p-8">
               <h2 className="text-2xl font-semibold mb-6">My Courses</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -174,7 +256,6 @@ const StudentDashboard = () => {
                         Instructor: {course.instructor}
                       </p>
 
-                      {/* Progress Bar */}
                       <div className="mt-4">
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-sm text-foreground opacity-75">
@@ -202,9 +283,7 @@ const StudentDashboard = () => {
             </section>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
-            {/* Quick Stats */}
             <div className="bg-card-bg border border-card-border rounded-lg p-6">
               <h3 className="text-lg font-semibold mb-4">Quick Stats</h3>
               <div className="space-y-4">
@@ -230,10 +309,8 @@ const StudentDashboard = () => {
                   </p>
                   <p className="text-3xl font-bold text-green-500">
                     {Math.round(
-                      myCourses.reduce(
-                        (sum, course) => sum + course.progress,
-                        0
-                      ) / myCourses.length
+                      myCourses.reduce((sum, course) => sum + course.progress, 0) /
+                        myCourses.length || 1
                     )}
                     %
                   </p>
@@ -241,7 +318,6 @@ const StudentDashboard = () => {
               </div>
             </div>
 
-            {/* Browse More Courses */}
             <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-6 text-white">
               <h3 className="text-lg font-semibold mb-2">Explore More</h3>
               <p className="text-sm opacity-90 mb-4">
@@ -254,7 +330,6 @@ const StudentDashboard = () => {
               </Link>
             </div>
 
-            {/* Need Help */}
             <div className="bg-card-bg border border-card-border rounded-lg p-6">
               <h3 className="text-lg font-semibold mb-2">Need Help?</h3>
               <p className="text-foreground opacity-70 text-sm mb-4">

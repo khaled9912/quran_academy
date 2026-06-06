@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   FaClock,
@@ -12,6 +13,8 @@ import {
   FaUsers,
   FaBook,
 } from "react-icons/fa";
+import { supabase } from "@/lib/supabase-client";
+import { backendFetch } from "@/lib/backend-client";
 
 interface TimeSlot {
   id: number;
@@ -69,6 +72,7 @@ const COURSES = [
 ];
 
 const TeacherSchedulePage = () => {
+  const router = useRouter();
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([
     {
       id: 1,
@@ -89,7 +93,6 @@ const TeacherSchedulePage = () => {
       capacity: 30,
     },
   ]);
-
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState<NewTimeSlot>({
@@ -101,6 +104,42 @@ const TeacherSchedulePage = () => {
     capacity: 25,
   });
 
+  useEffect(() => {
+    const loadSchedule = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session?.user) {
+        router.push("/login");
+        return;
+      }
+
+      try {
+        const sessions = await backendFetch("/api/sessions");
+        if (sessions) {
+          setTimeSlots(
+            sessions.map((session: any, index: number) => ({
+              id: session.id ?? index,
+              courseTitle: session.course_title ?? session.courseTitle ?? "Course",
+              day: session.day ?? "Monday",
+              time: session.time ?? "TBD",
+              endTime: session.end_time ?? session.endTime ?? "TBD",
+              room: session.room ?? "Room A",
+              capacity: session.capacity ?? 25,
+            }))
+          );
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (message.includes("401")) {
+          router.push("/login");
+          return;
+        }
+        console.warn("Unable to load sessions from backend:", message);
+      }
+    };
+
+    loadSchedule();
+  }, [router]);
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -111,11 +150,22 @@ const TeacherSchedulePage = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (editingId) {
-      // Update existing
+      await backendFetch(`/api/sessions/${editingId}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          course_title: formData.courseTitle,
+          day: formData.day,
+          time: formData.time,
+          end_time: formData.endTime,
+          room: formData.room,
+          capacity: formData.capacity,
+        }),
+      });
+
       setTimeSlots(
         timeSlots.map((slot) =>
           slot.id === editingId ? { ...formData, id: slot.id } : slot
@@ -123,11 +173,24 @@ const TeacherSchedulePage = () => {
       );
       setEditingId(null);
     } else {
-      // Add new
+      const created = await backendFetch("/api/sessions", {
+        method: "POST",
+        body: JSON.stringify({
+          course_id: null,
+          day: formData.day,
+          time: formData.time,
+          end_time: formData.endTime,
+          room: formData.room,
+          capacity: formData.capacity,
+          live_link: "",
+        }),
+      });
+
+      const newId = created?.id ?? Math.max(0, ...timeSlots.map((slot) => slot.id)) + 1;
       setTimeSlots([
         ...timeSlots,
         {
-          id: Math.max(...timeSlots.map((s) => s.id), 0) + 1,
+          id: newId,
           ...formData,
         },
       ]);
@@ -150,7 +213,10 @@ const TeacherSchedulePage = () => {
     setShowForm(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number) => {
+    await backendFetch(`/api/sessions/${id}`, {
+      method: "DELETE",
+    });
     setTimeSlots(timeSlots.filter((slot) => slot.id !== id));
   };
 
@@ -170,17 +236,12 @@ const TeacherSchedulePage = () => {
   const getSlotsByDay = (day: string) => {
     return timeSlots
       .filter((slot) => slot.day === day)
-      .sort((a, b) => {
-        const timeA = parseInt(a.time);
-        const timeB = parseInt(b.time);
-        return timeA - timeB;
-      });
+      .sort((a, b) => (a.time > b.time ? 1 : -1));
   };
 
   return (
     <div className="min-h-screen bg-background text-foreground pt-24 pb-16">
       <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16">
-        {/* Header */}
         <div className="mb-8">
           <Link
             href="/student-dashboard"
@@ -207,7 +268,6 @@ const TeacherSchedulePage = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar - Statistics */}
           <div className="lg:col-span-1">
             <div className="bg-card-bg border border-card-border rounded-lg p-6 sticky top-24">
               <h3 className="text-xl font-semibold mb-4">Schedule Overview</h3>
@@ -252,9 +312,7 @@ const TeacherSchedulePage = () => {
             </div>
           </div>
 
-          {/* Main Content */}
           <div className="lg:col-span-3">
-            {/* Add/Edit Form */}
             {showForm && (
               <div className="bg-card-bg border border-card-border rounded-lg p-8 mb-8">
                 <h2 className="text-2xl font-semibold mb-6">
@@ -262,7 +320,6 @@ const TeacherSchedulePage = () => {
                 </h2>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Course Selection */}
                     <div>
                       <label className="block text-sm font-semibold text-foreground opacity-75 mb-2">
                         Course
@@ -283,7 +340,6 @@ const TeacherSchedulePage = () => {
                       </select>
                     </div>
 
-                    {/* Day Selection */}
                     <div>
                       <label className="block text-sm font-semibold text-foreground opacity-75 mb-2">
                         Day
@@ -302,7 +358,6 @@ const TeacherSchedulePage = () => {
                       </select>
                     </div>
 
-                    {/* Start Time */}
                     <div>
                       <label className="block text-sm font-semibold text-foreground opacity-75 mb-2">
                         Start Time
@@ -321,7 +376,6 @@ const TeacherSchedulePage = () => {
                       </select>
                     </div>
 
-                    {/* End Time */}
                     <div>
                       <label className="block text-sm font-semibold text-foreground opacity-75 mb-2">
                         End Time
@@ -340,7 +394,6 @@ const TeacherSchedulePage = () => {
                       </select>
                     </div>
 
-                    {/* Room Selection */}
                     <div>
                       <label className="block text-sm font-semibold text-foreground opacity-75 mb-2">
                         Room
@@ -359,7 +412,6 @@ const TeacherSchedulePage = () => {
                       </select>
                     </div>
 
-                    {/* Capacity */}
                     <div>
                       <label className="block text-sm font-semibold text-foreground opacity-75 mb-2">
                         Class Capacity
@@ -376,7 +428,6 @@ const TeacherSchedulePage = () => {
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
                   <div className="flex gap-4 pt-4">
                     <button
                       type="submit"
@@ -396,7 +447,6 @@ const TeacherSchedulePage = () => {
               </div>
             )}
 
-            {/* Schedule Display */}
             <div className="space-y-6">
               {DAYS.map((day) => {
                 const daySlots = getSlotsByDay(day);

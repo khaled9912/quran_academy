@@ -22,3 +22,18 @@ Through expert instructors and a well-rounded curriculum, Rayan Academy aspires 
 - React Hook Form
 - Zod
 - TailwindCSS
+
+## <a name="backend-integration">🧩 Backend Integration</a>
+
+This project now integrates with a separate backend service running at `NEXT_PUBLIC_BACKEND_URL`.
+
+Add the following to your local environment file:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-public-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+NEXT_PUBLIC_BACKEND_URL=http://localhost:4000
+```
+
+The contact form and several schedule/attendance flows now call the backend directly and forward the Supabase auth access token.
