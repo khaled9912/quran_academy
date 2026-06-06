@@ -23,9 +23,7 @@ export const signUp = async (email: string, password: string, role: string) => {
 };
 
 export const createProfile = async (profile: Partial<UserProfile>) => {
-  const { data, error } = await supabase
-    .from<UserProfile>("profiles")
-    .upsert(profile);
+  const { data, error } = await supabase.from("profiles").upsert(profile);
 
   if (error) throw error;
   return data;
@@ -41,7 +39,9 @@ export const getProfileById = async (
 ): Promise<UserProfile | null> => {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, email, role, name")
+    .select(
+      "id, email, role, first_name, last_name, full_name, is_active, avatar_url, created_at"
+    )
     .eq("id", userId)
     .single();
 

@@ -21,19 +21,19 @@ const LoginPage = () => {
   const [message, setMessage] = useState("");
 
   const setRoleCookie = (roleValue: string) => {
-    document.cookie = `user-role=${roleValue}; path=/; max-age=${60 * 60 * 24}`;
+    document.cookie = `user-role=${roleValue}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax; Secure`;
   };
 
   const redirectByRole = useCallback(
     (roleValue: string) => {
-      if (roleValue === "teacher") {
-        router.push("/teacher/schedule");
+      if (roleValue === "super_admin") {
+        router.push("/super-admin/dashboard");
       } else if (roleValue === "admin") {
-        router.push("/admin");
-      } else if (roleValue === "parent") {
-        router.push("/parent/dashboard");
+        router.push("/admin/dashboard");
+      } else if (roleValue === "teacher") {
+        router.push("/teacher/dashboard");
       } else {
-        router.push("/student-dashboard");
+        router.push("/student/dashboard");
       }
     },
     [router]
@@ -77,6 +77,7 @@ const LoginPage = () => {
           id: signUpResponse.user.id,
           email,
           role,
+          is_active: true,
         });
 
         setRoleCookie(role);
@@ -100,6 +101,11 @@ const LoginPage = () => {
         return;
       }
 
+      if (!profile.is_active) {
+        setMessage("Your account is deactivated. Contact an administrator.");
+        return;
+      }
+
       setRoleCookie(profile.role);
       redirectByRole(profile.role);
     } catch (error: any) {
@@ -110,7 +116,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex items-center justify-center py-24 px-4">
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center py-24 px-4 font-sans">
       <div className="w-full max-w-md bg-card-bg border border-card-border rounded-3xl p-8 shadow-xl">
         <h1 className="text-3xl font-bold text-center mb-2">Rayan Academy</h1>
         <p className="text-center text-foreground opacity-75 mb-8">
@@ -156,12 +162,13 @@ const LoginPage = () => {
               <label className="block text-sm font-semibold mb-2">Role</label>
               <select
                 value={role}
-                onChange={(event) => setRole(event.target.value)}
+                onChange={(event) => setRole(event.target.value as UserRole)}
                 className="w-full rounded-xl border border-card-border bg-background px-4 py-3 text-foreground focus:outline-none focus:border-green-500"
               >
                 <option value="student">Student</option>
                 <option value="teacher">Teacher</option>
                 <option value="admin">Admin</option>
+                <option value="super_admin">Super Admin</option>
               </select>
             </div>
           )}

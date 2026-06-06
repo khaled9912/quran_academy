@@ -3,9 +3,19 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { useAuth } from "@/providers/auth-provider";
+import { navigationConfig } from "@/constants/navigation";
 
 const Menu = () => {
   const [open, setOpen] = useState(false);
+  const { role, logout, isAuthenticated } = useAuth();
+
+  const links =
+    isAuthenticated && role && navigationConfig[role]
+      ? navigationConfig[role]
+      : navigationConfig.anonymous.filter(
+          (l) => l.label !== "Login" && l.label !== "Register"
+        );
 
   return (
     <div>
@@ -19,15 +29,25 @@ const Menu = () => {
       />
       {open && (
         <div className="menu-items" onClick={() => setOpen(false)}>
-          <Link href="/">HomePage</Link>
-          <Link href="/courses">Courses</Link>
-          <Link href="/schedule">Schedule</Link>
-          <Link href="#about">About Us</Link>
-          <Link href="#contacts">Contacts</Link>
-          <Link href="/student-dashboard">Dashboard</Link>
-          <Link href="/admin">Admin</Link>
-          <Link href="/login">Login</Link>
-          <Link href="/logout">Logout</Link>
+          <Link href="/">Home</Link>
+          {links.map((link) => (
+            <Link key={link.href} href={link.href}>
+              {link.label}
+            </Link>
+          ))}
+          {!isAuthenticated ? (
+            <>
+              <Link href="/login">Login</Link>
+              <Link href="/register">Register</Link>
+            </>
+          ) : (
+            <button
+              onClick={logout}
+              className="text-left w-full text-red-500 font-semibold"
+            >
+              Logout
+            </button>
+          )}
         </div>
       )}
     </div>

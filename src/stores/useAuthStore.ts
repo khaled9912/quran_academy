@@ -1,12 +1,5 @@
 import { create } from "zustand";
-
-export type UserProfile = {
-  id: string;
-  email: string;
-  full_name?: string;
-  role: "admin" | "teacher" | "student" | "parent" | string;
-  avatar_url?: string;
-};
+import { UserProfile } from "@/types/user";
 
 interface AuthState {
   user: UserProfile | null;
