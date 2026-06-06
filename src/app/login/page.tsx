@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
 
@@ -13,17 +13,7 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session?.user) {
-        await redirectByRole(data.session.user.id);
-      }
-    };
-    checkSession();
-  }, []);
-
-  const redirectByRole = async (userId: string) => {
+  const redirectByRole = useCallback(async (userId: string) => {
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("role")
@@ -42,7 +32,19 @@ const LoginPage = () => {
     } else {
       router.push("/student-dashboard");
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.user) {
+        await redirectByRole(data.session.user.id);
+      }
+    };
+    checkSession();
+  }, [redirectByRole]);
+
+  
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

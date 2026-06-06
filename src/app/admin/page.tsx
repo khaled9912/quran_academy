@@ -24,6 +24,13 @@ interface StudentAssignment {
   courseTitle: string;
 }
 
+interface UserProfile {
+  id: string;
+  email: string;
+  role: string;
+  full_name?: string;
+}
+
 const DEFAULT_TEACHERS: Teacher[] = [
   {
     id: 1,
@@ -89,6 +96,7 @@ const AdminPage = () => {
   const [courses, setCourses] = useState<CourseItem[]>(DEFAULT_COURSES);
   const [assignments, setAssignments] =
     useState<StudentAssignment[]>(DEFAULT_ASSIGNMENTS);
+  const [users, setUsers] = useState<UserProfile[]>([]);
   const [teacherName, setTeacherName] = useState("");
   const [teacherEmail, setTeacherEmail] = useState("");
   const [teacherSubject, setTeacherSubject] = useState("");
@@ -120,6 +128,11 @@ const AdminPage = () => {
               courseTitle: row.course_title ?? row.courseTitle ?? "Course",
             }))
           );
+        }
+
+        const profileData = await backendFetch("/api/profiles");
+        if (profileData) {
+          setUsers(profileData as UserProfile[]);
         }
       } catch (error) {
         console.warn("Unable to load admin data:", error);
@@ -251,8 +264,9 @@ const AdminPage = () => {
     setCourses((prev) => prev.filter((course) => course.id !== id));
   };
 
-  const totalStudents = assignments.length;
-  const totalTeachers = teachers.length;
+  const totalStudents = users.filter((user) => user.role === "student").length;
+  const totalTeachers = users.filter((user) => user.role === "teacher").length;
+  const totalAdmins = users.filter((user) => user.role === "admin").length;
   const totalCourses = courses.length;
 
   return (
@@ -275,16 +289,20 @@ const AdminPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
           <div className="bg-card-bg border border-card-border rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4">Overview</h2>
+            <p className="text-foreground opacity-75">Students</p>
+            <p className="text-3xl font-bold text-green-500 mb-4">
+              {totalStudents}
+            </p>
             <p className="text-foreground opacity-75">Teachers</p>
             <p className="text-3xl font-bold text-green-500 mb-4">
               {totalTeachers}
             </p>
-            <p className="text-foreground opacity-75">Courses</p>
+            <p className="text-foreground opacity-75">Admins</p>
             <p className="text-3xl font-bold text-green-500 mb-4">
-              {totalCourses}
+              {totalAdmins}
             </p>
-            <p className="text-foreground opacity-75">Assigned Students</p>
-            <p className="text-3xl font-bold text-green-500">{totalStudents}</p>
+            <p className="text-foreground opacity-75">Courses</p>
+            <p className="text-3xl font-bold text-green-500">{totalCourses}</p>
           </div>
           <div className="bg-card-bg border border-card-border rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4">Quick actions</h2>
@@ -306,6 +324,60 @@ const AdminPage = () => {
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           <div className="xl:col-span-2 space-y-6">
+            <div className="bg-card-bg border border-card-border rounded-lg p-6">
+              <h2 className="text-2xl font-semibold mb-4">User Accounts</h2>
+              <div className="mb-6 overflow-x-auto rounded-lg border border-card-border bg-background">
+                <table className="min-w-full text-left">
+                  <thead>
+                    <tr className="bg-card-bg">
+                      <th className="px-4 py-3 text-sm font-semibold text-foreground opacity-75">Name</th>
+                      <th className="px-4 py-3 text-sm font-semibold text-foreground opacity-75">Email</th>
+                      <th className="px-4 py-3 text-sm font-semibold text-foreground opacity-75">Role</th>
+                      <th className="px-4 py-3 text-sm font-semibold text-foreground opacity-75">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-card-border">
+                    {users.map((user) => (
+                      <tr key={user.id} className="hover:bg-card-bg">
+                        <td className="px-4 py-3 text-sm text-foreground">
+                          {user.full_name || "—"}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-foreground opacity-75">
+                          {user.email}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-foreground">
+                          <select
+                            value={user.role}
+                            onChange={async (event) => {
+                              const updatedRole = event.target.value;
+                              await backendFetch(`/api/profiles/${user.id}`, {
+                                method: "PATCH",
+                                body: JSON.stringify({ role: updatedRole }),
+                              });
+                              setUsers((prev) =>
+                                prev.map((item) =>
+                                  item.id === user.id ? { ...item, role: updatedRole } : item
+                                )
+                              );
+                            }}
+                            className="rounded-lg border border-card-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:border-green-500"
+                          >
+                            <option value="student">Student</option>
+                            <option value="teacher">Teacher</option>
+                            <option value="admin">Admin</option>
+                          </select>
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          <span className="rounded-full bg-green-100 px-3 py-1 text-green-700">
+                            Updated
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
             <div className="bg-card-bg border border-card-border rounded-lg p-6">
               <h2 className="text-2xl font-semibold mb-4">Teachers</h2>
               <form

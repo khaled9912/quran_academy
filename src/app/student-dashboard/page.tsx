@@ -136,13 +136,15 @@ const StudentDashboard = () => {
             courseTitle:
               lesson.course_title ?? lesson.courseTitle ?? "Live Session",
             topicTitle:
-              lesson.topic_title ?? lesson.topicTitle ??
+              lesson.topic_title ??
+              lesson.topicTitle ??
               `${lesson.course_title ?? lesson.courseTitle ?? "Session"}`,
             scheduledTime:
               lesson.day && lesson.time
                 ? `${lesson.day} ${lesson.time}`
                 : lesson.scheduled_time ?? lesson.scheduledTime ?? "Coming soon",
-            meetLink: lesson.live_link ?? lesson.meet_link ?? lesson.meetLink ?? "#",
+            meetLink:
+              lesson.live_link ?? lesson.meet_link ?? lesson.meetLink ?? "#",
           }))
         );
       }
