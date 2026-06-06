@@ -142,7 +142,9 @@ const StudentDashboard = () => {
             scheduledTime:
               lesson.day && lesson.time
                 ? `${lesson.day} ${lesson.time}`
-                : lesson.scheduled_time ?? lesson.scheduledTime ?? "Coming soon",
+                : (lesson.scheduled_time ??
+                  lesson.scheduledTime ??
+                  "Coming soon"),
             meetLink:
               lesson.live_link ?? lesson.meet_link ?? lesson.meetLink ?? "#",
           }))

@@ -13,26 +13,29 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const redirectByRole = useCallback(async (userId: string) => {
-    const { data: profile, error } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", userId)
-      .single();
+  const redirectByRole = useCallback(
+    async (userId: string) => {
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", userId)
+        .single();
 
-    if (error) {
-      console.warn("Profile lookup failed", error.message);
-      return;
-    }
+      if (error) {
+        console.warn("Profile lookup failed", error.message);
+        return;
+      }
 
-    if (profile?.role === "teacher") {
-      router.push("/teacher/schedule");
-    } else if (profile?.role === "admin") {
-      router.push("/admin");
-    } else {
-      router.push("/student-dashboard");
-    }
-  }, [router]);
+      if (profile?.role === "teacher") {
+        router.push("/teacher/schedule");
+      } else if (profile?.role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/student-dashboard");
+      }
+    },
+    [router]
+  );
 
   useEffect(() => {
     const checkSession = async () => {
@@ -43,8 +46,6 @@ const LoginPage = () => {
     };
     checkSession();
   }, [redirectByRole]);
-
-  
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

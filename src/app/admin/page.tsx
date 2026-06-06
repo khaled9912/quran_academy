@@ -330,10 +330,18 @@ const AdminPage = () => {
                 <table className="min-w-full text-left">
                   <thead>
                     <tr className="bg-card-bg">
-                      <th className="px-4 py-3 text-sm font-semibold text-foreground opacity-75">Name</th>
-                      <th className="px-4 py-3 text-sm font-semibold text-foreground opacity-75">Email</th>
-                      <th className="px-4 py-3 text-sm font-semibold text-foreground opacity-75">Role</th>
-                      <th className="px-4 py-3 text-sm font-semibold text-foreground opacity-75">Action</th>
+                      <th className="px-4 py-3 text-sm font-semibold text-foreground opacity-75">
+                        Name
+                      </th>
+                      <th className="px-4 py-3 text-sm font-semibold text-foreground opacity-75">
+                        Email
+                      </th>
+                      <th className="px-4 py-3 text-sm font-semibold text-foreground opacity-75">
+                        Role
+                      </th>
+                      <th className="px-4 py-3 text-sm font-semibold text-foreground opacity-75">
+                        Action
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-card-border">
@@ -356,7 +364,9 @@ const AdminPage = () => {
                               });
                               setUsers((prev) =>
                                 prev.map((item) =>
-                                  item.id === user.id ? { ...item, role: updatedRole } : item
+                                  item.id === user.id
+                                    ? { ...item, role: updatedRole }
+                                    : item
                                 )
                               );
                             }}
