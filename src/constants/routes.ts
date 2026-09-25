@@ -15,7 +15,7 @@ export const ROUTES = {
   TEACHER_SESSIONS: "/teacher/sessions",
   TEACHER_ATTENDANCE: "/teacher/attendance",
 
-  STUDENT_DASHBOARD: "/student-dashboard",
+  STUDENT_DASHBOARD: "/student/dashboard",
   STUDENT_COURSES: "/courses",
   STUDENT_SESSIONS: "/sessions",
   STUDENT_ASSIGNMENTS: "/assignments",

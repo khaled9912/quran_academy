@@ -1,0 +1,150 @@
+"use client";
+
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+
+interface ContactFormValues {
+  name: string;
+  email: string;
+  message: string;
+}
+
+const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+
+const inputClass =
+  "p-2 border border-card-border rounded bg-card-bg text-foreground focus:outline-none focus:border-green-500";
+
+const ContactForm = () => {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<ContactFormValues>();
+
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const onSubmit = async (data: ContactFormValues) => {
+    setLoading(true);
+    setSuccessMessage("");
+    setErrorMessage("");
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const payload = await res.json().catch(() => null);
+
+      if (res.ok) {
+        reset();
+        setSuccessMessage(
+          "Thank you! Your message has been sent successfully."
+        );
+        setTimeout(() => setSuccessMessage(""), 4000);
+      } else {
+        setErrorMessage(
+          payload?.error || "Something went wrong. Please try again."
+        );
+      }
+    } catch {
+      setErrorMessage("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-background border border-card-border p-6 rounded-lg shadow-md w-full">
+      {successMessage && (
+        <div className="mb-4 p-3 rounded bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+          {successMessage}
+        </div>
+      )}
+      {errorMessage && (
+        <div className="mb-4 p-3 rounded bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+          {errorMessage}
+        </div>
+      )}
+
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="flex flex-col gap-4 mt-2"
+        noValidate
+      >
+        <div className="flex flex-col">
+          <label htmlFor="name" className="text-foreground">
+            Name
+          </label>
+          <input
+            id="name"
+            {...register("name", { required: "Name is required" })}
+            className={inputClass}
+          />
+          {errors.name && (
+            <span className="text-red-500 dark:text-red-400">
+              {errors.name.message}
+            </span>
+          )}
+        </div>
+
+        <div className="flex flex-col">
+          <label htmlFor="email" className="text-foreground">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            {...register("email", {
+              required: "Email is required",
+              pattern: {
+                value: EMAIL_PATTERN,
+                message: "Enter a valid email address",
+              },
+            })}
+            className={inputClass}
+          />
+          {errors.email && (
+            <span className="text-red-500 dark:text-red-400">
+              {errors.email.message}
+            </span>
+          )}
+        </div>
+
+        <div className="flex flex-col">
+          <label htmlFor="message" className="text-foreground">
+            Message
+          </label>
+          <textarea
+            id="message"
+            rows={4}
+            {...register("message", { required: "Message is required" })}
+            className={inputClass}
+          />
+          {errors.message && (
+            <span className="text-red-500 dark:text-red-400">
+              {errors.message.message}
+            </span>
+          )}
+        </div>
+
+        <button
+          type="submit"
+          className="p-2 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white rounded mt-2 transition disabled:opacity-50"
+          disabled={loading}
+        >
+          {loading ? "Sending..." : "Submit"}
+        </button>
+      </form>
+    </div>
+  );
+};
+
+export default ContactForm;

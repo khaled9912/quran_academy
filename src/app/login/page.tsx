@@ -1,22 +1,20 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  signIn,
-  signUp,
-  getSession,
-  getProfileById,
-  createProfile,
-} from "@/services/auth.service";
-import { UserRole } from "@/types/user";
+import { signIn, getSession, getProfileById } from "@/services/auth.service";
+import { redirectAfterLogin } from "@/components/AutoRedirect";
+import type { UserRole } from "@/types/user";
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const isValidEmail = (value: string) => emailRegex.test(value.trim());
 
 const LoginPage = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<UserRole>("student");
-  const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -26,15 +24,7 @@ const LoginPage = () => {
 
   const redirectByRole = useCallback(
     (roleValue: string) => {
-      if (roleValue === "super_admin") {
-        router.push("/super-admin/dashboard");
-      } else if (roleValue === "admin") {
-        router.push("/admin/dashboard");
-      } else if (roleValue === "teacher") {
-        router.push("/teacher/dashboard");
-      } else {
-        router.push("/student/dashboard");
-      }
+      redirectAfterLogin(roleValue as UserRole, router);
     },
     [router]
   );
@@ -61,37 +51,33 @@ const LoginPage = () => {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setLoading(true);
     setMessage("");
 
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail) {
+      setMessage("Please enter your email address.");
+      return;
+    }
+
+    if (!isValidEmail(trimmedEmail)) {
+      setMessage("Please enter a valid email address.");
+      return;
+    }
+
+    if (!trimmedPassword) {
+      setMessage("Please enter your password.");
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      if (isRegistering) {
-        const signUpResponse = await signUp(email, password, role);
-
-        if (!signUpResponse?.user) {
-          setMessage("Registration failed. Please try again.");
-          return;
-        }
-
-        await createProfile({
-          id: signUpResponse.user.id,
-          email,
-          role,
-          is_active: true,
-        });
-
-        setRoleCookie(role);
-        setMessage(
-          "Check your inbox for confirmation email. Redirecting shortly..."
-        );
-        redirectByRole(role);
-        return;
-      }
-
-      const signInResponse = await signIn(email, password);
+      const signInResponse = await signIn(trimmedEmail, trimmedPassword);
 
       if (!signInResponse?.user) {
-        setMessage("Login failed. Please check your credentials.");
+        setMessage("Something went wrong. Please try again.");
         return;
       }
 
@@ -108,8 +94,8 @@ const LoginPage = () => {
 
       setRoleCookie(profile.role);
       redirectByRole(profile.role);
-    } catch (error: any) {
-      setMessage(error?.message ?? "Authentication failed.");
+    } catch {
+      setMessage("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -120,9 +106,7 @@ const LoginPage = () => {
       <div className="w-full max-w-md bg-card-bg border border-card-border rounded-3xl p-8 shadow-xl">
         <h1 className="text-3xl font-bold text-center mb-2">Rayan Academy</h1>
         <p className="text-center text-foreground opacity-75 mb-8">
-          {isRegistering
-            ? "Create your account and join the academy."
-            : "Sign in to manage classes, view your dashboard, or join live lessons."}
+          Sign in to manage classes, view your dashboard, or join live lessons.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -157,32 +141,12 @@ const LoginPage = () => {
             />
           </div>
 
-          {isRegistering && (
-            <div>
-              <label className="block text-sm font-semibold mb-2">Role</label>
-              <select
-                value={role}
-                onChange={(event) => setRole(event.target.value as UserRole)}
-                className="w-full rounded-xl border border-card-border bg-background px-4 py-3 text-foreground focus:outline-none focus:border-green-500"
-              >
-                <option value="student">Student</option>
-                <option value="teacher">Teacher</option>
-                <option value="admin">Admin</option>
-                <option value="super_admin">Super Admin</option>
-              </select>
-            </div>
-          )}
-
           <button
             type="submit"
             disabled={loading}
             className="w-full rounded-xl bg-green-500 px-4 py-3 text-white font-semibold transition hover:bg-green-600 disabled:opacity-50"
           >
-            {loading
-              ? "Processing..."
-              : isRegistering
-                ? "Create account"
-                : "Sign in"}
+            {loading ? "Processing..." : "Sign in"}
           </button>
         </form>
 
@@ -191,27 +155,10 @@ const LoginPage = () => {
         )}
 
         <div className="mt-8 text-center text-sm text-foreground opacity-75">
-          {isRegistering ? (
-            <>
-              Already a member?{" "}
-              <button
-                onClick={() => setIsRegistering(false)}
-                className="font-semibold text-green-500 hover:underline"
-              >
-                Sign in
-              </button>
-            </>
-          ) : (
-            <>
-              New here?{" "}
-              <button
-                onClick={() => setIsRegistering(true)}
-                className="font-semibold text-green-500 hover:underline"
-              >
-                Create account
-              </button>
-            </>
-          )}
+          New here?{" "}
+          <Link href="/signup" className="font-semibold text-green-500 hover:underline">
+            Create account
+          </Link>
         </div>
       </div>
     </div>

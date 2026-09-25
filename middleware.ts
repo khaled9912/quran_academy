@@ -83,7 +83,7 @@ export const config = {
     "/student/:path*",
     "/student-dashboard/:path*",
     "/login",
-    "/register",
+    "/signup",
     "/forgot-password",
   ],
 };
