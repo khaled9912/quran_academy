@@ -7,9 +7,9 @@ import { Providers } from "@/components/providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Rayan Academy",
+  title: "Rayan Academy | Personal Online Quran & Arabic Learning",
   description:
-    "Rayan Academy specializes in teaching the Quran, Arabic, and Islamic studies to non-Arabs. Our experienced teachers make learning accessible and enjoyable for everyone. teaching the quran to children ",
+    "Learn Quran, Arabic, and Islamic studies through personal online lessons with dedicated teachers and flexible scheduling at Rayan Academy.",
 };
 
 export default function RootLayout({

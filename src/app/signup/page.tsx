@@ -1,123 +1,47 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  createProfile,
-  getProfileById,
-  getSession,
-  signUp,
-} from "@/services/auth.service";
-import { UserRole } from "@/types/user";
+import { signUp } from "@/services/auth.service";
+import { ApiError } from "@/lib/backend-client";
+import { useAuth } from "@/providers/auth-provider";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const strongPasswordRegex =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
-const isValidEmail = (value: string) => emailRegex.test(value.trim());
-const isStrongPassword = (value: string) => strongPasswordRegex.test(value);
-
 const SignUpPage = () => {
   const router = useRouter();
+  const { applySession } = useAuth();
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<UserRole>("student");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const setRoleCookie = (roleValue: string) => {
-    document.cookie = `user-role=${roleValue}; path=/; max-age=${60 * 60 * 24}; SameSite=Lax; Secure`;
-  };
-
-  const redirectByRole = useCallback(
-    (roleValue: string) => {
-      if (roleValue === "super_admin") {
-        router.push("/super-admin/dashboard");
-      } else if (roleValue === "admin") {
-        router.push("/admin/dashboard");
-      } else if (roleValue === "teacher") {
-        router.push("/teacher/dashboard");
-      } else {
-        router.push("/student/dashboard");
-      }
-    },
-    [router]
-  );
-
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const session = await getSession();
-        const userId = session?.user?.id;
-        if (!userId) return;
-
-        const profile = await getProfileById(userId);
-        if (!profile?.role) return;
-
-        setRoleCookie(profile.role);
-        redirectByRole(profile.role);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    checkSession();
-  }, [redirectByRole]);
-
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (loading) return;
     setMessage("");
-
+    const trimmedName = fullName.trim();
     const trimmedEmail = email.trim();
-    const trimmedPassword = password.trim();
-
-    if (!trimmedEmail) {
-      setMessage("Please enter your email address.");
-      return;
-    }
-
-    if (!isValidEmail(trimmedEmail)) {
-      setMessage("Please enter a valid email address.");
-      return;
-    }
-
-    if (!trimmedPassword) {
-      setMessage("Please enter your password.");
-      return;
-    }
-
-    if (!isStrongPassword(trimmedPassword)) {
-      setMessage(
-        "Password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character."
-      );
+    if (!trimmedName) { setMessage("Please enter your full name."); return; }
+    if (!emailRegex.test(trimmedEmail)) { setMessage("Please enter a valid email address."); return; }
+    if (!strongPasswordRegex.test(password)) {
+      setMessage("Password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character.");
       return;
     }
 
     setLoading(true);
-
     try {
-      const signUpResponse = await signUp(trimmedEmail, trimmedPassword, role);
-
-      if (!signUpResponse?.user) {
-        setMessage("Something went wrong. Please try again.");
-        return;
-      }
-
-      await createProfile({
-        id: signUpResponse.user.id,
-        email: trimmedEmail,
-        role,
-        is_active: true,
-      });
-
-      setRoleCookie(role);
-      setMessage(
-        "Account created. Please check your inbox for confirmation, then continue signing in."
-      );
-      redirectByRole(role);
-    } catch {
-      setMessage("Something went wrong. Please try again.");
+      // The API creates a student account and starts the session. Applying it
+      // once lets the AuthProvider perform the single dashboard redirect.
+      const { user } = await signUp(trimmedName, trimmedEmail, password);
+      if (user) applySession(user);
+      else router.replace("/login");
+    } catch (error) {
+      setMessage(error instanceof ApiError ? error.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -128,10 +52,14 @@ const SignUpPage = () => {
       <div className="w-full max-w-md bg-card-bg border border-card-border rounded-3xl p-8 shadow-xl">
         <h1 className="text-3xl font-bold text-center mb-2">Create your account</h1>
         <p className="text-center text-foreground opacity-75 mb-8">
-          Join the academy and start learning with your new account.
+          Create your student account and get connected with your teacher.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label htmlFor="fullName" className="block text-sm font-semibold mb-2">Full name</label>
+            <input id="fullName" type="text" value={fullName} onChange={(event) => setFullName(event.target.value)} required autoComplete="name" className="w-full rounded-xl border border-card-border bg-background px-4 py-3 text-foreground focus:outline-none focus:border-green-500" />
+          </div>
           <div>
             <label htmlFor="email" className="block text-sm font-semibold mb-2">
               Email
@@ -142,15 +70,13 @@ const SignUpPage = () => {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
+              autoComplete="email"
               className="w-full rounded-xl border border-card-border bg-background px-4 py-3 text-foreground focus:outline-none focus:border-green-500"
             />
           </div>
 
           <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-semibold mb-2"
-            >
+            <label htmlFor="password" className="block text-sm font-semibold mb-2">
               Password
             </label>
             <input
@@ -159,26 +85,13 @@ const SignUpPage = () => {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
+              autoComplete="new-password"
               className="w-full rounded-xl border border-card-border bg-background px-4 py-3 text-foreground focus:outline-none focus:border-green-500"
             />
             <p className="mt-2 text-xs text-foreground opacity-70">
               Use at least 8 characters with uppercase, lowercase, a number,
               and a symbol.
             </p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold mb-2">Role</label>
-            <select
-              value={role}
-              onChange={(event) => setRole(event.target.value as UserRole)}
-              className="w-full rounded-xl border border-card-border bg-background px-4 py-3 text-foreground focus:outline-none focus:border-green-500"
-            >
-              <option value="student">Student</option>
-              <option value="teacher">Teacher</option>
-              <option value="admin">Admin</option>
-              <option value="super_admin">Super Admin</option>
-            </select>
           </div>
 
           <button
@@ -191,7 +104,7 @@ const SignUpPage = () => {
         </form>
 
         {message && (
-          <p className="mt-4 text-center text-sm text-red-500">{message}</p>
+          <p role="alert" className="mt-4 text-center text-sm text-red-500">{message}</p>
         )}
 
         <div className="mt-8 text-center text-sm text-foreground opacity-75">

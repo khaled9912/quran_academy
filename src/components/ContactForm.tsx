@@ -2,12 +2,17 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { ApiError, backendFetch } from "@/lib/backend-client";
 
 interface ContactFormValues {
   name: string;
   email: string;
   message: string;
 }
+
+const CONTACT_FIELDS: (keyof ContactFormValues)[] = ["name", "email", "message"];
+const isContactField = (field: string): field is keyof ContactFormValues =>
+  (CONTACT_FIELDS as string[]).includes(field);
 
 const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
 
@@ -19,6 +24,8 @@ const ContactForm = () => {
     register,
     handleSubmit,
     reset,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm<ContactFormValues>();
 
@@ -30,32 +37,23 @@ const ContactForm = () => {
     setLoading(true);
     setSuccessMessage("");
     setErrorMessage("");
-
+    clearErrors();
     try {
-      const res = await fetch("/api/contact", {
+      await backendFetch("/api/contact", {
         method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify(data),
       });
-
-      const payload = await res.json().catch(() => null);
-
-      if (res.ok) {
-        reset();
-        setSuccessMessage(
-          "Thank you! Your message has been sent successfully."
-        );
-        setTimeout(() => setSuccessMessage(""), 4000);
-      } else {
-        setErrorMessage(
-          payload?.error || "Something went wrong. Please try again."
-        );
+      reset();
+      setSuccessMessage("Thank you! Your message has been sent successfully.");
+      setTimeout(() => setSuccessMessage(""), 4000);
+    } catch (error) {
+      const validationErrors = error instanceof ApiError ? error.validationErrors : undefined;
+      const fieldErrors = Object.entries(validationErrors ?? {}).filter(([field]) => isContactField(field));
+      for (const [field, messages] of fieldErrors) {
+        if (messages[0]) setError(field as keyof ContactFormValues, { type: "server", message: messages[0] });
       }
-    } catch {
-      setErrorMessage("Network error. Please try again.");
+      if (fieldErrors.length) setErrorMessage("");
+      else setErrorMessage(error instanceof Error ? error.message : "Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -85,7 +83,10 @@ const ContactForm = () => {
           </label>
           <input
             id="name"
-            {...register("name", { required: "Name is required" })}
+            {...register("name", {
+              required: "Name is required",
+              maxLength: { value: 120, message: "Name must be 120 characters or fewer" },
+            })}
             className={inputClass}
           />
           {errors.name && (
@@ -125,7 +126,11 @@ const ContactForm = () => {
           <textarea
             id="message"
             rows={4}
-            {...register("message", { required: "Message is required" })}
+            {...register("message", {
+              required: "Message is required",
+              minLength: { value: 5, message: "Message must be at least 5 characters" },
+              maxLength: { value: 3000, message: "Message must be 3000 characters or fewer" },
+            })}
             className={inputClass}
           />
           {errors.message && (

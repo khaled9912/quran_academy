@@ -13,9 +13,7 @@ const Menu = () => {
   const links =
     isAuthenticated && role && navigationConfig[role]
       ? navigationConfig[role]
-      : navigationConfig.anonymous.filter(
-          (l) => l.label !== "Login" && l.label !== "Register"
-        );
+      : navigationConfig.anonymous;
 
   return (
     <div>
@@ -29,7 +27,6 @@ const Menu = () => {
       />
       {open && (
         <div className="menu-items" onClick={() => setOpen(false)}>
-          <Link href="/">Home</Link>
           {links.map((link) => (
             <Link key={link.href} href={link.href}>
               {link.label}

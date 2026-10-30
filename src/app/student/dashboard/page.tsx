@@ -1,307 +1,205 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
-import { Course } from "@/types/course";
-import { useAuth } from "@/providers/auth-provider";
+import { CalendarDays, Clock3, GraduationCap, Hourglass, RefreshCw, Video } from "lucide-react";
+import type { Lesson } from "@/types/lesson";
 import { useStudentDashboard } from "@/features/students/hooks/useStudentDashboard";
 
-interface Lesson {
-  id: string;
-  courseTitle: string;
-  topicTitle: string;
-  scheduledTime: string;
-  meetLink: string;
-}
+const dateTime = (value: string) =>
+  new Date(value).toLocaleString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 
-const fallbackCourses: Course[] = [
-  {
-    id: "1",
-    title: "Quran Reading Basics",
-    teacherName: "Sheikh Ahmed",
-    progress: 65,
-    thumbnail:
-      "https://images.pexels.com/photos/16066399/pexels-photo-16066399/free-photo-of-man-reading-koran.jpeg",
-  },
-  {
-    id: "2",
-    title: "Arabic Language Fundamentals",
-    teacherName: "Sister Fatima",
-    progress: 45,
-    thumbnail:
-      "https://images.pexels.com/photos/8522576/pexels-photo-8522576.jpeg",
-  },
-  {
-    id: "3",
-    title: "Islamic Studies",
-    teacherName: "Sheikh Mohammad",
-    progress: 80,
-    thumbnail:
-      "https://images.pexels.com/photos/2608353/pexels-photo-2608353.jpeg",
-  },
-];
+const requestStatusLabels: Record<string, string> = {
+  pending_teacher: "Awaiting teacher confirmation",
+  pending_student: "Awaiting your confirmation",
+  pending_admin: "Awaiting academy approval",
+  approved: "Approved",
+  rejected: "Rejected",
+  cancelled: "Cancelled",
+  expired: "Expired",
+};
 
-const fallbackLessons: Lesson[] = [
-  {
-    id: "1",
-    courseTitle: "Quran Reading Basics",
-    topicTitle: "Surah Al-Fatiha",
-    scheduledTime: "Today at 6:00 PM",
-    meetLink: "https://zoom.us/j/example",
-  },
-  {
-    id: "2",
-    courseTitle: "Arabic Language Fundamentals",
-    topicTitle: "Verb Conjugation",
-    scheduledTime: "Tomorrow at 4:00 PM",
-    meetLink: "https://meet.google.com/example",
-  },
-  {
-    id: "3",
-    courseTitle: "Islamic Studies",
-    topicTitle: "The Five Pillars",
-    scheduledTime: "June 7 at 5:00 PM",
-    meetLink: "https://zoom.us/j/example2",
-  },
-];
+const statusStyles: Record<Lesson["status"], string> = {
+  scheduled: "bg-green-100 text-green-800",
+  in_progress: "bg-sky-100 text-sky-800",
+  completed: "bg-gray-100 text-gray-700",
+  cancelled: "bg-red-100 text-red-700",
+};
 
 const StudentDashboard = () => {
-  const router = useRouter();
-  const { role, isLoading: authLoading } = useAuth();
-  const { coursesQuery, sessionsQuery } = useStudentDashboard();
-  const [joinedLessons, setJoinedLessons] = useState<string[]>([]);
+  const { lessonsQuery, availabilityQuery, requestsQuery } = useStudentDashboard();
+  const lessons = lessonsQuery.data ?? [];
+  const sorted = [...lessons].sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+  const now = Date.now();
+  const upcoming = sorted.filter(
+    (lesson) => new Date(lesson.startsAt).getTime() >= now && lesson.status !== "cancelled" && lesson.status !== "completed"
+  );
+  const completed = sorted.filter((lesson) => lesson.status === "completed");
+  const cancelled = sorted.filter((lesson) => lesson.status === "cancelled");
+  const teacher = availabilityQuery.data?.teacher;
+  const requests = requestsQuery.data ?? [];
+  const openRequests = requests.filter((request) => request.status.startsWith("pending_"));
+  const queryError = lessonsQuery.error ?? availabilityQuery.error ?? requestsQuery.error;
 
-  useEffect(() => {
-    if (authLoading) return;
-    if (role !== "student") {
-      if (role === "teacher") {
-        router.push("/teacher/dashboard");
-      } else if (role === "admin") {
-        router.push("/admin/dashboard");
-      } else if (role === "super_admin") {
-        router.push("/super-admin/dashboard");
-      } else {
-        router.push("/login");
-      }
-    }
-  }, [authLoading, role, router]);
-
-  const courses: Course[] =
-    coursesQuery.data && coursesQuery.data.length > 0
-      ? coursesQuery.data
-      : fallbackCourses;
-
-  const upcomingLessons: Lesson[] =
-    sessionsQuery.data && sessionsQuery.data.length > 0
-      ? sessionsQuery.data.slice(0, 6).map((session) => ({
-          id: session.id ?? `session-${Math.random().toString(36).slice(2)}`,
-          courseTitle: session.courseTitle ?? "Live Session",
-          topicTitle: session.topicTitle ?? "Upcoming Lesson",
-          scheduledTime: session.scheduledAt ?? "Coming soon",
-          meetLink: session.meetLink ?? "#",
-        }))
-      : fallbackLessons;
-
-  const loading =
-    authLoading || coursesQuery.isLoading || sessionsQuery.isLoading;
-
-  const handleJoin = (lessonId: string, link: string) => {
-    if (!joinedLessons.includes(lessonId)) {
-      setJoinedLessons((prev) => [...prev, lessonId]);
-    }
-    window.open(link, "_blank");
+  const refreshAll = () => {
+    void lessonsQuery.refetch();
+    void availabilityQuery.refetch();
+    void requestsQuery.refetch();
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-8">
-        <p className="text-lg font-semibold">Loading your dashboard...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background text-foreground pt-24 pb-16">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16">
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-2">Student Dashboard</h1>
-          <p className="text-lg text-foreground opacity-75">
-            Welcome back! Here&apos;s your learning overview.
-          </p>
+      <div className="max-w-6xl mx-auto px-4 md:px-8 lg:px-16">
+        <div className="mb-10 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">Student Dashboard</h1>
+            <p className="text-lg text-foreground opacity-75">
+              Your confirmed lessons and what is coming next.
+            </p>
+          </div>
+          <button
+            onClick={refreshAll}
+            className="inline-flex items-center gap-2 rounded-xl border border-card-border bg-card-bg px-4 py-2.5 text-sm font-semibold hover:border-green-500"
+          >
+            <RefreshCw size={16} /> Refresh
+          </button>
         </div>
+
+        {queryError && (
+          <p role="alert" className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {queryError instanceof Error ? queryError.message : "Unable to load your lesson information."}
+          </p>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
-            <div className="grid grid-cols-2 gap-4">
-              <Link href="/schedule">
-                <button className="w-full px-4 py-3 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white rounded-lg font-semibold transition">
-                  View Schedule
-                </button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Link
+                href="/student/availability"
+                className="rounded-xl bg-green-500 px-4 py-3 text-center font-semibold text-white transition hover:bg-green-600"
+              >
+                Book a lesson
               </Link>
-              <Link href="/courses">
-                <button className="w-full px-4 py-3 border border-green-500 text-green-500 hover:bg-green-500 hover:text-white rounded-lg font-semibold transition">
-                  Browse Courses
-                </button>
+              <Link
+                href="/schedule"
+                className="rounded-xl border border-green-500 px-4 py-3 text-center font-semibold text-green-600 transition hover:bg-green-500 hover:text-white"
+              >
+                My schedule
               </Link>
             </div>
 
-            <section className="bg-card-bg border border-card-border rounded-lg p-8">
-              <h2 className="text-2xl font-semibold mb-6">Upcoming Lessons</h2>
-              <div className="space-y-4">
-                {upcomingLessons.map((lesson) => (
-                  <div
-                    key={lesson.id}
-                    className="border border-card-border rounded-lg p-5 hover:border-green-500 transition"
-                  >
-                    <div className="flex justify-between items-start gap-4">
-                      <div className="flex-1">
-                        <p className="text-sm text-green-500 font-semibold uppercase">
-                          {lesson.courseTitle}
-                        </p>
-                        <h3 className="text-lg font-semibold mt-2">
-                          {lesson.topicTitle}
-                        </h3>
-                        <p className="text-foreground opacity-70 mt-2">
-                          {lesson.scheduledTime}
-                        </p>
+            <section className="bg-card-bg border border-card-border rounded-3xl p-6 md:p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <CalendarDays className="text-green-600" />
+                <h2 className="text-2xl font-semibold">Upcoming lessons</h2>
+              </div>
+              {lessonsQuery.isLoading ? (
+                <p className="text-foreground opacity-70">Loading your lessons…</p>
+              ) : upcoming.length ? (
+                <div className="space-y-4">
+                  {upcoming.map((lesson) => (
+                    <article key={lesson.id} className="rounded-2xl border border-card-border p-5">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="font-semibold">{dateTime(lesson.startsAt)}</p>
+                          <p className="mt-1 flex items-center gap-2 text-sm text-foreground opacity-70">
+                            <Clock3 size={15} />
+                            Until {new Date(lesson.endsAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                          </p>
+                          <p className="mt-1 text-sm text-foreground opacity-70">
+                            Teacher: {lesson.teacherName ?? "Assigned teacher"}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                          <span className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[lesson.status]}`}>
+                            {lesson.status.replaceAll("_", " ")}
+                          </span>
+                          <Link
+                            href={`/lesson/${lesson.id}`}
+                            className="rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
+                          >
+                            Join lesson
+                          </Link>
+                        </div>
                       </div>
-                      <div className="flex flex-col items-end gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleJoin(lesson.id, lesson.meetLink)}
-                          className="px-4 py-2 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white rounded font-semibold transition whitespace-nowrap"
-                        >
-                          Join Class
-                        </button>
-                        <span
-                          className={`text-sm font-semibold ${joinedLessons.includes(lesson.id) ? "text-green-600" : "text-gray-500"}`}
-                        >
-                          {joinedLessons.includes(lesson.id)
-                            ? "Present"
-                            : "Not joined"}
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-card-border p-8 text-center text-foreground opacity-70">
+                  No confirmed lessons yet.{" "}
+                  <Link href="/student/availability" className="font-semibold text-green-600 hover:underline">
+                    Choose an available time
+                  </Link>{" "}
+                  to request your first lesson.
+                </div>
+              )}
+            </section>
+
+            <section className="bg-card-bg border border-card-border rounded-3xl p-6 md:p-8">
+              <h2 className="text-2xl font-semibold mb-4">Lesson history</h2>
+              {completed.length + cancelled.length === 0 ? (
+                <p className="text-foreground opacity-70">Your past lessons will appear here.</p>
+              ) : (
+                <div className="space-y-3">
+                  {[...completed, ...cancelled]
+                    .sort((a, b) => b.startsAt.localeCompare(a.startsAt))
+                    .slice(0, 10)
+                    .map((lesson) => (
+                      <div key={lesson.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-card-border p-4">
+                        <div>
+                          <p className="font-medium">{dateTime(lesson.startsAt)}</p>
+                          <p className="text-sm text-foreground opacity-70">
+                            Teacher: {lesson.teacherName ?? "Assigned teacher"}
+                          </p>
+                        </div>
+                        <span className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[lesson.status]}`}>
+                          {lesson.status.replaceAll("_", " ")}
                         </span>
                       </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="bg-card-bg border border-card-border rounded-lg p-8">
-              <h2 className="text-2xl font-semibold mb-6">My Courses</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {courses.map((course) => (
-                  <div
-                    key={course.id}
-                    className="border border-card-border rounded-lg overflow-hidden hover:border-green-500 transition"
-                  >
-                    <div className="relative h-32 bg-gradient-to-r from-green-400 to-green-600">
-                      <Image
-                        src={
-                          course.thumbnail ||
-                          "https://images.pexels.com/photos/16066399/pexels-photo-16066399/free-photo-of-man-reading-koran.jpeg"
-                        }
-                        alt={course.title}
-                        fill
-                        className="object-cover opacity-50 font-sans"
-                      />
-                    </div>
-                    <div className="p-5">
-                      <h3 className="text-lg font-semibold">{course.title}</h3>
-                      <p className="text-sm text-foreground opacity-70 mt-1">
-                        Instructor: {course.teacherName}
-                      </p>
-
-                      <div className="mt-4">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-sm text-foreground opacity-75">
-                            Progress
-                          </span>
-                          <span className="text-sm font-semibold text-green-500">
-                            {course.progress ?? 0}%
-                          </span>
-                        </div>
-                        <div className="w-full bg-card-border rounded-full h-2">
-                          <div
-                            className="bg-green-500 h-2 rounded-full transition-all"
-                            style={{ width: `${course.progress ?? 0}%` }}
-                          ></div>
-                        </div>
-                      </div>
-
-                      <button className="w-full mt-4 px-3 py-2 border border-green-500 text-green-500 hover:bg-green-500 hover:text-white rounded font-semibold transition">
-                        Continue Learning
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                    ))}
+                </div>
+              )}
             </section>
           </div>
 
-          <div className="space-y-6">
-            <div className="bg-card-bg border border-card-border rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Quick Stats</h3>
-              <div className="space-y-4">
+          <aside className="space-y-6">
+            <div className="bg-card-bg border border-card-border rounded-3xl p-6">
+              <h3 className="text-lg font-semibold mb-4">Quick stats</h3>
+              <dl className="space-y-4">
                 <div>
-                  <p className="text-foreground opacity-70 text-sm">
-                    Enrolled Courses
-                  </p>
-                  <p className="text-3xl font-bold text-green-500">
-                    {courses.length}
-                  </p>
+                  <dt className="text-sm text-foreground opacity-70">Upcoming lessons</dt>
+                  <dd className="text-3xl font-bold text-green-600">{upcoming.length}</dd>
                 </div>
                 <div>
-                  <p className="text-foreground opacity-70 text-sm">
-                    Upcoming Classes
-                  </p>
-                  <p className="text-3xl font-bold text-green-500">
-                    {upcomingLessons.length}
-                  </p>
+                  <dt className="text-sm text-foreground opacity-70">Completed</dt>
+                  <dd className="text-3xl font-bold text-green-600">{completed.length}</dd>
                 </div>
                 <div>
-                  <p className="text-foreground opacity-70 text-sm">
-                    Average Progress
-                  </p>
-                  <p className="text-3xl font-bold text-green-500">
-                    {Math.round(
-                      courses.reduce(
-                        (sum, course) => sum + (course.progress ?? 0),
-                        0
-                      ) / courses.length || 1
-                    )}
-                    %
-                  </p>
+                  <dt className="text-sm text-foreground opacity-70">Cancelled</dt>
+                  <dd className="text-3xl font-bold text-green-600">{cancelled.length}</dd>
                 </div>
-              </div>
+              </dl>
             </div>
 
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-6 text-white">
-              <h3 className="text-lg font-semibold mb-2">Explore More</h3>
-              <p className="text-sm opacity-90 mb-4">
-                Discover new courses and expand your knowledge.
+            <div className="bg-card-bg border border-card-border rounded-3xl p-6">
+              <h3 className="text-lg font-semibold mb-2">Need help?</h3>
+              <p className="text-sm text-foreground opacity-70 mb-4">
+                Contact the academy team if a lesson needs to be rescheduled.
               </p>
-              <Link href="/courses">
-                <button className="w-full px-4 py-2 bg-white text-green-600 hover:bg-opacity-90 rounded font-semibold transition">
-                  Browse Courses
-                </button>
+              <Link
+                href="/contact"
+                className="block rounded-xl border border-green-500 px-4 py-2 text-center font-semibold text-green-600 transition hover:bg-green-500 hover:text-white"
+              >
+                Contact us
               </Link>
             </div>
-
-            <div className="bg-card-bg border border-card-border rounded-lg p-6">
-              <h3 className="text-lg font-semibold mb-2">Need Help?</h3>
-              <p className="text-foreground opacity-70 text-sm mb-4">
-                Contact our support team or visit the FAQ.
-              </p>
-              <Link href="/contact">
-                <button className="w-full px-4 py-2 border border-green-500 text-green-500 hover:bg-green-500 hover:text-white rounded font-semibold transition">
-                  Contact Us
-                </button>
-              </Link>
-            </div>
-          </div>
+          </aside>
         </div>
       </div>
     </div>

@@ -14,12 +14,10 @@ const Navbar = () => {
   const links =
     isAuthenticated && role && navigationConfig[role]
       ? navigationConfig[role]
-      : navigationConfig.anonymous.filter(
-          (l) => l.label !== "Login" && l.label !== "Register"
-        );
+      : navigationConfig.anonymous;
 
   return (
-    <div className="navbar">
+    <div className="navbar bg-[#fbfaf6]/95 text-[#23483c] backdrop-blur">
       <div className="h-full flex items-center justify-between md:hidden">
         {/* Mobile */}
         <Link href="/" className="flex items-center gap-3">
@@ -60,12 +58,12 @@ const Navbar = () => {
           {!isAuthenticated ? (
             <>
               <Link href="/login">
-                <button className="px-4 py-2 border border-green-500 text-green-500 hover:bg-green-500 hover:text-white rounded font-semibold transition">
+                <button className="rounded-xl border border-[#cbd8ca] px-4 py-2 text-[#244c40] transition hover:bg-[#edf3e9] font-semibold">
                   Login
                 </button>
               </Link>
               <Link href="/signup">
-                <button className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded font-semibold transition">
+                <button className="rounded-xl bg-[#1c5145] px-4 py-2 text-white transition hover:bg-[#163f36] font-semibold">
                   Register
                 </button>
               </Link>

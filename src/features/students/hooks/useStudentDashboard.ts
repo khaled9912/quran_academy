@@ -1,21 +1,31 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getCourses } from "@/services/course.service";
-import { getUpcomingSessions } from "@/services/session.service";
+import { getLessons } from "@/services/lesson.service";
+import { getAssignedTeacherAvailability, getMyLessonRequests } from "@/services/scheduling.service";
+import { useAuth } from "@/providers/auth-provider";
 
 export const useStudentDashboard = () => {
-  const coursesQuery = useQuery({
-    queryKey: ["student-courses"],
-    queryFn: getCourses,
-    staleTime: 1000 * 60 * 5,
+  const { role } = useAuth();
+  const enabled = role === "student";
+
+  const lessonsQuery = useQuery({
+    queryKey: ["lessons"],
+    queryFn: () => getLessons(),
+    enabled,
   });
 
-  const sessionsQuery = useQuery({
-    queryKey: ["student-sessions"],
-    queryFn: getUpcomingSessions,
-    staleTime: 1000 * 60 * 5,
+  const availabilityQuery = useQuery({
+    queryKey: ["availability", "student"],
+    queryFn: getAssignedTeacherAvailability,
+    enabled,
   });
 
-  return { coursesQuery, sessionsQuery };
+  const requestsQuery = useQuery({
+    queryKey: ["lesson-requests", "student"],
+    queryFn: getMyLessonRequests,
+    enabled,
+  });
+
+  return { lessonsQuery, availabilityQuery, requestsQuery };
 };

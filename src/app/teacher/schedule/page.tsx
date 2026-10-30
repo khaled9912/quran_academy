@@ -1,531 +1,154 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  FaClock,
-  FaCalendar,
-  FaPlus,
-  FaEdit,
-  FaTrash,
-  FaArrowLeft,
-  FaUsers,
-  FaBook,
-} from "react-icons/fa";
-import { supabase } from "@/lib/supabase-client";
-import { backendFetch } from "@/lib/backend-client";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { CalendarDays, RefreshCw } from "lucide-react";
+import { cancelLesson, getLessons } from "@/services/lesson.service";
+import { useAuth } from "@/providers/auth-provider";
+import type { Lesson } from "@/types/lesson";
 
-interface TimeSlot {
-  id: number;
-  courseTitle: string;
-  day: string;
-  time: string;
-  endTime: string;
-  room: string;
-  capacity: number;
-}
+const dayLabel = (value: string) =>
+  new Date(value).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+const timeLabel = (value: string) =>
+  new Date(value).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 
-interface NewTimeSlot {
-  courseTitle: string;
-  day: string;
-  time: string;
-  endTime: string;
-  room: string;
-  capacity: number;
-}
+export default function TeacherSchedulePage() {
+  const { role } = useAuth();
+  const queryClient = useQueryClient();
+  const [notice, setNotice] = useState("");
+  const [error, setError] = useState("");
 
-const DAYS = [
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-  "Sunday",
-];
-const TIME_SLOTS = [
-  "8:00 AM",
-  "9:00 AM",
-  "10:00 AM",
-  "11:00 AM",
-  "12:00 PM",
-  "1:00 PM",
-  "2:00 PM",
-  "3:00 PM",
-  "4:00 PM",
-  "5:00 PM",
-  "6:00 PM",
-  "7:00 PM",
-  "8:00 PM",
-  "9:00 PM",
-];
-const ROOMS = ["Room A", "Room B", "Room C", "Room D", "Room E"];
-
-const COURSES = [
-  "Quran Tajweed Essentials",
-  "Arabic Language Basics",
-  "Islamic Studies Fundamentals",
-  "Quranic Arabic for Beginners",
-  "Advanced Tajweed Techniques",
-  "Islamic History & Civilization",
-];
-
-const TeacherSchedulePage = () => {
-  const router = useRouter();
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([
-    {
-      id: 1,
-      courseTitle: "Quran Tajweed Essentials",
-      day: "Monday",
-      time: "6:00 PM",
-      endTime: "7:30 PM",
-      room: "Room A",
-      capacity: 30,
-    },
-    {
-      id: 2,
-      courseTitle: "Quran Tajweed Essentials",
-      day: "Wednesday",
-      time: "6:00 PM",
-      endTime: "7:30 PM",
-      room: "Room A",
-      capacity: 30,
-    },
-  ]);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [formData, setFormData] = useState<NewTimeSlot>({
-    courseTitle: "",
-    day: "Monday",
-    time: "8:00 AM",
-    endTime: "9:00 AM",
-    room: "Room A",
-    capacity: 25,
+  const lessonsQuery = useQuery({
+    queryKey: ["lessons"],
+    queryFn: () => getLessons(),
+    enabled: role === "teacher",
   });
 
-  useEffect(() => {
-    const loadSchedule = async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session?.user) {
-        router.push("/login");
-        return;
-      }
+  const cancelMutation = useMutation({
+    mutationFn: (id: string) => cancelLesson(id),
+    onSuccess: async () => {
+      setNotice("Lesson cancelled. The student has been removed from this time.");
+      await queryClient.invalidateQueries({ queryKey: ["lessons"] });
+    },
+    onError: (mutationError) => {
+      setError(mutationError instanceof Error ? mutationError.message : "Unable to cancel this lesson.");
+    },
+  });
 
-      try {
-        const sessions = await backendFetch("/api/sessions");
-        if (sessions) {
-          setTimeSlots(
-            sessions.map((session: any, index: number) => ({
-              id: session.id ?? index,
-              courseTitle:
-                session.course_title ?? session.courseTitle ?? "Course",
-              day: session.day ?? "Monday",
-              time: session.time ?? "TBD",
-              endTime: session.end_time ?? session.endTime ?? "TBD",
-              room: session.room ?? "Room A",
-              capacity: session.capacity ?? 25,
-            }))
-          );
-        }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        if (message.includes("401")) {
-          router.push("/login");
-          return;
-        }
-        console.warn("Unable to load sessions from backend:", message);
-      }
-    };
-
-    loadSchedule();
-  }, [router]);
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "capacity" ? parseInt(value) : value,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (editingId) {
-      await backendFetch(`/api/sessions/${editingId}`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          course_title: formData.courseTitle,
-          day: formData.day,
-          time: formData.time,
-          end_time: formData.endTime,
-          room: formData.room,
-          capacity: formData.capacity,
-        }),
-      });
-
-      setTimeSlots(
-        timeSlots.map((slot) =>
-          slot.id === editingId ? { ...formData, id: slot.id } : slot
-        )
-      );
-      setEditingId(null);
-    } else {
-      const created = await backendFetch("/api/sessions", {
-        method: "POST",
-        body: JSON.stringify({
-          course_id: null,
-          day: formData.day,
-          time: formData.time,
-          end_time: formData.endTime,
-          room: formData.room,
-          capacity: formData.capacity,
-          live_link: "",
-        }),
-      });
-
-      const newId =
-        created?.id ?? Math.max(0, ...timeSlots.map((slot) => slot.id)) + 1;
-      setTimeSlots([
-        ...timeSlots,
-        {
-          id: newId,
-          ...formData,
-        },
-      ]);
+  const groups = useMemo(() => {
+    const byDay = new Map<string, Lesson[]>();
+    for (const lesson of [...(lessonsQuery.data ?? [])].sort((a, b) => a.startsAt.localeCompare(b.startsAt))) {
+      const key = new Date(lesson.startsAt).toDateString();
+      byDay.set(key, [...(byDay.get(key) ?? []), lesson]);
     }
+    return [...byDay.entries()];
+  }, [lessonsQuery.data]);
 
-    setFormData({
-      courseTitle: "",
-      day: "Monday",
-      time: "8:00 AM",
-      endTime: "9:00 AM",
-      room: "Room A",
-      capacity: 25,
-    });
-    setShowForm(false);
-  };
-
-  const handleEdit = (slot: TimeSlot) => {
-    setFormData(slot);
-    setEditingId(slot.id);
-    setShowForm(true);
-  };
-
-  const handleDelete = async (id: number) => {
-    await backendFetch(`/api/sessions/${id}`, {
-      method: "DELETE",
-    });
-    setTimeSlots(timeSlots.filter((slot) => slot.id !== id));
-  };
-
-  const handleCancel = () => {
-    setShowForm(false);
-    setEditingId(null);
-    setFormData({
-      courseTitle: "",
-      day: "Monday",
-      time: "8:00 AM",
-      endTime: "9:00 AM",
-      room: "Room A",
-      capacity: 25,
-    });
-  };
-
-  const getSlotsByDay = (day: string) => {
-    return timeSlots
-      .filter((slot) => slot.day === day)
-      .sort((a, b) => (a.time > b.time ? 1 : -1));
-  };
+  if (role !== "teacher") {
+    return <main className="mx-auto max-w-4xl px-5 py-16">This schedule is available to teachers.</main>;
+  }
 
   return (
-    <div className="min-h-screen bg-background text-foreground pt-24 pb-16">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16">
-        <div className="mb-8">
-          <Link
-            href="/student-dashboard"
-            className="inline-flex items-center gap-2 text-green-500 hover:text-green-600 mb-4"
-          >
-            <FaArrowLeft />
-            <span>Back</span>
-          </Link>
-          <div className="flex justify-between items-start gap-4">
-            <div>
-              <h1 className="text-4xl font-bold mb-2">Manage Your Schedule</h1>
-              <p className="text-lg text-foreground opacity-75">
-                Create and manage your class time slots
-              </p>
-            </div>
-            <button
-              onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white rounded-lg font-semibold transition"
+    <main className="min-h-screen bg-background text-foreground pt-24 pb-16">
+      <div className="mx-auto max-w-5xl px-4 md:px-8 lg:px-16">
+        <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <Link href="/teacher/dashboard" className="text-green-600 hover:text-green-700 mb-3 inline-block">
+              ← Back to dashboard
+            </Link>
+            <h1 className="text-4xl font-bold mb-2">Teaching schedule</h1>
+            <p className="text-lg text-foreground opacity-75">
+              Confirmed lessons appear here. Publish new times from your availability page.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Link
+              href="/teacher/availability"
+              className="rounded-xl bg-green-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-600"
             >
-              <FaPlus />
-              Add Time Slot
+              Publish availability
+            </Link>
+            <button
+              onClick={() => void lessonsQuery.refetch()}
+              className="inline-flex items-center gap-2 rounded-xl border border-card-border bg-card-bg px-4 py-2.5 text-sm font-semibold hover:border-green-500"
+            >
+              <RefreshCw size={16} /> Refresh
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-1">
-            <div className="bg-card-bg border border-card-border rounded-lg p-6 sticky top-24">
-              <h3 className="text-xl font-semibold mb-4">Schedule Overview</h3>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-foreground opacity-70 mb-1">
-                    Total Time Slots
-                  </p>
-                  <p className="text-3xl font-bold text-green-500">
-                    {timeSlots.length}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-foreground opacity-70 mb-1">
-                    Total Capacity
-                  </p>
-                  <p className="text-3xl font-bold text-green-500">
-                    {timeSlots.reduce((sum, slot) => sum + slot.capacity, 0)}
-                  </p>
-                </div>
-                <div className="pt-4 border-t border-card-border">
-                  <p className="text-sm font-semibold text-foreground mb-2">
-                    By Day
-                  </p>
-                  <div className="space-y-2">
-                    {DAYS.map((day) => {
-                      const count = getSlotsByDay(day).length;
-                      return count > 0 ? (
-                        <div key={day} className="flex justify-between text-sm">
-                          <span className="text-foreground opacity-75">
-                            {day}
-                          </span>
-                          <span className="font-semibold text-green-500">
-                            {count}
-                          </span>
-                        </div>
-                      ) : null;
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+        {error && (
+          <p role="alert" className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</p>
+        )}
+        {notice && (
+          <p role="status" className="mb-6 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800">{notice}</p>
+        )}
 
-          <div className="lg:col-span-3">
-            {showForm && (
-              <div className="bg-card-bg border border-card-border rounded-lg p-8 mb-8">
-                <h2 className="text-2xl font-semibold mb-6">
-                  {editingId ? "Edit Time Slot" : "Add New Time Slot"}
+        {lessonsQuery.isLoading ? (
+          <p className="text-foreground opacity-70">Loading your lessons…</p>
+        ) : groups.length ? (
+          <div className="space-y-8">
+            {groups.map(([day, lessonsForDay]) => (
+              <section key={day}>
+                <h2 className="mb-3 flex items-center gap-2 text-xl font-semibold">
+                  <CalendarDays size={18} className="text-green-600" />
+                  {dayLabel(lessonsForDay[0].startsAt)}
                 </h2>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-foreground opacity-75 mb-2">
-                        Course
-                      </label>
-                      <select
-                        name="courseTitle"
-                        value={formData.courseTitle}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full px-4 py-2 bg-background border border-card-border rounded-lg text-foreground focus:outline-none focus:border-green-500 transition"
-                      >
-                        <option value="">Select a course</option>
-                        {COURSES.map((course) => (
-                          <option key={course} value={course}>
-                            {course}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-foreground opacity-75 mb-2">
-                        Day
-                      </label>
-                      <select
-                        name="day"
-                        value={formData.day}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-2 bg-background border border-card-border rounded-lg text-foreground focus:outline-none focus:border-green-500 transition"
-                      >
-                        {DAYS.map((day) => (
-                          <option key={day} value={day}>
-                            {day}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-foreground opacity-75 mb-2">
-                        Start Time
-                      </label>
-                      <select
-                        name="time"
-                        value={formData.time}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-2 bg-background border border-card-border rounded-lg text-foreground focus:outline-none focus:border-green-500 transition"
-                      >
-                        {TIME_SLOTS.map((time) => (
-                          <option key={time} value={time}>
-                            {time}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-foreground opacity-75 mb-2">
-                        End Time
-                      </label>
-                      <select
-                        name="endTime"
-                        value={formData.endTime}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-2 bg-background border border-card-border rounded-lg text-foreground focus:outline-none focus:border-green-500 transition"
-                      >
-                        {TIME_SLOTS.map((time) => (
-                          <option key={time} value={time}>
-                            {time}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-foreground opacity-75 mb-2">
-                        Room
-                      </label>
-                      <select
-                        name="room"
-                        value={formData.room}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-2 bg-background border border-card-border rounded-lg text-foreground focus:outline-none focus:border-green-500 transition"
-                      >
-                        {ROOMS.map((room) => (
-                          <option key={room} value={room}>
-                            {room}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-foreground opacity-75 mb-2">
-                        Class Capacity
-                      </label>
-                      <input
-                        type="number"
-                        name="capacity"
-                        value={formData.capacity}
-                        onChange={handleInputChange}
-                        min="1"
-                        max="100"
-                        className="w-full px-4 py-2 bg-background border border-card-border rounded-lg text-foreground focus:outline-none focus:border-green-500 transition"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4 pt-4">
-                    <button
-                      type="submit"
-                      className="px-6 py-2 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white rounded-lg font-semibold transition"
+                <div className="space-y-3">
+                  {lessonsForDay.map((lesson) => (
+                    <article
+                      key={lesson.id}
+                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-card-border bg-card-bg p-5"
                     >
-                      {editingId ? "Update Slot" : "Add Slot"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleCancel}
-                      className="px-6 py-2 border border-card-border text-foreground hover:bg-card-border rounded-lg font-semibold transition"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
-
-            <div className="space-y-6">
-              {DAYS.map((day) => {
-                const daySlots = getSlotsByDay(day);
-                return (
-                  <div
-                    key={day}
-                    className="bg-card-bg border border-card-border rounded-lg p-6"
-                  >
-                    <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                      <FaCalendar className="text-green-500" />
-                      {day}
-                    </h3>
-
-                    {daySlots.length > 0 ? (
-                      <div className="space-y-3">
-                        {daySlots.map((slot) => (
-                          <div
-                            key={slot.id}
-                            className="border border-card-border rounded-lg p-4 hover:border-green-500 transition"
-                          >
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <p className="font-semibold text-lg mb-2">
-                                  {slot.courseTitle}
-                                </p>
-                                <div className="space-y-2 text-sm text-foreground opacity-75">
-                                  <div className="flex items-center gap-2">
-                                    <FaClock className="text-green-500" />
-                                    <span>
-                                      {slot.time} - {slot.endTime}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <FaBook className="text-green-500" />
-                                    <span>{slot.room}</span>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <FaUsers className="text-green-500" />
-                                    <span>Capacity: {slot.capacity}</span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="flex gap-2 justify-end md:justify-start md:flex-col">
-                                <button
-                                  onClick={() => handleEdit(slot)}
-                                  className="flex items-center gap-2 px-4 py-2 border border-green-500 text-green-500 hover:bg-green-500 hover:text-white rounded-lg font-semibold transition"
-                                >
-                                  <FaEdit />
-                                  Edit
-                                </button>
-                                <button
-                                  onClick={() => handleDelete(slot.id)}
-                                  className="flex items-center gap-2 px-4 py-2 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white rounded-lg font-semibold transition"
-                                >
-                                  <FaTrash />
-                                  Delete
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
+                      <div>
+                        <p className="font-semibold">
+                          {timeLabel(lesson.startsAt)} – {timeLabel(lesson.endsAt)}
+                        </p>
+                        <p className="mt-1 text-sm text-foreground opacity-70">
+                          Student: {lesson.studentName ?? "Assigned student"}
+                        </p>
+                        <p className="mt-1 text-xs capitalize text-foreground opacity-60">
+                          {lesson.status.replaceAll("_", " ")}
+                        </p>
                       </div>
-                    ) : (
-                      <p className="text-foreground opacity-50">
-                        No classes scheduled for {day}
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                      <div className="flex items-center gap-2">
+                        {(lesson.status === "scheduled" || lesson.status === "in_progress") && (
+                          <Link
+                            href={`/lesson/${lesson.id}`}
+                            className="rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
+                          >
+                            Join lesson
+                          </Link>
+                        )}
+                        {lesson.status === "scheduled" && (
+                          <button
+                            onClick={() => {
+                              setError("");
+                              setNotice("");
+                              if (window.confirm("Cancel this lesson? This cannot be undone.")) {
+                                cancelMutation.mutate(lesson.id);
+                              }
+                            }}
+                            disabled={cancelMutation.isPending}
+                            className="rounded-xl border border-red-300 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-500 hover:text-white disabled:opacity-50"
+                          >
+                            {cancelMutation.isPending ? "Cancelling…" : "Cancel lesson"}
+                          </button>
+                        )}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            ))}
           </div>
-        </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-card-border bg-card-bg p-10 text-center text-foreground opacity-70">
+            No confirmed lessons yet. Publish availability so your students can request a time.
+          </div>
+        )}
       </div>
-    </div>
+    </main>
   );
-};
-
-export default TeacherSchedulePage;
+}
