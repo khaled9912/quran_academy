@@ -9,8 +9,13 @@ export interface CreateStudentInput {
 }
 
 export const getStudents = (includeInactive = false) =>
-  backendFetch<Student[]>(`/api/students${includeInactive ? "?includeInactive=true" : ""}`);
+  backendFetch<Student[]>(
+    `/api/students${includeInactive ? "?includeInactive=true" : ""}`
+  );
 
 /** Admin-only: provisions a student account through the backend. */
 export const createStudent = (input: CreateStudentInput) =>
-  backendFetch<Student>("/api/students", { method: "POST", body: JSON.stringify(input) });
+  backendFetch<Student>("/api/students", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });

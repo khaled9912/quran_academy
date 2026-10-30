@@ -1,6 +1,14 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import type { UserProfile, UserRole } from "@/types/user";
@@ -32,7 +40,15 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 const AUTH_PAGES = new Set(["/login", "/signup", "/register"]);
-const PROTECTED_PREFIXES = ["/student", "/teacher", "/admin", "/super-admin", "/schedule", "/student-dashboard", "/lesson"];
+const PROTECTED_PREFIXES = [
+  "/student",
+  "/teacher",
+  "/admin",
+  "/super-admin",
+  "/schedule",
+  "/student-dashboard",
+  "/lesson",
+];
 
 function syncRoleCookie(role: UserRole | null) {
   if (typeof document === "undefined") return;
@@ -86,7 +102,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const handleUnauthorized = () => applySession(null);
     window.addEventListener("academy:unauthorized", handleUnauthorized);
-    return () => window.removeEventListener("academy:unauthorized", handleUnauthorized);
+    return () =>
+      window.removeEventListener("academy:unauthorized", handleUnauthorized);
   }, [applySession]);
 
   // Centralized redirects: pages never redirect themselves, so a session
@@ -124,12 +141,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const permissions = useMemo(() => {
     if (!role) return [];
     if (role === "super_admin") return ["*"];
-    if (role === "admin") return ["manage_students", "manage_teachers", "manage_assignments", "manage_lessons", "view_reports"];
+    if (role === "admin")
+      return [
+        "manage_students",
+        "manage_teachers",
+        "manage_assignments",
+        "manage_lessons",
+        "view_reports",
+      ];
     if (role === "teacher") return ["view_students", "view_lessons"];
     return ["view_lessons"];
   }, [role]);
-  const value: AuthContextType = { user: profile, profile, role, permissions, isAuthenticated: !!profile, isLoading, applySession, logout };
-  return <AuthContext.Provider value={value}>{!isLoading && children}</AuthContext.Provider>;
+  const value: AuthContextType = {
+    user: profile,
+    profile,
+    role,
+    permissions,
+    isAuthenticated: !!profile,
+    isLoading,
+    applySession,
+    logout,
+  };
+  return (
+    <AuthContext.Provider value={value}>
+      {!isLoading && children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {

@@ -11,7 +11,10 @@ import {
   getTeacherStudentAssignments,
   removeTeacherStudentAssignment,
 } from "@/services/assignment.service";
-import { deactivateManagedUser, updateManagedUser } from "@/services/admin-user.service";
+import {
+  deactivateManagedUser,
+  updateManagedUser,
+} from "@/services/admin-user.service";
 import { useAuth } from "@/providers/auth-provider";
 import { SelectField } from "@/components/ui/select-field";
 
@@ -53,7 +56,9 @@ export default function AdminStudentsPage() {
   const createMutation = useMutation({
     mutationFn: createStudent,
     onSuccess: async (student) => {
-      setNotice(`${student.fullName ?? student.name ?? student.email} was created.`);
+      setNotice(
+        `${student.fullName ?? student.name ?? student.email} was created.`
+      );
       setFullName("");
       setEmail("");
       setPassword("");
@@ -61,12 +66,26 @@ export default function AdminStudentsPage() {
       await queryClient.invalidateQueries({ queryKey: ["students"] });
     },
     onError: (mutationError) => {
-      setError(mutationError instanceof Error ? mutationError.message : "Unable to create the student.");
+      setError(
+        mutationError instanceof Error
+          ? mutationError.message
+          : "Unable to create the student."
+      );
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, fullName, email, password }: { id: string; fullName: string; email: string; password: string }) =>
+    mutationFn: ({
+      id,
+      fullName,
+      email,
+      password,
+    }: {
+      id: string;
+      fullName: string;
+      email: string;
+      password: string;
+    }) =>
       updateManagedUser(id, {
         fullName,
         email,
@@ -78,38 +97,72 @@ export default function AdminStudentsPage() {
       await queryClient.invalidateQueries({ queryKey: ["students"] });
     },
     onError: (mutationError) => {
-      setError(mutationError instanceof Error ? mutationError.message : "Unable to update the student.");
+      setError(
+        mutationError instanceof Error
+          ? mutationError.message
+          : "Unable to update the student."
+      );
     },
   });
 
   const statusMutation = useMutation({
     mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
-      isActive ? deactivateManagedUser(id) : updateManagedUser(id, { isActive: true }),
+      isActive
+        ? deactivateManagedUser(id)
+        : updateManagedUser(id, { isActive: true }),
     onSuccess: async (_, variables) => {
-      setNotice(variables.isActive ? "Student deactivated. Their assignment was removed." : "Student reactivated.");
+      setNotice(
+        variables.isActive
+          ? "Student deactivated. Their assignment was removed."
+          : "Student reactivated."
+      );
       await queryClient.invalidateQueries({ queryKey: ["students"] });
-      await queryClient.invalidateQueries({ queryKey: ["teacher-student-assignments"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["teacher-student-assignments"],
+      });
     },
     onError: (mutationError) => {
-      setError(mutationError instanceof Error ? mutationError.message : "Unable to change the student status.");
+      setError(
+        mutationError instanceof Error
+          ? mutationError.message
+          : "Unable to change the student status."
+      );
     },
   });
 
   const assignmentMutation = useMutation({
-    mutationFn: async ({ studentId, teacherId }: { studentId: string; teacherId: string }) => {
+    mutationFn: async ({
+      studentId,
+      teacherId,
+    }: {
+      studentId: string;
+      teacherId: string;
+    }) => {
       const current = (assignmentsQuery.data ?? []).find(
-        (assignment) => assignment.status === "active" && assignment.studentId === studentId
+        (assignment) =>
+          assignment.status === "active" && assignment.studentId === studentId
       );
-      if (!teacherId) return current ? removeTeacherStudentAssignment(current.id) : null;
+      if (!teacherId)
+        return current ? removeTeacherStudentAssignment(current.id) : null;
       if (current?.teacherId === teacherId) return current;
       return assignStudentToTeacher(teacherId, studentId);
     },
     onSuccess: async (_, variables) => {
-      setNotice(variables.teacherId ? "Teacher assignment saved." : "Student unassigned.");
-      await queryClient.invalidateQueries({ queryKey: ["teacher-student-assignments"] });
+      setNotice(
+        variables.teacherId
+          ? "Teacher assignment saved."
+          : "Student unassigned."
+      );
+      await queryClient.invalidateQueries({
+        queryKey: ["teacher-student-assignments"],
+      });
     },
     onError: (mutationError) => {
-      setError(mutationError instanceof Error ? mutationError.message : "Unable to change the teacher assignment.");
+      setError(
+        mutationError instanceof Error
+          ? mutationError.message
+          : "Unable to change the teacher assignment."
+      );
     },
   });
 
@@ -172,14 +225,21 @@ export default function AdminStudentsPage() {
   );
 
   if (!canManage) {
-    return <main className="mx-auto max-w-4xl px-5 py-16">Admin access is required to manage students.</main>;
+    return (
+      <main className="mx-auto max-w-4xl px-5 py-16">
+        Admin access is required to manage students.
+      </main>
+    );
   }
 
   return (
     <div className="min-h-screen bg-background text-foreground pt-24 pb-16">
       <div className="max-w-5xl mx-auto px-4 md:px-8 lg:px-16">
         <div className="mb-8">
-          <Link href="/admin/dashboard" className="text-green-600 hover:text-green-700 mb-3 inline-block">
+          <Link
+            href="/admin/dashboard"
+            className="text-green-600 hover:text-green-700 mb-3 inline-block"
+          >
             ← Back to admin dashboard
           </Link>
           <h1 className="text-4xl font-bold mb-2">Students</h1>
@@ -193,31 +253,98 @@ export default function AdminStudentsPage() {
             <UserPlus className="text-green-600" />
             <h2 className="text-2xl font-semibold">Create a student</h2>
           </div>
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form
+            onSubmit={handleSubmit}
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          >
             <div>
-              <label htmlFor="student-name" className="block text-sm font-semibold mb-2">Full name</label>
-              <input id="student-name" value={fullName} onChange={(event) => setFullName(event.target.value)} required className={inputClass} />
+              <label
+                htmlFor="student-name"
+                className="block text-sm font-semibold mb-2"
+              >
+                Full name
+              </label>
+              <input
+                id="student-name"
+                value={fullName}
+                onChange={(event) => setFullName(event.target.value)}
+                required
+                className={inputClass}
+              />
             </div>
             <div>
-              <label htmlFor="student-email" className="block text-sm font-semibold mb-2">Email</label>
-              <input id="student-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required className={inputClass} />
+              <label
+                htmlFor="student-email"
+                className="block text-sm font-semibold mb-2"
+              >
+                Email
+              </label>
+              <input
+                id="student-email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+                className={inputClass}
+              />
             </div>
             <div>
-              <label htmlFor="student-password" className="block text-sm font-semibold mb-2">Temporary password</label>
-              <input id="student-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} className={inputClass} />
+              <label
+                htmlFor="student-password"
+                className="block text-sm font-semibold mb-2"
+              >
+                Temporary password
+              </label>
+              <input
+                id="student-password"
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+                minLength={8}
+                className={inputClass}
+              />
             </div>
             <div>
-              <label htmlFor="student-grade" className="block text-sm font-semibold mb-2">Grade (optional)</label>
-              <input id="student-grade" value={grade} onChange={(event) => setGrade(event.target.value)} className={inputClass} />
+              <label
+                htmlFor="student-grade"
+                className="block text-sm font-semibold mb-2"
+              >
+                Grade (optional)
+              </label>
+              <input
+                id="student-grade"
+                value={grade}
+                onChange={(event) => setGrade(event.target.value)}
+                className={inputClass}
+              />
             </div>
             <div className="md:col-span-2">
-              <button type="submit" disabled={createMutation.isPending} className="rounded-xl bg-green-500 px-6 py-3 font-semibold text-white transition hover:bg-green-600 disabled:opacity-50">
+              <button
+                type="submit"
+                disabled={createMutation.isPending}
+                className="rounded-xl bg-green-500 px-6 py-3 font-semibold text-white transition hover:bg-green-600 disabled:opacity-50"
+              >
                 {createMutation.isPending ? "Creating…" : "Create student"}
               </button>
             </div>
           </form>
-          {error && <p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-          {notice && <p role="status" className="mt-4 rounded-xl bg-green-50 p-3 text-sm text-green-800">{notice}</p>}
+          {error && (
+            <p
+              role="alert"
+              className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700"
+            >
+              {error}
+            </p>
+          )}
+          {notice && (
+            <p
+              role="status"
+              className="mt-4 rounded-xl bg-green-50 p-3 text-sm text-green-800"
+            >
+              {notice}
+            </p>
+          )}
         </section>
 
         <section>
@@ -225,8 +352,13 @@ export default function AdminStudentsPage() {
           {studentsQuery.isLoading ? (
             <p className="text-foreground opacity-70">Loading students…</p>
           ) : studentsQuery.error ? (
-            <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-              {studentsQuery.error instanceof Error ? studentsQuery.error.message : "Unable to load students."}
+            <p
+              role="alert"
+              className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            >
+              {studentsQuery.error instanceof Error
+                ? studentsQuery.error.message
+                : "Unable to load students."}
             </p>
           ) : studentsQuery.data?.length ? (
             <div className="space-y-4">
@@ -234,28 +366,86 @@ export default function AdminStudentsPage() {
                 const active = student.isActive !== false;
                 const name = student.fullName ?? student.name;
                 const assignment = activeAssignmentByStudent.get(student.id);
-                const savingAssignment = assignmentMutation.isPending && assignmentMutation.variables?.studentId === student.id;
+                const savingAssignment =
+                  assignmentMutation.isPending &&
+                  assignmentMutation.variables?.studentId === student.id;
                 return (
-                  <div key={student.id} className="rounded-3xl border border-card-border bg-card-bg p-6">
+                  <div
+                    key={student.id}
+                    className="rounded-3xl border border-card-border bg-card-bg p-6"
+                  >
                     {editingId === student.id ? (
-                      <form onSubmit={saveEdit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <form
+                        onSubmit={saveEdit}
+                        className="grid grid-cols-1 md:grid-cols-3 gap-4"
+                      >
                         <div>
-                          <label htmlFor={`edit-name-${student.id}`} className="block text-sm font-semibold mb-2">Full name</label>
-                          <input id={`edit-name-${student.id}`} value={editName} onChange={(event) => setEditName(event.target.value)} required className={inputClass} />
+                          <label
+                            htmlFor={`edit-name-${student.id}`}
+                            className="block text-sm font-semibold mb-2"
+                          >
+                            Full name
+                          </label>
+                          <input
+                            id={`edit-name-${student.id}`}
+                            value={editName}
+                            onChange={(event) =>
+                              setEditName(event.target.value)
+                            }
+                            required
+                            className={inputClass}
+                          />
                         </div>
                         <div>
-                          <label htmlFor={`edit-email-${student.id}`} className="block text-sm font-semibold mb-2">Email</label>
-                          <input id={`edit-email-${student.id}`} type="email" value={editEmail} onChange={(event) => setEditEmail(event.target.value)} required className={inputClass} />
+                          <label
+                            htmlFor={`edit-email-${student.id}`}
+                            className="block text-sm font-semibold mb-2"
+                          >
+                            Email
+                          </label>
+                          <input
+                            id={`edit-email-${student.id}`}
+                            type="email"
+                            value={editEmail}
+                            onChange={(event) =>
+                              setEditEmail(event.target.value)
+                            }
+                            required
+                            className={inputClass}
+                          />
                         </div>
                         <div>
-                          <label htmlFor={`edit-password-${student.id}`} className="block text-sm font-semibold mb-2">New password (optional)</label>
-                          <input id={`edit-password-${student.id}`} type="password" value={editPassword} onChange={(event) => setEditPassword(event.target.value)} className={inputClass} />
+                          <label
+                            htmlFor={`edit-password-${student.id}`}
+                            className="block text-sm font-semibold mb-2"
+                          >
+                            New password (optional)
+                          </label>
+                          <input
+                            id={`edit-password-${student.id}`}
+                            type="password"
+                            value={editPassword}
+                            onChange={(event) =>
+                              setEditPassword(event.target.value)
+                            }
+                            className={inputClass}
+                          />
                         </div>
                         <div className="md:col-span-3 flex gap-2">
-                          <button type="submit" disabled={updateMutation.isPending} className="rounded-xl bg-green-500 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
-                            {updateMutation.isPending ? "Saving…" : "Save changes"}
+                          <button
+                            type="submit"
+                            disabled={updateMutation.isPending}
+                            className="rounded-xl bg-green-500 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                          >
+                            {updateMutation.isPending
+                              ? "Saving…"
+                              : "Save changes"}
                           </button>
-                          <button type="button" onClick={() => setEditingId(null)} className="rounded-xl border border-card-border px-5 py-2.5 text-sm font-semibold">
+                          <button
+                            type="button"
+                            onClick={() => setEditingId(null)}
+                            className="rounded-xl border border-card-border px-5 py-2.5 text-sm font-semibold"
+                          >
                             Cancel
                           </button>
                         </div>
@@ -264,10 +454,19 @@ export default function AdminStudentsPage() {
                       <div className="flex flex-wrap items-center justify-between gap-4">
                         <div>
                           <p className="text-xl font-semibold">{name}</p>
-                          <p className="text-foreground opacity-75">{student.email}</p>
-                          {student.grade && <p className="mt-1 text-sm text-foreground opacity-60">Grade: {student.grade}</p>}
+                          <p className="text-foreground opacity-75">
+                            {student.email}
+                          </p>
+                          {student.grade && (
+                            <p className="mt-1 text-sm text-foreground opacity-60">
+                              Grade: {student.grade}
+                            </p>
+                          )}
                           <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-                            <label htmlFor={`student-teacher-${student.id}`} className="font-semibold opacity-80">
+                            <label
+                              htmlFor={`student-teacher-${student.id}`}
+                              className="font-semibold opacity-80"
+                            >
                               Teacher
                             </label>
                             <SelectField
@@ -279,43 +478,81 @@ export default function AdminStudentsPage() {
                               onChange={(value) => {
                                 setError("");
                                 setNotice("");
-                                assignmentMutation.mutate({ studentId: student.id, teacherId: value });
+                                assignmentMutation.mutate({
+                                  studentId: student.id,
+                                  teacherId: value,
+                                });
                               }}
                               options={[
                                 { value: "", label: "Unassigned" },
                                 ...teachers.map((teacher) => ({
                                   value: teacher.id,
-                                  label: teacher.fullName ?? teacher.name ?? teacher.email,
+                                  label:
+                                    teacher.fullName ??
+                                    teacher.name ??
+                                    teacher.email,
                                 })),
                               ]}
                             />
-                            {savingAssignment && <span className="opacity-60">Saving…</span>}
-                            {!active && <span className="text-amber-800 opacity-80">Reactivate to assign a teacher.</span>}
+                            {savingAssignment && (
+                              <span className="opacity-60">Saving…</span>
+                            )}
+                            {!active && (
+                              <span className="text-amber-800 opacity-80">
+                                Reactivate to assign a teacher.
+                              </span>
+                            )}
                           </div>
                           {teachersQuery.error && (
                             <p className="mt-2 text-sm text-red-700">
-                              {teachersQuery.error instanceof Error ? teachersQuery.error.message : "Unable to load teachers."}
+                              {teachersQuery.error instanceof Error
+                                ? teachersQuery.error.message
+                                : "Unable to load teachers."}
                             </p>
                           )}
-                          {!teachersQuery.isLoading && !teachersQuery.error && !teachers.length && (
-                            <p className="mt-2 text-sm opacity-70">
-                              No teachers yet. <Link href="/admin/teachers" className="text-green-600 underline">Create a teacher</Link> to assign one.
-                            </p>
-                          )}
+                          {!teachersQuery.isLoading &&
+                            !teachersQuery.error &&
+                            !teachers.length && (
+                              <p className="mt-2 text-sm opacity-70">
+                                No teachers yet.{" "}
+                                <Link
+                                  href="/admin/teachers"
+                                  className="text-green-600 underline"
+                                >
+                                  Create a teacher
+                                </Link>{" "}
+                                to assign one.
+                              </p>
+                            )}
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className={`rounded-full px-3 py-1 text-sm font-semibold ${active ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-800"}`}>
+                          <span
+                            className={`rounded-full px-3 py-1 text-sm font-semibold ${active ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-800"}`}
+                          >
                             {active ? "Active" : "Inactive"}
                           </span>
-                          <button onClick={() => startEdit(student.id, name, student.email)} className="inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2 text-sm font-semibold hover:border-green-500">
+                          <button
+                            onClick={() =>
+                              startEdit(student.id, name, student.email)
+                            }
+                            className="inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2 text-sm font-semibold hover:border-green-500"
+                          >
                             <Pencil size={15} /> Edit
                           </button>
                           <button
                             onClick={() => {
-                              if (!active || window.confirm("Deactivate this student? Their assignment and open requests will be removed.")) {
+                              if (
+                                !active ||
+                                window.confirm(
+                                  "Deactivate this student? Their assignment and open requests will be removed."
+                                )
+                              ) {
                                 setError("");
                                 setNotice("");
-                                statusMutation.mutate({ id: student.id, isActive: active });
+                                statusMutation.mutate({
+                                  id: student.id,
+                                  isActive: active,
+                                });
                               }
                             }}
                             disabled={statusMutation.isPending}

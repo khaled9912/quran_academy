@@ -15,7 +15,11 @@ const ROLE_PATHS: Record<string, RegExp[]> = {
   super_admin: [/^\/super-admin(\/|$)/, /^\/admin(\/|$)/],
   admin: [/^\/admin(\/|$)/],
   teacher: [/^\/teacher(\/|$)/],
-  student: [/^\/student(\/|$)/, /^\/student-dashboard(\/|$)/, /^\/schedule(\/|$)/],
+  student: [
+    /^\/student(\/|$)/,
+    /^\/student-dashboard(\/|$)/,
+    /^\/schedule(\/|$)/,
+  ],
 };
 
 function getRoleFromCookie(req: NextRequest): string | null {

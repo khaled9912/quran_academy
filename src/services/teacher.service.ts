@@ -8,12 +8,16 @@ export interface CreateTeacherInput {
 }
 
 export const getTeachers = (includeInactive = false) =>
-  backendFetch<Teacher[]>(`/api/teachers${includeInactive ? "?includeInactive=true" : ""}`);
+  backendFetch<Teacher[]>(
+    `/api/teachers${includeInactive ? "?includeInactive=true" : ""}`
+  );
 
 export const getTeacherById = (id: string) =>
   backendFetch<Teacher>(`/api/teachers/${encodeURIComponent(id)}`);
 
-export const createTeacher = async (input: CreateTeacherInput): Promise<Teacher> => {
+export const createTeacher = async (
+  input: CreateTeacherInput
+): Promise<Teacher> => {
   const { user } = await backendFetch<{ user: Teacher }>("/api/admin/users", {
     method: "POST",
     body: JSON.stringify({ ...input, role: "teacher" }),

@@ -17,6 +17,13 @@ interface SelectFieldProps {
   disabled?: boolean;
   size?: "md" | "sm";
   className?: string;
+  /** Compact trigger text when the option label is too long for the trigger. */
+  selectedLabel?: string;
+  ariaLabel?: string;
+  /** Overrides the default full-width dropdown panel positioning/width. */
+  menuClassName?: string;
+  /** Adds a filter box at the top of the panel (useful for long lists). */
+  searchable?: boolean;
 }
 
 export function SelectField({
@@ -28,11 +35,21 @@ export function SelectField({
   disabled = false,
   size = "md",
   className = "",
+  selectedLabel,
+  ariaLabel,
+  menuClassName,
+  searchable = false,
 }: SelectFieldProps) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   const rootRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!open) setQuery("");
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -55,10 +72,13 @@ export function SelectField({
 
   const focusOption = (direction: 1 | -1) => {
     const nodes = Array.from(
-      listRef.current?.querySelectorAll<HTMLButtonElement>("[role='option']") ?? []
+      listRef.current?.querySelectorAll<HTMLButtonElement>("[role='option']") ??
+        []
     );
     if (!nodes.length) return;
-    const currentIndex = nodes.indexOf(document.activeElement as HTMLButtonElement);
+    const currentIndex = nodes.indexOf(
+      document.activeElement as HTMLButtonElement
+    );
     const nextIndex =
       currentIndex === -1
         ? direction === 1
@@ -71,8 +91,17 @@ export function SelectField({
   const openAndFocus = () => {
     setOpen(true);
     requestAnimationFrame(() => {
-      const selected = listRef.current?.querySelector<HTMLButtonElement>("[data-selected='true']");
-      (selected ?? listRef.current?.querySelector<HTMLButtonElement>("[role='option']"))?.focus();
+      if (searchable) {
+        searchRef.current?.focus();
+        return;
+      }
+      const selected = listRef.current?.querySelector<HTMLButtonElement>(
+        "[data-selected='true']"
+      );
+      (
+        selected ??
+        listRef.current?.querySelector<HTMLButtonElement>("[role='option']")
+      )?.focus();
     });
   };
 
@@ -83,7 +112,13 @@ export function SelectField({
   };
 
   const selected = options.find((option) => option.value === value);
-  const triggerSize = size === "sm" ? "rounded-lg px-3 py-1.5 text-sm" : "rounded-xl px-4 py-3";
+  const visibleOptions = query.trim()
+    ? options.filter((option) =>
+        option.label.toLowerCase().includes(query.trim().toLowerCase())
+      )
+    : options;
+  const triggerSize =
+    size === "sm" ? "rounded-lg px-3 py-1.5 text-sm" : "rounded-xl px-4 py-3";
 
   return (
     <div ref={rootRef} className={`relative ${className}`}>
@@ -92,11 +127,17 @@ export function SelectField({
         id={id}
         type="button"
         disabled={disabled}
+        aria-label={ariaLabel}
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => (open ? setOpen(false) : openAndFocus())}
         onKeyDown={(event) => {
-          if (event.key === "ArrowDown" || event.key === "ArrowUp" || event.key === "Enter" || event.key === " ") {
+          if (
+            event.key === "ArrowDown" ||
+            event.key === "ArrowUp" ||
+            event.key === "Enter" ||
+            event.key === " "
+          ) {
             event.preventDefault();
             openAndFocus();
           }
@@ -104,9 +145,12 @@ export function SelectField({
         className={`flex w-full items-center justify-between gap-2 border border-card-border bg-background text-foreground focus:outline-none focus:border-green-500 disabled:cursor-not-allowed disabled:opacity-50 ${triggerSize}`}
       >
         <span className={`truncate text-left ${selected ? "" : "opacity-60"}`}>
-          {selected?.label ?? placeholder}
+          {selectedLabel ?? selected?.label ?? placeholder}
         </span>
-        <ChevronDown size={size === "sm" ? 15 : 18} className={`shrink-0 transition ${open ? "rotate-180" : ""}`} />
+        <ChevronDown
+          size={size === "sm" ? 15 : 18}
+          className={`shrink-0 transition ${open ? "rotate-180" : ""}`}
+        />
       </button>
 
       {open && (
@@ -123,10 +167,25 @@ export function SelectField({
               focusOption(-1);
             }
           }}
-          className="absolute left-0 right-0 z-50 mt-2 max-h-64 overflow-y-auto rounded-xl border border-card-border bg-card-bg p-1 shadow-xl"
+          className={`absolute z-50 mt-2 max-h-64 overflow-y-auto rounded-xl border border-card-border bg-card-bg p-1 shadow-xl ${
+            menuClassName ?? "left-0 right-0"
+          }`}
         >
-          {options.length ? (
-            options.map((option) => {
+          {searchable && (
+            <li className="sticky top-0 z-10 bg-card-bg p-1">
+              <input
+                ref={searchRef}
+                type="text"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search…"
+                aria-label="Search options"
+                className="w-full rounded-lg border border-card-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:border-green-500"
+              />
+            </li>
+          )}
+          {visibleOptions.length ? (
+            visibleOptions.map((option) => {
               const isSelected = option.value === value;
               return (
                 <li key={option.value}>
@@ -137,7 +196,9 @@ export function SelectField({
                     data-selected={isSelected}
                     onClick={() => select(option.value)}
                     className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition hover:bg-green-500/10 focus:bg-green-500/10 focus:outline-none ${
-                      isSelected ? "font-semibold text-green-600" : "text-foreground"
+                      isSelected
+                        ? "font-semibold text-green-600"
+                        : "text-foreground"
                     }`}
                   >
                     <span className="truncate">{option.label}</span>
@@ -147,7 +208,9 @@ export function SelectField({
               );
             })
           ) : (
-            <li className="px-3 py-2.5 text-sm opacity-60">No options available</li>
+            <li className="px-3 py-2.5 text-sm opacity-60">
+              {query.trim() ? "No matches." : "No options available"}
+            </li>
           )}
         </ul>
       )}

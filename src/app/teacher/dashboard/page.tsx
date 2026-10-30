@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { getLessons } from "@/services/lesson.service";
-import { getIncomingLessonRequests, getMyAvailability } from "@/services/scheduling.service";
+import {
+  getIncomingLessonRequests,
+  getMyAvailability,
+} from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
 
 const dateTime = (value: string) =>
@@ -19,7 +22,11 @@ export default function TeacherDashboardPage() {
   const { role } = useAuth();
   const isTeacher = role === "teacher";
 
-  const lessonsQuery = useQuery({ queryKey: ["lessons"], queryFn: () => getLessons(), enabled: isTeacher });
+  const lessonsQuery = useQuery({
+    queryKey: ["lessons"],
+    queryFn: () => getLessons(),
+    enabled: isTeacher,
+  });
   const requestsQuery = useQuery({
     queryKey: ["lesson-requests", "teacher"],
     queryFn: getIncomingLessonRequests,
@@ -37,10 +44,20 @@ export default function TeacherDashboardPage() {
   const now = Date.now();
 
   const upcomingLessons = lessons
-    .filter((lesson) => lesson.status !== "cancelled" && lesson.status !== "completed" && new Date(lesson.startsAt).getTime() >= now)
+    .filter(
+      (lesson) =>
+        lesson.status !== "cancelled" &&
+        lesson.status !== "completed" &&
+        new Date(lesson.startsAt).getTime() >= now
+    )
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
-  const pendingRequests = requests.filter((request) => request.status === "pending_teacher");
-  const openSlots = slots.filter((slot) => slot.status === "available" && new Date(slot.startsAt).getTime() >= now);
+  const pendingRequests = requests.filter(
+    (request) => request.status === "pending_teacher"
+  );
+  const openSlots = slots.filter(
+    (slot) =>
+      slot.status === "available" && new Date(slot.startsAt).getTime() >= now
+  );
 
   const metrics = [
     { title: "Upcoming lessons", value: upcomingLessons.length },
@@ -49,7 +66,11 @@ export default function TeacherDashboardPage() {
   ];
 
   if (!isTeacher) {
-    return <main className="mx-auto max-w-4xl px-5 py-16">Teacher access is required for this dashboard.</main>;
+    return (
+      <main className="mx-auto max-w-4xl px-5 py-16">
+        Teacher access is required for this dashboard.
+      </main>
+    );
   }
 
   return (
@@ -58,15 +79,23 @@ export default function TeacherDashboardPage() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Teacher Dashboard</h1>
           <p className="text-lg text-foreground opacity-75">
-            Your confirmed lessons, student requests, and published availability.
+            Your confirmed lessons, student requests, and published
+            availability.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           {metrics.map((metric) => (
-            <div key={metric.title} className="rounded-3xl border border-card-border bg-card-bg p-6">
-              <p className="text-sm uppercase text-foreground opacity-70 mb-2">{metric.title}</p>
-              <p className="text-3xl font-semibold text-green-600">{metric.value}</p>
+            <div
+              key={metric.title}
+              className="rounded-3xl border border-card-border bg-card-bg p-6"
+            >
+              <p className="text-sm uppercase text-foreground opacity-70 mb-2">
+                {metric.title}
+              </p>
+              <p className="text-3xl font-semibold text-green-600">
+                {metric.value}
+              </p>
             </div>
           ))}
         </div>
@@ -75,7 +104,10 @@ export default function TeacherDashboardPage() {
           <section className="rounded-3xl border border-card-border bg-card-bg p-6">
             <div className="flex items-center justify-between gap-3 mb-4">
               <h2 className="text-xl font-semibold">Next lessons</h2>
-              <Link href="/teacher/schedule" className="text-sm font-semibold text-green-600 hover:underline">
+              <Link
+                href="/teacher/schedule"
+                className="text-sm font-semibold text-green-600 hover:underline"
+              >
                 Full schedule →
               </Link>
             </div>
@@ -84,9 +116,14 @@ export default function TeacherDashboardPage() {
             ) : upcomingLessons.length ? (
               <div className="space-y-3">
                 {upcomingLessons.slice(0, 4).map((lesson) => (
-                  <div key={lesson.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-card-border p-4">
+                  <div
+                    key={lesson.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-card-border p-4"
+                  >
                     <div>
-                      <p className="font-semibold">{dateTime(lesson.startsAt)}</p>
+                      <p className="font-semibold">
+                        {dateTime(lesson.startsAt)}
+                      </p>
                       <p className="mt-1 text-sm text-foreground opacity-70">
                         Student: {lesson.studentName ?? "Assigned student"}
                       </p>
@@ -101,14 +138,19 @@ export default function TeacherDashboardPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-foreground opacity-70">No confirmed lessons yet.</p>
+              <p className="text-foreground opacity-70">
+                No confirmed lessons yet.
+              </p>
             )}
           </section>
 
           <section className="rounded-3xl border border-card-border bg-card-bg p-6">
             <div className="flex items-center justify-between gap-3 mb-4">
               <h2 className="text-xl font-semibold">Lesson requests</h2>
-              <Link href="/teacher/lesson-requests" className="text-sm font-semibold text-green-600 hover:underline">
+              <Link
+                href="/teacher/lesson-requests"
+                className="text-sm font-semibold text-green-600 hover:underline"
+              >
                 Review all →
               </Link>
             </div>
@@ -117,8 +159,13 @@ export default function TeacherDashboardPage() {
             ) : pendingRequests.length ? (
               <div className="space-y-3">
                 {pendingRequests.slice(0, 4).map((request) => (
-                  <div key={request.id} className="rounded-2xl border border-card-border p-4">
-                    <p className="font-semibold">{dateTime(request.startsAt)}</p>
+                  <div
+                    key={request.id}
+                    className="rounded-2xl border border-card-border p-4"
+                  >
+                    <p className="font-semibold">
+                      {dateTime(request.startsAt)}
+                    </p>
                     <p className="mt-1 text-sm text-foreground opacity-70">
                       Student: {request.studentName ?? "Student"}
                     </p>
@@ -126,19 +173,31 @@ export default function TeacherDashboardPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-foreground opacity-70">No requests are waiting for your response.</p>
+              <p className="text-foreground opacity-70">
+                No requests are waiting for your response.
+              </p>
             )}
           </section>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-          <Link href="/teacher/availability" className="rounded-3xl border border-card-border bg-card-bg p-6 hover:border-green-500 transition">
+          <Link
+            href="/teacher/availability"
+            className="rounded-3xl border border-card-border bg-card-bg p-6 hover:border-green-500 transition"
+          >
             <h2 className="text-xl font-semibold mb-2">Manage availability</h2>
-            <p className="text-foreground opacity-75">Publish the lesson times your assigned students can request.</p>
+            <p className="text-foreground opacity-75">
+              Publish the lesson times your assigned students can request.
+            </p>
           </Link>
-          <Link href="/teacher/schedule" className="rounded-3xl border border-card-border bg-card-bg p-6 hover:border-green-500 transition">
+          <Link
+            href="/teacher/schedule"
+            className="rounded-3xl border border-card-border bg-card-bg p-6 hover:border-green-500 transition"
+          >
             <h2 className="text-xl font-semibold mb-2">Teaching schedule</h2>
-            <p className="text-foreground opacity-75">Review confirmed lessons and cancel a lesson if needed.</p>
+            <p className="text-foreground opacity-75">
+              Review confirmed lessons and cancel a lesson if needed.
+            </p>
           </Link>
         </div>
       </div>

@@ -23,4 +23,6 @@ export const updateManagedUser = (id: string, input: AdminUserUpdate) =>
   });
 
 export const deactivateManagedUser = (id: string) =>
-  backendFetch<null>(`/api/admin/users/${encodeURIComponent(id)}`, { method: "DELETE" });
+  backendFetch<null>(`/api/admin/users/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });

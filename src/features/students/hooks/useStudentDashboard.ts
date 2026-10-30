@@ -2,7 +2,10 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { getLessons } from "@/services/lesson.service";
-import { getAssignedTeacherAvailability, getMyLessonRequests } from "@/services/scheduling.service";
+import {
+  getAssignedTeacherAvailability,
+  getMyLessonRequests,
+} from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
 
 export const useStudentDashboard = () => {

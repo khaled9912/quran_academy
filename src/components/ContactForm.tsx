@@ -10,7 +10,11 @@ interface ContactFormValues {
   message: string;
 }
 
-const CONTACT_FIELDS: (keyof ContactFormValues)[] = ["name", "email", "message"];
+const CONTACT_FIELDS: (keyof ContactFormValues)[] = [
+  "name",
+  "email",
+  "message",
+];
 const isContactField = (field: string): field is keyof ContactFormValues =>
   (CONTACT_FIELDS as string[]).includes(field);
 
@@ -47,13 +51,25 @@ const ContactForm = () => {
       setSuccessMessage("Thank you! Your message has been sent successfully.");
       setTimeout(() => setSuccessMessage(""), 4000);
     } catch (error) {
-      const validationErrors = error instanceof ApiError ? error.validationErrors : undefined;
-      const fieldErrors = Object.entries(validationErrors ?? {}).filter(([field]) => isContactField(field));
+      const validationErrors =
+        error instanceof ApiError ? error.validationErrors : undefined;
+      const fieldErrors = Object.entries(validationErrors ?? {}).filter(
+        ([field]) => isContactField(field)
+      );
       for (const [field, messages] of fieldErrors) {
-        if (messages[0]) setError(field as keyof ContactFormValues, { type: "server", message: messages[0] });
+        if (messages[0])
+          setError(field as keyof ContactFormValues, {
+            type: "server",
+            message: messages[0],
+          });
       }
       if (fieldErrors.length) setErrorMessage("");
-      else setErrorMessage(error instanceof Error ? error.message : "Network error. Please try again.");
+      else
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "Network error. Please try again."
+        );
     } finally {
       setLoading(false);
     }
@@ -85,7 +101,10 @@ const ContactForm = () => {
             id="name"
             {...register("name", {
               required: "Name is required",
-              maxLength: { value: 120, message: "Name must be 120 characters or fewer" },
+              maxLength: {
+                value: 120,
+                message: "Name must be 120 characters or fewer",
+              },
             })}
             className={inputClass}
           />
@@ -128,8 +147,14 @@ const ContactForm = () => {
             rows={4}
             {...register("message", {
               required: "Message is required",
-              minLength: { value: 5, message: "Message must be at least 5 characters" },
-              maxLength: { value: 3000, message: "Message must be 3000 characters or fewer" },
+              minLength: {
+                value: 5,
+                message: "Message must be at least 5 characters",
+              },
+              maxLength: {
+                value: 3000,
+                message: "Message must be 3000 characters or fewer",
+              },
             })}
             className={inputClass}
           />

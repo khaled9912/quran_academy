@@ -1,5 +1,16 @@
-export type AvailabilitySlotStatus = "available" | "requested" | "booked" | "unavailable";
-export type LessonRequestStatus = "pending_teacher" | "pending_student" | "pending_admin" | "approved" | "rejected" | "cancelled" | "expired";
+export type AvailabilitySlotStatus =
+  | "available"
+  | "requested"
+  | "booked"
+  | "unavailable";
+export type LessonRequestStatus =
+  | "pending_teacher"
+  | "pending_student"
+  | "pending_admin"
+  | "approved"
+  | "rejected"
+  | "cancelled"
+  | "expired";
 
 export interface AvailabilitySlot {
   id: string;
@@ -23,6 +34,6 @@ export interface LessonRequest {
 }
 
 export interface TeacherAvailabilityResponse {
-  teacher: { id: string; fullName: string };
+  teacher: { id: string; fullName: string; email?: string };
   slots: AvailabilitySlot[];
 }

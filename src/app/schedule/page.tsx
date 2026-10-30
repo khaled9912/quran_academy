@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarDays, Clock3, RefreshCw } from "lucide-react";
+import { CalendarDays, Clock3, RefreshCw, Video } from "lucide-react";
 import { getLessons } from "@/services/lesson.service";
 import { useAuth } from "@/providers/auth-provider";
 import type { Lesson } from "@/types/lesson";
@@ -11,10 +11,18 @@ import type { Lesson } from "@/types/lesson";
 type Filter = "all" | "upcoming" | "completed" | "cancelled";
 
 const dayLabel = (value: string) =>
-  new Date(value).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  new Date(value).toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 
 const timeLabel = (value: string) =>
-  new Date(value).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  new Date(value).toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
 
 const statusStyles: Record<Lesson["status"], string> = {
   scheduled: "bg-green-100 text-green-800",
@@ -39,7 +47,11 @@ export default function StudentSchedulePage() {
     const filtered = lessons.filter((lesson) => {
       if (filter === "all") return true;
       if (filter === "upcoming") {
-        return lesson.status !== "cancelled" && lesson.status !== "completed" && new Date(lesson.startsAt).getTime() >= now;
+        return (
+          lesson.status !== "cancelled" &&
+          lesson.status !== "completed" &&
+          new Date(lesson.startsAt).getTime() >= now
+        );
       }
       return lesson.status === filter;
     });
@@ -68,7 +80,10 @@ export default function StudentSchedulePage() {
       <div className="mx-auto max-w-5xl px-4 md:px-8 lg:px-16">
         <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <Link href="/student/dashboard" className="text-green-600 hover:text-green-700 mb-3 inline-block">
+            <Link
+              href="/student/dashboard"
+              className="text-green-600 hover:text-green-700 mb-3 inline-block"
+            >
               ← Back to dashboard
             </Link>
             <h1 className="text-4xl font-bold mb-2">My schedule</h1>
@@ -85,24 +100,31 @@ export default function StudentSchedulePage() {
         </div>
 
         <div className="mb-6 flex flex-wrap gap-2">
-          {(["upcoming", "all", "completed", "cancelled"] as Filter[]).map((option) => (
-            <button
-              key={option}
-              onClick={() => setFilter(option)}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold capitalize transition ${
-                filter === option
-                  ? "bg-green-500 text-white"
-                  : "border border-card-border text-foreground hover:border-green-500"
-              }`}
-            >
-              {option}
-            </button>
-          ))}
+          {(["upcoming", "all", "completed", "cancelled"] as Filter[]).map(
+            (option) => (
+              <button
+                key={option}
+                onClick={() => setFilter(option)}
+                className={`rounded-lg px-4 py-2 text-sm font-semibold capitalize transition ${
+                  filter === option
+                    ? "bg-green-500 text-white"
+                    : "border border-card-border text-foreground hover:border-green-500"
+                }`}
+              >
+                {option}
+              </button>
+            )
+          )}
         </div>
 
         {lessonsQuery.error && (
-          <p role="alert" className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {lessonsQuery.error instanceof Error ? lessonsQuery.error.message : "Unable to load your schedule."}
+          <p
+            role="alert"
+            className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+          >
+            {lessonsQuery.error instanceof Error
+              ? lessonsQuery.error.message
+              : "Unable to load your schedule."}
           </p>
         )}
 
@@ -124,7 +146,8 @@ export default function StudentSchedulePage() {
                     >
                       <div>
                         <p className="font-semibold">
-                          {timeLabel(lesson.startsAt)} – {timeLabel(lesson.endsAt)}
+                          {timeLabel(lesson.startsAt)} –{" "}
+                          {timeLabel(lesson.endsAt)}
                         </p>
                         <p className="mt-1 flex items-center gap-2 text-sm text-foreground opacity-70">
                           <Clock3 size={15} />
@@ -135,15 +158,18 @@ export default function StudentSchedulePage() {
                         </p>
                       </div>
                       <div className="flex flex-col items-end gap-2">
-                        <span className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[lesson.status]}`}>
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[lesson.status]}`}
+                        >
                           {lesson.status.replaceAll("_", " ")}
                         </span>
-                        {(lesson.status === "scheduled" || lesson.status === "in_progress") && (
+                        {(lesson.status === "scheduled" ||
+                          lesson.status === "in_progress") && (
                           <Link
                             href={`/lesson/${lesson.id}`}
-                            className="rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
+                            className="inline-flex items-center gap-2 rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
                           >
-                            Join lesson
+                            <Video size={15} /> Attend lesson
                           </Link>
                         )}
                       </div>
@@ -158,7 +184,10 @@ export default function StudentSchedulePage() {
             {filter === "upcoming" ? (
               <>
                 No upcoming lessons.{" "}
-                <Link href="/student/availability" className="font-semibold text-green-600 hover:underline">
+                <Link
+                  href="/student/availability"
+                  className="font-semibold text-green-600 hover:underline"
+                >
                   Choose an available time
                 </Link>
                 .
