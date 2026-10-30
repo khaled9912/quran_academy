@@ -25,6 +25,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   applySession: (user: UserProfile | null) => void;
+  updateUser: (user: UserProfile) => void;
   logout: () => Promise<void>;
 }
 
@@ -36,11 +37,13 @@ const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   isLoading: true,
   applySession: () => {},
+  updateUser: () => {},
   logout: async () => {},
 });
 
 const AUTH_PAGES = new Set(["/login", "/signup", "/register"]);
 const PROTECTED_PREFIXES = [
+  "/profile",
   "/student",
   "/teacher",
   "/admin",
@@ -77,6 +80,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       hasRedirected.current = false;
     },
     [queryClient, setUser, clearUser]
+  );
+
+  /** Updates the cached identity without resetting session-wide queries. */
+  const updateUser = useCallback(
+    (next: UserProfile) => {
+      setProfile(next);
+      setUser(next);
+    },
+    [setUser]
   );
 
   useEffect(() => {
@@ -160,6 +172,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isAuthenticated: !!profile,
     isLoading,
     applySession,
+    updateUser,
     logout,
   };
   return (

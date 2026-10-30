@@ -14,12 +14,14 @@ export const navigationConfig: Record<string, NavLink[]> = {
     { label: "Dashboard", href: "/student/dashboard" },
     { label: "Book a lesson", href: "/student/availability" },
     { label: "My schedule", href: "/schedule" },
+    { label: "Profile", href: "/profile" },
   ],
   teacher: [
     { label: "Dashboard", href: "/teacher/dashboard" },
     { label: "Availability", href: "/teacher/availability" },
     { label: "Lesson requests", href: "/teacher/lesson-requests" },
     { label: "Schedule", href: "/teacher/schedule" },
+    { label: "Profile", href: "/profile" },
   ],
   admin: [
     { label: "Dashboard", href: "/admin/dashboard" },
@@ -27,6 +29,7 @@ export const navigationConfig: Record<string, NavLink[]> = {
     { label: "Teachers", href: "/admin/teachers" },
     { label: "Assignments", href: "/admin/assignments" },
     { label: "Approvals", href: "/admin/lesson-approvals" },
+    { label: "Profile", href: "/profile" },
   ],
   super_admin: [
     { label: "Dashboard", href: "/super-admin/dashboard" },
@@ -34,5 +37,6 @@ export const navigationConfig: Record<string, NavLink[]> = {
     { label: "Teachers", href: "/admin/teachers" },
     { label: "Assignments", href: "/admin/assignments" },
     { label: "Approvals", href: "/admin/lesson-approvals" },
+    { label: "Profile", href: "/profile" },
   ],
 };

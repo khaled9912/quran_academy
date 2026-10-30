@@ -120,7 +120,7 @@ export default function HomePage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-[#163b32]/55 via-transparent to-transparent" />
                 <div className="absolute bottom-5 left-5 right-5 text-white">
                   <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/80">
-                    Rayan Academy
+                    Ana Quran
                   </p>
                   <p className="mt-2 text-2xl font-semibold leading-tight">
                     A meaningful learning journey starts with one lesson.
@@ -169,7 +169,7 @@ export default function HomePage() {
       >
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#a7773e]">
-            The Rayan approach
+            The Ana Quran approach
           </p>
           <h2 className="mt-4 text-3xl font-bold tracking-tight text-[#173b35] sm:text-4xl">
             Learning that fits your life
@@ -252,7 +252,7 @@ export default function HomePage() {
             Make space for learning that matters.
           </h2>
           <p className="mx-auto mt-4 max-w-xl leading-7 text-white/75">
-            Create your account and connect with the Rayan Academy team to begin
+            Create your account and connect with the Ana Quran team to begin
             your learning journey.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
@@ -275,8 +275,8 @@ export default function HomePage() {
       <footer id="contact" className="border-t border-[#e5e9df] bg-white">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 text-sm text-[#718078] md:flex-row md:items-center md:justify-between md:px-8">
           <div className="flex items-center gap-3">
-            <Image src="/logo.svg" alt="Rayan Academy" width={42} height={42} />
-            <span className="font-semibold text-[#23483c]">Rayan Academy</span>
+            <Image src="/logo.svg" alt="Ana Quran" width={96} height={96} className="h-12 w-12 md:h-14 md:w-14" />
+            <span className="font-semibold text-[#23483c]">Ana Quran</span>
           </div>
           <p>Personal online learning in Quran, Arabic, and Islamic studies.</p>
           <div className="flex gap-5">

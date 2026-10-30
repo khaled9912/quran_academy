@@ -2,7 +2,7 @@ import ContactForm from "@/components/ContactForm";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Contact Us | Rayan Academy",
+  title: "Contact Us | Ana Quran",
   description:
     "Have a question about Quran, Arabic, or Islamic studies classes? Send us a message and our team will get back to you.",
 };

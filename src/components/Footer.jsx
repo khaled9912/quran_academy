@@ -45,7 +45,7 @@ const Footer = () => {
         <ContactForm />
       </div>
       <p className="mt-10 text-foreground opacity-70">
-        &copy; {new Date().getFullYear()} Rayan Academy. All rights reserved.
+        &copy; {new Date().getFullYear()} Ana Quran. All rights reserved.
       </p>
     </section>
   );

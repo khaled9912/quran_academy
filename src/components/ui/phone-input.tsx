@@ -52,7 +52,9 @@ export function PhoneInput({
           onChange={(next) => onCountryChange(next as CountryCode)}
           options={options}
           searchable
-          selectedLabel={selected ? `${selected.flag} ${selected.dial}` : undefined}
+          selectedLabel={
+            selected ? `${selected.flag} ${selected.dial}` : undefined
+          }
           disabled={disabled}
         />
         <input

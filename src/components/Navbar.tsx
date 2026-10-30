@@ -6,9 +6,12 @@ import Menu from "./Menu";
 import Image from "next/image";
 import { useAuth } from "@/providers/auth-provider";
 import { navigationConfig } from "@/constants/navigation";
+import { Avatar } from "@/components/ui/avatar";
 
 const Navbar = () => {
-  const { role, logout, isAuthenticated } = useAuth();
+  const { role, profile, logout, isAuthenticated } = useAuth();
+  const displayName =
+    profile?.fullName ?? profile?.full_name ?? role?.replace("_", " ") ?? "";
 
   // Choose links based on authentication and role
   const links =
@@ -70,12 +73,25 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <span className="text-sm opacity-75 mr-2">
-                Logged in as{" "}
-                <strong className="capitalize">
-                  {role?.replace("_", " ")}
-                </strong>
-              </span>
+              <Link
+                href="/profile"
+                className="mr-2 flex items-center gap-2 rounded-xl px-2 py-1.5 transition hover:bg-[#edf3e9]"
+              >
+                <Avatar
+                  name={displayName}
+                  src={profile?.avatarUrl}
+                  className="h-9 w-9 rounded-full text-xs"
+                  fallbackClassName="bg-[#1c5145] text-white"
+                />
+                <span className="text-sm">
+                  <span className="block text-[11px] uppercase tracking-wide opacity-60">
+                    {role?.replace("_", " ")}
+                  </span>
+                  <strong className="block max-w-[14ch] truncate">
+                    {displayName}
+                  </strong>
+                </span>
+              </Link>
               <button
                 onClick={logout}
                 className="px-4 py-2 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white rounded font-semibold transition"

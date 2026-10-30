@@ -14,12 +14,12 @@ For production, prefer a same-origin reverse proxy so the API's HttpOnly session
 
 ## Authentication
 
-| Method | Endpoint             | Purpose                          |
-| ------ | -------------------- | -------------------------------- |
-| POST   | `/api/auth/register` | Public student registration only |
-| POST   | `/api/auth/login`    | Sign in                          |
-| GET    | `/api/auth/me`       | Current authenticated user       |
-| POST   | `/api/auth/logout`   | End session                      |
+| Method | Endpoint                | Purpose                                |
+| ------ | ----------------------- | -------------------------------------- |
+| POST   | `/api/auth/register`    | Public student registration only       |
+| POST   | `/api/auth/login`       | Sign in                                |
+| GET    | `/api/auth/me`          | Current authenticated user             |
+| POST   | `/api/auth/logout`      | End session                            |
 | POST   | `/api/auth/otp/request` | Send a sign-in/sign-up code to a phone |
 | POST   | `/api/auth/otp/verify`  | Verify the code and start a session    |
 

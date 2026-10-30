@@ -47,7 +47,9 @@ export async function backendFetch<T = unknown>(
 ): Promise<T> {
   if (!path.startsWith("/")) throw new Error("API paths must start with '/'.");
   const headers = new Headers(options.headers);
-  if (options.body && !headers.has("Content-Type"))
+  const isFormData =
+    typeof FormData !== "undefined" && options.body instanceof FormData;
+  if (options.body && !isFormData && !headers.has("Content-Type"))
     headers.set("Content-Type", "application/json");
   headers.set("Accept", "application/json");
   const response = await fetch(`${backendUrl}${path}`, {
@@ -88,3 +90,10 @@ export async function backendFetch<T = unknown>(
   }
   return payload as T;
 }
+
+/** Builds a browser URL for API-served assets such as profile images. */
+export const backendAssetUrl = (path?: string | null) => {
+  if (!path) return "";
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${backendUrl}${path}`;
+};

@@ -1,5 +1,13 @@
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  turbopack: {
+    root: __dirname,
+  },
   images: {
     remotePatterns: [
       {
@@ -8,11 +16,7 @@ const nextConfig = {
       },
     ],
   },
-  env: {
-    EMAIL_USER: process.env.EMAIL_USER,
-    EMAIL_APP_PASSWORD: process.env.EMAIL_APP_PASSWORD,
-    RECEIVER_EMAIL: process.env.RECEIVER_EMAIL,
-  },
+  env: {},
 };
 
 export default nextConfig;

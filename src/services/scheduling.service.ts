@@ -6,6 +6,13 @@ import type {
 } from "@/types/scheduling";
 
 // Student endpoints
+/** Active teachers and their open lesson times, for self-service booking. */
+export const getTeacherDirectory = () =>
+  backendFetch<TeacherAvailabilityResponse[]>("/api/teachers/directory");
+export const getTeacherProfile = (teacherId: string) =>
+  backendFetch<TeacherAvailabilityResponse>(
+    `/api/teachers/${encodeURIComponent(teacherId)}/profile`
+  );
 export const getAssignedTeacherAvailability = () =>
   backendFetch<TeacherAvailabilityResponse>(
     "/api/student/teacher/availability"

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import type { Lesson } from "@/types/lesson";
 import { useStudentDashboard } from "@/features/students/hooks/useStudentDashboard";
+import { TeacherDirectory } from "@/components/student/TeacherDirectory";
 
 const dateTime = (value: string) =>
   new Date(value).toLocaleString(undefined, {
@@ -114,12 +115,13 @@ const StudentDashboard = () => {
               </Link>
             </div>
 
+            <TeacherDirectory compact />
+
             <section className="bg-card-bg border border-card-border rounded-3xl p-6 md:p-8">
               <div className="flex items-center gap-3 mb-6">
                 <Hourglass className="text-green-600" />
                 <h2 className="text-2xl font-semibold">Lesson requests</h2>
-              </div>
-              {requestsQuery.isLoading ? (
+              </div>              {requestsQuery.isLoading ? (
                 <p className="text-foreground opacity-70">
                   Loading your requests…
                 </p>

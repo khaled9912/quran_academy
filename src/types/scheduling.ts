@@ -34,6 +34,12 @@ export interface LessonRequest {
 }
 
 export interface TeacherAvailabilityResponse {
-  teacher: { id: string; fullName: string; email?: string };
+  teacher: {
+    id: string;
+    fullName: string;
+    email?: string;
+    phoneNumber?: string | null;
+    avatarUrl?: string | null;
+  };
   slots: AvailabilitySlot[];
 }

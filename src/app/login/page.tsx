@@ -72,7 +72,11 @@ const LoginPage = () => {
       }
       applySession(user);
     } catch (error) {
-      setMessage(error instanceof ApiError ? error.message : "Something went wrong. Please try again.");
+      setMessage(
+        error instanceof ApiError
+          ? error.message
+          : "Something went wrong. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -100,9 +104,17 @@ const LoginPage = () => {
       setCodeSent(true);
       setNeedsName(false);
       setDevCode(result.devCode ?? null);
-      setMessage(result.devCode ? "Development mode: use the code shown below." : result.message);
+      setMessage(
+        result.devCode
+          ? "Development mode: use the code shown below."
+          : result.message
+      );
     } catch (error) {
-      setMessage(error instanceof ApiError ? error.message : "Unable to send the code. Please try again.");
+      setMessage(
+        error instanceof ApiError
+          ? error.message
+          : "Unable to send the code. Please try again."
+      );
     } finally {
       setPhoneLoading(false);
     }
@@ -126,10 +138,16 @@ const LoginPage = () => {
     }
     setPhoneLoading(true);
     try {
-      const result = await verifyOtp(sentTo, code.trim(), needsName ? phoneName.trim() : undefined);
+      const result = await verifyOtp(
+        sentTo,
+        code.trim(),
+        needsName ? phoneName.trim() : undefined
+      );
       if (result.requiresProfile) {
         setNeedsName(true);
-        setMessage("No account uses this number yet. Enter your full name to create a student account.");
+        setMessage(
+          "No account uses this number yet. Enter your full name to create a student account."
+        );
         return;
       }
       if (!result.user?.role) {
@@ -138,7 +156,11 @@ const LoginPage = () => {
       }
       applySession(result.user);
     } catch (error) {
-      setMessage(error instanceof ApiError ? error.message : "Unable to verify the code. Please try again.");
+      setMessage(
+        error instanceof ApiError
+          ? error.message
+          : "Unable to verify the code. Please try again."
+      );
     } finally {
       setPhoneLoading(false);
     }
@@ -161,7 +183,7 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center py-24 px-4 font-sans">
       <div className="w-full max-w-md bg-card-bg border border-card-border rounded-3xl p-8 shadow-xl">
-        <h1 className="text-3xl font-bold text-center mb-2">Rayan Academy</h1>
+        <h1 className="text-3xl font-bold text-center mb-2">Ana Quran</h1>
         <p className="text-center text-foreground opacity-75 mb-6">
           Sign in to manage classes, view your dashboard, or join live lessons.
         </p>
@@ -186,7 +208,10 @@ const LoginPage = () => {
         {mode === "email" ? (
           <form onSubmit={handleEmailSubmit} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-semibold mb-2"
+              >
                 Email
               </label>
               <input
@@ -201,7 +226,10 @@ const LoginPage = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-semibold mb-2"
+              >
                 Password
               </label>
               <input
@@ -229,7 +257,10 @@ const LoginPage = () => {
         ) : !codeSent ? (
           <form onSubmit={handleSendCode} className="space-y-5">
             <div>
-              <label htmlFor="phone" className="block text-sm font-semibold mb-2">
+              <label
+                htmlFor="phone"
+                className="block text-sm font-semibold mb-2"
+              >
                 Mobile number
               </label>
               <PhoneInput
@@ -263,7 +294,10 @@ const LoginPage = () => {
         ) : (
           <form onSubmit={handleVerifyCode} className="space-y-5">
             <div>
-              <label htmlFor="otp-code" className="block text-sm font-semibold mb-2">
+              <label
+                htmlFor="otp-code"
+                className="block text-sm font-semibold mb-2"
+              >
                 Verification code
               </label>
               <input
@@ -273,21 +307,29 @@ const LoginPage = () => {
                 autoComplete="one-time-code"
                 maxLength={8}
                 value={code}
-                onChange={(event) => setCode(event.target.value.replace(/\D/g, ""))}
+                onChange={(event) =>
+                  setCode(event.target.value.replace(/\D/g, ""))
+                }
                 required
                 className={`${inputClass} tracking-[0.4em]`}
               />
-              <p className="mt-2 text-xs text-foreground opacity-70">Sent to {sentTo}.</p>
+              <p className="mt-2 text-xs text-foreground opacity-70">
+                Sent to {sentTo}.
+              </p>
               {devCode && (
                 <p className="mt-2 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-700">
-                  Development code: <span className="font-bold tracking-widest">{devCode}</span>
+                  Development code:{" "}
+                  <span className="font-bold tracking-widest">{devCode}</span>
                 </p>
               )}
             </div>
 
             {needsName && (
               <div>
-                <label htmlFor="phone-name" className="block text-sm font-semibold mb-2">
+                <label
+                  htmlFor="phone-name"
+                  className="block text-sm font-semibold mb-2"
+                >
                   Full name
                 </label>
                 <input
@@ -306,7 +348,11 @@ const LoginPage = () => {
               disabled={phoneLoading}
               className="w-full rounded-xl bg-green-500 px-4 py-3 text-white font-semibold transition hover:bg-green-600 disabled:opacity-50"
             >
-              {phoneLoading ? "Verifying..." : needsName ? "Create account & sign in" : "Verify & sign in"}
+              {phoneLoading
+                ? "Verifying..."
+                : needsName
+                  ? "Create account & sign in"
+                  : "Verify & sign in"}
             </button>
             <button
               type="button"
@@ -326,7 +372,10 @@ const LoginPage = () => {
 
         <div className="mt-8 text-center text-sm text-foreground opacity-75">
           New here?{" "}
-          <Link href="/signup" className="font-semibold text-green-500 hover:underline">
+          <Link
+            href="/signup"
+            className="font-semibold text-green-500 hover:underline"
+          >
             Create account
           </Link>
         </div>

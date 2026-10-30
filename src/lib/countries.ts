@@ -58,3 +58,10 @@ export const toE164 = (national: string, country: CountryCode) => {
     null
   );
 };
+
+/** Splits a stored E.164 number back into the PhoneInput country + national parts. */
+export const splitE164 = (value: string) => {
+  const parsed = parsePhoneNumberFromString(value);
+  if (!parsed?.country) return null;
+  return { country: parsed.country, national: parsed.nationalNumber };
+};

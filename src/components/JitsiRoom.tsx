@@ -14,10 +14,16 @@ function loadJitsiScript(domain: string) {
       resolve();
       return;
     }
-    const existing = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null;
+    const existing = document.getElementById(
+      SCRIPT_ID
+    ) as HTMLScriptElement | null;
     if (existing) {
       existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener("error", () => reject(new Error("Unable to load the video room.")), { once: true });
+      existing.addEventListener(
+        "error",
+        () => reject(new Error("Unable to load the video room.")),
+        { once: true }
+      );
       return;
     }
     const script = document.createElement("script");
@@ -25,7 +31,10 @@ function loadJitsiScript(domain: string) {
     script.src = `https://${domain}/external_api.js`;
     script.async = true;
     script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Unable to load the video room. Check your connection."));
+    script.onerror = () =>
+      reject(
+        new Error("Unable to load the video room. Check your connection.")
+      );
     document.head.appendChild(script);
   });
 }
@@ -51,7 +60,12 @@ interface JitsiRoomProps {
   onClose: () => void;
 }
 
-export function JitsiRoom({ domain, room, displayName, onClose }: JitsiRoomProps) {
+export function JitsiRoom({
+  domain,
+  room,
+  displayName,
+  onClose,
+}: JitsiRoomProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   const [mode, setMode] = useState<JoinMode | null>(null);
@@ -59,8 +73,40 @@ export function JitsiRoom({ domain, room, displayName, onClose }: JitsiRoomProps
   const [permissionError, setPermissionError] = useState("");
   const [joined, setJoined] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const [mediaAvailable, setMediaAvailable] = useState<boolean | null>(null);
 
   onCloseRef.current = onClose;
+
+  useEffect(() => {
+    const mediaDevices = navigator.mediaDevices;
+    if (!mediaDevices?.enumerateDevices) {
+      setMediaAvailable(false);
+      return;
+    }
+    let active = true;
+    const detect = () => {
+      void mediaDevices
+        .enumerateDevices()
+        .then((devices) => {
+          if (!active) return;
+          setMediaAvailable(
+            devices.some(
+              (device) =>
+                device.kind === "audioinput" || device.kind === "videoinput"
+            )
+          );
+        })
+        .catch(() => {
+          if (active) setMediaAvailable(null);
+        });
+    };
+    detect();
+    mediaDevices.addEventListener?.("devicechange", detect);
+    return () => {
+      active = false;
+      mediaDevices.removeEventListener?.("devicechange", detect);
+    };
+  }, []);
 
   const requestDevices = async (nextMode: JoinMode) => {
     setPermissionError("");
@@ -69,13 +115,17 @@ export function JitsiRoom({ domain, room, displayName, onClose }: JitsiRoomProps
       return;
     }
     if (!navigator.mediaDevices?.getUserMedia) {
-      setPermissionError("This browser does not support camera or microphone access. Join to watch and listen instead.");
+      setPermissionError(
+        "This browser cannot access a camera or microphone. You can still join to watch and listen."
+      );
       return;
     }
     setRequesting(true);
     try {
       const stream = await navigator.mediaDevices.getUserMedia(
-        nextMode === "audio-video" ? { audio: true, video: true } : { audio: true }
+        nextMode === "audio-video"
+          ? { audio: true, video: true }
+          : { audio: true }
       );
       stream.getTracks().forEach((track) => track.stop());
       setMode(nextMode);
@@ -93,7 +143,8 @@ export function JitsiRoom({ domain, room, displayName, onClose }: JitsiRoomProps
 
     loadJitsiScript(domain)
       .then(() => {
-        if (disposed || !containerRef.current || !window.JitsiMeetExternalAPI) return;
+        if (disposed || !containerRef.current || !window.JitsiMeetExternalAPI)
+          return;
         const options: JitsiExternalApiOptions = {
           roomName: room,
           parentNode: containerRef.current,
@@ -124,7 +175,11 @@ export function JitsiRoom({ domain, room, displayName, onClose }: JitsiRoomProps
       })
       .catch((error: unknown) => {
         if (!disposed) {
-          setLoadError(error instanceof Error ? error.message : "Unable to load the video room.");
+          setLoadError(
+            error instanceof Error
+              ? error.message
+              : "Unable to load the video room."
+          );
         }
       });
 
@@ -141,11 +196,21 @@ export function JitsiRoom({ domain, room, displayName, onClose }: JitsiRoomProps
       {!mode && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 bg-black p-6 text-center text-white">
           <div>
-            <h2 className="text-2xl font-semibold">Ready to join your lesson?</h2>
+            <h2 className="text-2xl font-semibold">
+              Ready to join your lesson?
+            </h2>
             <p className="mt-2 max-w-md text-sm opacity-70">
-              Your browser will ask for camera and microphone access. Allow it so your teacher can see and hear you.
+              Your browser will ask for camera and microphone access. Allow it
+              so your teacher can see and hear you.
             </p>
           </div>
+          {mediaAvailable === false && (
+            <p className="max-w-md rounded-xl bg-amber-400/15 px-4 py-3 text-sm text-amber-100">
+              No camera or microphone was detected on this device. You can
+              still join to watch and listen, and the lesson audio will play
+              through your speakers.
+            </p>
+          )}
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
@@ -167,20 +232,44 @@ export function JitsiRoom({ domain, room, displayName, onClose }: JitsiRoomProps
               type="button"
               onClick={() => void requestDevices("view-only")}
               disabled={requesting}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 px-5 py-3 text-sm font-semibold opacity-80 transition hover:bg-white/10 disabled:opacity-50"
+              className={`inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition disabled:opacity-50 ${
+                mediaAvailable === false
+                  ? "bg-green-500 text-white hover:bg-green-600"
+                  : "border border-white/20 opacity-80 hover:bg-white/10"
+              }`}
             >
-              <VideoOff size={16} /> Join muted
+              <VideoOff size={16} /> Join without camera & mic
             </button>
           </div>
           {requesting && (
             <p className="inline-flex items-center gap-2 text-sm opacity-80">
-              <Loader2 size={16} className="animate-spin" /> Waiting for browser permission…
+              <Loader2 size={16} className="animate-spin" /> Waiting for browser
+              permission…
             </p>
           )}
           {permissionError && (
-            <p role="alert" className="max-w-md rounded-xl bg-red-500/15 px-4 py-3 text-sm text-red-200">
-              {permissionError}
-            </p>
+            <div
+              role="alert"
+              className="max-w-md rounded-xl bg-red-500/15 px-4 py-3 text-sm text-red-200"
+            >
+              <p>{permissionError}</p>
+              <div className="mt-3 flex flex-wrap justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => void requestDevices("view-only")}
+                  className="rounded-lg bg-white/90 px-3 py-2 text-xs font-semibold text-black transition hover:bg-white"
+                >
+                  Join without camera & mic
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void requestDevices("audio-video")}
+                  className="rounded-lg border border-white/40 px-3 py-2 text-xs font-semibold transition hover:bg-white/10"
+                >
+                  Try again
+                </button>
+              </div>
+            </div>
           )}
         </div>
       )}
@@ -195,7 +284,9 @@ export function JitsiRoom({ domain, room, displayName, onClose }: JitsiRoomProps
       {loadError && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black p-6 text-center text-white">
           <p className="font-semibold">{loadError}</p>
-          <p className="text-sm opacity-70">Refresh the page to try again, or contact the academy.</p>
+          <p className="text-sm opacity-70">
+            Refresh the page to try again, or contact the academy.
+          </p>
         </div>
       )}
     </div>
