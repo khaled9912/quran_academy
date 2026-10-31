@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Ana Quran logo</title>
+  <desc id="desc">A simple Ana Quran logo with a green arch and open book.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#F6F9F1"/>
+      <stop offset="100%" stop-color="#EAF3E8"/>
+    </linearGradient>
+    <linearGradient id="green" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#36A26A"/>
+      <stop offset="100%" stop-color="#1C5145"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="44" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="172" fill="#DDEEDF" opacity="0.7"/>
+
+  <path d="M104 354C126 250 181 190 256 190C331 190 386 250 408 354V390C408 407 394 420 377 420H135C118 420 104 407 104 390V354Z" fill="url(#green)"/>
+  <path d="M144 336C168 274 205 234 256 234C307 234 344 274 368 336" fill="none" stroke="#BEE2C7" stroke-width="12" stroke-linecap="round"/>
+
+  <path d="M166 350L166 246C211 238 233 230 256 230C279 230 301 238 346 246V350C312 332 287 324 256 324C225 324 200 332 166 350Z" fill="#F7F9F2" stroke="#1C5145" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M256 228V318M202 286H170M310 286H342" stroke="#1C5145" stroke-width="6" stroke-linecap="round"/>
+
+  <path d="M187 332C209 327 232 324 256 324C280 324 303 327 325 332" fill="none" stroke="#7EA388" stroke-width="5" stroke-linecap="round"/>
+
+  <text x="256" y="422" text-anchor="middle" font-size="52" font-weight="700" fill="#1C5145" font-family="Arial, Helvetica, sans-serif">AQ</text>
+</svg>

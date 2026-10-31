@@ -1,3 +1,5 @@
+import type { TeacherReview } from "./lesson";
+
 export type AvailabilitySlotStatus =
   | "available"
   | "requested"
@@ -42,4 +44,16 @@ export interface TeacherAvailabilityResponse {
     avatarUrl?: string | null;
   };
   slots: AvailabilitySlot[];
+  averageRating?: number | null;
+  reviewCount?: number;
+  reviews?: TeacherReview[] | null;
+}
+
+export interface PublicTeacher {
+  id: string;
+  fullName: string;
+  avatarUrl?: string | null;
+  averageRating?: number | null;
+  reviewCount: number;
+  reviews: TeacherReview[];
 }

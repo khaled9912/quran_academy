@@ -121,7 +121,8 @@ const StudentDashboard = () => {
               <div className="flex items-center gap-3 mb-6">
                 <Hourglass className="text-green-600" />
                 <h2 className="text-2xl font-semibold">Lesson requests</h2>
-              </div>              {requestsQuery.isLoading ? (
+              </div>{" "}
+              {requestsQuery.isLoading ? (
                 <p className="text-foreground opacity-70">
                   Loading your requests…
                 </p>

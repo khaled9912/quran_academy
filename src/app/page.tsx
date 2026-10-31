@@ -59,105 +59,96 @@ const benefits = [
 
 export default function HomePage() {
   return (
-    <main className="overflow-hidden bg-[#fbfaf6] text-[#173b35]">
+    <main className="overflow-hidden bg-[#f3efe8] text-[#173b35]">
       <section className="relative isolate">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_80%_20%,rgba(206,224,197,0.55),transparent_34%),linear-gradient(135deg,#fbfaf6_0%,#f2f5ec_100%)]" />
-        <div className="mx-auto grid max-w-7xl items-center gap-12 px-5 pb-20 pt-14 md:grid-cols-[1.02fr_0.98fr] md:px-8 md:pb-28 md:pt-20">
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_80%_20%,rgba(206,224,197,0.38),transparent_30%),linear-gradient(135deg,#f3efe8_0%,#eff3ea_100%)]" />
+        <div className="mx-auto grid max-w-7xl items-center gap-10 px-5 pb-16 pt-8 md:grid-cols-[1.02fr_0.98fr] md:gap-12 md:px-8 md:pb-28 md:pt-12">
           <div className="max-w-2xl">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#d7e3d3] bg-white/75 px-4 py-2 text-sm font-semibold text-[#54735c] shadow-sm">
-              <Sparkles size={16} /> Thoughtful learning, one lesson at a time
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#cfe1d3] bg-white/70 px-3 py-2 text-xs font-semibold text-[#54735c] shadow-sm sm:mb-6 sm:px-4 sm:text-sm">
+              <Sparkles size={16} className="text-[#8ab57d]" /> Thoughtful learning, one lesson at a time
             </div>
-            <h1 className="text-4xl font-bold leading-[1.12] tracking-tight text-[#153b34] sm:text-5xl lg:text-6xl">
-              Grow your connection with the{" "}
-              <span className="text-[#b47b3c]">Quran</span> and Arabic.
+            <h1 className="text-[2.8rem] font-black leading-[0.92] tracking-[-0.06em] text-[#123c35] sm:text-5xl md:text-6xl lg:text-[5.3rem]">
+              Grow your
+              <span className="block">connection</span>
+              <span className="block">with the <span className="text-[#d1893d]">Quran</span></span>
+              <span className="block">and Arabic.</span>
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-8 text-[#61736b]">
+            <p className="mt-4 max-w-xl text-base leading-7 text-[#5d726a] sm:mt-6 sm:text-lg sm:leading-8">
               Learn with dedicated teachers through personal online lessons,
               flexible scheduling, and a learning experience built around you.
             </p>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-8 flex w-full flex-col gap-3 sm:mt-9 sm:flex-row">
               <Link
                 href="/signup"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1c5145] px-6 py-3.5 font-semibold text-white shadow-lg shadow-[#1c5145]/15 transition hover:-translate-y-0.5 hover:bg-[#163f36]"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] sm:w-auto"
               >
                 Start learning <ArrowRight size={18} />
               </Link>
               <Link
                 href="/contact"
-                className="inline-flex items-center justify-center rounded-xl border border-[#cbd8ca] bg-white/80 px-6 py-3.5 font-semibold text-[#244c40] transition hover:bg-white"
+                className="inline-flex w-full items-center justify-center rounded-2xl border border-[#cedaCD] bg-white/70 px-6 py-3.5 text-base font-semibold text-[#244c40] transition hover:bg-white sm:w-auto"
               >
                 Talk to our team
               </Link>
             </div>
-            <div className="mt-10 flex flex-wrap items-center gap-x-7 gap-y-3 text-sm font-medium text-[#63766c]">
-              <span className="inline-flex items-center gap-2">
+            <div className="mt-8 flex flex-wrap items-center gap-2 text-sm font-medium text-[#63766c] sm:mt-10 sm:gap-x-7 sm:gap-y-3">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-2 shadow-sm ring-1 ring-[#e6e9e1]">
                 <CheckCircle2 size={17} className="text-[#6b936c]" /> One-to-one
                 lessons
               </span>
-              <span className="inline-flex items-center gap-2">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-2 shadow-sm ring-1 ring-[#e6e9e1]">
                 <CheckCircle2 size={17} className="text-[#6b936c]" /> Flexible
                 time slots
               </span>
-              <span className="inline-flex items-center gap-2">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-2 shadow-sm ring-1 ring-[#e6e9e1]">
                 <CheckCircle2 size={17} className="text-[#6b936c]" /> Online
                 learning
               </span>
             </div>
           </div>
-          <div className="relative mx-auto w-full max-w-[570px]">
-            <div className="absolute -right-5 -top-7 h-40 w-40 rounded-full bg-[#dce8d5] blur-2xl" />
-            <div className="absolute -bottom-7 -left-7 h-44 w-44 rounded-full bg-[#ead9bf] blur-2xl" />
-            <div className="relative overflow-hidden rounded-[2rem] border border-white/80 bg-[#e8eee3] p-3 shadow-2xl shadow-[#1d4035]/15">
-              <div className="relative aspect-[5/4] overflow-hidden rounded-[1.5rem] bg-[#dce7d8]">
-                <Image
-                  src="/courses-img-1.jpg"
-                  alt="A peaceful learning environment"
-                  fill
-                  priority
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#163b32]/55 via-transparent to-transparent" />
+
+          <div className="relative mx-auto w-full max-w-[560px]">
+            <div className="absolute -right-5 -top-7 h-40 w-40 rounded-full bg-[#dfe8d6] blur-3xl" />
+            <div className="absolute -bottom-7 -left-7 h-44 w-44 rounded-full bg-[#ebd7b2] blur-3xl" />
+            <div className="relative overflow-hidden rounded-[2.2rem] border border-[#dfeee1] bg-[#dfe9dd] p-3 shadow-[0_30px_50px_rgba(18,67,59,0.12)]">
+              <div className="relative aspect-[5/4] overflow-hidden rounded-[1.8rem] bg-[linear-gradient(135deg,#9acc9d_0%,#7bc792_30%,#6ebd82_100%)]">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.2),transparent_25%),radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.12),transparent_22%)]" />
+                <div className="absolute left-5 top-5 rounded-full border border-white/35 bg-white/20 px-3 py-2 text-sm font-semibold text-white shadow-lg backdrop-blur-sm">
+                  Personal guidance
+                </div>
+                <div className="absolute left-5 top-16 max-w-[220px] text-[15px] font-semibold leading-tight text-white/90">
+                  Easy way to learn Quran and Arabic online with tajweed.
+                </div>
+
+                <div className="absolute right-5 bottom-5 h-44 w-44 rounded-full border-[16px] border-[#bfe4c7] bg-[radial-gradient(circle_at_30%_30%,#f7d7a7_0%,#f0c07b_24%,#d99862_54%,#b66f42_100%)] shadow-[inset_8px_8px_0_rgba(255,255,255,0.12)]" />
+                <div className="absolute right-12 bottom-10 h-24 w-20 rounded-[40%_40%_45%_45%] border-[10px] border-[#d8f4dc] bg-[#eafaf0] shadow-[inset_0_-10px_0_rgba(98,196,118,0.15)]" />
+                <div className="absolute right-7 bottom-7 h-20 w-28 rounded-[50%_50%_48%_48%] bg-[#d3f0d4]" />
+                <div className="absolute right-3 bottom-16 h-24 w-24 rounded-full bg-[#dceff4] opacity-80" />
+
                 <div className="absolute bottom-5 left-5 right-5 text-white">
-                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/80">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-white/75">
                     Ana Quran
                   </p>
-                  <p className="mt-2 text-2xl font-semibold leading-tight">
+                  <p className="mt-2 max-w-[330px] text-2xl font-bold leading-tight tracking-[-0.04em]">
                     A meaningful learning journey starts with one lesson.
                   </p>
                 </div>
               </div>
+
               <div className="grid grid-cols-3 gap-2 p-3 text-center">
-                <div className="rounded-xl bg-white px-2 py-3">
+                <div className="rounded-2xl bg-white/90 px-2 py-3 shadow-sm ring-1 ring-[#e5ece1]">
                   <BookOpen className="mx-auto mb-1 text-[#6f8c69]" size={20} />
                   <p className="text-xs font-semibold text-[#34594b]">Quran</p>
                 </div>
-                <div className="rounded-xl bg-white px-2 py-3">
-                  <Languages
-                    className="mx-auto mb-1 text-[#6f8c69]"
-                    size={20}
-                  />
+                <div className="rounded-2xl bg-white/90 px-2 py-3 shadow-sm ring-1 ring-[#e5ece1]">
+                  <Languages className="mx-auto mb-1 text-[#6f8c69]" size={20} />
                   <p className="text-xs font-semibold text-[#34594b]">Arabic</p>
                 </div>
-                <div className="rounded-xl bg-white px-2 py-3">
-                  <GraduationCap
-                    className="mx-auto mb-1 text-[#6f8c69]"
-                    size={20}
-                  />
-                  <p className="text-xs font-semibold text-[#34594b]">
-                    Islamic studies
-                  </p>
+                <div className="rounded-2xl bg-white/90 px-2 py-3 shadow-sm ring-1 ring-[#e5ece1]">
+                  <GraduationCap className="mx-auto mb-1 text-[#6f8c69]" size={20} />
+                  <p className="text-xs font-semibold text-[#34594b]">Islamic studies</p>
                 </div>
               </div>
-            </div>
-            <div className="absolute -left-8 top-12 hidden rounded-2xl border border-[#e5e9df] bg-white p-4 shadow-xl sm:block">
-              <div className="flex items-center gap-2 text-sm font-semibold text-[#234b3e]">
-                <Star size={16} className="fill-[#d4a45d] text-[#d4a45d]" />{" "}
-                Personal guidance
-              </div>
-              <p className="mt-1 text-xs text-[#718078]">
-                A teacher who knows your goals
-              </p>
             </div>
           </div>
         </div>
@@ -275,7 +266,13 @@ export default function HomePage() {
       <footer id="contact" className="border-t border-[#e5e9df] bg-white">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 text-sm text-[#718078] md:flex-row md:items-center md:justify-between md:px-8">
           <div className="flex items-center gap-3">
-            <Image src="/logo.svg" alt="Ana Quran" width={96} height={96} className="h-12 w-12 md:h-14 md:w-14" />
+            <img
+              src="/logo.svg"
+              alt="Ana Quran"
+              width={96}
+              height={96}
+              className="h-12 w-12 md:h-14 md:w-14"
+            />
             <span className="font-semibold text-[#23483c]">Ana Quran</span>
           </div>
           <p>Personal online learning in Quran, Arabic, and Islamic studies.</p>

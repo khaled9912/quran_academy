@@ -47,8 +47,7 @@ export default function StudentAvailabilityPage() {
             </h1>
             <p className="mt-2 max-w-2xl text-[#6b7c73]">
               Browse teacher profiles, pick an open time, and send a request.
-              Your teacher confirms first, then the academy approves the
-              lesson.
+              Your teacher confirms first, then the academy approves the lesson.
             </p>
           </div>
           <button

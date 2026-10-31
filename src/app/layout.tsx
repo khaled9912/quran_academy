@@ -10,6 +10,11 @@ export const metadata: Metadata = {
   title: "Ana Quran | Personal Online Quran & Arabic Learning",
   description:
     "Learn Quran, Arabic, and Islamic studies through personal online lessons with dedicated teachers and flexible scheduling at Ana Quran.",
+  icons: {
+    icon: "/logo.svg?v=2026-10-31-1",
+    shortcut: "/logo.svg?v=2026-10-31-1",
+    apple: "/logo.svg?v=2026-10-31-1",
+  },
 };
 
 export default function RootLayout({
@@ -19,9 +24,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <link rel="icon" href="/logo.svg" />
-      </head>
       <body className={inter.className}>
         <Providers>
           <Navbar />

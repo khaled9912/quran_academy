@@ -7,7 +7,7 @@ This frontend uses **Next.js App Router** (`src/app`). There is no Pages Router.
 Create `.env.local` from `.env.local.example` and set:
 
 ```env
-NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
+NEXT_PUBLIC_BACKEND_URL=http://localhost:5001
 ```
 
 For production, prefer a same-origin reverse proxy so the API's HttpOnly session cookie is sent naturally to the Next.js origin. If frontend and API use different origins, configure exact-origin credentialed CORS and appropriate cookie `SameSite`, `Secure`, and domain settings.
@@ -61,6 +61,29 @@ Phone accounts have no email and no password; they can only sign in through the 
 The API should issue an HttpOnly cookie (default expected name: `academy-auth`). Use `Secure` in production, `SameSite=Lax` where deployment permits, and an appropriate expiry. `GET /api/auth/me` may return either `{ "user": { ... } }` or the user object directly. User roles are `student`, `teacher`, `admin` (and optionally `super_admin`). Public registration must ignore or reject any role supplied by the browser and always create a student. Teacher/admin accounts must be provisioned by an authorized admin.
 
 The browser-readable `user-role` cookie is only a navigation hint. Never use it as authorization evidence.
+
+## Profile and avatars
+
+| Method | Endpoint                 | Purpose                                                     |
+| ------ | ------------------------ | ----------------------------------------------------------- |
+| GET    | `/api/profile`           | Current user as `{ "user": { ... } }`                       |
+| PATCH  | `/api/profile`           | Update `{ "fullName"?, "email"?, "phoneNumber"? }`          |
+| POST   | `/api/profile/avatar`    | Multipart upload in the `file` field (PNG/JPEG/WebP, ≤2 MB) |
+| DELETE | `/api/profile/avatar`    | Remove the current photo                                    |
+| GET    | `/api/users/{id}/avatar` | Anonymous image bytes; 404 when the user has no photo       |
+
+`PATCH /api/profile` normalizes the phone to E.164. Changing the email updates both `Email` and `UserName` and marks it confirmed. Changing the phone clears `PhoneNumberConfirmed`, so the next phone sign-in re-verifies ownership. Duplicate email, username, or phone values return `409`.
+
+Avatars live in a separate `UserAvatars` table (`bytea`) so user queries never load image bytes. Uploads validate the declared content type and magic bytes before storing. The frontend renders the stable `/api/users/{id}/avatar` URL with a cache-busting query string after an upload.
+
+## Teacher directory and self-service booking
+
+| Method | Endpoint                     | Purpose                                             |
+| ------ | ---------------------------- | --------------------------------------------------- |
+| GET    | `/api/teachers/directory`    | Active teachers with their future `available` slots |
+| GET    | `/api/teachers/{id}/profile` | One active teacher plus open slots                  |
+
+Each item has the shape `{ "teacher": { ...UserDto }, "slots": [ ... ] }`. A student may request any teacher's open slot with `POST /api/lesson-requests`. When the request is created, the API claims the slot and makes that teacher the student's active assignment inside the same transaction. The request then follows the normal `pending_teacher → pending_admin → approved` flow.
 
 ## Core account and assignment endpoints
 
@@ -161,6 +184,7 @@ Suggested `GET /api/student/teacher/availability` response:
 
 | Method | Endpoint                                          | Purpose                                             |
 | ------ | ------------------------------------------------- | --------------------------------------------------- |
+| GET    | `/api/teachers/directory`                         | Active teachers and their open slots                |
 | POST   | `/api/lesson-requests`                            | Student requests `{ "availabilitySlotId": "uuid" }` |
 | GET    | `/api/student/lesson-requests`                    | Student's own requests                              |
 | GET    | `/api/teacher/lesson-requests`                    | Requests for the authenticated teacher              |
@@ -191,14 +215,15 @@ Suggested request response:
 
 These are backend responsibilities, not frontend checks:
 
-1. Validate that the selected slot belongs to the student's assigned teacher and is still available.
-2. Enforce one open request per student at a time (`pending_teacher` or `pending_admin`).
+1. Validate that the selected slot is still available and belongs to an active teacher.
+2. Enforce one open request per student at a time (`pending_teacher`, `pending_student`, or `pending_admin`).
 3. Use a database transaction and concurrency-safe update/constraint when claiming a slot. Two requests must never book the same slot.
-4. Recheck teacher and student calendar conflicts at final admin approval.
-5. When a teacher confirms, keep the slot unavailable to other students while waiting for admin. If admin rejects or the request expires, release it.
-6. Prevent teachers from changing/deleting slots that are already requested or booked.
-7. Store timestamps as UTC (`timestamp with time zone` in PostgreSQL) and validate end > start.
-8. Derive actor identity and role from the validated server-side session, never from request JSON or browser cookies.
+4. When a student chooses a slot from the teacher directory, make that teacher the student's active assignment in the same transaction.
+5. Recheck teacher and student calendar conflicts at final admin approval.
+6. When a teacher confirms, keep the slot unavailable to other students while waiting for admin. If admin rejects or the request expires, release it.
+7. Prevent teachers from changing/deleting slots that are already requested or booked.
+8. Store timestamps as UTC (`timestamp with time zone` in PostgreSQL) and validate end > start.
+9. Derive actor identity and role from the validated server-side session, never from request JSON or browser cookies.
 
 ## Confirmed lessons
 
@@ -213,7 +238,7 @@ A lesson has `id`, `teacherId`, `studentId`, `startsAt`, `endsAt`, `status`, and
 
 ## Lesson room
 
-`/lesson/{id}` loads the lesson through `GET /api/lessons/{id}` (which already enforces ownership) and embeds Jitsi Meet through the official External API (`https://{domain}/external_api.js`) inside our own page. The room name is derived from the lesson id and the Jitsi domain is configurable with `NEXT_PUBLIC_JITSI_DOMAIN` (defaults to `meet.jit.si`). The embedded call starts with microphone and camera enabled; screen sharing is part of the standard Jitsi toolbar. The API gives the browser the microphone/camera permissions it needs, and the call stays inside the app — there is no redirect to meet.jit.si.
+`/lesson/{id}` loads the lesson through `GET /api/lessons/{id}` (which already enforces ownership) and embeds Jitsi Meet through the official External API (`https://{domain}/external_api.js`) inside our own page. The room name is derived from the lesson id and the Jitsi domain is configurable with `NEXT_PUBLIC_JITSI_DOMAIN` (defaults to `meet.jit.si`). Before joining, the page asks for camera/microphone access and offers three modes: camera + mic, mic only, or watch/listen only. Devices are enumerated first; when none are present (or permission is blocked) the page explains why and keeps a working "Join without camera & mic" path instead of dead-ending. Screen sharing is part of the standard Jitsi toolbar.
 
 Because the room lives on the Jitsi deployment, the room itself is unlisted rather than access-controlled: anyone who knows the room name can join. For production, use a Jitsi deployment with JWT authentication (self-hosted or JaaS) and issue the JWT from an authorized backend endpoint, keeping the room name out of client code.
 
@@ -223,7 +248,7 @@ Because the room lives on the Jitsi deployment, the room itself is unlisted rath
 | ------ | -------------- | ----------------------------------------------------- |
 | POST   | `/api/contact` | `{ "name": "...", "email": "...", "message": "..." }` |
 
-Validate and rate-limit public contact submissions on the backend.
+The API stores the submission, then sends a plain-text notification to **one receiver configured on the server** (`Email:To` / `CONTACT_RECEIVER_EMAIL`). The browser cannot choose the recipient, so the form cannot be used as an open relay. The student's address is used as `Reply-To`. Email delivery is best effort: a failure is logged and does not lose the stored submission.
 
 ## Error contract
 
@@ -233,7 +258,8 @@ Prefer RFC 7807 Problem Details. Common status codes: `400` validation, `401` un
 
 - `/` — public landing page
 - `/contact`, `/login`, `/signup` — public contact and authentication
-- `/student/dashboard`, `/student/availability`, `/schedule` — student overview, slot selection, confirmed schedule
+- `/profile` — student/teacher/admin profile: name, email, mobile, and photo
+- `/student/dashboard`, `/student/availability`, `/schedule` — student overview, teacher directory booking, confirmed schedule
 - `/teacher/dashboard`, `/teacher/availability`, `/teacher/lesson-requests` — teacher tools
 - `/admin/dashboard`, `/admin/lesson-approvals`, `/admin/students`, `/admin/teachers`, `/admin/teachers/{id}/availability`, `/admin/assignments` — admin tools
 

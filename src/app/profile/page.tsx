@@ -15,11 +15,7 @@ import {
 import { PhoneInput } from "@/components/ui/phone-input";
 import { Avatar } from "@/components/ui/avatar";
 import { ApiError } from "@/lib/backend-client";
-import {
-  DEFAULT_COUNTRY,
-  splitE164,
-  toE164,
-} from "@/lib/countries";
+import { DEFAULT_COUNTRY, splitE164, toE164 } from "@/lib/countries";
 import {
   deleteAvatar,
   updateProfile,
@@ -35,14 +31,6 @@ const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp"];
 const fullNameOf = (user: UserProfile) =>
   user.fullName ?? user.full_name ?? user.first_name ?? "";
 
-const initials = (name: string) =>
-  name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
-
 const inputClass =
   "w-full rounded-xl border border-card-border bg-background px-4 py-3 text-foreground focus:outline-none focus:border-green-500";
 
@@ -52,17 +40,13 @@ export default function ProfilePage() {
     ? splitE164(profile.phoneNumber)
     : null;
 
-  const [fullName, setFullName] = useState(
-    profile ? fullNameOf(profile) : ""
-  );
+  const [fullName, setFullName] = useState(profile ? fullNameOf(profile) : "");
   const [email, setEmail] = useState(profile?.email ?? "");
   const [country, setCountry] = useState<CountryCode>(
     parsedPhone?.country ?? DEFAULT_COUNTRY
   );
   const [phone, setPhone] = useState(parsedPhone?.national ?? "");
-  const [avatarPreview, setAvatarPreview] = useState(
-    profile?.avatarUrl ?? ""
-  );
+  const [avatarPreview, setAvatarPreview] = useState(profile?.avatarUrl ?? "");
   const [notice, setNotice] = useState("");
   const [formError, setFormError] = useState("");
   const [avatarError, setAvatarError] = useState("");
@@ -245,7 +229,9 @@ export default function ProfilePage() {
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-red-300 px-4 py-3 font-semibold text-red-600 transition hover:bg-red-500/10 disabled:opacity-50"
                 >
                   <Trash2 size={18} />
-                  {removeAvatarMutation.isPending ? "Removing…" : "Remove photo"}
+                  {removeAvatarMutation.isPending
+                    ? "Removing…"
+                    : "Remove photo"}
                 </button>
               )}
               <p className="text-xs text-foreground opacity-60">

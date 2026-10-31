@@ -206,9 +206,9 @@ export function JitsiRoom({
           </div>
           {mediaAvailable === false && (
             <p className="max-w-md rounded-xl bg-amber-400/15 px-4 py-3 text-sm text-amber-100">
-              No camera or microphone was detected on this device. You can
-              still join to watch and listen, and the lesson audio will play
-              through your speakers.
+              No camera or microphone was detected on this device. You can still
+              join to watch and listen, and the lesson audio will play through
+              your speakers.
             </p>
           )}
           <div className="flex flex-col gap-3 sm:flex-row">

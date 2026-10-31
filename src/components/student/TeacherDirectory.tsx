@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, CheckCircle2, Mail, Phone } from "lucide-react";
 import {
@@ -21,15 +22,8 @@ const dateTime = (value: string) =>
     minute: "2-digit",
   });
 
-const initials = (name: string) =>
-  name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
-
-interface TeacherDirectoryProps {  compact?: boolean;
+interface TeacherDirectoryProps {
+  compact?: boolean;
 }
 
 export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
@@ -69,7 +63,9 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
     },
   });
 
-  const teachers = directoryQuery.data ?? [];
+  const teachers = [...(directoryQuery.data ?? [])].sort(
+    (a, b) => Number(b.slots.length > 0) - Number(a.slots.length > 0)
+  );
   const requests = requestsQuery.data ?? [];
   const openRequest = requests.find((request) =>
     request.status.startsWith("pending_")
@@ -92,6 +88,14 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
             </p>
           </div>
         </div>
+        {compact && (
+          <Link
+            href="/student/availability"
+            className="shrink-0 text-sm font-semibold text-green-600 hover:underline"
+          >
+            See all teachers →
+          </Link>
+        )}
       </div>
 
       {error && (
@@ -169,7 +173,9 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
                     {teacher.teacher.email && (
                       <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-foreground opacity-70">
                         <Mail size={13} className="shrink-0" />
-                        <span className="truncate">{teacher.teacher.email}</span>
+                        <span className="truncate">
+                          {teacher.teacher.email}
+                        </span>
                       </p>
                     )}
                     {teacher.teacher.phoneNumber && (
@@ -183,8 +189,7 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
 
                 <div className="mt-4 flex-1">
                   <p className="text-xs font-semibold uppercase tracking-wide text-foreground opacity-60">
-                    {slots.length} open{" "}
-                    {slots.length === 1 ? "time" : "times"}
+                    {slots.length} open {slots.length === 1 ? "time" : "times"}
                   </p>
                   <div className="mt-2 space-y-2">
                     {shown.map((slot) => {
