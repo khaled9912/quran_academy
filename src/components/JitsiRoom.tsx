@@ -58,6 +58,7 @@ interface JitsiRoomProps {
   room: string;
   displayName: string;
   onClose: () => void;
+  onJoined?: () => void;
 }
 
 export function JitsiRoom({
@@ -65,9 +66,14 @@ export function JitsiRoom({
   room,
   displayName,
   onClose,
+  onJoined,
 }: JitsiRoomProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
+  const onJoinedRef = useRef(onJoined);
+  // Re-creating the Jitsi instance drops the participant out of the call, so
+  // the effect below must not depend on values that can change mid-call.
+  const displayNameRef = useRef(displayName);
   const [mode, setMode] = useState<JoinMode | null>(null);
   const [requesting, setRequesting] = useState(false);
   const [permissionError, setPermissionError] = useState("");
@@ -76,6 +82,8 @@ export function JitsiRoom({
   const [mediaAvailable, setMediaAvailable] = useState<boolean | null>(null);
 
   onCloseRef.current = onClose;
+  onJoinedRef.current = onJoined;
+  displayNameRef.current = displayName;
 
   useEffect(() => {
     const mediaDevices = navigator.mediaDevices;
@@ -150,15 +158,28 @@ export function JitsiRoom({
           parentNode: containerRef.current,
           width: "100%",
           height: "100%",
-          userInfo: { displayName },
+          userInfo: { displayName: displayNameRef.current },
           configOverwrite: {
             prejoinPageEnabled: false,
             prejoinConfig: { enabled: false },
             enableWelcomePage: false,
+            // Legacy and current deep-link switches: without both, mobile
+            // browsers open an "Open in app?" redirect dialog before the call.
             disableDeepLinking: true,
+            deeplinking: { disabled: true },
+            requireDisplayName: false,
+            hideLoginButton: true,
             startWithAudioMuted: mode === "view-only",
             startWithVideoMuted: mode !== "audio-video",
             enableInsecureRoomNameWarning: false,
+            // Only the controls a lesson actually needs.
+            toolbarButtons: ["microphone", "camera", "desktop", "chat", "hangup"],
+            disableReactions: true,
+            disablePolls: true,
+            disableWhiteboard: true,
+            disableVirtualBackground: true,
+            hideConferenceSubject: true,
+            hideConferenceTimer: true,
           },
           interfaceConfigOverwrite: {
             SHOW_JITSI_WATERMARK: false,
@@ -170,7 +191,10 @@ export function JitsiRoom({
           },
         };
         api = new window.JitsiMeetExternalAPI(domain, options);
-        api.addListener("videoConferenceJoined", () => setJoined(true));
+        api.addListener("videoConferenceJoined", () => {
+          setJoined(true);
+          onJoinedRef.current?.();
+        });
         api.addListener("readyToClose", () => onCloseRef.current());
       })
       .catch((error: unknown) => {
@@ -187,7 +211,7 @@ export function JitsiRoom({
       disposed = true;
       api?.dispose();
     };
-  }, [domain, room, displayName, mode]);
+  }, [domain, room, mode]);
 
   return (
     <div className="relative h-[70vh] min-h-[420px] w-full overflow-hidden rounded-3xl border border-card-border bg-black">

@@ -1,11 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { MonitorPlay, RefreshCw, ShieldCheck } from "lucide-react";
+import { MonitorPlay, Loader2, RefreshCw, ShieldCheck } from "lucide-react";
 import { ApiError } from "@/lib/backend-client";
-import { getLessonById } from "@/services/lesson.service";
+import {
+  getLessonById,
+  getLessonPresence,
+  markTeacherPresent,
+} from "@/services/lesson.service";
 import { useAuth } from "@/providers/auth-provider";
 import { JitsiRoom } from "@/components/JitsiRoom";
 import { LessonFeedback } from "@/components/lesson/LessonFeedback";
@@ -53,6 +58,41 @@ export default function LessonCallPage() {
   const room = `rayan-academy-${id}`;
   const ended = lesson ? isLessonEnded(lesson.endsAt, lesson.status) : false;
 
+  // Refreshes keep arriving after the lesson ends. Once a participant has been
+  // in a live room, that must not rip the call away from them mid-session.
+  const [enteredWhileLive, setEnteredWhileLive] = useState(false);
+  useEffect(() => {
+    if (!lesson || lesson.status === "cancelled") return;
+    if (!isLessonEnded(lesson.endsAt, lesson.status)) setEnteredWhileLive(true);
+  }, [lesson]);
+
+  const showingRoom =
+    !!lesson && lesson.status !== "cancelled" && (!ended || enteredWhileLive);
+
+  const [joined, setJoined] = useState(false);
+  const [teacherStarted, setTeacherStarted] = useState(false);
+
+  // Students only see the join controls once the teacher is actually in the room.
+  const presenceQuery = useQuery({
+    queryKey: ["lesson-presence", id],
+    queryFn: () => getLessonPresence(id),
+    enabled: role === "student" && !!lesson && !ended,
+    refetchInterval: 5000,
+  });
+
+  useEffect(() => {
+    if (presenceQuery.data?.teacherPresent) setTeacherStarted(true);
+  }, [presenceQuery.data]);
+
+  // Heartbeat while the teacher is in the call; the API expires it after 45s.
+  useEffect(() => {
+    if (role !== "teacher" || !joined) return;
+    const beat = () => void markTeacherPresent(id).catch(() => {});
+    beat();
+    const timer = setInterval(beat, 15000);
+    return () => clearInterval(timer);
+  }, [role, joined, id]);
+
   if (authLoading || !profile) return null;
 
   const error = lessonQuery.error;
@@ -71,7 +111,7 @@ export default function LessonCallPage() {
               ← {backLabel}
             </Link>
             <h1 className="text-4xl font-bold mb-2">
-              {ended ? "Lesson recap" : "Lesson room"}
+              {ended && !showingRoom ? "Lesson recap" : "Lesson room"}
             </h1>
             {lesson ? (
               <p className="text-lg text-foreground opacity-75">
@@ -92,7 +132,11 @@ export default function LessonCallPage() {
           </button>
         </div>
 
-        {forbidden ? (
+        {lessonQuery.isLoading ? (
+          <div className="rounded-2xl border border-dashed border-card-border bg-card-bg p-10 text-center text-foreground opacity-70">
+            Preparing your lesson room…
+          </div>
+        ) : forbidden ? (
           <div className="rounded-2xl border border-dashed border-card-border bg-card-bg p-10 text-center text-foreground opacity-70">
             This lesson does not exist or does not belong to your account.
           </div>
@@ -109,8 +153,38 @@ export default function LessonCallPage() {
           <div className="rounded-2xl border border-dashed border-card-border bg-card-bg p-10 text-center text-foreground opacity-70">
             This lesson was cancelled. The room is closed.
           </div>
-        ) : lesson && ended ? (
+        ) : lesson && ended && !showingRoom ? (
           <LessonFeedback lesson={lesson} role={role} />
+        ) : role === "student" && !teacherStarted ? (
+          <section className="rounded-3xl border border-dashed border-card-border bg-card-bg p-10 text-center">
+            <Loader2
+              size={28}
+              className="mx-auto animate-spin text-green-600"
+            />
+            <h2 className="mt-4 text-xl font-semibold">
+              Waiting for your teacher
+            </h2>
+            <p className="mx-auto mt-2 max-w-md text-sm text-foreground opacity-70">
+              The lesson room opens when your teacher starts the lesson. This
+              page checks automatically — the join buttons appear as soon as
+              the room is open.
+            </p>
+            {presenceQuery.isError && (
+              <p
+                role="alert"
+                className="mx-auto mt-4 max-w-md rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm"
+              >
+                Could not check the room status. Still retrying…
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => void presenceQuery.refetch()}
+              className="mt-4 inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2 text-sm font-semibold hover:border-green-500"
+            >
+              <RefreshCw size={15} /> Check now
+            </button>
+          </section>
         ) : (
           <>
             <JitsiRoom
@@ -118,6 +192,7 @@ export default function LessonCallPage() {
               room={room}
               displayName={displayName}
               onClose={() => router.push(backHref)}
+              onJoined={() => setJoined(true)}
             />
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-foreground opacity-70">
               <p className="inline-flex items-center gap-2">
