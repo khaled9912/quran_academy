@@ -2,11 +2,12 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "@/services/auth.service";
+import { reportUnexpectedError } from "@/lib/sentry";
 export default function LogoutPage() {
   const router = useRouter();
   useEffect(() => {
     signOut()
-      .catch((error) => console.error("Logout request failed:", error))
+      .catch((error) => reportUnexpectedError(error))
       .finally(() => {
         document.cookie = "user-role=; Path=/; Max-Age=0; SameSite=Lax";
         router.replace("/login");

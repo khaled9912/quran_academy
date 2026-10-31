@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { signIn, requestOtp, verifyOtp } from "@/services/auth.service";
 import { ApiError } from "@/lib/backend-client";
+import { reportUnexpectedError } from "@/lib/sentry";
 import { useAuth } from "@/providers/auth-provider";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { DEFAULT_COUNTRY, countryByCode, toE164 } from "@/lib/countries";
@@ -77,6 +78,7 @@ const LoginPage = () => {
           ? error.message
           : "Something went wrong. Please try again."
       );
+      reportUnexpectedError(error);
     } finally {
       setLoading(false);
     }
@@ -115,6 +117,7 @@ const LoginPage = () => {
           ? error.message
           : "Unable to send the code. Please try again."
       );
+      reportUnexpectedError(error);
     } finally {
       setPhoneLoading(false);
     }
@@ -161,6 +164,7 @@ const LoginPage = () => {
           ? error.message
           : "Unable to verify the code. Please try again."
       );
+      reportUnexpectedError(error);
     } finally {
       setPhoneLoading(false);
     }

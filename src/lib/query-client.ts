@@ -1,4 +1,5 @@
-import { QueryClient } from "@tanstack/react-query";
+import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query";
+import { reportUnexpectedError } from "@/lib/sentry";
 
 /**
  * Shared defaults: API data is session-scoped, so window refetches are noisy.
@@ -7,6 +8,12 @@ import { QueryClient } from "@tanstack/react-query";
  */
 export const createQueryClient = () =>
   new QueryClient({
+    queryCache: new QueryCache({
+      onError: (error) => reportUnexpectedError(error),
+    }),
+    mutationCache: new MutationCache({
+      onError: (error) => reportUnexpectedError(error),
+    }),
     defaultOptions: {
       queries: {
         staleTime: 60_000,

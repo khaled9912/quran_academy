@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { ApiError, backendFetch } from "@/lib/backend-client";
+import { reportUnexpectedError } from "@/lib/sentry";
 
 interface ContactFormValues {
   name: string;
@@ -64,12 +65,14 @@ const ContactForm = () => {
           });
       }
       if (fieldErrors.length) setErrorMessage("");
-      else
+      else {
         setErrorMessage(
-          error instanceof Error
+          error instanceof ApiError
             ? error.message
-            : "Network error. Please try again."
+            : "We could not send your message. Please try again."
         );
+        reportUnexpectedError(error);
+      }
     } finally {
       setLoading(false);
     }

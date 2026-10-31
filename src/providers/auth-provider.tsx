@@ -13,6 +13,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import type { UserProfile, UserRole } from "@/types/user";
 import { getCurrentUser, signOut } from "@/services/auth.service";
+import { reportUnexpectedError } from "@/lib/sentry";
 import { hasPermission } from "@/lib/permissions";
 import { ROLE_DASHBOARDS } from "@/constants/role-routes";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -52,6 +53,11 @@ const PROTECTED_PREFIXES = [
   "/student-dashboard",
   "/lesson",
 ];
+
+const isProtectedPath = (pathname: string) =>
+  PROTECTED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
 
 function syncRoleCookie(role: UserRole | null) {
   if (typeof document === "undefined") return;
@@ -93,12 +99,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let active = true;
+    // No role cookie means no session to restore: skip the round trip so public
+    // pages render immediately and the app does not hang on a sleeping API.
+    const hasSessionHint = document.cookie
+      .split("; ")
+      .some(
+        (entry) =>
+          entry.startsWith("user-role=") && entry.length > "user-role=".length
+      );
+    if (!hasSessionHint) {
+      setIsLoading(false);
+      return;
+    }
     getCurrentUser()
       .then((currentUser) => {
         if (active) applySession(currentUser);
       })
       .catch((error) => {
-        console.error("Unable to restore API session:", error);
+        // A 401 on first visit is expected; only unexpected failures are reported.
+        reportUnexpectedError(error);
         if (active) applySession(null);
       })
       .finally(() => {
@@ -131,10 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const isProtected = PROTECTED_PREFIXES.some(
-      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
-    );
-    if (!isProtected) return;
+    if (!isProtectedPath(pathname)) return;
     hasRedirected.current = true;
     router.replace("/login");
   }, [isLoading, profile, pathname, router]);
@@ -175,10 +191,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updateUser,
     logout,
   };
+  // Public pages render immediately while the session is still restoring; only
+  // protected routes wait, and they show a visible loader instead of a blank page.
+  const holdForAuth = isLoading && isProtectedPath(pathname);
+
   return (
     <AuthContext.Provider value={value}>
-      {!isLoading && children}
+      {holdForAuth ? <AuthLoadingScreen /> : children}
     </AuthContext.Provider>
+  );
+}
+
+function AuthLoadingScreen() {
+  return (
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 px-6 pt-24 text-foreground">
+      <span
+        aria-hidden
+        className="h-7 w-7 animate-spin rounded-full border-2 border-current border-t-transparent opacity-70"
+      />
+      <p className="text-sm opacity-70">Loading your session…</p>
+    </div>
   );
 }
 

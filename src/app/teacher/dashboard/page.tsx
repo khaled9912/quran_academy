@@ -42,6 +42,10 @@ export default function TeacherDashboardPage() {
   const lessons = lessonsQuery.data ?? [];
   const requests = requestsQuery.data ?? [];
   const slots = availabilityQuery.data ?? [];
+  const failed =
+    lessonsQuery.isError ||
+    requestsQuery.isError ||
+    availabilityQuery.isError;
   const now = Date.now();
 
   const upcomingLessons = lessons
@@ -93,6 +97,16 @@ export default function TeacherDashboardPage() {
             availability.
           </p>
         </div>
+
+        {failed && (
+          <p
+            role="status"
+            className="mb-6 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm"
+          >
+            Some of your data could not be loaded. Check the API connection and
+            try refreshing.
+          </p>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           {metrics.map((metric) => (

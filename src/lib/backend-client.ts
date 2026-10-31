@@ -3,6 +3,23 @@ const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL ?? "").replace(
   ""
 );
 
+// A sleeping or unreachable API must not leave the UI waiting forever.
+const REQUEST_TIMEOUT_MS = 30_000;
+
+const getBackendBaseUrl = () => {
+  if (!backendUrl) {
+    const message =
+      "NEXT_PUBLIC_BACKEND_URL is missing. Set it in FE/.env.local for local dev or in your deployment environment for preview/prod.";
+    if (process.env.NODE_ENV !== "production") {
+      throw new Error(message);
+    }
+    console.error(message);
+    return "";
+  }
+
+  return backendUrl;
+};
+
 export type ValidationErrors = Record<string, string[]>;
 
 export class ApiError extends Error {
@@ -52,12 +69,32 @@ export async function backendFetch<T = unknown>(
   if (options.body && !isFormData && !headers.has("Content-Type"))
     headers.set("Content-Type", "application/json");
   headers.set("Accept", "application/json");
-  const response = await fetch(`${backendUrl}${path}`, {
-    ...options,
-    headers,
-    credentials: "include",
-    cache: options.cache ?? "no-store",
-  });
+  const baseUrl = getBackendBaseUrl();
+  const timeoutController = new AbortController();
+  const timeoutId = setTimeout(
+    () => timeoutController.abort(),
+    REQUEST_TIMEOUT_MS
+  );
+  let response: Response;
+  try {
+    response = await fetch(`${baseUrl}${path}`, {
+      ...options,
+      headers,
+      credentials: "include",
+      cache: options.cache ?? "no-store",
+      signal: options.signal ?? timeoutController.signal,
+    });
+  } catch (error) {
+    if (timeoutController.signal.aborted && !options.signal?.aborted) {
+      throw new ApiError(
+        "The server took too long to respond. Please try again.",
+        408
+      );
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
   if (response.status === 204) return null as T;
   const contentType = response.headers.get("content-type") ?? "";
   const payload = contentType.includes("json")
@@ -95,5 +132,5 @@ export async function backendFetch<T = unknown>(
 export const backendAssetUrl = (path?: string | null) => {
   if (!path) return "";
   if (/^https?:\/\//i.test(path)) return path;
-  return `${backendUrl}${path}`;
+  return `${getBackendBaseUrl()}${path}`;
 };

@@ -120,6 +120,18 @@ export default function TeacherSchedulePage() {
           </p>
         )}
 
+        {lessonsQuery.isError && (
+          <p
+            role="alert"
+            className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+          >
+            Your lessons could not be loaded.{" "}
+            {lessonsQuery.error instanceof Error
+              ? lessonsQuery.error.message
+              : "Please try again."}
+          </p>
+        )}
+
         {lessonsQuery.isLoading ? (
           <p className="text-foreground opacity-70">Loading your lessons…</p>
         ) : groups.length ? (
@@ -218,7 +230,7 @@ export default function TeacherSchedulePage() {
               </section>
             ))}
           </div>
-        ) : (
+        ) : lessonsQuery.isError ? null : (
           <div className="rounded-2xl border border-dashed border-card-border bg-card-bg p-10 text-center text-foreground opacity-70">
             No confirmed lessons yet. Publish availability so your students can
             request a time.
