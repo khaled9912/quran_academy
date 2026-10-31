@@ -4,7 +4,41 @@ import type { UserProfile } from "@/types/user";
 // This lets a returning user see their dashboard before /api/auth/me resolves.
 const STORAGE_KEY = "academy:profile";
 
-export function readCachedProfile(): UserProfile | null {
+// useSyncExternalStore needs a stable snapshot, so the parsed object is cached
+// and only re-read when the cache is written by this tab or another one.
+let snapshot: UserProfile | null | undefined;
+const listeners = new Set<() => void>();
+let storageBound = false;
+
+function notify() {
+  listeners.forEach((listener) => listener());
+}
+
+export function getCachedProfileSnapshot(): UserProfile | null {
+  if (snapshot === undefined) snapshot = readCachedProfile();
+  return snapshot;
+}
+
+export function getCachedProfileServerSnapshot(): UserProfile | null {
+  return null;
+}
+
+export function subscribeCachedProfile(listener: () => void) {
+  listeners.add(listener);
+  if (!storageBound && typeof window !== "undefined") {
+    storageBound = true;
+    window.addEventListener("storage", (event) => {
+      if (event.key !== null && event.key !== STORAGE_KEY) return;
+      snapshot = undefined;
+      notify();
+    });
+  }
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+function readCachedProfile(): UserProfile | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -24,6 +58,8 @@ export function writeCachedProfile(profile: UserProfile) {
   } catch {
     // Private mode or a full quota must not break login.
   }
+  snapshot = profile;
+  notify();
 }
 
 export function clearCachedProfile() {
@@ -33,4 +69,6 @@ export function clearCachedProfile() {
   } catch {
     // Nothing to clean up when storage is unavailable.
   }
+  snapshot = null;
+  notify();
 }
