@@ -1,15 +1,29 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useState } from "react";
-import { CheckCircle2, FileText, Loader2, Upload, X } from "lucide-react";
+import {
+  CheckCircle2,
+  FileText,
+  Loader2,
+  Mic,
+  Upload,
+  X,
+} from "lucide-react";
 import type { CountryCode } from "libphonenumber-js";
 import { DEFAULT_COUNTRY, toE164 } from "@/lib/countries";
 import { teacherSubjects, type TeacherSubject } from "@/lib/teacher-subjects";
+import {
+  englishLevelLabel,
+  englishLevels,
+  type EnglishLevel,
+} from "@/types/teacher-application";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { submitTeacherApplication } from "@/services/teacher-application.service";
 import { ApiError } from "@/lib/backend-client";
 
 const MAX_CV_BYTES = 2 * 1024 * 1024;
+const MAX_INTRO_BYTES = 20 * 1024 * 1024;
+const INTRO_PATTERN = /\.(mp3|m4a|wav|ogg|webm|mp4|mov)$/i;
 const inputClass =
   "w-full rounded-xl border border-card-border bg-background px-4 py-3 text-foreground focus:outline-none focus:border-green-500";
 
@@ -21,10 +35,12 @@ export function TeacherApplicationForm() {
   const [country, setCountry] = useState<CountryCode>(DEFAULT_COUNTRY);
   const [phone, setPhone] = useState("");
   const [subjects, setSubjects] = useState<TeacherSubject[]>([]);
+  const [englishLevel, setEnglishLevel] = useState<EnglishLevel | "">("");
   const [experienceYears, setExperienceYears] = useState("");
   const [bio, setBio] = useState("");
   const [availabilityNote, setAvailabilityNote] = useState("");
   const [cv, setCv] = useState<File | null>(null);
+  const [intro, setIntro] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState("");
   const [status, setStatus] = useState<Status>("idle");
@@ -71,6 +87,34 @@ export function TeacherApplicationForm() {
     setCv(file);
   };
 
+  const onIntroChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    event.target.value = "";
+    if (!file) return;
+    if (!INTRO_PATTERN.test(file.name)) {
+      setErrors((current) => ({
+        ...current,
+        intro: "Upload your recording as MP3, M4A, WAV, OGG, WebM, MP4, or MOV.",
+      }));
+      setIntro(null);
+      return;
+    }
+    if (file.size > MAX_INTRO_BYTES) {
+      setErrors((current) => ({
+        ...current,
+        intro: "The recording must be 20 MB or smaller.",
+      }));
+      setIntro(null);
+      return;
+    }
+    setErrors((current) => {
+      const next = { ...current };
+      delete next.intro;
+      return next;
+    });
+    setIntro(file);
+  };
+
   const validate = () => {
     const next: Record<string, string> = {};
     if (fullName.trim().length < 2 || fullName.trim().length > 160)
@@ -81,6 +125,7 @@ export function TeacherApplicationForm() {
       next.phoneNumber = "Enter a valid mobile number.";
     if (subjects.length === 0)
       next.subjects = "Choose at least one subject you teach.";
+    if (!englishLevel) next.englishLevel = "Choose your English level.";
     const years = Number(experienceYears);
     if (
       experienceYears.trim() === "" ||
@@ -94,6 +139,9 @@ export function TeacherApplicationForm() {
     if (availabilityNote.trim().length > 500)
       next.availabilityNote = "Keep the availability note under 500 characters.";
     if (!cv) next.cv = "Attach your CV (PDF, DOC, or DOCX, up to 2 MB).";
+    if (!intro)
+      next.intro =
+        "Attach a short recording introducing yourself (audio or video, up to 20 MB).";
     return next;
   };
 
@@ -117,10 +165,12 @@ export function TeacherApplicationForm() {
         email: email.trim(),
         phoneNumber: toE164(phone, country)!,
         subjects,
+        englishLevel: englishLevel as EnglishLevel,
         experienceYears: Number(experienceYears),
         bio: bio.trim(),
         availabilityNote: availabilityNote.trim(),
         cv: cv!,
+        intro: intro!,
       });
       setReference(result.id);
       setStatus("success");
@@ -258,6 +308,46 @@ export function TeacherApplicationForm() {
           )}
         </div>
 
+        <div className="sm:col-span-2">
+          <span className="mb-2 block text-sm font-semibold">
+            English level <span className="text-red-500">*</span>
+          </span>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {englishLevels.map((level) => {
+              const checked = englishLevel === level;
+              return (
+                <label
+                  key={level}
+                  className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition ${
+                    checked
+                      ? "border-green-500 bg-green-500/10 font-semibold"
+                      : "border-card-border"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="englishLevel"
+                    checked={checked}
+                    onChange={() => {
+                      setEnglishLevel(level);
+                      setErrors((current) => {
+                        const next = { ...current };
+                        delete next.englishLevel;
+                        return next;
+                      });
+                    }}
+                    className="h-4 w-4 accent-green-600"
+                  />
+                  <span>{englishLevelLabel[level]}</span>
+                </label>
+              );
+            })}
+          </div>
+          {errors.englishLevel && (
+            <p className="mt-2 text-xs text-red-500">{errors.englishLevel}</p>
+          )}
+        </div>
+
         <div>
           <label
             htmlFor="experienceYears"
@@ -383,6 +473,61 @@ export function TeacherApplicationForm() {
           )}
           <p className="mt-2 text-xs opacity-60">
             Your CV is only visible to academy administrators.
+          </p>
+        </div>
+
+        <div className="sm:col-span-2">
+          <span className="mb-2 block text-sm font-semibold">
+            Self-introduction recording{" "}
+            <span className="text-red-500">*</span>
+          </span>
+          {intro ? (
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-green-500/40 bg-green-500/5 px-4 py-3">
+              <span className="flex min-w-0 items-center gap-2 text-sm">
+                <Mic size={18} className="shrink-0 text-green-600" />
+                <span className="truncate">{intro.name}</span>
+                <span className="shrink-0 opacity-60">
+                  {(intro.size / 1024 / 1024).toFixed(2)} MB
+                </span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setIntro(null)}
+                aria-label="Remove recording"
+                className="rounded-lg p-1.5 text-foreground opacity-70 transition hover:bg-red-500/10 hover:text-red-600"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          ) : (
+            <label
+              htmlFor="intro"
+              className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-8 text-center text-sm transition hover:border-green-500 ${
+                errors.intro ? "border-red-400" : "border-card-border"
+              }`}
+            >
+              <Mic size={20} className="opacity-60" />
+              <span className="font-semibold">
+                Upload a short introduction
+              </span>
+              <span className="opacity-60">
+                MP3, M4A, WAV, OGG, WebM, MP4, or MOV · up to 20 MB
+              </span>
+              <input
+                id="intro"
+                type="file"
+                accept=".mp3,.m4a,.wav,.ogg,.webm,.mp4,.mov,audio/*,video/*"
+                onChange={onIntroChange}
+                className="sr-only"
+              />
+            </label>
+          )}
+          {errors.intro && (
+            <p className="mt-2 text-xs text-red-500">{errors.intro}</p>
+          )}
+          <p className="mt-2 text-xs opacity-60">
+            Record a 1–2 minute voice note on your phone introducing yourself,
+            then upload it here. Only academy administrators can access it.
           </p>
         </div>
       </div>

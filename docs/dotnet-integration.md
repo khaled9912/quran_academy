@@ -159,14 +159,15 @@ The student scheduling endpoints derive the student identity from the authentica
 
 ## Teacher applications
 
-| Method | Endpoint                                  | Purpose                                                                 |
-| ------ | ----------------------------------------- | ----------------------------------------------------------------------- |
-| POST   | `/api/teacher-applications`               | Public multipart application with a CV (rate-limited per IP)            |
-| GET    | `/api/admin/teacher-applications`         | Admin queue; optional `?status=pending\|approved\|rejected&take=50`     |
-| GET    | `/api/admin/teacher-applications/{id}/cv` | Download the stored CV as an attachment                                 |
-| PATCH  | `/api/admin/teacher-applications/{id}`    | Review `{ "status": "approved" \| "rejected", "reason"?: "..." }`       |
+| Method | Endpoint                                     | Purpose                                                                 |
+| ------ | -------------------------------------------- | ----------------------------------------------------------------------- |
+| POST   | `/api/teacher-applications`                  | Public multipart application with CV + intro recording (rate-limited)   |
+| GET    | `/api/admin/teacher-applications`            | Admin queue; optional `?status=pending\|approved\|rejected&take=50`     |
+| GET    | `/api/admin/teacher-applications/{id}/cv`    | Download the stored CV as an attachment                                 |
+| GET    | `/api/admin/teacher-applications/{id}/intro` | Download the self-introduction recording as an attachment               |
+| PATCH  | `/api/admin/teacher-applications/{id}`       | Review `{ "status": "approved" \| "rejected", "reason"?: "..." }`       |
 
-`POST /api/teacher-applications` is anonymous and takes `multipart/form-data` with the fields `fullName`, `email`, `phoneNumber` (E.164), repeated `subjects` values (`quran`, `tajweed`, `islamic_studies`, `arabic`), `experienceYears`, `bio`, `availabilityNote`, and `cv`. The CV must be PDF, DOC, or DOCX, at most 2 MB, and its magic bytes are checked. Only one `pending` application per email is allowed. Applications and CV bytes live in separate tables (`TeacherApplications`, `TeacherApplicationCvs`) so list queries never load the file. There is no automated deletion of applications.
+`POST /api/teacher-applications` is anonymous and takes `multipart/form-data` with the fields `fullName`, `email`, `phoneNumber` (E.164), repeated `subjects` values (`quran`, `tajweed`, `islamic_studies`, `arabic`), `englishLevel` (`beginner`, `intermediate`, `advanced`, `fluent`), `experienceYears`, `bio`, `availabilityNote`, `cv`, and `intro`. The CV must be PDF, DOC, or DOCX, at most 2 MB, and its magic bytes are checked. The intro recording must be MP3, M4A, WAV, OGG, WebM, MP4, or MOV, at most 20 MB, also magic-byte checked. Only one `pending` application per email is allowed. Applications, CV bytes, and recording bytes live in separate tables (`TeacherApplications`, `TeacherApplicationCvs`, `TeacherApplicationIntros`) so list queries never load the files. There is no automated deletion of applications.
 
 Approving an application creates an active `teacher` account (with a random internal password) and issues a 15-minute set-password code. If SMTP is configured, the code is emailed with `SendTeacherInviteCodeAsync`; otherwise the `PATCH` response returns `inviteCode` so an admin can share it. If the email already belongs to an account, approval returns `409` and leaves the application pending. Rejecting requires a reason of 3–500 characters.
 

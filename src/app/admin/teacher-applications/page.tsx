@@ -7,18 +7,21 @@ import {
   Download,
   FileText,
   Loader2,
+  Mic,
   XCircle,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { teacherSubjectLabel } from "@/lib/teacher-subjects";
 import {
   downloadTeacherApplicationCv,
+  downloadTeacherApplicationIntro,
   getTeacherApplications,
   reviewTeacherApplication,
 } from "@/services/teacher-application.service";
-import type {
-  TeacherApplication,
-  TeacherApplicationStatus,
+import {
+  englishLevelLabel,
+  type TeacherApplication,
+  type TeacherApplicationStatus,
 } from "@/types/teacher-application";
 
 const statusStyles: Record<TeacherApplicationStatus, string> = {
@@ -53,7 +56,7 @@ export default function AdminTeacherApplicationsPage() {
   const [rejectReason, setRejectReason] = useState("");
   const [actionError, setActionError] = useState("");
   const [notice, setNotice] = useState("");
-  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
 
   const applicationsQuery = useQuery({
     queryKey: ["teacher-applications", filter],
@@ -102,25 +105,38 @@ export default function AdminTeacherApplicationsPage() {
     },
   });
 
-  const downloadCv = async (application: TeacherApplication) => {
-    setDownloadingId(application.id);
+  const downloadFile = async (
+    application: TeacherApplication,
+    kind: "cv" | "intro"
+  ) => {
+    setDownloadingKey(`${application.id}:${kind}`);
     setActionError("");
     try {
-      const blob = await downloadTeacherApplicationCv(application.id);
+      const blob =
+        kind === "cv"
+          ? await downloadTeacherApplicationCv(application.id)
+          : await downloadTeacherApplicationIntro(application.id);
+      const fallback =
+        kind === "cv" ? "teacher-cv.pdf" : "self-introduction.webm";
+      const fileName =
+        (kind === "cv" ? application.cvFileName : application.introFileName) ??
+        fallback;
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = application.cvFileName ?? "teacher-cv.pdf";
+      link.download = fileName;
       document.body.appendChild(link);
       link.click();
       link.remove();
       URL.revokeObjectURL(url);
     } catch (error) {
       setActionError(
-        error instanceof Error ? error.message : "Unable to download the CV."
+        error instanceof Error
+          ? error.message
+          : `Unable to download the ${kind === "cv" ? "CV" : "recording"}.`
       );
     } finally {
-      setDownloadingId(null);
+      setDownloadingKey(null);
     }
   };
 
@@ -252,6 +268,11 @@ export default function AdminTeacherApplicationsPage() {
                       </span>
                     ))}
                     <span className="rounded-full border border-card-border px-3 py-1 text-xs">
+                      English:{" "}
+                      {englishLevelLabel[application.englishLevel] ??
+                        application.englishLevel}
+                    </span>
+                    <span className="rounded-full border border-card-border px-3 py-1 text-xs">
                       {application.experienceYears} year
                       {application.experienceYears === 1 ? "" : "s"} of experience
                     </span>
@@ -282,16 +303,37 @@ export default function AdminTeacherApplicationsPage() {
                   <div className="mt-5 flex flex-wrap gap-2">
                     <button
                       type="button"
-                      onClick={() => downloadCv(application)}
-                      disabled={downloadingId === application.id}
+                      onClick={() => downloadFile(application, "cv")}
+                      disabled={
+                        !application.cvFileName ||
+                        downloadingKey === `${application.id}:cv`
+                      }
                       className="inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2 text-sm font-semibold transition hover:border-green-500 disabled:opacity-60"
                     >
-                      {downloadingId === application.id ? (
+                      {downloadingKey === `${application.id}:cv` ? (
                         <Loader2 size={16} className="animate-spin" />
                       ) : (
                         <Download size={16} />
                       )}
                       {application.cvFileName ? "Download CV" : "No CV"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => downloadFile(application, "intro")}
+                      disabled={
+                        !application.introFileName ||
+                        downloadingKey === `${application.id}:intro`
+                      }
+                      className="inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2 text-sm font-semibold transition hover:border-green-500 disabled:opacity-60"
+                    >
+                      {downloadingKey === `${application.id}:intro` ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <Mic size={16} />
+                      )}
+                      {application.introFileName
+                        ? "Download recording"
+                        : "No recording"}
                     </button>
 
                     {application.status === "pending" && (
@@ -383,8 +425,8 @@ export default function AdminTeacherApplicationsPage() {
         )}
 
         <p className="mt-8 flex items-center gap-2 text-xs opacity-60">
-          <FileText size={14} /> CVs are stored separately and downloaded only on
-          demand, so this page stays light.
+          <FileText size={14} /> CVs and introduction recordings are stored
+          separately and downloaded only on demand, so this page stays light.
         </p>
       </div>
     </div>
