@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { z } from "zod";
 import { requestOtp, signUp, verifyOtp } from "@/services/auth.service";
 import { ApiError } from "@/lib/backend-client";
 import { reportUnexpectedError } from "@/lib/sentry";
@@ -9,7 +10,14 @@ import { useAuth } from "@/providers/auth-provider";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { DEFAULT_COUNTRY, countryByCode, toE164 } from "@/lib/countries";
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const signupSchema = z.object({
+  fullName: z.string().trim().min(2, "Please enter your full name."),
+  email: z.string().trim().email("Please enter a valid email address."),
+  password: z
+    .string()
+    .min(8, "Choose a password of at least 8 characters.")
+    .regex(/\d/, "Passwords must have at least one digit ('0'-'9')."),
+});
 
 type Mode = "email" | "phone";
 
@@ -43,22 +51,19 @@ const SignUpPage = () => {
     if (loading) return;
     setMessage("");
 
-    const trimmedName = fullName.trim();
-    const trimmedEmail = email.trim();
-    const trimmedPassword = password.trim();
+    const parsed = signupSchema.safeParse({
+      fullName,
+      email,
+      password,
+    });
 
-    if (trimmedName.length < 2) {
-      setMessage("Please enter your full name.");
+    if (!parsed.success) {
+      setMessage(parsed.error.issues[0]?.message ?? "Please fix the form.");
       return;
     }
-    if (!emailRegex.test(trimmedEmail)) {
-      setMessage("Please enter a valid email address.");
-      return;
-    }
-    if (trimmedPassword.length < 8) {
-      setMessage("Choose a password of at least 8 characters.");
-      return;
-    }
+
+    const { fullName: trimmedName, email: trimmedEmail, password: trimmedPassword } =
+      parsed.data;
 
     setLoading(true);
     try {
@@ -250,7 +255,7 @@ const SignUpPage = () => {
                 className={inputClass}
               />
               <p className="mt-2 text-xs text-foreground opacity-70">
-                At least 8 characters.
+                At least 8 characters and at least one digit (0-9).
               </p>
             </div>
             <button

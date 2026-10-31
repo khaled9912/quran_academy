@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
+import { z } from "zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type { CountryCode } from "libphonenumber-js";
 import {
@@ -41,6 +42,20 @@ const fullNameOf = (user: UserProfile) =>
 
 const inputClass =
   "w-full rounded-xl border border-card-border bg-background px-4 py-3 text-foreground focus:outline-none focus:border-green-500";
+
+const profileFormSchema = z.object({
+  fullName: z
+    .string()
+    .trim()
+    .min(2, "Enter your full name (at least 2 characters)."),
+  email: z
+    .string()
+    .trim()
+    .refine(
+      (value) => value.length === 0 || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
+      "Please enter a valid email address."
+    ),
+});
 
 export default function ProfilePage() {
   const { profile, updateUser } = useAuth();
@@ -155,17 +170,24 @@ export default function ProfilePage() {
 
     const trimmedName = fullName.trim();
     const trimmedEmail = email.trim();
-    if (trimmedName.length < 2) {
-      setFormError("Enter your full name (at least 2 characters).");
-      return;
-    }
+
     if (hasStoredEmail && !trimmedEmail) {
       setFormError("Enter the email address for your account.");
       return;
     }
 
-    const input: UpdateProfileInput = { fullName: trimmedName };
-    if (trimmedEmail) input.email = trimmedEmail;
+    const parsed = profileFormSchema.safeParse({
+      fullName: trimmedName,
+      email: trimmedEmail,
+    });
+
+    if (!parsed.success) {
+      setFormError(parsed.error.issues[0]?.message ?? "Please fix the form.");
+      return;
+    }
+
+    const input: UpdateProfileInput = { fullName: parsed.data.fullName };
+    if (parsed.data.email) input.email = parsed.data.email;
 
     const typedPhone = phone.trim();
     if (typedPhone || hasStoredPhone) {
