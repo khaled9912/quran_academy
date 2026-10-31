@@ -139,9 +139,6 @@ export function TeacherApplicationForm() {
     if (availabilityNote.trim().length > 500)
       next.availabilityNote = "Keep the availability note under 500 characters.";
     if (!cv) next.cv = "Attach your CV (PDF, DOC, or DOCX, up to 2 MB).";
-    if (!intro)
-      next.intro =
-        "Attach a short recording introducing yourself (audio or video, up to 20 MB).";
     return next;
   };
 
@@ -170,7 +167,7 @@ export function TeacherApplicationForm() {
         bio: bio.trim(),
         availabilityNote: availabilityNote.trim(),
         cv: cv!,
-        intro: intro!,
+        intro: intro ?? undefined,
       });
       setReference(result.id);
       setStatus("success");
@@ -479,7 +476,7 @@ export function TeacherApplicationForm() {
         <div className="sm:col-span-2">
           <span className="mb-2 block text-sm font-semibold">
             Self-introduction recording{" "}
-            <span className="text-red-500">*</span>
+            <span className="opacity-60">(optional)</span>
           </span>
           {intro ? (
             <div className="flex items-center justify-between gap-3 rounded-xl border border-green-500/40 bg-green-500/5 px-4 py-3">
@@ -526,8 +523,9 @@ export function TeacherApplicationForm() {
             <p className="mt-2 text-xs text-red-500">{errors.intro}</p>
           )}
           <p className="mt-2 text-xs opacity-60">
-            Record a 1–2 minute voice note on your phone introducing yourself,
-            then upload it here. Only academy administrators can access it.
+            Optional: record a 1–2 minute voice note on your phone introducing
+            yourself, then upload it here. Only academy administrators can
+            access it.
           </p>
         </div>
       </div>

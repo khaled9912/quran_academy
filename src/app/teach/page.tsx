@@ -18,8 +18,8 @@ export default function TeachPage() {
           <p className="text-lg text-foreground opacity-75 max-w-2xl mx-auto">
             We are looking for teachers of Quran, Tajweed, Islamic studies, and
             Arabic who want to help students learn one-to-one. Share your
-            experience, CV, and a short introduction recording, and our team
-            will get back to you.
+            experience and CV, and optionally a short introduction recording,
+            and our team will get back to you.
           </p>
         </div>
 
@@ -27,7 +27,7 @@ export default function TeachPage() {
           {[
             {
               title: "Apply",
-              body: "Submit your details, CV, and a short introduction recording through the form below.",
+              body: "Submit your details and CV, plus an optional short introduction recording, through the form below.",
             },
             {
               title: "Review",

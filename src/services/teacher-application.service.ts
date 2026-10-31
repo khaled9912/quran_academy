@@ -20,7 +20,7 @@ export const submitTeacherApplication = (
   form.append("bio", input.bio);
   form.append("availabilityNote", input.availabilityNote);
   form.append("cv", input.cv, input.cv.name);
-  form.append("intro", input.intro, input.intro.name);
+  if (input.intro) form.append("intro", input.intro, input.intro.name);
   return backendFetch<{ id: string; status: string }>(
     "/api/teacher-applications",
     { method: "POST", body: form }

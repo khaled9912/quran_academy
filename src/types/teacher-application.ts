@@ -47,7 +47,7 @@ export interface SubmitTeacherApplicationInput {
   bio: string;
   availabilityNote: string;
   cv: File;
-  intro: File;
+  intro?: File | null;
 }
 
 export interface ReviewTeacherApplicationInput {
