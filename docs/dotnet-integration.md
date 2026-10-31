@@ -157,6 +157,19 @@ Admin-published slots follow the same rules as teacher-published slots: they mus
 
 The student scheduling endpoints derive the student identity from the authenticated session. Students must not be able to submit another student's ID.
 
+## Teacher applications
+
+| Method | Endpoint                                  | Purpose                                                                 |
+| ------ | ----------------------------------------- | ----------------------------------------------------------------------- |
+| POST   | `/api/teacher-applications`               | Public multipart application with a CV (rate-limited per IP)            |
+| GET    | `/api/admin/teacher-applications`         | Admin queue; optional `?status=pending\|approved\|rejected&take=50`     |
+| GET    | `/api/admin/teacher-applications/{id}/cv` | Download the stored CV as an attachment                                 |
+| PATCH  | `/api/admin/teacher-applications/{id}`    | Review `{ "status": "approved" \| "rejected", "reason"?: "..." }`       |
+
+`POST /api/teacher-applications` is anonymous and takes `multipart/form-data` with the fields `fullName`, `email`, `phoneNumber` (E.164), repeated `subjects` values (`quran`, `tajweed`, `islamic_studies`, `arabic`), `experienceYears`, `bio`, `availabilityNote`, and `cv`. The CV must be PDF, DOC, or DOCX, at most 2 MB, and its magic bytes are checked. Only one `pending` application per email is allowed. Applications and CV bytes live in separate tables (`TeacherApplications`, `TeacherApplicationCvs`) so list queries never load the file. There is no automated deletion of applications.
+
+Approving an application creates an active `teacher` account (with a random internal password) and issues a 15-minute set-password code. If SMTP is configured, the code is emailed with `SendTeacherInviteCodeAsync`; otherwise the `PATCH` response returns `inviteCode` so an admin can share it. If the email already belongs to an account, approval returns `409` and leaves the application pending. Rejecting requires a reason of 3–500 characters.
+
 ## Scheduling workflow (agreed MVP)
 
 - Lessons are **individual**: one teacher and one student.
@@ -300,10 +313,11 @@ Prefer RFC 7807 Problem Details. Common status codes: `400` validation, `401` un
 
 - `/` — public landing page (includes the latest student reviews)
 - `/contact`, `/login`, `/signup` — public contact and authentication (email/password or phone OTP)
+- `/teach` — public teacher application form (details plus CV upload)
 - `/teachers`, `/teachers/{id}` — authenticated students only; anonymous visitors are redirected to `/login`, other roles to their dashboard
 - `/profile` — student/teacher/admin profile: name, email, mobile, photo, and class-report history
 - `/student/dashboard`, `/student/availability`, `/schedule`, `/lesson/{id}` — student overview, teacher directory booking, schedule, and post-lesson recap/review
 - `/teacher/dashboard`, `/teacher/availability`, `/teacher/lesson-requests`, `/teacher/schedule` — teacher tools including report-due indicators
-- `/admin/dashboard`, `/admin/lesson-approvals`, `/admin/students`, `/admin/teachers`, `/admin/teachers/{id}/availability`, `/admin/assignments` — admin tools
+- `/admin/dashboard`, `/admin/lesson-approvals`, `/admin/students`, `/admin/teachers`, `/admin/teachers/{id}/availability`, `/admin/teacher-applications`, `/admin/assignments` — admin tools
 
 The landing page is implemented in `src/app/page.tsx`. Feature screens are App Router `page.tsx` files; do not add a `pages/` directory.

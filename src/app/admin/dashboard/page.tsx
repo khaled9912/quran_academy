@@ -134,6 +134,16 @@ export default function AdminDashboardPage() {
               Give final approval to lesson requests confirmed by teachers.
             </p>
           </Link>
+          <Link
+            href="/admin/teacher-applications"
+            className="rounded-3xl border border-card-border bg-card-bg p-6 hover:border-green-500 transition"
+          >
+            <h2 className="text-xl font-semibold mb-2">Teacher applications</h2>
+            <p className="text-foreground opacity-75">
+              Review CVs from Quran, Tajweed, Islamic studies, and Arabic
+              teachers, then approve or reject them.
+            </p>
+          </Link>
         </div>
       </div>
     </div>

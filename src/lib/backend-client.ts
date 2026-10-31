@@ -141,6 +141,39 @@ export async function backendFetch<T = unknown>(
   return payload as T;
 }
 
+/** Fetches a binary attachment (e.g. an admin CV download) with the session cookie. */
+export async function backendBlobFetch(path: string): Promise<Blob> {
+  if (!path.startsWith("/")) throw new Error("API paths must start with '/'.");
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  let response: Response;
+  try {
+    response = await fetch(`${getBackendBaseUrl()}${path}`, {
+      headers: { Accept: "*/*" },
+      credentials: "include",
+      cache: "no-store",
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new ApiError(
+        "The server took too long to respond. Please try again.",
+        408
+      );
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+  if (!response.ok) {
+    if (response.status === 401 && typeof window !== "undefined") {
+      window.dispatchEvent(new Event("academy:unauthorized"));
+    }
+    throw new ApiError(statusMessage(response.status), response.status);
+  }
+  return response.blob();
+}
+
 /** Builds a browser URL for API-served assets such as profile images. */
 export const backendAssetUrl = (path?: string | null) => {
   if (!path) return "";

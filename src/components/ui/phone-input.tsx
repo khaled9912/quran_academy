@@ -17,6 +17,8 @@ interface PhoneInputProps {
   onChange: (value: string) => void;
   disabled?: boolean;
   error?: string;
+  /** Overrides the default helper text under the field. */
+  hintText?: string;
 }
 
 export function PhoneInput({
@@ -27,6 +29,7 @@ export function PhoneInput({
   onChange,
   disabled = false,
   error,
+  hintText,
 }: PhoneInputProps) {
   const selected = countryByCode(country);
   const e164 = toE164(value, country);
@@ -36,9 +39,10 @@ export function PhoneInput({
   }));
   const hint = error
     ? error
-    : e164
-      ? `Code will be sent to ${e164}.`
-      : "Pick your country, then enter the number without the country code.";
+    : (hintText ??
+      (e164
+        ? `Code will be sent to ${e164}.`
+        : "Pick your country, then enter the number without the country code."));
 
   return (
     <div>
