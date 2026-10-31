@@ -268,7 +268,7 @@ A lesson has `id`, `teacherId`, `studentId`, `startsAt`, `endsAt`, `status`, opt
 | POST   | `/api/lessons/{id}/report` | Teacher submits `{ classSummary, studentFeedback, progress }` after the lesson ends |
 | GET    | `/api/lessons/{id}/review` | Teacher review (participant/admin); `404` when absent                               |
 | POST   | `/api/lessons/{id}/review` | Student submits `{ rating, comment? }` after the lesson ends                        |
-| GET    | `/api/profile/reports`     | Role-scoped report history; paged: `?skip=0&take=3` returns `{ items, hasMore }`   |
+| GET    | `/api/profile/reports`     | Role-scoped report history; paged: `?skip=0&take=3` returns `{ items, hasMore }`    |
 
 Rules enforced by the API: one report and one review per lesson; both are rejected before `endsAt` and for cancelled lessons; a report marks the lesson `completed`; `progress` is `excellent`, `good`, or `needs_attention`; `rating` is 1–5. Public teacher responses expose only name, avatar, rating summary, and reviews.
 

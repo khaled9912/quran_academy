@@ -6,7 +6,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, RefreshCw } from "lucide-react";
 import { cancelLesson, getLessons } from "@/services/lesson.service";
 import { useAuth } from "@/providers/auth-provider";
-import { isLessonEnded, isReportDue, isReportSubmitted } from "@/lib/lesson-feedback";
+import {
+  isLessonEnded,
+  isReportDue,
+  isReportSubmitted,
+} from "@/lib/lesson-feedback";
 import type { Lesson } from "@/types/lesson";
 
 type ReportFilter = "all" | "reports" | "submitted";
@@ -160,41 +164,43 @@ export default function TeacherSchedulePage() {
           </p>
         )}
 
-        {!lessonsQuery.isLoading && !lessonsQuery.isError && lessons.length > 0 && (
-          <div
-            role="group"
-            aria-label="Filter lessons"
-            className="mb-6 flex flex-wrap gap-2"
-          >
-            {filterOptions.map((option) => {
-              const active = filter === option.value;
-              const needsAttention =
-                option.value === "reports" && option.count > 0 && !active;
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setFilter(option.value)}
-                  aria-pressed={active}
-                  className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
-                    active
-                      ? "bg-green-500 text-white"
-                      : needsAttention
-                        ? "border border-amber-300 bg-amber-50 text-amber-900 hover:border-amber-400"
-                        : "border border-card-border bg-card-bg hover:border-green-500"
-                  }`}
-                >
-                  {option.label}
-                  <span
-                    className={`ml-2 text-xs font-bold ${active ? "opacity-80" : "opacity-60"}`}
+        {!lessonsQuery.isLoading &&
+          !lessonsQuery.isError &&
+          lessons.length > 0 && (
+            <div
+              role="group"
+              aria-label="Filter lessons"
+              className="mb-6 flex flex-wrap gap-2"
+            >
+              {filterOptions.map((option) => {
+                const active = filter === option.value;
+                const needsAttention =
+                  option.value === "reports" && option.count > 0 && !active;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setFilter(option.value)}
+                    aria-pressed={active}
+                    className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                      active
+                        ? "bg-green-500 text-white"
+                        : needsAttention
+                          ? "border border-amber-300 bg-amber-50 text-amber-900 hover:border-amber-400"
+                          : "border border-card-border bg-card-bg hover:border-green-500"
+                    }`}
                   >
-                    {option.count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        )}
+                    {option.label}
+                    <span
+                      className={`ml-2 text-xs font-bold ${active ? "opacity-80" : "opacity-60"}`}
+                    >
+                      {option.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
         {lessonsQuery.isLoading ? (
           <p className="text-foreground opacity-70">Loading your lessons…</p>
