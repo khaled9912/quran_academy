@@ -58,6 +58,6 @@ The cookie then belongs to the API domain: `middleware.ts` cannot see it, and Sa
 
 ### Verify
 
-- `https://your-frontend.example/api/health` returns `{"status":"ok","service":"rayan-academy-api"}`.
+- `https://your-frontend.example/api/auth/me` returns the API's JSON `401` while signed out. That 401 (not an HTML page) proves the rewrite reaches the API; health checks live at the API root (`/health`), not under `/api`.
 - Login returns 200 and sets `academy-auth`.
 - Reloading a dashboard keeps the user signed in, and `/api/auth/me` returns the profile.

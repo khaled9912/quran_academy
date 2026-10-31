@@ -288,8 +288,8 @@ Prefer RFC 7807 Problem Details. Common status codes: `400` validation, `401` un
 ## App Router route map
 
 - `/` — public landing page (includes the latest student reviews)
-- `/contact`, `/login`, `/signup` — public contact and authentication
-- `/teachers`, `/teachers/{id}` — public teacher directory and reviewed profiles
+- `/contact`, `/login`, `/signup` — public contact and authentication (email/password or phone OTP)
+- `/teachers`, `/teachers/{id}` — authenticated students only; anonymous visitors are redirected to `/login`, other roles to their dashboard
 - `/profile` — student/teacher/admin profile: name, email, mobile, photo, and class-report history
 - `/student/dashboard`, `/student/availability`, `/schedule`, `/lesson/{id}` — student overview, teacher directory booking, schedule, and post-lesson recap/review
 - `/teacher/dashboard`, `/teacher/availability`, `/teacher/lesson-requests`, `/teacher/schedule` — teacher tools including report-due indicators

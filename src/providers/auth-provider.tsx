@@ -57,6 +57,7 @@ const PROTECTED_PREFIXES = [
   "/schedule",
   "/student-dashboard",
   "/lesson",
+  "/teachers",
 ];
 
 const isProtectedPath = (pathname: string) =>
@@ -66,8 +67,10 @@ const isProtectedPath = (pathname: string) =>
 
 function syncRoleCookie(role: UserRole | null) {
   if (typeof document === "undefined") return;
+  // Keep the routing hint alive for as long as the 7-day auth cookie, otherwise
+  // middleware would send a still-authenticated user back to /login.
   document.cookie = role
-    ? `user-role=${encodeURIComponent(role)}; Path=/; Max-Age=86400; SameSite=Lax`
+    ? `user-role=${encodeURIComponent(role)}; Path=/; Max-Age=604800; SameSite=Lax`
     : "user-role=; Path=/; Max-Age=0; SameSite=Lax";
 }
 

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/", "/about", "/courses", "/teachers", "/contact"];
+const PUBLIC_PATHS = ["/", "/about", "/courses", "/contact"];
 const AUTH_PATHS = ["/login", "/signup", "/register", "/forgot-password"];
 
 const ROLE_DASHBOARDS: Record<string, string> = {
@@ -19,6 +19,7 @@ const ROLE_PATHS: Record<string, RegExp[]> = {
     /^\/student(\/|$)/,
     /^\/student-dashboard(\/|$)/,
     /^\/schedule(\/|$)/,
+    /^\/teachers(\/|$)/,
   ],
 };
 
@@ -83,6 +84,8 @@ export const config = {
     "/teacher/:path*",
     "/student/:path*",
     "/student-dashboard/:path*",
+    "/teachers",
+    "/teachers/:path*",
     "/schedule",
     "/login",
     "/signup",
