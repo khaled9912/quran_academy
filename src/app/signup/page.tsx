@@ -62,8 +62,11 @@ const SignUpPage = () => {
       return;
     }
 
-    const { fullName: trimmedName, email: trimmedEmail, password: trimmedPassword } =
-      parsed.data;
+    const {
+      fullName: trimmedName,
+      email: trimmedEmail,
+      password: trimmedPassword,
+    } = parsed.data;
 
     setLoading(true);
     try {

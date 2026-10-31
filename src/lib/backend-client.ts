@@ -48,8 +48,10 @@ const statusMessage = (status: number): string => {
   if (status === 401) return "Your session has expired. Please sign in again.";
   if (status === 403) return "You do not have permission to do that.";
   if (status === 404) return "The requested resource was not found.";
-  if (status === 408) return "The server took too long to respond. Please try again.";
-  if (status === 429) return "Too many attempts. Please wait a moment and try again.";
+  if (status === 408)
+    return "The server took too long to respond. Please try again.";
+  if (status === 429)
+    return "Too many attempts. Please wait a moment and try again.";
   if (status === 500) return "The server reported an error. Please try again.";
   if (status === 502 || status === 503 || status === 504)
     return "The service is temporarily unavailable. Please try again in a moment.";
@@ -127,7 +129,7 @@ export async function backendFetch<T = unknown>(
     }
     const validationErrors = readValidationErrors(payload);
     const serverMessage = isObject(payload)
-      ? payload.message ?? payload.detail ?? payload.title ?? payload.error
+      ? (payload.message ?? payload.detail ?? payload.title ?? payload.error)
       : undefined;
     const message = validationErrors
       ? Object.values(validationErrors).flat().join(" ")

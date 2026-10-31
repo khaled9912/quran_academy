@@ -166,9 +166,7 @@ export default function ForgotPasswordPage() {
                 {devCode && (
                   <p className="mt-2 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-700">
                     Development code:{" "}
-                    <span className="font-bold tracking-widest">
-                      {devCode}
-                    </span>
+                    <span className="font-bold tracking-widest">{devCode}</span>
                   </p>
                 )}
               </div>

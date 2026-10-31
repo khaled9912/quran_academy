@@ -141,7 +141,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Public pages never call /api/auth/me without a local identity or session
     // hint: the HttpOnly cookie is sent by the browser, so there is nothing to
     // restore and no reason to hold the render.
-    if (!cached && !hasSessionHint && !isProtectedPath(initialPathRef.current)) {
+    if (
+      !cached &&
+      !hasSessionHint &&
+      !isProtectedPath(initialPathRef.current)
+    ) {
       setIsLoading(false);
       return;
     }

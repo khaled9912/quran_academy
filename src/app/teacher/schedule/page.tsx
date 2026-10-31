@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, RefreshCw } from "lucide-react";
 import { cancelLesson, getLessons } from "@/services/lesson.service";
 import { useAuth } from "@/providers/auth-provider";
-import { isLessonEnded } from "@/lib/lesson-feedback";
+import { isLessonEnded, isReportDue, isReportSubmitted } from "@/lib/lesson-feedback";
 import type { Lesson } from "@/types/lesson";
+
+type ReportFilter = "all" | "reports" | "submitted";
 
 const dayLabel = (value: string) =>
   new Date(value).toLocaleDateString(undefined, {
@@ -27,6 +29,14 @@ export default function TeacherSchedulePage() {
   const queryClient = useQueryClient();
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const [filter, setFilter] = useState<ReportFilter>("all");
+
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("filter");
+    if (requested === "reports" || requested === "submitted") {
+      setFilter(requested);
+    }
+  }, []);
 
   const lessonsQuery = useQuery({
     queryKey: ["lessons"],
@@ -51,16 +61,34 @@ export default function TeacherSchedulePage() {
     },
   });
 
+  const lessons = lessonsQuery.data ?? [];
+  const dueCount = lessons.filter(isReportDue).length;
+  const submittedCount = lessons.filter(isReportSubmitted).length;
+
+  const filterOptions: { value: ReportFilter; label: string; count: number }[] =
+    [
+      { value: "all", label: "All lessons", count: lessons.length },
+      { value: "reports", label: "Report required", count: dueCount },
+      { value: "submitted", label: "Report submitted", count: submittedCount },
+    ];
+
   const groups = useMemo(() => {
+    const visible = lessons.filter((lesson) =>
+      filter === "reports"
+        ? isReportDue(lesson)
+        : filter === "submitted"
+          ? isReportSubmitted(lesson)
+          : true
+    );
     const byDay = new Map<string, Lesson[]>();
-    for (const lesson of [...(lessonsQuery.data ?? [])].sort((a, b) =>
+    for (const lesson of visible.sort((a, b) =>
       a.startsAt.localeCompare(b.startsAt)
     )) {
       const key = new Date(lesson.startsAt).toDateString();
       byDay.set(key, [...(byDay.get(key) ?? []), lesson]);
     }
     return [...byDay.entries()];
-  }, [lessonsQuery.data]);
+  }, [lessons, filter]);
 
   if (role !== "teacher") {
     return (
@@ -130,6 +158,42 @@ export default function TeacherSchedulePage() {
               ? lessonsQuery.error.message
               : "Please try again."}
           </p>
+        )}
+
+        {!lessonsQuery.isLoading && !lessonsQuery.isError && lessons.length > 0 && (
+          <div
+            role="group"
+            aria-label="Filter lessons"
+            className="mb-6 flex flex-wrap gap-2"
+          >
+            {filterOptions.map((option) => {
+              const active = filter === option.value;
+              const needsAttention =
+                option.value === "reports" && option.count > 0 && !active;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setFilter(option.value)}
+                  aria-pressed={active}
+                  className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                    active
+                      ? "bg-green-500 text-white"
+                      : needsAttention
+                        ? "border border-amber-300 bg-amber-50 text-amber-900 hover:border-amber-400"
+                        : "border border-card-border bg-card-bg hover:border-green-500"
+                  }`}
+                >
+                  {option.label}
+                  <span
+                    className={`ml-2 text-xs font-bold ${active ? "opacity-80" : "opacity-60"}`}
+                  >
+                    {option.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         )}
 
         {lessonsQuery.isLoading ? (
@@ -232,8 +296,11 @@ export default function TeacherSchedulePage() {
           </div>
         ) : lessonsQuery.isError ? null : (
           <div className="rounded-2xl border border-dashed border-card-border bg-card-bg p-10 text-center text-foreground opacity-70">
-            No confirmed lessons yet. Publish availability so your students can
-            request a time.
+            {filter === "reports"
+              ? "No class reports are waiting. You're all caught up."
+              : filter === "submitted"
+                ? "No submitted class reports yet."
+                : "No confirmed lessons yet. Publish availability so your students can request a time."}
           </div>
         )}
       </div>

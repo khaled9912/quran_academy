@@ -8,8 +8,13 @@ interface ProfileResponse {
 
 export const getProfile = () => backendFetch<ProfileResponse>("/api/profile");
 
-export const getMyReports = () =>
-  backendFetch<LessonReport[]>("/api/profile/reports");
+export interface ReportPage {
+  items: LessonReport[];
+  hasMore: boolean;
+}
+
+export const getMyReports = (skip = 0, take = 3) =>
+  backendFetch<ReportPage>(`/api/profile/reports?skip=${skip}&take=${take}`);
 
 export interface UpdateProfileInput {
   fullName?: string;

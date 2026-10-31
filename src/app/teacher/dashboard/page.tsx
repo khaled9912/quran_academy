@@ -8,7 +8,7 @@ import {
   getMyAvailability,
 } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
-import { isLessonEnded } from "@/lib/lesson-feedback";
+import { isReportDue } from "@/lib/lesson-feedback";
 
 const dateTime = (value: string) =>
   new Date(value).toLocaleString(undefined, {
@@ -62,18 +62,17 @@ export default function TeacherDashboardPage() {
       slot.status === "available" && new Date(slot.startsAt).getTime() >= now
   );
   const reportsDue = lessons
-    .filter(
-      (lesson) =>
-        lesson.status !== "cancelled" &&
-        isLessonEnded(lesson.endsAt, lesson.status) &&
-        !lesson.report
-    )
+    .filter(isReportDue)
     .sort((a, b) => b.startsAt.localeCompare(a.startsAt));
 
-  const metrics = [
+  const metrics: { title: string; value: number; href?: string }[] = [
     { title: "Upcoming lessons", value: upcomingLessons.length },
     { title: "Requests awaiting you", value: pendingRequests.length },
-    { title: "Reports due", value: reportsDue.length },
+    {
+      title: "Reports due",
+      value: reportsDue.length,
+      href: "/teacher/schedule?filter=reports",
+    },
     { title: "Available slots", value: openSlots.length },
   ];
 
@@ -107,19 +106,33 @@ export default function TeacherDashboardPage() {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          {metrics.map((metric) => (
-            <div
-              key={metric.title}
-              className="rounded-3xl border border-card-border bg-card-bg p-6"
-            >
-              <p className="text-sm uppercase text-foreground opacity-70 mb-2">
-                {metric.title}
-              </p>
-              <p className="text-3xl font-semibold text-green-600">
-                {metric.value}
-              </p>
-            </div>
-          ))}
+          {metrics.map((metric) => {
+            const card = (
+              <>
+                <p className="text-sm uppercase text-foreground opacity-70 mb-2">
+                  {metric.title}
+                </p>
+                <p className="text-3xl font-semibold text-green-600">
+                  {metric.value}
+                </p>
+              </>
+            );
+            const className =
+              "rounded-3xl border border-card-border bg-card-bg p-6";
+            return metric.href ? (
+              <Link
+                key={metric.title}
+                href={metric.href}
+                className={`${className} transition hover:border-amber-400`}
+              >
+                {card}
+              </Link>
+            ) : (
+              <div key={metric.title} className={className}>
+                {card}
+              </div>
+            );
+          })}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -213,7 +226,7 @@ export default function TeacherDashboardPage() {
                 </p>
               </div>
               <Link
-                href="/teacher/schedule"
+                href="/teacher/schedule?filter=reports"
                 className="text-sm font-semibold text-green-700 hover:underline"
               >
                 Open schedule →

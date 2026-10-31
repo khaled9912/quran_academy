@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { z } from "zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import type { CountryCode } from "libphonenumber-js";
 import {
   Camera,
@@ -38,6 +38,7 @@ import type { UserProfile } from "@/types/user";
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp"];
+const REPORTS_PAGE_SIZE = 3;
 
 const fullNameOf = (user: UserProfile) =>
   user.fullName ?? user.full_name ?? user.first_name ?? "";
@@ -163,13 +164,18 @@ export default function ProfilePage() {
     },
   });
 
-  const reportsQuery = useQuery({
+  const reportsQuery = useInfiniteQuery({
     queryKey: ["profile", "reports"],
-    queryFn: getMyReports,
+    queryFn: ({ pageParam }) => getMyReports(pageParam, REPORTS_PAGE_SIZE),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.hasMore
+        ? allPages.reduce((count, page) => count + page.items.length, 0)
+        : undefined,
     enabled: Boolean(profile),
   });
 
-  const reports = reportsQuery.data ?? [];
+  const reports = reportsQuery.data?.pages.flatMap((page) => page.items) ?? [];
   const isTeacher = profile?.role === "teacher";
 
   if (!profile) {
@@ -559,9 +565,7 @@ export default function ProfilePage() {
                 {passwordMutation.isPending && (
                   <Loader2 size={18} className="animate-spin" />
                 )}
-                {passwordMutation.isPending
-                  ? "Updating…"
-                  : "Change password"}
+                {passwordMutation.isPending ? "Updating…" : "Change password"}
               </button>
             </div>
           </form>
@@ -639,6 +643,23 @@ export default function ProfilePage() {
                   </Link>
                 </article>
               ))}
+              {reportsQuery.hasNextPage && (
+                <div className="flex justify-center pt-2">
+                  <button
+                    type="button"
+                    onClick={() => void reportsQuery.fetchNextPage()}
+                    disabled={reportsQuery.isFetchingNextPage}
+                    className="inline-flex items-center gap-2 rounded-xl border border-card-border px-5 py-2.5 text-sm font-semibold transition hover:border-green-500 disabled:opacity-50"
+                  >
+                    {reportsQuery.isFetchingNextPage && (
+                      <Loader2 size={16} className="animate-spin" />
+                    )}
+                    {reportsQuery.isFetchingNextPage
+                      ? "Loading…"
+                      : `Load ${REPORTS_PAGE_SIZE} more reports`}
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <p className="mt-5 rounded-2xl border border-dashed border-card-border p-6 text-center text-sm text-foreground opacity-70">

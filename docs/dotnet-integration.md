@@ -28,17 +28,17 @@ For production, prefer a same-origin reverse proxy so the API's HttpOnly session
 
 ## Authentication
 
-| Method | Endpoint                | Purpose                                |
-| ------ | ----------------------- | -------------------------------------- |
-| POST   | `/api/auth/register`    | Public student registration only       |
-| POST   | `/api/auth/login`       | Sign in                                |
-| GET    | `/api/auth/me`          | Current authenticated user             |
-| POST   | `/api/auth/logout`      | End session                            |
-| POST   | `/api/auth/change-password` | Change the signed-in user's password (profile page) |
-| POST   | `/api/auth/password/request` | Email a one-time password reset code |
-| POST   | `/api/auth/password/reset` | Set a new password with the email code |
-| POST   | `/api/auth/otp/request` | Send a sign-in/sign-up code to a phone |
-| POST   | `/api/auth/otp/verify`  | Verify the code and start a session    |
+| Method | Endpoint                     | Purpose                                             |
+| ------ | ---------------------------- | --------------------------------------------------- |
+| POST   | `/api/auth/register`         | Public student registration only                    |
+| POST   | `/api/auth/login`            | Sign in                                             |
+| GET    | `/api/auth/me`               | Current authenticated user                          |
+| POST   | `/api/auth/logout`           | End session                                         |
+| POST   | `/api/auth/change-password`  | Change the signed-in user's password (profile page) |
+| POST   | `/api/auth/password/request` | Email a one-time password reset code                |
+| POST   | `/api/auth/password/reset`   | Set a new password with the email code              |
+| POST   | `/api/auth/otp/request`      | Send a sign-in/sign-up code to a phone              |
+| POST   | `/api/auth/otp/verify`       | Verify the code and start a session                 |
 
 `POST /api/auth/change-password` takes `{ "currentPassword": "...", "newPassword": "..." }`, returns `204`, rotates the caller's cookie, and signs other devices out. It returns `409` for phone-only accounts and `400` with `currentPassword`/`newPassword` errors. Admins can still reset a teacher or student password through `PATCH /api/admin/users/{id}`.
 
@@ -268,9 +268,11 @@ A lesson has `id`, `teacherId`, `studentId`, `startsAt`, `endsAt`, `status`, opt
 | POST   | `/api/lessons/{id}/report` | Teacher submits `{ classSummary, studentFeedback, progress }` after the lesson ends |
 | GET    | `/api/lessons/{id}/review` | Teacher review (participant/admin); `404` when absent                               |
 | POST   | `/api/lessons/{id}/review` | Student submits `{ rating, comment? }` after the lesson ends                        |
-| GET    | `/api/profile/reports`     | Role-scoped report history for the profile page                                     |
+| GET    | `/api/profile/reports`     | Role-scoped report history; paged: `?skip=0&take=3` returns `{ items, hasMore }`   |
 
 Rules enforced by the API: one report and one review per lesson; both are rejected before `endsAt` and for cancelled lessons; a report marks the lesson `completed`; `progress` is `excellent`, `good`, or `needs_attention`; `rating` is 1–5. Public teacher responses expose only name, avatar, rating summary, and reviews.
+
+`/api/profile/reports` is newest-first. `take` defaults to 20 and is clamped to 1–50, `skip` is clamped at 0. The profile page requests 3 at a time and shows a "Load 3 more reports" button only while `hasMore` is true.
 
 ## Lesson room
 

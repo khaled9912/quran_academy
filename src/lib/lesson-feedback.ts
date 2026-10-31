@@ -1,4 +1,4 @@
-import type { LessonProgress } from "@/types/lesson";
+import type { Lesson, LessonProgress } from "@/types/lesson";
 
 export const progressLabels: Record<LessonProgress, string> = {
   excellent: "Excellent progress",
@@ -23,3 +23,13 @@ export const lessonDateTime = (value: string) =>
 
 export const isLessonEnded = (endsAt: string, status: string) =>
   status === "completed" || new Date(endsAt).getTime() <= Date.now();
+
+export const isReportDue = (lesson: Lesson) =>
+  lesson.status !== "cancelled" &&
+  isLessonEnded(lesson.endsAt, lesson.status) &&
+  !lesson.report;
+
+export const isReportSubmitted = (lesson: Lesson) =>
+  lesson.status !== "cancelled" &&
+  isLessonEnded(lesson.endsAt, lesson.status) &&
+  Boolean(lesson.report);
