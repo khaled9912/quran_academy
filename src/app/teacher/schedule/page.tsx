@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, RefreshCw } from "lucide-react";
 import { cancelLesson, getLessons } from "@/services/lesson.service";
 import { useAuth } from "@/providers/auth-provider";
+import { isLessonEnded } from "@/lib/lesson-feedback";
 import type { Lesson } from "@/types/lesson";
 
 const dayLabel = (value: string) =>
@@ -146,10 +147,25 @@ export default function TeacherSchedulePage() {
                         <p className="mt-1 text-xs capitalize text-foreground opacity-60">
                           {lesson.status.replaceAll("_", " ")}
                         </p>
+                        {lesson.status !== "cancelled" &&
+                          isLessonEnded(lesson.endsAt, lesson.status) && (
+                            <p
+                              className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+                                lesson.report
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-amber-100 text-amber-900"
+                              }`}
+                            >
+                              {lesson.report
+                                ? "Report submitted"
+                                : "Report required"}
+                            </p>
+                          )}
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         {(lesson.status === "scheduled" ||
-                          lesson.status === "in_progress") && (
+                          lesson.status === "in_progress") &&
+                          !isLessonEnded(lesson.endsAt, lesson.status) && (
                           <Link
                             href={`/lesson/${lesson.id}`}
                             className="rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
@@ -157,6 +173,23 @@ export default function TeacherSchedulePage() {
                             Join lesson
                           </Link>
                         )}
+                        {lesson.status !== "cancelled" &&
+                          isLessonEnded(lesson.endsAt, lesson.status) &&
+                          (lesson.report ? (
+                            <Link
+                              href={`/lesson/${lesson.id}`}
+                              className="rounded-xl border border-card-border px-4 py-2 text-sm font-semibold transition hover:border-green-500"
+                            >
+                              View report
+                            </Link>
+                          ) : (
+                            <Link
+                              href={`/lesson/${lesson.id}`}
+                              className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-600"
+                            >
+                              Write report
+                            </Link>
+                          ))}
                         {lesson.status === "scheduled" && (
                           <button
                             onClick={() => {

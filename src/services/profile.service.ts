@@ -1,4 +1,5 @@
 import { backendFetch } from "@/lib/backend-client";
+import type { LessonReport } from "@/types/lesson";
 import type { UserProfile } from "@/types/user";
 
 interface ProfileResponse {
@@ -6,6 +7,9 @@ interface ProfileResponse {
 }
 
 export const getProfile = () => backendFetch<ProfileResponse>("/api/profile");
+
+export const getMyReports = () =>
+  backendFetch<LessonReport[]>("/api/profile/reports");
 
 export interface UpdateProfileInput {
   fullName?: string;

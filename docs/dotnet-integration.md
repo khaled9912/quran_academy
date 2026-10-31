@@ -2,6 +2,20 @@
 
 This frontend uses **Next.js App Router** (`src/app`). There is no Pages Router. The ASP.NET Core API owns authentication, authorization, validation, scheduling rules, and persistence. The frontend does not use Supabase.
 
+## How this fits for students
+
+For a student, the experience is simple: the Next.js frontend is the interface they use in the browser, while the ASP.NET Core backend is the system that decides who the student is, whether they are allowed to book a lesson, and whether their schedule or profile is valid. In other words, the frontend handles the experience, but the API handles the rules and trusted data.
+
+A typical student journey looks like this:
+
+- Sign in or create an account from the login/signup screens.
+- Complete a profile, add contact details, and upload an avatar.
+- Browse teachers, view available lesson slots, and request a lesson.
+- Wait for teacher approval, then admin approval before the lesson is confirmed.
+- Join the live lesson room after confirmation and view the final class report or review afterward.
+
+This means the student does not need to understand the backend details directly; they just interact with a clean interface while the API enforces the rules behind the scenes. The frontend fetches data from the API, submits requests for booking or profile updates, and displays the results in a friendly way.
+
 ## Configuration
 
 Create `.env.local` from `.env.local.example` and set:
@@ -80,8 +94,8 @@ Avatars live in a separate `UserAvatars` table (`bytea`) so user queries never l
 
 | Method | Endpoint                     | Purpose                                             |
 | ------ | ---------------------------- | --------------------------------------------------- |
-| GET    | `/api/teachers/directory`    | Active teachers with their future `available` slots |
-| GET    | `/api/teachers/{id}/profile` | One active teacher plus open slots                  |
+| GET    | `/api/teachers/directory`    | Active teachers with their future `available` slots and rating summary |
+| GET    | `/api/teachers/{id}/profile` | One active teacher plus open slots and latest reviews |
 
 Each item has the shape `{ "teacher": { ...UserDto }, "slots": [ ... ] }`. A student may request any teacher's open slot with `POST /api/lesson-requests`. When the request is created, the API claims the slot and makes that teacher the student's active assignment inside the same transaction. The request then follows the normal `pending_teacher → pending_admin → approved` flow.
 
@@ -185,6 +199,9 @@ Suggested `GET /api/student/teacher/availability` response:
 | Method | Endpoint                                          | Purpose                                             |
 | ------ | ------------------------------------------------- | --------------------------------------------------- |
 | GET    | `/api/teachers/directory`                         | Active teachers and their open slots                |
+| GET    | `/api/teachers/{id}/profile`                      | One active teacher, open slots, and latest reviews  |
+| GET    | `/api/teachers/public`                            | Public teacher list with ratings (no sign-in)       |
+| GET    | `/api/teachers/public/{id}`                       | Public teacher profile and up to 50 reviews         |
 | POST   | `/api/lesson-requests`                            | Student requests `{ "availabilitySlotId": "uuid" }` |
 | GET    | `/api/student/lesson-requests`                    | Student's own requests                              |
 | GET    | `/api/teacher/lesson-requests`                    | Requests for the authenticated teacher              |
@@ -234,11 +251,25 @@ These are backend responsibilities, not frontend checks:
 | PATCH  | `/api/lessons/{id}` | Authorized reschedule/status change |
 | DELETE | `/api/lessons/{id}` | Authorized cancellation             |
 
-A lesson has `id`, `teacherId`, `studentId`, `startsAt`, `endsAt`, `status`, and optional actual start/end timestamps.
+A lesson has `id`, `teacherId`, `studentId`, `startsAt`, `endsAt`, `status`, optional actual start/end timestamps, and embedded `report` and `review` objects when they exist.
+
+## Class reports and teacher reviews
+
+| Method | Endpoint                  | Purpose                                             |
+| ------ | ------------------------- | --------------------------------------------------- |
+| GET    | `/api/lessons/{id}/report` | Class report (participant/admin); `404` when absent |
+| POST   | `/api/lessons/{id}/report` | Teacher submits `{ classSummary, studentFeedback, progress }` after the lesson ends |
+| GET    | `/api/lessons/{id}/review` | Teacher review (participant/admin); `404` when absent |
+| POST   | `/api/lessons/{id}/review` | Student submits `{ rating, comment? }` after the lesson ends |
+| GET    | `/api/profile/reports`     | Role-scoped report history for the profile page     |
+
+Rules enforced by the API: one report and one review per lesson; both are rejected before `endsAt` and for cancelled lessons; a report marks the lesson `completed`; `progress` is `excellent`, `good`, or `needs_attention`; `rating` is 1–5. Public teacher responses expose only name, avatar, rating summary, and reviews.
 
 ## Lesson room
 
 `/lesson/{id}` loads the lesson through `GET /api/lessons/{id}` (which already enforces ownership) and embeds Jitsi Meet through the official External API (`https://{domain}/external_api.js`) inside our own page. The room name is derived from the lesson id and the Jitsi domain is configurable with `NEXT_PUBLIC_JITSI_DOMAIN` (defaults to `meet.jit.si`). Before joining, the page asks for camera/microphone access and offers three modes: camera + mic, mic only, or watch/listen only. Devices are enumerated first; when none are present (or permission is blocked) the page explains why and keeps a working "Join without camera & mic" path instead of dead-ending. Screen sharing is part of the standard Jitsi toolbar.
+
+After `endsAt` the page closes the room and switches to the lesson recap: teachers submit or edit the class report, students read the report and rate the lesson, and admins see both.
 
 Because the room lives on the Jitsi deployment, the room itself is unlisted rather than access-controlled: anyone who knows the room name can join. For production, use a Jitsi deployment with JWT authentication (self-hosted or JaaS) and issue the JWT from an authorized backend endpoint, keeping the room name out of client code.
 
@@ -256,11 +287,12 @@ Prefer RFC 7807 Problem Details. Common status codes: `400` validation, `401` un
 
 ## App Router route map
 
-- `/` — public landing page
+- `/` — public landing page (includes the latest student reviews)
 - `/contact`, `/login`, `/signup` — public contact and authentication
-- `/profile` — student/teacher/admin profile: name, email, mobile, and photo
-- `/student/dashboard`, `/student/availability`, `/schedule` — student overview, teacher directory booking, confirmed schedule
-- `/teacher/dashboard`, `/teacher/availability`, `/teacher/lesson-requests` — teacher tools
+- `/teachers`, `/teachers/{id}` — public teacher directory and reviewed profiles
+- `/profile` — student/teacher/admin profile: name, email, mobile, photo, and class-report history
+- `/student/dashboard`, `/student/availability`, `/schedule`, `/lesson/{id}` — student overview, teacher directory booking, schedule, and post-lesson recap/review
+- `/teacher/dashboard`, `/teacher/availability`, `/teacher/lesson-requests`, `/teacher/schedule` — teacher tools including report-due indicators
 - `/admin/dashboard`, `/admin/lesson-approvals`, `/admin/students`, `/admin/teachers`, `/admin/teachers/{id}/availability`, `/admin/assignments` — admin tools
 
 The landing page is implemented in `src/app/page.tsx`. Feature screens are App Router `page.tsx` files; do not add a `pages/` directory.

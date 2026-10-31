@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useAuth } from "@/providers/auth-provider";
@@ -17,30 +16,40 @@ const Menu = () => {
 
   return (
     <div>
-      <Image
-        src="/menu.png"
-        alt="Menu"
-        width={28}
-        height={28}
-        className="menu-icon cursor-pointer"
+      <button
+        type="button"
+        aria-label="Toggle menu"
+        className="menu-button"
         onClick={() => setOpen((prev) => !prev)}
-      />
+      >
+        <span />
+        <span />
+        <span />
+      </button>
       {open && (
         <div className="menu-items" onClick={() => setOpen(false)}>
           {links.map((link) => (
-            <Link key={link.href} href={link.href}>
+            <Link
+              key={link.href}
+              href={link.href}
+              className="menu-item-link"
+            >
               {link.label}
             </Link>
           ))}
           {!isAuthenticated ? (
             <>
-              <Link href="/login">Login</Link>
-              <Link href="/signup">Register</Link>
+              <Link href="/login" className="menu-item-link">
+                Login
+              </Link>
+              <Link href="/signup" className="menu-item-link">
+                Register
+              </Link>
             </>
           ) : (
             <button
               onClick={logout}
-              className="text-left w-full text-red-500 font-semibold"
+              className="menu-item-button"
             >
               Logout
             </button>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import React from "react";
 import Menu from "./Menu";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/providers/auth-provider";
 import { navigationConfig } from "@/constants/navigation";
 import { Avatar } from "@/components/ui/avatar";
@@ -19,47 +20,53 @@ const Navbar = () => {
       : navigationConfig.anonymous;
 
   return (
-    <div className="navbar bg-[#0d3d4b] text-white backdrop-blur">
+    <div className="navbar bg-[var(--navbar-bg)] text-[var(--navbar-text)] backdrop-blur">
       <div className="h-full flex items-center justify-between md:hidden">
-        <Link href="/" className="flex items-center gap-3 rounded-full bg-[#e7efe7]/90 p-2 shadow-sm ring-1 ring-white/10">
+        <Link
+          href="/"
+          aria-label="Ana Quran home"
+          className="flex items-center"
+        >
           <img
-            src="/logo-ana-quran.svg?v=2026-10-31-2"
-            alt="Logo"
-            width={28}
-            height={28}
-            className="h-8 w-8"
+            src="/logo-ana-quran.svg?v=2026-10-31-5"
+            alt="Ana Quran logo"
+            width={40}
+            height={56}
+            className="navbar-brand-logo h-14 w-auto"
           />
-          <span className="text-base font-semibold text-[#173d3f]">Ana Quran</span>
         </Link>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            aria-label="Toggle color theme"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/10 text-white shadow-sm"
-          >
-            ☾
-          </button>
+          <ThemeToggle className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-[var(--toggle-bg)] text-[var(--toggle-icon)] shadow-sm" />
           <Menu />
         </div>
       </div>
 
       <div className="hidden md:flex items-center justify-between gap-8 h-full w-full">
         <div className="flex items-center gap-10">
-          <Link href="/" className="flex items-center gap-3 rounded-full bg-[#edf1eb]/90 px-2 py-1.5 shadow-sm ring-1 ring-white/10">
+          <Link
+            href="/"
+            aria-label="Ana Quran home"
+            className="flex items-center"
+          >
             <img
-              src="/logo-ana-quran.svg?v=2026-10-31-2"
+              src="/logo-ana-quran.svg?v=2026-10-31-5"
               alt="Ana Quran logo"
-              width={36}
-              height={36}
-              className="h-9 w-9"
+              width={46}
+              height={64}
+              className="navbar-brand-logo h-16 w-auto"
             />
-            <span className="text-lg font-semibold text-[#173d3f]">Ana Quran</span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-6 text-sm font-medium text-white/80">
-            <Link href="/" className="transition hover:text-white">Home</Link>
+          <div className="hidden md:flex items-center gap-6 text-sm font-medium text-[var(--navbar-text)]/80">
+            <Link href="/" className="transition hover:text-[var(--navbar-text)]">
+              Home
+            </Link>
             {links.map((link) => (
-              <Link key={link.href} href={link.href} className="transition hover:text-white">
+              <Link
+                key={link.href}
+                href={link.href}
+                className="transition hover:text-[var(--navbar-text)]"
+              >
                 {link.label}
               </Link>
             ))}
@@ -67,18 +74,12 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            aria-label="Toggle color theme"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/10 text-white shadow-sm"
-          >
-            ☾
-          </button>
+          <ThemeToggle className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-[var(--toggle-bg)] text-[var(--toggle-icon)] shadow-sm" />
 
           {!isAuthenticated ? (
             <>
               <Link href="/login">
-                <button className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10">
+                <button className="rounded-xl border border-[#173d3f]/15 bg-[#eaf2ec] px-4 py-2 text-sm font-semibold text-[#173d3f] shadow-sm transition hover:bg-[#dfeee2]">
                   Login
                 </button>
               </Link>

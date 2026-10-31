@@ -1,11 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import Link from "next/link";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type { CountryCode } from "libphonenumber-js";
 import {
   Camera,
   CheckCircle2,
+  ClipboardList,
   Loader2,
   Mail,
   Phone,
@@ -18,11 +20,17 @@ import { ApiError } from "@/lib/backend-client";
 import { DEFAULT_COUNTRY, splitE164, toE164 } from "@/lib/countries";
 import {
   deleteAvatar,
+  getMyReports,
   updateProfile,
   uploadAvatar,
   type UpdateProfileInput,
 } from "@/services/profile.service";
 import { useAuth } from "@/providers/auth-provider";
+import {
+  lessonDateTime,
+  progressClasses,
+  progressLabels,
+} from "@/lib/lesson-feedback";
 import type { UserProfile } from "@/types/user";
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
@@ -105,6 +113,15 @@ export default function ProfilePage() {
       );
     },
   });
+
+  const reportsQuery = useQuery({
+    queryKey: ["profile", "reports"],
+    queryFn: getMyReports,
+    enabled: Boolean(profile),
+  });
+
+  const reports = reportsQuery.data ?? [];
+  const isTeacher = profile?.role === "teacher";
 
   if (!profile) {
     return (
@@ -195,6 +212,14 @@ export default function ProfilePage() {
               <span className="mt-1 rounded-full bg-green-100 px-3 py-1 text-xs font-semibold capitalize text-green-800">
                 {profile.role.replace("_", " ")}
               </span>
+              {isTeacher && (
+                <Link
+                  href={`/teachers/${profile.id}`}
+                  className="mt-3 text-sm font-semibold text-green-600 hover:underline"
+                >
+                  View public profile & reviews →
+                </Link>
+              )}
             </div>
 
             <div className="mt-6 space-y-3">
@@ -351,6 +376,86 @@ export default function ProfilePage() {
             </form>
           </section>
         </div>
+
+        <section className="mt-8 rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <ClipboardList size={20} className="text-green-600" />
+            {isTeacher ? "Reports you submitted" : "Class reports"}
+          </h2>
+          <p className="mt-1 text-sm text-foreground opacity-70">
+            {isTeacher
+              ? "Each finished lesson needs a class summary and feedback about the student."
+              : "Your teacher's summary and feedback from each completed lesson."}
+          </p>
+
+          {reportsQuery.isLoading ? (
+            <p className="mt-5 text-sm text-foreground opacity-70">
+              Loading reports…
+            </p>
+          ) : reportsQuery.error ? (
+            <p
+              role="alert"
+              className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            >
+              {reportsQuery.error instanceof Error
+                ? reportsQuery.error.message
+                : "Unable to load your reports."}
+            </p>
+          ) : reports.length ? (
+            <div className="mt-5 space-y-4">
+              {reports.map((report) => (
+                <article
+                  key={report.id}
+                  className="rounded-2xl border border-card-border p-4"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-semibold">
+                      {lessonDateTime(report.startsAt)}
+                    </p>
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${progressClasses[report.progress]}`}
+                    >
+                      {progressLabels[report.progress]}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-foreground opacity-65">
+                    {isTeacher
+                      ? `Student: ${report.studentName}`
+                      : `Teacher: ${report.teacherName}`}
+                  </p>
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[.14em] text-foreground opacity-60">
+                        Class summary
+                      </p>
+                      <p className="mt-1 whitespace-pre-line text-sm">
+                        {report.classSummary}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-[.14em] text-foreground opacity-60">
+                        Feedback
+                      </p>
+                      <p className="mt-1 whitespace-pre-line text-sm">
+                        {report.studentFeedback}
+                      </p>
+                    </div>
+                  </div>
+                  <Link
+                    href={`/lesson/${report.lessonId}`}
+                    className="mt-3 inline-block text-sm font-semibold text-green-600 hover:underline"
+                  >
+                    Open lesson →
+                  </Link>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-5 rounded-2xl border border-dashed border-card-border p-6 text-center text-sm text-foreground opacity-70">
+              No reports yet.
+            </p>
+          )}
+        </section>
       </div>
     </div>
   );

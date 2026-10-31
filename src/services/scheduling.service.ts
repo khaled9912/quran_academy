@@ -2,8 +2,17 @@ import { backendFetch } from "@/lib/backend-client";
 import type {
   AvailabilitySlot,
   LessonRequest,
+  PublicTeacher,
   TeacherAvailabilityResponse,
 } from "@/types/scheduling";
+
+// Public endpoints
+export const getPublicTeachers = () =>
+  backendFetch<PublicTeacher[]>("/api/teachers/public");
+export const getPublicTeacher = (teacherId: string) =>
+  backendFetch<PublicTeacher>(
+    `/api/teachers/public/${encodeURIComponent(teacherId)}`
+  );
 
 // Student endpoints
 /** Active teachers and their open lesson times, for self-service booking. */

@@ -3,9 +3,10 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarDays, Clock3, RefreshCw, Video } from "lucide-react";
+import { CalendarDays, Clock3, MessageSquareQuote, RefreshCw, Video } from "lucide-react";
 import { getLessons } from "@/services/lesson.service";
 import { useAuth } from "@/providers/auth-provider";
+import { isLessonEnded } from "@/lib/lesson-feedback";
 import type { Lesson } from "@/types/lesson";
 
 type Filter = "all" | "upcoming" | "completed" | "cancelled";
@@ -164,12 +165,23 @@ export default function StudentSchedulePage() {
                           {lesson.status.replaceAll("_", " ")}
                         </span>
                         {(lesson.status === "scheduled" ||
-                          lesson.status === "in_progress") && (
+                          lesson.status === "in_progress") &&
+                          !isLessonEnded(lesson.endsAt, lesson.status) && (
                           <Link
                             href={`/lesson/${lesson.id}`}
                             className="inline-flex items-center gap-2 rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
                           >
                             <Video size={15} /> Attend lesson
+                          </Link>
+                        )}
+                        {lesson.status !== "cancelled" &&
+                          isLessonEnded(lesson.endsAt, lesson.status) && (
+                          <Link
+                            href={`/lesson/${lesson.id}`}
+                            className="inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2 text-sm font-semibold transition hover:border-green-500"
+                          >
+                            <MessageSquareQuote size={15} />
+                            {lesson.review ? "View feedback" : "Feedback & review"}
                           </Link>
                         )}
                       </div>

@@ -11,9 +11,9 @@ export const metadata: Metadata = {
   description:
     "Learn Quran, Arabic, and Islamic studies through personal online lessons with dedicated teachers and flexible scheduling at Ana Quran.",
   icons: {
-    icon: "/logo.svg?v=2026-10-31-1",
-    shortcut: "/logo.svg?v=2026-10-31-1",
-    apple: "/logo.svg?v=2026-10-31-1",
+    icon: "/logo-ana-quran-mark.svg?v=1",
+    shortcut: "/logo-ana-quran-mark.svg?v=1",
+    apple: "/logo-ana-quran-mark.svg?v=1",
   },
 };
 

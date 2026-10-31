@@ -8,6 +8,8 @@ import { ApiError } from "@/lib/backend-client";
 import { getLessonById } from "@/services/lesson.service";
 import { useAuth } from "@/providers/auth-provider";
 import { JitsiRoom } from "@/components/JitsiRoom";
+import { LessonFeedback } from "@/components/lesson/LessonFeedback";
+import { isLessonEnded } from "@/lib/lesson-feedback";
 
 const JITSI_DOMAIN = (process.env.NEXT_PUBLIC_JITSI_DOMAIN ?? "meet.jit.si")
   .replace(/^https?:\/\//, "")
@@ -49,6 +51,7 @@ export default function LessonCallPage() {
       : "Back to schedule";
 
   const room = `rayan-academy-${id}`;
+  const ended = lesson ? isLessonEnded(lesson.endsAt, lesson.status) : false;
 
   if (authLoading || !profile) return null;
 
@@ -67,7 +70,9 @@ export default function LessonCallPage() {
             >
               ← {backLabel}
             </Link>
-            <h1 className="text-4xl font-bold mb-2">Lesson room</h1>
+            <h1 className="text-4xl font-bold mb-2">
+              {ended ? "Lesson recap" : "Lesson room"}
+            </h1>
             {lesson ? (
               <p className="text-lg text-foreground opacity-75">
                 {dateTime(lesson.startsAt)} · {lesson.teacherName ?? "Teacher"}{" "}
@@ -100,11 +105,12 @@ export default function LessonCallPage() {
               ? error.message
               : "Unable to load this lesson."}
           </p>
-        ) : lesson &&
-          (lesson.status === "cancelled" || lesson.status === "completed") ? (
+        ) : lesson && lesson.status === "cancelled" ? (
           <div className="rounded-2xl border border-dashed border-card-border bg-card-bg p-10 text-center text-foreground opacity-70">
-            This lesson is {lesson.status}. The room is closed.
+            This lesson was cancelled. The room is closed.
           </div>
+        ) : lesson && ended ? (
+          <LessonFeedback lesson={lesson} role={role} />
         ) : (
           <>
             <JitsiRoom

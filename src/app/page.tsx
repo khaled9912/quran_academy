@@ -15,6 +15,8 @@ import {
   Users,
 } from "lucide-react";
 
+import { ReviewsSection } from "@/components/ReviewsSection";
+
 const steps = [
   {
     number: "01",
@@ -65,12 +67,15 @@ export default function HomePage() {
         <div className="mx-auto grid max-w-7xl items-center gap-10 px-5 pb-16 pt-8 md:grid-cols-[1.02fr_0.98fr] md:gap-12 md:px-8 md:pb-28 md:pt-12">
           <div className="max-w-2xl">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#cfe1d3] bg-white/70 px-3 py-2 text-xs font-semibold text-[#54735c] shadow-sm sm:mb-6 sm:px-4 sm:text-sm">
-              <Sparkles size={16} className="text-[#8ab57d]" /> Thoughtful learning, one lesson at a time
+              <Sparkles size={16} className="text-[#8ab57d]" /> Thoughtful
+              learning, one lesson at a time
             </div>
             <h1 className="text-[2.8rem] font-black leading-[0.92] tracking-[-0.06em] text-[#123c35] sm:text-5xl md:text-6xl lg:text-[5.3rem]">
               Grow your
               <span className="block">connection</span>
-              <span className="block">with the <span className="text-[#d1893d]">Quran</span></span>
+              <span className="block">
+                with the <span className="text-[#d1893d]">Quran</span>
+              </span>
               <span className="block">and Arabic.</span>
             </h1>
             <p className="mt-4 max-w-xl text-base leading-7 text-[#5d726a] sm:mt-6 sm:text-lg sm:leading-8">
@@ -111,7 +116,7 @@ export default function HomePage() {
             <div className="absolute -right-5 -top-7 h-40 w-40 rounded-full bg-[#dfe8d6] blur-3xl" />
             <div className="absolute -bottom-7 -left-7 h-44 w-44 rounded-full bg-[#ebd7b2] blur-3xl" />
             <div className="relative overflow-hidden rounded-[2.2rem] border border-[#dfeee1] bg-[#dfe9dd] p-3 shadow-[0_30px_50px_rgba(18,67,59,0.12)]">
-              <div className="relative aspect-[5/4] overflow-hidden rounded-[1.8rem] bg-[linear-gradient(135deg,#9acc9d_0%,#7bc792_30%,#6ebd82_100%)]">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[1.8rem] bg-[linear-gradient(135deg,#9acc9d_0%,#7bc792_30%,#6ebd82_100%)] sm:aspect-[5/4]">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.2),transparent_25%),radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.12),transparent_22%)]" />
                 <div className="absolute left-5 top-5 rounded-full border border-white/35 bg-white/20 px-3 py-2 text-sm font-semibold text-white shadow-lg backdrop-blur-sm">
                   Personal guidance
@@ -120,12 +125,22 @@ export default function HomePage() {
                   Easy way to learn Quran and Arabic online with tajweed.
                 </div>
 
-                <div className="absolute right-5 bottom-5 h-44 w-44 rounded-full border-[16px] border-[#bfe4c7] bg-[radial-gradient(circle_at_30%_30%,#f7d7a7_0%,#f0c07b_24%,#d99862_54%,#b66f42_100%)] shadow-[inset_8px_8px_0_rgba(255,255,255,0.12)]" />
-                <div className="absolute right-12 bottom-10 h-24 w-20 rounded-[40%_40%_45%_45%] border-[10px] border-[#d8f4dc] bg-[#eafaf0] shadow-[inset_0_-10px_0_rgba(98,196,118,0.15)]" />
-                <div className="absolute right-7 bottom-7 h-20 w-28 rounded-[50%_50%_48%_48%] bg-[#d3f0d4]" />
-                <div className="absolute right-3 bottom-16 h-24 w-24 rounded-full bg-[#dceff4] opacity-80" />
+                <img
+                  src="/logo-ana-quran-light.svg?v=2026-10-31-6"
+                  alt="Ana Quran"
+                  width={140}
+                  height={197}
+                  className="absolute right-[6%] top-[42%] hidden h-[46%] w-auto -translate-y-1/2 drop-shadow-[0_14px_30px_rgba(10,60,35,0.28)] sm:block"
+                />
 
                 <div className="absolute bottom-5 left-5 right-5 text-white">
+                  <img
+                    src="/logo-ana-quran-light.svg?v=2026-10-31-6"
+                    alt="Ana Quran"
+                    width={96}
+                    height={135}
+                    className="mb-4 h-24 w-auto drop-shadow-[0_14px_30px_rgba(10,60,35,0.28)] sm:hidden"
+                  />
                   <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-white/75">
                     Ana Quran
                   </p>
@@ -141,12 +156,20 @@ export default function HomePage() {
                   <p className="text-xs font-semibold text-[#34594b]">Quran</p>
                 </div>
                 <div className="rounded-2xl bg-white/90 px-2 py-3 shadow-sm ring-1 ring-[#e5ece1]">
-                  <Languages className="mx-auto mb-1 text-[#6f8c69]" size={20} />
+                  <Languages
+                    className="mx-auto mb-1 text-[#6f8c69]"
+                    size={20}
+                  />
                   <p className="text-xs font-semibold text-[#34594b]">Arabic</p>
                 </div>
                 <div className="rounded-2xl bg-white/90 px-2 py-3 shadow-sm ring-1 ring-[#e5ece1]">
-                  <GraduationCap className="mx-auto mb-1 text-[#6f8c69]" size={20} />
-                  <p className="text-xs font-semibold text-[#34594b]">Islamic studies</p>
+                  <GraduationCap
+                    className="mx-auto mb-1 text-[#6f8c69]"
+                    size={20}
+                  />
+                  <p className="text-xs font-semibold text-[#34594b]">
+                    Islamic studies
+                  </p>
                 </div>
               </div>
             </div>
@@ -231,6 +254,8 @@ export default function HomePage() {
         </div>
       </section>
 
+      <ReviewsSection />
+
       <section className="mx-auto max-w-7xl px-5 py-20 md:px-8 md:py-24">
         <div className="overflow-hidden rounded-[2rem] bg-[#1c5145] px-7 py-12 text-center text-white shadow-xl shadow-[#1c5145]/15 md:px-16 md:py-16">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10">
@@ -265,15 +290,14 @@ export default function HomePage() {
 
       <footer id="contact" className="border-t border-[#e5e9df] bg-white">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 text-sm text-[#718078] md:flex-row md:items-center md:justify-between md:px-8">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center">
             <img
-              src="/logo.svg"
+              src="/logo-ana-quran.svg?v=2026-10-31-5"
               alt="Ana Quran"
-              width={96}
-              height={96}
-              className="h-12 w-12 md:h-14 md:w-14"
+              width={57}
+              height={80}
+              className="h-20 w-auto md:h-24"
             />
-            <span className="font-semibold text-[#23483c]">Ana Quran</span>
           </div>
           <p>Personal online learning in Quran, Arabic, and Islamic studies.</p>
           <div className="flex gap-5">

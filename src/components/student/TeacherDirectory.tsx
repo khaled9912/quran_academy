@@ -11,6 +11,7 @@ import {
   requestLessonSlot,
 } from "@/services/scheduling.service";
 import { Avatar } from "@/components/ui/avatar";
+import { StarRating } from "@/components/ui/star-rating";
 import { useAuth } from "@/providers/auth-provider";
 
 const dateTime = (value: string) =>
@@ -161,15 +162,25 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
                   />
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-lg font-semibold">
+                      <Link
+                        href={`/teachers/${teacher.teacher.id}`}
+                        className="text-lg font-semibold hover:text-green-600 hover:underline"
+                      >
                         {teacher.teacher.fullName}
-                      </h3>
+                      </Link>
                       {isAssigned && (
                         <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-green-800">
                           Your teacher
                         </span>
                       )}
                     </div>
+                    {(teacher.reviewCount ?? 0) > 0 && (
+                      <StarRating
+                        value={teacher.averageRating ?? null}
+                        count={teacher.reviewCount}
+                        className="mt-1"
+                      />
+                    )}
                     {teacher.teacher.email && (
                       <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-foreground opacity-70">
                         <Mail size={13} className="shrink-0" />

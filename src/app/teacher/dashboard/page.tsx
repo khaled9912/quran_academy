@@ -8,6 +8,7 @@ import {
   getMyAvailability,
 } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
+import { isLessonEnded } from "@/lib/lesson-feedback";
 
 const dateTime = (value: string) =>
   new Date(value).toLocaleString(undefined, {
@@ -58,10 +59,19 @@ export default function TeacherDashboardPage() {
     (slot) =>
       slot.status === "available" && new Date(slot.startsAt).getTime() >= now
   );
+  const reportsDue = lessons
+    .filter(
+      (lesson) =>
+        lesson.status !== "cancelled" &&
+        isLessonEnded(lesson.endsAt, lesson.status) &&
+        !lesson.report
+    )
+    .sort((a, b) => b.startsAt.localeCompare(a.startsAt));
 
   const metrics = [
     { title: "Upcoming lessons", value: upcomingLessons.length },
     { title: "Requests awaiting you", value: pendingRequests.length },
+    { title: "Reports due", value: reportsDue.length },
     { title: "Available slots", value: openSlots.length },
   ];
 
@@ -84,7 +94,7 @@ export default function TeacherDashboardPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           {metrics.map((metric) => (
             <div
               key={metric.title}
@@ -179,6 +189,47 @@ export default function TeacherDashboardPage() {
             )}
           </section>
         </div>
+
+        {reportsDue.length > 0 && (
+          <section className="mt-6 rounded-3xl border border-amber-200 bg-amber-50/70 p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div>
+                <h2 className="text-xl font-semibold">Class reports due</h2>
+                <p className="mt-1 text-sm text-foreground opacity-70">
+                  Every finished lesson needs a class summary and student
+                  feedback.
+                </p>
+              </div>
+              <Link
+                href="/teacher/schedule"
+                className="text-sm font-semibold text-green-700 hover:underline"
+              >
+                Open schedule →
+              </Link>
+            </div>
+            <div className="space-y-3">
+              {reportsDue.slice(0, 5).map((lesson) => (
+                <div
+                  key={lesson.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-white/70 p-4"
+                >
+                  <div>
+                    <p className="font-semibold">{dateTime(lesson.startsAt)}</p>
+                    <p className="mt-1 text-sm text-foreground opacity-70">
+                      Student: {lesson.studentName ?? "Assigned student"}
+                    </p>
+                  </div>
+                  <Link
+                    href={`/lesson/${lesson.id}`}
+                    className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-600"
+                  >
+                    Write report
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           <Link
