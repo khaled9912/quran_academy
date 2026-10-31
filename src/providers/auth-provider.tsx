@@ -17,6 +17,11 @@ import { reportUnexpectedError } from "@/lib/sentry";
 import { hasPermission } from "@/lib/permissions";
 import { ROLE_DASHBOARDS } from "@/constants/role-routes";
 import { useAuthStore } from "@/stores/useAuthStore";
+import {
+  clearCachedProfile,
+  readCachedProfile,
+  writeCachedProfile,
+} from "@/lib/session-cache";
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -67,21 +72,36 @@ function syncRoleCookie(role: UserRole | null) {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const { setUser, clearUser } = useAuthStore();
   const queryClient = useQueryClient();
   const router = useRouter();
   const pathname = usePathname();
   const hasRedirected = useRef(false);
+  // Redirects must key off where the user landed, not later navigation.
+  const initialPathRef = useRef(pathname);
+
+  const [profile, setProfile] = useState<UserProfile | null>(readCachedProfile);
+  const profileRef = useRef<UserProfile | null>(profile);
+  profileRef.current = profile;
+
+  // Only a protected page without a cached identity has to wait for the API.
+  const [isLoading, setIsLoading] = useState(
+    () => !profile && isProtectedPath(initialPathRef.current)
+  );
 
   /** Single entry point for every session change (restore, login, logout). */
   const applySession = useCallback(
     (next: UserProfile | null) => {
+      profileRef.current = next;
       setProfile(next);
       syncRoleCookie(next?.role ?? null);
-      if (next) setUser(next);
-      else clearUser();
+      if (next) {
+        writeCachedProfile(next);
+        setUser(next);
+      } else {
+        clearCachedProfile();
+        clearUser();
+      }
       queryClient.clear();
       hasRedirected.current = false;
     },
@@ -91,7 +111,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   /** Updates the cached identity without resetting session-wide queries. */
   const updateUser = useCallback(
     (next: UserProfile) => {
+      profileRef.current = next;
       setProfile(next);
+      syncRoleCookie(next.role);
+      writeCachedProfile(next);
       setUser(next);
     },
     [setUser]
@@ -99,26 +122,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let active = true;
-    // No role cookie means no session to restore: skip the round trip so public
-    // pages render immediately and the app does not hang on a sleeping API.
+    const cached = profileRef.current;
+    if (cached) {
+      setUser(cached);
+      syncRoleCookie(cached.role);
+    }
+
     const hasSessionHint = document.cookie
       .split("; ")
       .some(
         (entry) =>
           entry.startsWith("user-role=") && entry.length > "user-role=".length
       );
-    if (!hasSessionHint) {
+
+    // Public pages never call /api/auth/me without a local identity or session
+    // hint: the HttpOnly cookie is sent by the browser, so there is nothing to
+    // restore and no reason to hold the render.
+    if (!cached && !hasSessionHint && !isProtectedPath(initialPathRef.current)) {
       setIsLoading(false);
       return;
     }
+
+    // Revalidate in the background; a valid identity is already on screen.
     getCurrentUser()
       .then((currentUser) => {
-        if (active) applySession(currentUser);
+        if (!active) return;
+        if (!currentUser) {
+          applySession(null);
+          return;
+        }
+        if (profileRef.current) updateUser(currentUser);
+        else applySession(currentUser);
       })
       .catch((error) => {
-        // A 401 on first visit is expected; only unexpected failures are reported.
+        // A 401 is expected here and already resolves to null above; keep the
+        // cached identity on network failures so offline users are not logged out.
         reportUnexpectedError(error);
-        if (active) applySession(null);
+        if (active && !profileRef.current) applySession(null);
       })
       .finally(() => {
         if (active) setIsLoading(false);
@@ -126,7 +166,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       active = false;
     };
-  }, [applySession]);
+  }, [applySession, updateUser, setUser]);
 
   // A restored session can expire server-side (API restarts invalidate cookies).
   // backendFetch signals this so pages do not sit on empty, unauthorized lists.

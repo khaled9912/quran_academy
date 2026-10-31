@@ -29,11 +29,7 @@ const Menu = () => {
       {open && (
         <div className="menu-items" onClick={() => setOpen(false)}>
           {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="menu-item-link"
-            >
+            <Link key={link.href} href={link.href} className="menu-item-link">
               {link.label}
             </Link>
           ))}
@@ -47,10 +43,7 @@ const Menu = () => {
               </Link>
             </>
           ) : (
-            <button
-              onClick={logout}
-              className="menu-item-button"
-            >
+            <button onClick={logout} className="menu-item-button">
               Logout
             </button>
           )}

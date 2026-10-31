@@ -117,7 +117,10 @@ function TeacherReportSection({
     },
     onError: (error) =>
       setFormError(
-        errorMessage(error, "Unable to save the class report. Please try again.")
+        errorMessage(
+          error,
+          "Unable to save the class report. Please try again."
+        )
       ),
   });
 
@@ -130,7 +133,9 @@ function TeacherReportSection({
       return;
     }
     if (studentFeedback.trim().length < 10) {
-      setFormError("Give feedback about the student in at least 10 characters.");
+      setFormError(
+        "Give feedback about the student in at least 10 characters."
+      );
       return;
     }
     mutation.mutate();
@@ -261,8 +266,14 @@ function TeacherReportSection({
             disabled={mutation.isPending}
             className="inline-flex items-center gap-2 rounded-xl bg-green-500 px-6 py-3 font-semibold text-white transition hover:bg-green-600 disabled:opacity-50"
           >
-            {mutation.isPending && <Loader2 size={18} className="animate-spin" />}
-            {mutation.isPending ? "Saving…" : report ? "Save report" : "Submit report"}
+            {mutation.isPending && (
+              <Loader2 size={18} className="animate-spin" />
+            )}
+            {mutation.isPending
+              ? "Saving…"
+              : report
+                ? "Save report"
+                : "Submit report"}
           </button>
           {report && (
             <button
@@ -441,8 +452,14 @@ function StudentReviewSection({
             disabled={mutation.isPending}
             className="inline-flex items-center gap-2 rounded-xl bg-green-500 px-6 py-3 font-semibold text-white transition hover:bg-green-600 disabled:opacity-50"
           >
-            {mutation.isPending && <Loader2 size={18} className="animate-spin" />}
-            {mutation.isPending ? "Saving…" : review ? "Save review" : "Submit review"}
+            {mutation.isPending && (
+              <Loader2 size={18} className="animate-spin" />
+            )}
+            {mutation.isPending
+              ? "Saving…"
+              : review
+                ? "Save review"
+                : "Submit review"}
           </button>
           {review && (
             <button
@@ -468,8 +485,12 @@ export function LessonFeedback({
   lesson: Lesson;
   role?: string | null;
 }) {
-  const [report, setReport] = useState<LessonReport | null>(lesson.report ?? null);
-  const [review, setReview] = useState<TeacherReview | null>(lesson.review ?? null);
+  const [report, setReport] = useState<LessonReport | null>(
+    lesson.report ?? null
+  );
+  const [review, setReview] = useState<TeacherReview | null>(
+    lesson.review ?? null
+  );
 
   useEffect(() => {
     setReport(lesson.report ?? null);
@@ -479,7 +500,11 @@ export function LessonFeedback({
   if (role === "teacher") {
     return (
       <div className="space-y-6">
-        <TeacherReportSection lesson={lesson} report={report} onSaved={setReport} />
+        <TeacherReportSection
+          lesson={lesson}
+          report={report}
+          onSaved={setReport}
+        />
         {review && (
           <section className="rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
             <h2 className="flex items-center gap-2 text-xl font-semibold">
@@ -499,7 +524,11 @@ export function LessonFeedback({
     return (
       <div className="space-y-6">
         <StudentReportCard report={report} />
-        <StudentReviewSection lesson={lesson} review={review} onSaved={setReview} />
+        <StudentReviewSection
+          lesson={lesson}
+          review={review}
+          onSaved={setReview}
+        />
       </div>
     );
   }

@@ -58,7 +58,10 @@ const Navbar = () => {
           </Link>
 
           <div className="hidden md:flex items-center gap-6 text-sm font-medium text-[var(--navbar-text)]/80">
-            <Link href="/" className="transition hover:text-[var(--navbar-text)]">
+            <Link
+              href="/"
+              className="transition hover:text-[var(--navbar-text)]"
+            >
               Home
             </Link>
             {links.map((link) => (

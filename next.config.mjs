@@ -9,6 +9,14 @@ const nextConfig = {
   turbopack: {
     root: __dirname,
   },
+  async rewrites() {
+    // Same-origin proxy to the .NET API: keeps the auth cookie on this domain,
+    // so middleware.ts can read it and browsers do not treat it as third-party.
+    // Inert unless API_ORIGIN is set at build time.
+    const apiOrigin = process.env.API_ORIGIN?.replace(/\/$/, "");
+    if (!apiOrigin) return [];
+    return [{ source: "/api/:path*", destination: `${apiOrigin}/api/:path*` }];
+  },
   images: {
     remotePatterns: [
       {

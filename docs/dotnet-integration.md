@@ -92,10 +92,10 @@ Avatars live in a separate `UserAvatars` table (`bytea`) so user queries never l
 
 ## Teacher directory and self-service booking
 
-| Method | Endpoint                     | Purpose                                             |
-| ------ | ---------------------------- | --------------------------------------------------- |
+| Method | Endpoint                     | Purpose                                                                |
+| ------ | ---------------------------- | ---------------------------------------------------------------------- |
 | GET    | `/api/teachers/directory`    | Active teachers with their future `available` slots and rating summary |
-| GET    | `/api/teachers/{id}/profile` | One active teacher plus open slots and latest reviews |
+| GET    | `/api/teachers/{id}/profile` | One active teacher plus open slots and latest reviews                  |
 
 Each item has the shape `{ "teacher": { ...UserDto }, "slots": [ ... ] }`. A student may request any teacher's open slot with `POST /api/lesson-requests`. When the request is created, the API claims the slot and makes that teacher the student's active assignment inside the same transaction. The request then follows the normal `pending_teacher → pending_admin → approved` flow.
 
@@ -255,13 +255,13 @@ A lesson has `id`, `teacherId`, `studentId`, `startsAt`, `endsAt`, `status`, opt
 
 ## Class reports and teacher reviews
 
-| Method | Endpoint                  | Purpose                                             |
-| ------ | ------------------------- | --------------------------------------------------- |
-| GET    | `/api/lessons/{id}/report` | Class report (participant/admin); `404` when absent |
+| Method | Endpoint                   | Purpose                                                                             |
+| ------ | -------------------------- | ----------------------------------------------------------------------------------- |
+| GET    | `/api/lessons/{id}/report` | Class report (participant/admin); `404` when absent                                 |
 | POST   | `/api/lessons/{id}/report` | Teacher submits `{ classSummary, studentFeedback, progress }` after the lesson ends |
-| GET    | `/api/lessons/{id}/review` | Teacher review (participant/admin); `404` when absent |
-| POST   | `/api/lessons/{id}/review` | Student submits `{ rating, comment? }` after the lesson ends |
-| GET    | `/api/profile/reports`     | Role-scoped report history for the profile page     |
+| GET    | `/api/lessons/{id}/review` | Teacher review (participant/admin); `404` when absent                               |
+| POST   | `/api/lessons/{id}/review` | Student submits `{ rating, comment? }` after the lesson ends                        |
+| GET    | `/api/profile/reports`     | Role-scoped report history for the profile page                                     |
 
 Rules enforced by the API: one report and one review per lesson; both are rejected before `endsAt` and for cancelled lessons; a report marks the lesson `completed`; `progress` is `excellent`, `good`, or `needs_attention`; `rating` is 1–5. Public teacher responses expose only name, avatar, rating summary, and reviews.
 

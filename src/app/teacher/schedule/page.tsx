@@ -178,13 +178,13 @@ export default function TeacherSchedulePage() {
                         {(lesson.status === "scheduled" ||
                           lesson.status === "in_progress") &&
                           !isLessonEnded(lesson.endsAt, lesson.status) && (
-                          <Link
-                            href={`/lesson/${lesson.id}`}
-                            className="rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
-                          >
-                            Join lesson
-                          </Link>
-                        )}
+                            <Link
+                              href={`/lesson/${lesson.id}`}
+                              className="rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
+                            >
+                              Join lesson
+                            </Link>
+                          )}
                         {lesson.status !== "cancelled" &&
                           isLessonEnded(lesson.endsAt, lesson.status) &&
                           (lesson.report ? (

@@ -43,9 +43,7 @@ export default function TeacherDashboardPage() {
   const requests = requestsQuery.data ?? [];
   const slots = availabilityQuery.data ?? [];
   const failed =
-    lessonsQuery.isError ||
-    requestsQuery.isError ||
-    availabilityQuery.isError;
+    lessonsQuery.isError || requestsQuery.isError || availabilityQuery.isError;
   const now = Date.now();
 
   const upcomingLessons = lessons

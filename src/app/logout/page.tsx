@@ -1,19 +1,20 @@
 "use client";
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { signOut } from "@/services/auth.service";
 import { reportUnexpectedError } from "@/lib/sentry";
+import { clearCachedProfile } from "@/lib/session-cache";
 export default function LogoutPage() {
-  const router = useRouter();
   useEffect(() => {
     signOut()
       .catch((error) => reportUnexpectedError(error))
       .finally(() => {
+        clearCachedProfile();
         document.cookie = "user-role=; Path=/; Max-Age=0; SameSite=Lax";
-        router.replace("/login");
-        router.refresh();
+        // Full navigation is intentional: it drops the in-memory session so the
+        // provider cannot redirect back to the dashboard from /login.
+        window.location.replace("/login");
       });
-  }, [router]);
+  }, []);
   return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-8">
       <div className="rounded-3xl border border-card-border bg-card-bg p-10 text-center shadow-lg">

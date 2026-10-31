@@ -24,7 +24,9 @@ export default function PublicTeachersPage() {
             <p className="text-sm font-bold uppercase tracking-[.18em] text-green-600">
               Our teachers
             </p>
-            <h1 className="mt-2 text-4xl font-bold">Learn from reviewed tutors</h1>
+            <h1 className="mt-2 text-4xl font-bold">
+              Learn from reviewed tutors
+            </h1>
             <p className="mt-2 max-w-2xl text-lg text-foreground opacity-75">
               Every rating comes from a student after a completed lesson. Open a
               teacher to read their reviews and book a time.
@@ -68,7 +70,9 @@ export default function PublicTeachersPage() {
                       className="h-16 w-16 rounded-2xl text-xl"
                     />
                     <div className="min-w-0">
-                      <h2 className="text-lg font-semibold">{teacher.fullName}</h2>
+                      <h2 className="text-lg font-semibold">
+                        {teacher.fullName}
+                      </h2>
                       <StarRating
                         value={teacher.averageRating ?? null}
                         count={teacher.reviewCount}
@@ -84,7 +88,8 @@ export default function PublicTeachersPage() {
                           Latest review
                         </p>
                         <p className="mt-2 line-clamp-4 text-sm">
-                          {latestReview.comment || "Rated the lesson without a comment."}
+                          {latestReview.comment ||
+                            "Rated the lesson without a comment."}
                         </p>
                         <p className="mt-2 text-xs text-foreground opacity-60">
                           {latestReview.studentName} ·{" "}

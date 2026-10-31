@@ -18,7 +18,9 @@ export function StarRating({
 }) {
   if (value == null || count === 0) {
     return (
-      <span className={`text-xs font-semibold text-foreground opacity-60 ${className}`}>
+      <span
+        className={`text-xs font-semibold text-foreground opacity-60 ${className}`}
+      >
         No reviews yet
       </span>
     );
@@ -31,7 +33,10 @@ export function StarRating({
       className={`inline-flex items-center gap-1 ${className}`}
       aria-label={`${value.toFixed(1)} out of 5 stars from ${count ?? 0} review${count === 1 ? "" : "s"}`}
     >
-      <span className="inline-flex items-center gap-0.5 text-amber-500" aria-hidden>
+      <span
+        className="inline-flex items-center gap-0.5 text-amber-500"
+        aria-hidden
+      >
         {STARS.map((star) => (
           <Star
             key={star}

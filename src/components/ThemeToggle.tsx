@@ -33,7 +33,9 @@ export function ThemeToggle({ className = "" }: ThemeToggleProps) {
     <button
       type="button"
       onClick={() => setTheme((prev) => (prev === "dark" ? "light" : "dark"))}
-      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      aria-label={
+        theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+      }
       className={className || "theme-toggle"}
     >
       {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
