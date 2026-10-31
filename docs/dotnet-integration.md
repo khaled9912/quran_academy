@@ -34,8 +34,15 @@ For production, prefer a same-origin reverse proxy so the API's HttpOnly session
 | POST   | `/api/auth/login`       | Sign in                                |
 | GET    | `/api/auth/me`          | Current authenticated user             |
 | POST   | `/api/auth/logout`      | End session                            |
+| POST   | `/api/auth/change-password` | Change the signed-in user's password (profile page) |
+| POST   | `/api/auth/password/request` | Email a one-time password reset code |
+| POST   | `/api/auth/password/reset` | Set a new password with the email code |
 | POST   | `/api/auth/otp/request` | Send a sign-in/sign-up code to a phone |
 | POST   | `/api/auth/otp/verify`  | Verify the code and start a session    |
+
+`POST /api/auth/change-password` takes `{ "currentPassword": "...", "newPassword": "..." }`, returns `204`, rotates the caller's cookie, and signs other devices out. It returns `409` for phone-only accounts and `400` with `currentPassword`/`newPassword` errors. Admins can still reset a teacher or student password through `PATCH /api/admin/users/{id}`.
+
+Password reset is anonymous and email-based. `POST /api/auth/password/request` takes `{ "email" }` and always answers `202` with a generic message (no account enumeration); the code expires after 15 minutes and resend is throttled to one per minute. In Development it returns `devCode` (`8888` by default). `POST /api/auth/password/reset` takes `{ "email", "code", "newPassword" }`, returns `204`, and invalidates existing sessions; an invalid or expired code returns `401`. Both return `503` when SMTP is not configured, so production needs `Email__Enabled=true`, `Email__SmtpHost`, `Email__SmtpPort`, `Email__Username`, `Email__Password`, and `Email__From`.
 
 ### Phone OTP
 

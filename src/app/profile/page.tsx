@@ -9,6 +9,7 @@ import {
   Camera,
   CheckCircle2,
   ClipboardList,
+  KeyRound,
   Loader2,
   Mail,
   Phone,
@@ -27,6 +28,7 @@ import {
   type UpdateProfileInput,
 } from "@/services/profile.service";
 import { useAuth } from "@/providers/auth-provider";
+import { changePassword } from "@/services/auth.service";
 import {
   lessonDateTime,
   progressClasses,
@@ -73,6 +75,11 @@ export default function ProfilePage() {
   const [notice, setNotice] = useState("");
   const [formError, setFormError] = useState("");
   const [avatarError, setAvatarError] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordNotice, setPasswordNotice] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const saveMutation = useMutation({
@@ -125,6 +132,33 @@ export default function ProfilePage() {
         error instanceof ApiError
           ? error.message
           : "Unable to remove the image. Please try again."
+      );
+    },
+  });
+
+  const passwordMutation = useMutation({
+    mutationFn: ({
+      currentPassword,
+      newPassword,
+    }: {
+      currentPassword: string;
+      newPassword: string;
+    }) => changePassword(currentPassword, newPassword),
+    onSuccess: () => {
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setPasswordError("");
+      setPasswordNotice(
+        "Your password has been changed. Other devices were signed out."
+      );
+    },
+    onError: (error) => {
+      setPasswordNotice("");
+      setPasswordError(
+        error instanceof ApiError
+          ? error.message
+          : "Unable to change your password. Please try again."
       );
     },
   });
@@ -200,6 +234,32 @@ export default function ProfilePage() {
     }
 
     saveMutation.mutate(input);
+  };
+
+  const handlePasswordSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (passwordMutation.isPending) return;
+    setPasswordError("");
+    setPasswordNotice("");
+
+    if (!currentPassword) {
+      setPasswordError("Enter your current password.");
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordError("Choose a new password of at least 8 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("The new passwords do not match.");
+      return;
+    }
+    if (newPassword === currentPassword) {
+      setPasswordError("Choose a password different from your current one.");
+      return;
+    }
+
+    passwordMutation.mutate({ currentPassword, newPassword });
   };
 
   const busy =
@@ -398,6 +458,114 @@ export default function ProfilePage() {
             </form>
           </section>
         </div>
+
+        <section className="mt-8 rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <KeyRound size={20} className="text-green-600" />
+            Password
+          </h2>
+          <p className="mt-1 text-sm text-foreground opacity-70">
+            Change the password you use to sign in with your email. Accounts
+            created with a phone number have no password.
+          </p>
+
+          <form
+            onSubmit={handlePasswordSubmit}
+            className="mt-5 grid gap-5 md:grid-cols-3"
+          >
+            <div>
+              <label
+                htmlFor="current-password"
+                className="mb-2 block text-sm font-semibold"
+              >
+                Current password
+              </label>
+              <input
+                id="current-password"
+                type="password"
+                value={currentPassword}
+                onChange={(event) => setCurrentPassword(event.target.value)}
+                autoComplete="current-password"
+                required
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="new-password"
+                className="mb-2 block text-sm font-semibold"
+              >
+                New password
+              </label>
+              <input
+                id="new-password"
+                type="password"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                autoComplete="new-password"
+                required
+                minLength={8}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="confirm-password"
+                className="mb-2 block text-sm font-semibold"
+              >
+                Confirm new password
+              </label>
+              <input
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                autoComplete="new-password"
+                required
+                minLength={8}
+                className={inputClass}
+              />
+            </div>
+
+            <div className="md:col-span-3">
+              <p className="text-xs text-foreground opacity-60">
+                At least 8 characters, including a number and a lowercase
+                letter.
+              </p>
+
+              {passwordNotice && (
+                <p
+                  role="status"
+                  className="mt-4 flex items-start gap-2 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800"
+                >
+                  <CheckCircle2 size={18} className="mt-0.5 shrink-0" />
+                  {passwordNotice}
+                </p>
+              )}
+              {passwordError && (
+                <p
+                  role="alert"
+                  className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+                >
+                  {passwordError}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={passwordMutation.isPending}
+                className="mt-4 inline-flex items-center gap-2 rounded-xl bg-green-500 px-6 py-3 font-semibold text-white transition hover:bg-green-600 disabled:opacity-50"
+              >
+                {passwordMutation.isPending && (
+                  <Loader2 size={18} className="animate-spin" />
+                )}
+                {passwordMutation.isPending
+                  ? "Updating…"
+                  : "Change password"}
+              </button>
+            </div>
+          </form>
+        </section>
 
         <section className="mt-8 rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
           <h2 className="flex items-center gap-2 text-lg font-semibold">

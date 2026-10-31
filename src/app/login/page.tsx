@@ -230,12 +230,20 @@ const LoginPage = () => {
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-semibold mb-2"
-              >
-                Password
-              </label>
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-semibold"
+                >
+                  Password
+                </label>
+                <Link
+                  href="/forgot-password"
+                  className="text-xs font-semibold text-green-600 hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <input
                 id="password"
                 type="password"

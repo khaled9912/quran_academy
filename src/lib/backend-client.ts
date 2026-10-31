@@ -43,6 +43,19 @@ export class ApiError extends Error {
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
+// Non-JSON bodies (IIS/offline/proxy pages) must never reach the UI as raw HTML.
+const statusMessage = (status: number): string => {
+  if (status === 401) return "Your session has expired. Please sign in again.";
+  if (status === 403) return "You do not have permission to do that.";
+  if (status === 404) return "The requested resource was not found.";
+  if (status === 408) return "The server took too long to respond. Please try again.";
+  if (status === 429) return "Too many attempts. Please wait a moment and try again.";
+  if (status === 500) return "The server reported an error. Please try again.";
+  if (status === 502 || status === 503 || status === 504)
+    return "The service is temporarily unavailable. Please try again in a moment.";
+  return `API request failed (${status}).`;
+};
+
 // ASP.NET ValidationProblemDetails puts the useful messages in `errors` and a generic title on top.
 function readValidationErrors(payload: unknown): ValidationErrors | undefined {
   if (!isObject(payload) || !isObject(payload.errors)) return undefined;
@@ -99,7 +112,7 @@ export async function backendFetch<T = unknown>(
   const contentType = response.headers.get("content-type") ?? "";
   const payload = contentType.includes("json")
     ? await response.json().catch(() => null)
-    : await response.text().catch(() => "");
+    : null;
   if (!response.ok) {
     // A 401 means the server session is gone (e.g. API restart); let the auth
     // provider clear local state instead of leaving pages with empty data.
@@ -107,22 +120,20 @@ export async function backendFetch<T = unknown>(
       response.status === 401 &&
       !path.startsWith("/api/auth/login") &&
       !path.startsWith("/api/auth/register") &&
+      !path.startsWith("/api/auth/password") &&
       typeof window !== "undefined"
     ) {
       window.dispatchEvent(new Event("academy:unauthorized"));
     }
     const validationErrors = readValidationErrors(payload);
+    const serverMessage = isObject(payload)
+      ? payload.message ?? payload.detail ?? payload.title ?? payload.error
+      : undefined;
     const message = validationErrors
       ? Object.values(validationErrors).flat().join(" ")
-      : isObject(payload)
-        ? String(
-            payload.message ??
-              payload.detail ??
-              payload.title ??
-              payload.error ??
-              `API request failed (${response.status})`
-          )
-        : String(payload || `API request failed (${response.status})`);
+      : typeof serverMessage === "string" && serverMessage.trim()
+        ? serverMessage
+        : statusMessage(response.status);
     throw new ApiError(message, response.status, payload, validationErrors);
   }
   return payload as T;

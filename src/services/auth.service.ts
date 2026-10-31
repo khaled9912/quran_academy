@@ -18,6 +18,27 @@ export const signUp = (fullName: string, email: string, password: string) =>
     body: JSON.stringify({ fullName, email, password }),
   });
 
+export interface PasswordResetRequestResponse {
+  message: string;
+  devCode?: string | null;
+}
+
+export const requestPasswordReset = (email: string) =>
+  backendFetch<PasswordResetRequestResponse>("/api/auth/password/request", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+
+export const resetPassword = (
+  email: string,
+  code: string,
+  newPassword: string
+) =>
+  backendFetch<null>("/api/auth/password/reset", {
+    method: "POST",
+    body: JSON.stringify({ email, code, newPassword }),
+  });
+
 export interface OtpRequestResponse {
   message: string;
   devMode?: boolean;
@@ -76,3 +97,9 @@ export const getCurrentUser = (): Promise<UserProfile | null> => {
 
 export const signOut = () =>
   backendFetch<null>("/api/auth/logout", { method: "POST" });
+
+export const changePassword = (currentPassword: string, newPassword: string) =>
+  backendFetch<null>("/api/auth/change-password", {
+    method: "POST",
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
