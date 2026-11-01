@@ -39,8 +39,12 @@ export default function LessonCallPage() {
   });
 
   const lesson = lessonQuery.data;
+  const isSupport = role === "admin" || role === "super_admin";
   const displayName =
     profile?.fullName ?? profile?.full_name ?? profile?.email ?? "Guest";
+  const roomDisplayName = isSupport
+    ? `${displayName} (Academy support)`
+    : displayName;
   const backHref =
     role === "teacher"
       ? "/teacher/schedule"
@@ -92,10 +96,10 @@ export default function LessonCallPage() {
       lessonId: id,
       room,
       domain: JITSI_DOMAIN,
-      displayName,
+      displayName: roomDisplayName,
       backHref,
     });
-  }, [showingRoom, lesson, id, room, displayName, backHref, startCall]);
+  }, [showingRoom, lesson, id, room, roomDisplayName, backHref, startCall]);
 
   if (authLoading || !profile) return null;
 
@@ -135,6 +139,14 @@ export default function LessonCallPage() {
             <RefreshCw size={16} /> Refresh
           </button>
         </div>
+
+        {isSupport ? (
+          <p className="mb-6 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm">
+            Academy support view: opening this room adds you to the call as a
+            third participant. Both sides will see “{displayName} (Academy
+            support)” instead of your plain name.
+          </p>
+        ) : null}
 
         {lessonQuery.isLoading ? (
           <div className="rounded-2xl border border-dashed border-card-border bg-card-bg p-10 text-center text-foreground opacity-70">

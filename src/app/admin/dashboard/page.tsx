@@ -147,6 +147,15 @@ export default function AdminDashboardPage() {
             </p>
           </Link>
           <Link
+            href="/admin/lessons"
+            className="rounded-3xl border border-card-border bg-card-bg p-6 hover:border-green-500 transition"
+          >
+            <h2 className="text-xl font-semibold mb-2">Lesson rooms</h2>
+            <p className="text-foreground opacity-75">
+              Open any confirmed lesson to support the teacher and student.
+            </p>
+          </Link>
+          <Link
             href="/admin/transcripts"
             className="rounded-3xl border border-card-border bg-card-bg p-6 hover:border-green-500 transition"
           >

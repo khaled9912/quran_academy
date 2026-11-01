@@ -296,6 +296,8 @@ After `endsAt` the page closes the room and switches to the lesson recap: teache
 
 Either participant can open the room; there is no presence check or heartbeat. The page registers the room on load and the "Show lesson room" button re-opens it after navigation, so nobody waits for the other side to arrive.
 
+Admins and super admins can open any confirmed lesson room as academy support: `/admin/lessons` lists live, upcoming, and past lessons with a link to `/lesson/{id}`. The API already authorizes admins on the lesson, report, and review reads; the room adds "(Academy support)" to the admin's Jitsi display name so the teacher and student know why a third person joined. The start-time gate still applies to admins, and the room allows three participants (there is no participant cap on the Jitsi deployment).
+
 The room is unlisted, not access-controlled. The Jitsi room itself is unlisted rather than locked: anyone who knows the room name can join directly on the Jitsi deployment, and display names are not verified. Real enforcement requires a JWT-enabled Jitsi (JaaS or self-hosted) where only the teacher receives a moderator token and the room is protected by lobby or required moderator.
 
 ## Lesson transcripts and off-platform flags
@@ -335,6 +337,6 @@ Prefer RFC 7807 Problem Details. Common status codes: `400` validation, `401` un
 - `/profile` — student/teacher/admin profile: name, email, mobile, photo, and class-report history
 - `/student/dashboard`, `/student/availability`, `/schedule`, `/lesson/{id}` — student overview, teacher directory booking, schedule, and post-lesson recap/review
 - `/teacher/dashboard`, `/teacher/availability`, `/teacher/lesson-requests`, `/teacher/schedule` — teacher tools including report-due indicators
-- `/admin/dashboard`, `/admin/lesson-approvals`, `/admin/students`, `/admin/teachers`, `/admin/teachers/{id}/availability`, `/admin/teacher-applications`, `/admin/assignments`, `/admin/transcripts` — admin tools
+- `/admin/dashboard`, `/admin/lesson-approvals`, `/admin/students`, `/admin/teachers`, `/admin/teachers/{id}/availability`, `/admin/teacher-applications`, `/admin/assignments`, `/admin/lessons`, `/admin/transcripts` — admin tools
 
 The landing page is implemented in `src/app/page.tsx`. Feature screens are App Router `page.tsx` files; do not add a `pages/` directory.
