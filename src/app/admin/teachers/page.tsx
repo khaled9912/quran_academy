@@ -181,8 +181,8 @@ export default function AdminTeachersPage() {
           </Link>
           <h1 className="text-4xl font-bold mb-2">Teachers</h1>
           <p className="text-lg text-foreground opacity-75">
-            Create, edit, deactivate teacher accounts and publish availability
-            on their behalf.
+            Create, edit, deactivate teacher accounts and publish weekly
+            availability on their behalf.
           </p>
         </div>
 
@@ -402,7 +402,7 @@ export default function AdminTeachersPage() {
                               href={`/admin/teachers/${teacher.id}/availability`}
                               className="inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2 text-sm font-semibold hover:border-green-500"
                             >
-                              <CalendarPlus size={15} /> Slots
+                              <CalendarPlus size={15} /> Weekly times
                             </Link>
                           )}
                           <button
@@ -410,7 +410,7 @@ export default function AdminTeachersPage() {
                               if (
                                 !active ||
                                 window.confirm(
-                                  "Deactivate this teacher? Their assignments and open slots will be removed."
+                                  "Deactivate this teacher? Their assignments and weekly times will be removed."
                                 )
                               ) {
                                 setError("");

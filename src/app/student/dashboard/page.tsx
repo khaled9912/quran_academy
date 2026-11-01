@@ -7,11 +7,13 @@ import {
   GraduationCap,
   Hourglass,
   RefreshCw,
+  Repeat,
   Video,
 } from "lucide-react";
 import type { Lesson } from "@/types/lesson";
 import { useStudentDashboard } from "@/features/students/hooks/useStudentDashboard";
 import { TeacherDirectory } from "@/components/student/TeacherDirectory";
+import { WEEKDAY_SHORT, formatWeeklySlot } from "@/lib/utils";
 
 const dateTime = (value: string) =>
   new Date(value).toLocaleString(undefined, {
@@ -22,14 +24,16 @@ const dateTime = (value: string) =>
     minute: "2-digit",
   });
 
-const requestStatusLabels: Record<string, string> = {
-  pending_teacher: "Awaiting teacher confirmation",
-  pending_student: "Awaiting your confirmation",
-  pending_admin: "Awaiting academy approval",
+const changeStatusLabels: Record<string, string> = {
+  pending: "Awaiting academy",
   approved: "Approved",
-  rejected: "Rejected",
-  cancelled: "Cancelled",
-  expired: "Expired",
+  rejected: "Declined",
+};
+
+const changeStatusStyles: Record<string, string> = {
+  pending: "bg-amber-100 text-amber-800",
+  approved: "bg-green-100 text-green-800",
+  rejected: "bg-red-100 text-red-700",
 };
 
 const statusStyles: Record<Lesson["status"], string> = {
@@ -40,7 +44,7 @@ const statusStyles: Record<Lesson["status"], string> = {
 };
 
 const StudentDashboard = () => {
-  const { lessonsQuery, availabilityQuery, requestsQuery } =
+  const { lessonsQuery, availabilityQuery, changesQuery } =
     useStudentDashboard();
   const lessons = lessonsQuery.data ?? [];
   const sorted = [...lessons].sort((a, b) =>
@@ -56,17 +60,18 @@ const StudentDashboard = () => {
   const completed = sorted.filter((lesson) => lesson.status === "completed");
   const cancelled = sorted.filter((lesson) => lesson.status === "cancelled");
   const teacher = availabilityQuery.data?.teacher;
-  const requests = requestsQuery.data ?? [];
-  const openRequests = requests.filter((request) =>
-    request.status.startsWith("pending_")
+  const series = availabilityQuery.data?.series ?? [];
+  const changes = changesQuery.data ?? [];
+  const pendingChanges = changes.filter(
+    (change) => change.status === "pending"
   );
   const queryError =
-    lessonsQuery.error ?? availabilityQuery.error ?? requestsQuery.error;
+    lessonsQuery.error ?? availabilityQuery.error ?? changesQuery.error;
 
   const refreshAll = () => {
     void lessonsQuery.refetch();
     void availabilityQuery.refetch();
-    void requestsQuery.refetch();
+    void changesQuery.refetch();
   };
 
   return (
@@ -76,7 +81,7 @@ const StudentDashboard = () => {
           <div>
             <h1 className="text-4xl font-bold mb-2">Student Dashboard</h1>
             <p className="text-lg text-foreground opacity-75">
-              Your confirmed lessons and what is coming next.
+              Your weekly times and what is coming next.
             </p>
           </div>
           <button
@@ -105,7 +110,7 @@ const StudentDashboard = () => {
                 href="/student/availability"
                 className="rounded-xl bg-green-500 px-4 py-3 text-center font-semibold text-white transition hover:bg-green-600"
               >
-                Book a lesson
+                Book weekly times
               </Link>
               <Link
                 href="/schedule"
@@ -119,57 +124,127 @@ const StudentDashboard = () => {
 
             <section className="bg-card-bg border border-card-border rounded-3xl p-6 md:p-8">
               <div className="flex items-center gap-3 mb-6">
+                <Repeat className="text-green-600" />
+                <h2 className="text-2xl font-semibold">Your weekly times</h2>
+              </div>
+              {availabilityQuery.isLoading ? (
+                <p className="text-foreground opacity-70">
+                  Loading your weekly times…
+                </p>
+              ) : series.length ? (
+                <div className="space-y-3">
+                  {series.map((item) => {
+                    const pending = pendingChanges.some(
+                      (change) => change.seriesId === item.id
+                    );
+                    return (
+                      <div
+                        key={item.id}
+                        className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-card-border p-4"
+                      >
+                        <div>
+                          <p className="font-semibold">
+                            {formatWeeklySlot(
+                              item.dayOfWeek,
+                              item.startsAtTime,
+                              item.endsAtTime
+                            )}
+                          </p>
+                          <p className="mt-1 text-sm text-foreground opacity-70">
+                            With {item.teacherName} · repeats every{" "}
+                            {WEEKDAY_SHORT[item.dayOfWeek]}
+                          </p>
+                          {pending && (
+                            <p className="mt-1 text-xs font-semibold text-amber-700">
+                              Time change awaiting the academy
+                            </p>
+                          )}
+                        </div>
+                        <Link
+                          href={`/student/change-time/${item.id}`}
+                          className={`rounded-xl border border-card-border px-4 py-2 text-sm font-semibold transition ${
+                            pending
+                              ? "pointer-events-none opacity-50"
+                              : "hover:border-green-500"
+                          }`}
+                        >
+                          Change time
+                        </Link>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-foreground opacity-70">
+                  No weekly time booked yet.{" "}
+                  <Link
+                    href="/student/availability"
+                    className="font-semibold text-green-600 hover:underline"
+                  >
+                    Choose weekly times
+                  </Link>{" "}
+                  with a teacher.
+                </p>
+              )}
+            </section>
+
+            <section className="bg-card-bg border border-card-border rounded-3xl p-6 md:p-8">
+              <div className="flex items-center gap-3 mb-6">
                 <Hourglass className="text-green-600" />
-                <h2 className="text-2xl font-semibold">Lesson requests</h2>
-              </div>{" "}
-              {requestsQuery.isLoading ? (
+                <h2 className="text-2xl font-semibold">Time change requests</h2>
+              </div>
+              {changesQuery.isLoading ? (
                 <p className="text-foreground opacity-70">
                   Loading your requests…
                 </p>
-              ) : requests.length ? (
+              ) : changes.length ? (
                 <div className="space-y-3">
-                  {requests.slice(0, 5).map((request) => (
+                  {changes.slice(0, 5).map((change) => (
                     <div
-                      key={request.id}
-                      className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-card-border p-4"
+                      key={change.id}
+                      className="rounded-2xl border border-card-border p-4"
                     >
-                      <div>
-                        <p className="font-medium">
-                          {dateTime(request.startsAt)}
-                        </p>
-                        <p className="text-sm text-foreground opacity-70">
-                          Teacher:{" "}
-                          {request.teacherName ??
-                            teacher?.fullName ??
-                            "Assigned teacher"}
-                        </p>
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="font-medium">
+                            {formatWeeklySlot(
+                              change.currentDayOfWeek,
+                              change.currentStartsAtTime,
+                              change.currentEndsAtTime
+                            )}{" "}
+                            →{" "}
+                            {formatWeeklySlot(
+                              change.requestedDayOfWeek,
+                              change.requestedStartsAtTime,
+                              change.requestedEndsAtTime
+                            )}
+                          </p>
+                          <p className="mt-1 text-sm text-foreground opacity-70">
+                            Requested{" "}
+                            {new Date(change.createdAt).toLocaleDateString()}
+                          </p>
+                          {change.adminNote && (
+                            <p className="mt-1 text-sm text-foreground opacity-70">
+                              Academy: {change.adminNote}
+                            </p>
+                          )}
+                        </div>
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                            changeStatusStyles[change.status] ??
+                            "bg-gray-100 text-gray-700"
+                          }`}
+                        >
+                          {changeStatusLabels[change.status] ?? change.status}
+                        </span>
                       </div>
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                          request.status.startsWith("pending_")
-                            ? "bg-amber-100 text-amber-800"
-                            : request.status === "rejected" ||
-                                request.status === "cancelled" ||
-                                request.status === "expired"
-                              ? "bg-red-100 text-red-700"
-                              : "bg-green-100 text-green-800"
-                        }`}
-                      >
-                        {requestStatusLabels[request.status] ?? request.status}
-                      </span>
                     </div>
                   ))}
                 </div>
               ) : (
                 <p className="text-foreground opacity-70">
-                  You have not requested a lesson yet.{" "}
-                  <Link
-                    href="/student/availability"
-                    className="font-semibold text-green-600 hover:underline"
-                  >
-                    Choose an available time
-                  </Link>
-                  .
+                  You have not asked to change a weekly time. Your booked times
+                  repeat every week.
                 </p>
               )}
             </section>
@@ -208,10 +283,17 @@ const StudentDashboard = () => {
                           </p>
                         </div>
                         <div className="flex flex-col items-end gap-2">
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[lesson.status]}`}
-                          >
-                            {lesson.status.replaceAll("_", " ")}
+                          <span className="flex flex-wrap justify-end gap-2">
+                            {lesson.isTrial && (
+                              <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
+                                Trial
+                              </span>
+                            )}
+                            <span
+                              className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[lesson.status]}`}
+                            >
+                              {lesson.status.replaceAll("_", " ")}
+                            </span>
                           </span>
                           <Link
                             href={`/lesson/${lesson.id}`}
@@ -226,24 +308,14 @@ const StudentDashboard = () => {
                 </div>
               ) : (
                 <div className="rounded-2xl border border-dashed border-card-border p-8 text-center text-foreground opacity-70">
-                  {openRequests.length ? (
-                    <>
-                      You have a lesson request awaiting approval. Your lesson
-                      will appear here once your teacher and the academy confirm
-                      it.
-                    </>
-                  ) : (
-                    <>
-                      No confirmed lessons yet.{" "}
-                      <Link
-                        href="/student/availability"
-                        className="font-semibold text-green-600 hover:underline"
-                      >
-                        Choose an available time
-                      </Link>{" "}
-                      to request your first lesson.
-                    </>
-                  )}
+                  No upcoming lessons.{" "}
+                  <Link
+                    href="/student/availability"
+                    className="font-semibold text-green-600 hover:underline"
+                  >
+                    Book weekly times
+                  </Link>{" "}
+                  with a teacher.
                 </div>
               )}
             </section>
@@ -272,10 +344,17 @@ const StudentDashboard = () => {
                             Teacher: {lesson.teacherName ?? "Assigned teacher"}
                           </p>
                         </div>
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[lesson.status]}`}
-                        >
-                          {lesson.status.replaceAll("_", " ")}
+                        <span className="flex flex-wrap gap-2">
+                          {lesson.isTrial && (
+                            <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
+                              Trial
+                            </span>
+                          )}
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[lesson.status]}`}
+                          >
+                            {lesson.status.replaceAll("_", " ")}
+                          </span>
                         </span>
                       </div>
                     ))}
@@ -300,6 +379,13 @@ const StudentDashboard = () => {
                       {teacher.email}
                     </p>
                   )}
+                  <p className="mt-2 text-sm text-foreground opacity-70">
+                    {series.length
+                      ? `${series.length} weekly time${
+                          series.length === 1 ? "" : "s"
+                        } booked`
+                      : "No weekly time booked yet"}
+                  </p>
                 </>
               ) : (
                 <p className="text-sm text-foreground opacity-70">
@@ -310,7 +396,7 @@ const StudentDashboard = () => {
                 href="/student/availability"
                 className="mt-4 block rounded-xl bg-green-500 px-4 py-2 text-center font-semibold text-white transition hover:bg-green-600"
               >
-                Book a lesson
+                {series.length ? "Add weekly times" : "Book weekly times"}
               </Link>
             </div>
 
@@ -327,18 +413,26 @@ const StudentDashboard = () => {
                 </div>
                 <div>
                   <dt className="text-sm text-foreground opacity-70">
-                    Completed
+                    Weekly times
                   </dt>
                   <dd className="text-3xl font-bold text-green-600">
-                    {completed.length}
+                    {series.length}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-sm text-foreground opacity-70">
-                    Cancelled
+                    Changes waiting
                   </dt>
                   <dd className="text-3xl font-bold text-green-600">
-                    {cancelled.length}
+                    {pendingChanges.length}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-sm text-foreground opacity-70">
+                    Completed
+                  </dt>
+                  <dd className="text-3xl font-bold text-green-600">
+                    {completed.length}
                   </dd>
                 </div>
               </dl>
@@ -347,7 +441,7 @@ const StudentDashboard = () => {
             <div className="bg-card-bg border border-card-border rounded-3xl p-6">
               <h3 className="text-lg font-semibold mb-2">Need help?</h3>
               <p className="text-sm text-foreground opacity-70 mb-4">
-                Contact the academy team if a lesson needs to be rescheduled.
+                Contact the academy team if a weekly time needs to change.
               </p>
               <Link
                 href="/contact"

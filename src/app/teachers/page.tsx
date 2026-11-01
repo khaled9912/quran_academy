@@ -29,7 +29,7 @@ export default function PublicTeachersPage() {
             </h1>
             <p className="mt-2 max-w-2xl text-lg text-foreground opacity-75">
               Every rating comes from a student after a completed lesson. Open a
-              teacher to read their reviews and book a time.
+              teacher to read their reviews and choose weekly times.
             </p>
           </div>
           <button
@@ -104,7 +104,7 @@ export default function PublicTeachersPage() {
                   </div>
 
                   <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-green-600">
-                    <GraduationCap size={16} /> View profile & book
+                    <GraduationCap size={16} /> View profile & book weekly times
                   </span>
                 </Link>
               );

@@ -49,4 +49,6 @@ export interface Lesson {
   studentName?: string;
   report?: LessonReport | null;
   review?: TeacherReview | null;
+  seriesId?: string | null;
+  isTrial?: boolean;
 }

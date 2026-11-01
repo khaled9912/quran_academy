@@ -1,52 +1,75 @@
-import type { TeacherReview } from "./lesson";
+import type { Lesson, TeacherReview } from "./lesson";
+import type { UserProfile } from "./user";
 
-export type AvailabilitySlotStatus =
-  | "available"
-  | "requested"
-  | "booked"
-  | "unavailable";
-export type LessonRequestStatus =
-  | "pending_teacher"
-  | "pending_student"
-  | "pending_admin"
-  | "approved"
-  | "rejected"
-  | "cancelled"
-  | "expired";
+export type WeeklyRuleStatus = "available" | "booked" | "yours";
 
-export interface AvailabilitySlot {
+export interface WeeklyRule {
   id: string;
   teacherId: string;
-  startsAt: string;
-  endsAt: string;
-  status: AvailabilitySlotStatus;
+  dayOfWeek: number;
+  startsAtTime: string;
+  endsAtTime: string;
+  timeZoneId: string;
+  status: WeeklyRuleStatus;
 }
 
-export interface LessonRequest {
+export interface WeeklyTeacher {
+  teacher: UserProfile;
+  slots: WeeklyRule[];
+  averageRating?: number | null;
+  reviewCount: number;
+}
+
+export interface LessonSeries {
   id: string;
   teacherId: string;
+  teacherName: string;
   studentId: string;
-  availabilitySlotId?: string | null;
-  startsAt: string;
-  endsAt: string;
-  status: LessonRequestStatus;
-  studentName?: string;
-  teacherName?: string;
+  studentName: string;
+  dayOfWeek: number;
+  startsAtTime: string;
+  endsAtTime: string;
+  timeZoneId: string;
+  isActive: boolean;
   createdAt: string;
 }
 
-export interface TeacherAvailabilityResponse {
-  teacher: {
-    id: string;
-    fullName: string;
-    email?: string;
-    phoneNumber?: string | null;
-    avatarUrl?: string | null;
-  };
-  slots: AvailabilitySlot[];
+export type ChangeRequestStatus = "pending" | "approved" | "rejected";
+
+export interface LessonChangeRequest {
+  id: string;
+  seriesId: string;
+  teacherId: string;
+  teacherName: string;
+  studentId: string;
+  studentName: string;
+  currentDayOfWeek: number;
+  currentStartsAtTime: string;
+  currentEndsAtTime: string;
+  requestedDayOfWeek: number;
+  requestedStartsAtTime: string;
+  requestedEndsAtTime: string;
+  timeZoneId: string;
+  status: ChangeRequestStatus;
+  studentNote?: string | null;
+  adminNote?: string | null;
+  createdAt: string;
+  adminRespondedAt?: string | null;
+}
+
+export interface WeeklyAvailability {
+  teacher: UserProfile | null;
+  slots: WeeklyRule[];
+  series: LessonSeries[];
   averageRating?: number | null;
-  reviewCount?: number;
+  reviewCount: number;
   reviews?: TeacherReview[] | null;
+  hasLessons: boolean;
+}
+
+export interface BookWeeklySlotsResult {
+  series: LessonSeries[];
+  lessons: Lesson[];
 }
 
 export interface PublicTeacher {

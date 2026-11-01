@@ -1,28 +1,20 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarDays, CheckCircle2, Mail, Phone } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { CalendarDays, Mail, Phone } from "lucide-react";
 import {
-  getAssignedTeacherAvailability,
-  getMyLessonRequests,
+  getAssignedWeeklyAvailability,
+  getMyChangeRequests,
   getTeacherDirectory,
-  requestLessonSlot,
 } from "@/services/scheduling.service";
 import { Avatar } from "@/components/ui/avatar";
 import { StarRating } from "@/components/ui/star-rating";
 import { useAuth } from "@/providers/auth-provider";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
+import { WEEKDAY_SHORT, formatWeeklyTimeRange } from "@/lib/utils";
 
-const dateTime = (value: string) =>
-  new Date(value).toLocaleString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+const DAY_ORDER = [6, 0, 1, 2, 3, 4, 5];
 
 interface TeacherDirectoryProps {
   compact?: boolean;
@@ -31,53 +23,42 @@ interface TeacherDirectoryProps {
 export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
   const { role } = useAuth();
   const enabled = role === "student";
-  const queryClient = useQueryClient();
-  const [notice, setNotice] = useState("");
 
   const directoryQuery = useQuery({
     queryKey: ["teachers", "directory"],
     queryFn: getTeacherDirectory,
     enabled,
-  });
-  const requestsQuery = useQuery({
-    queryKey: ["lesson-requests", "student"],
-    queryFn: getMyLessonRequests,
-    enabled,
     refetchInterval: LIVE_SYNC_INTERVAL,
   });
   const assignedQuery = useQuery({
     queryKey: ["availability", "student"],
-    queryFn: getAssignedTeacherAvailability,
+    queryFn: getAssignedWeeklyAvailability,
+    enabled,
+    refetchInterval: LIVE_SYNC_INTERVAL,
+  });
+  const changesQuery = useQuery({
+    queryKey: ["change-requests", "student"],
+    queryFn: getMyChangeRequests,
     enabled,
     refetchInterval: LIVE_SYNC_INTERVAL,
   });
 
-  const requestMutation = useMutation({
-    mutationFn: requestLessonSlot,
-    onSuccess: async () => {
-      setNotice(
-        "Your request is on its way. Your teacher confirms the time first, then the academy approves the lesson."
-      );
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["teachers"] }),
-        queryClient.invalidateQueries({ queryKey: ["lesson-requests"] }),
-        queryClient.invalidateQueries({ queryKey: ["availability"] }),
-        queryClient.invalidateQueries({ queryKey: ["lessons"] }),
-      ]);
-    },
-  });
-
   const teachers = [...(directoryQuery.data ?? [])].sort(
-    (a, b) => Number(b.slots.length > 0) - Number(a.slots.length > 0)
-  );
-  const requests = requestsQuery.data ?? [];
-  const openRequest = requests.find((request) =>
-    request.status.startsWith("pending_")
+    (a, b) =>
+      Number(b.slots.some((slot) => slot.status === "available")) -
+      Number(a.slots.some((slot) => slot.status === "available"))
   );
   const assignedTeacherId = assignedQuery.data?.teacher?.id;
+  const pendingChange = (changesQuery.data ?? []).find(
+    (change) => change.status === "pending"
+  );
   const visibleTeachers = compact ? teachers.slice(0, 3) : teachers;
-  const error = directoryQuery.error ?? requestsQuery.error;
-  const loading = directoryQuery.isLoading || requestsQuery.isLoading;
+  const error =
+    directoryQuery.error ?? assignedQuery.error ?? changesQuery.error;
+  const loading =
+    directoryQuery.isLoading ||
+    assignedQuery.isLoading ||
+    changesQuery.isLoading;
 
   return (
     <section className="rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
@@ -85,10 +66,12 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
         <div className="flex items-center gap-3">
           <CalendarDays className="text-green-600" />
           <div>
-            <h2 className="text-2xl font-semibold">Choose your teacher</h2>
+            <h2 className="text-2xl font-semibold">
+              {compact ? "Choose your teacher" : "Teachers and weekly times"}
+            </h2>
             <p className="mt-1 text-sm text-foreground opacity-70">
-              Pick a teacher and an open time. The request then follows the
-              usual teacher and academy approval.
+              Pick any weekly times that suit you. Booking is instant and the
+              time repeats every week — no approval needed.
             </p>
           </div>
         </div>
@@ -113,32 +96,18 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
         </p>
       )}
 
-      {openRequest && (
+      {pendingChange && (
         <p className="mt-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-800">
-          You already have a lesson request awaiting approval for{" "}
-          <strong>{dateTime(openRequest.startsAt)}</strong>. You can request
-          another lesson once this one is resolved.
-        </p>
-      )}
-
-      {notice && (
-        <p
-          role="status"
-          className="mt-5 flex items-start gap-2 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800"
-        >
-          <CheckCircle2 size={18} className="mt-0.5 shrink-0" />
-          {notice}
-        </p>
-      )}
-
-      {requestMutation.error && (
-        <p
-          role="alert"
-          className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
-        >
-          {requestMutation.error instanceof Error
-            ? requestMutation.error.message
-            : "Unable to send the request. Please try again."}
+          Your time change for{" "}
+          <strong>
+            {WEEKDAY_SHORT[pendingChange.currentDayOfWeek]}{" "}
+            {formatWeeklyTimeRange(
+              pendingChange.currentStartsAtTime,
+              pendingChange.currentEndsAtTime
+            )}
+          </strong>{" "}
+          is with the academy. Your current weekly time stays booked until they
+          respond.
         </p>
       )}
 
@@ -148,28 +117,32 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
         </p>
       ) : visibleTeachers.length ? (
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {visibleTeachers.map((teacher) => {
-            const slots = teacher.slots;
-            const shown = compact ? slots.slice(0, 2) : slots.slice(0, 6);
-            const isAssigned = teacher.teacher.id === assignedTeacherId;
+          {visibleTeachers.map((entry) => {
+            const open = entry.slots.filter(
+              (slot) => slot.status === "available"
+            );
+            const days = DAY_ORDER.filter((day) =>
+              open.some((slot) => slot.dayOfWeek === day)
+            );
+            const isAssigned = entry.teacher.id === assignedTeacherId;
             return (
               <article
-                key={teacher.teacher.id}
+                key={entry.teacher.id}
                 className="flex flex-col rounded-2xl border border-card-border bg-background p-5"
               >
                 <div className="flex items-start gap-3">
                   <Avatar
-                    name={teacher.teacher.fullName}
-                    src={teacher.teacher.avatarUrl}
+                    name={entry.teacher.fullName ?? ""}
+                    src={entry.teacher.avatarUrl}
                     className="h-14 w-14 rounded-2xl text-lg"
                   />
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <Link
-                        href={`/teachers/${teacher.teacher.id}`}
+                        href={`/student/teachers/${entry.teacher.id}`}
                         className="text-lg font-semibold hover:text-green-600 hover:underline"
                       >
-                        {teacher.teacher.fullName}
+                        {entry.teacher.fullName}
                       </Link>
                       {isAssigned && (
                         <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-green-800">
@@ -177,25 +150,27 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
                         </span>
                       )}
                     </div>
-                    {(teacher.reviewCount ?? 0) > 0 && (
+                    {entry.reviewCount > 0 ? (
                       <StarRating
-                        value={teacher.averageRating ?? null}
-                        count={teacher.reviewCount}
+                        value={entry.averageRating ?? null}
+                        count={entry.reviewCount}
                         className="mt-1"
                       />
-                    )}
-                    {teacher.teacher.email && (
-                      <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-foreground opacity-70">
-                        <Mail size={13} className="shrink-0" />
-                        <span className="truncate">
-                          {teacher.teacher.email}
-                        </span>
+                    ) : (
+                      <p className="mt-1 text-xs text-foreground opacity-60">
+                        New teacher
                       </p>
                     )}
-                    {teacher.teacher.phoneNumber && (
+                    {entry.teacher.email && (
+                      <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-foreground opacity-70">
+                        <Mail size={13} className="shrink-0" />
+                        <span className="truncate">{entry.teacher.email}</span>
+                      </p>
+                    )}
+                    {entry.teacher.phoneNumber && (
                       <p className="mt-1 flex items-center gap-1.5 text-xs text-foreground opacity-70">
                         <Phone size={13} className="shrink-0" />
-                        {teacher.teacher.phoneNumber}
+                        {entry.teacher.phoneNumber}
                       </p>
                     )}
                   </div>
@@ -203,57 +178,39 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
 
                 <div className="mt-4 flex-1">
                   <p className="text-xs font-semibold uppercase tracking-wide text-foreground opacity-60">
-                    {slots.length} open {slots.length === 1 ? "time" : "times"}
+                    {open.length
+                      ? `${open.length} weekly ${
+                          open.length === 1 ? "time" : "times"
+                        } available`
+                      : "No weekly times right now"}
                   </p>
-                  <div className="mt-2 space-y-2">
-                    {shown.map((slot) => {
-                      const pending =
-                        requestMutation.isPending &&
-                        requestMutation.variables === slot.id;
-                      return (
-                        <button
-                          key={slot.id}
-                          type="button"
-                          disabled={!!openRequest || requestMutation.isPending}
-                          onClick={() => {
-                            setNotice("");
-                            requestMutation.mutate(slot.id);
-                          }}
-                          className="flex w-full items-center justify-between gap-3 rounded-xl border border-card-border px-3 py-3 text-left text-sm transition hover:border-green-500 hover:bg-green-500/5 disabled:cursor-not-allowed disabled:opacity-45"
+                  {days.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {days.map((day) => (
+                        <span
+                          key={day}
+                          className="rounded-full bg-green-500/10 px-2.5 py-1 text-[11px] font-semibold text-green-700"
                         >
-                          <span className="min-w-0">
-                            <span className="block font-semibold">
-                              {dateTime(slot.startsAt)}
-                            </span>
-                            <span className="block text-xs text-foreground opacity-65">
-                              Ends{" "}
-                              {new Date(slot.endsAt).toLocaleTimeString([], {
-                                hour: "numeric",
-                                minute: "2-digit",
-                              })}
-                            </span>
-                          </span>
-                          <span className="shrink-0 text-xs font-semibold text-green-600">
-                            {pending ? "Sending…" : "Request"}
-                          </span>
-                        </button>
-                      );
-                    })}
-                    {!slots.length && (
-                      <p className="rounded-xl border border-dashed border-card-border p-4 text-sm text-foreground opacity-65">
-                        No open times right now. Check back soon.
-                      </p>
-                    )}
-                  </div>
+                          {WEEKDAY_SHORT[day]}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
+
+                <Link
+                  href={`/student/teachers/${entry.teacher.id}`}
+                  className="mt-4 inline-flex items-center justify-center rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
+                >
+                  {open.length ? "Choose weekly times" : "View profile"}
+                </Link>
               </article>
             );
           })}
         </div>
       ) : (
         <p className="mt-6 rounded-2xl border border-dashed border-card-border p-8 text-center text-sm text-foreground opacity-70">
-          No teachers are accepting lesson requests right now. Please contact
-          the academy.
+          No teacher has announced weekly times yet. Please check back soon.
         </p>
       )}
     </section>

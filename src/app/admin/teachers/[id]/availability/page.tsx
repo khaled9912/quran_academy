@@ -1,27 +1,35 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarPlus, RefreshCw, Trash2 } from "lucide-react";
 import { getTeacherById } from "@/services/teacher.service";
 import {
-  deleteTeacherAvailabilityAsAdmin,
-  getTeacherAvailabilityForAdmin,
-  publishAvailabilityForTeacher,
+  deleteTeacherWeeklyAvailabilityAsAdmin,
+  getTeacherWeeklyAvailabilityForAdmin,
+  publishWeeklyAvailabilityForTeacher,
 } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
+import {
+  WEEKDAY_LABELS,
+  WEEKDAY_SHORT,
+  formatWeeklyTimeRange,
+  weekdayLabel,
+} from "@/lib/utils";
+import type { WeeklyRule } from "@/types/scheduling";
 
-const display = (value: string) =>
-  new Date(value).toLocaleString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+const DAY_ORDER = [6, 0, 1, 2, 3, 4, 5];
+const DEFAULT_DAYS = [6, 0, 1, 2, 3, 4];
+const MAX_SLOT_MINUTES = 240;
+
+const minutesOf = (value: string) => {
+  const [hours, minutes] = value.split(":").map(Number);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return NaN;
+  return hours * 60 + minutes;
+};
 
 export default function AdminTeacherAvailabilityPage() {
   const params = useParams<{ id: string }>();
@@ -30,69 +38,137 @@ export default function AdminTeacherAvailabilityPage() {
   const canManage = role === "admin" || role === "super_admin";
   const queryClient = useQueryClient();
 
-  const teacherQuery = useQuery({
-    queryKey: ["teachers", teacherId],
-    queryFn: () => getTeacherById(teacherId),
-    enabled: canManage && !!teacherId,
-  });
-  const slotsQuery = useQuery({
-    queryKey: ["availability", "admin", teacherId],
-    queryFn: () => getTeacherAvailabilityForAdmin(teacherId),
-    enabled: canManage && !!teacherId,
-    refetchInterval: LIVE_SYNC_INTERVAL,
-  });
-
-  const [start, setStart] = useState("");
-  const [end, setEnd] = useState("");
+  const [days, setDays] = useState<number[]>(DEFAULT_DAYS);
+  const [start, setStart] = useState("17:00");
+  const [end, setEnd] = useState("18:00");
+  const [timeZoneOverride, setTimeZoneOverride] = useState("");
   const [formError, setFormError] = useState("");
   const [notice, setNotice] = useState("");
 
-  const invalidateAvailability = () =>
-    queryClient.invalidateQueries({
-      queryKey: ["availability", "admin", teacherId],
-    });
+  const localTimeZone = useMemo(
+    () => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+    []
+  );
+
+  const teacherQuery = useQuery({
+    queryKey: ["teachers", teacherId],
+    queryFn: () => getTeacherById(teacherId),
+    enabled: canManage && Boolean(teacherId),
+  });
+  const rulesQuery = useQuery({
+    queryKey: ["availability-rules", "admin", teacherId],
+    queryFn: () => getTeacherWeeklyAvailabilityForAdmin(teacherId),
+    enabled: canManage && Boolean(teacherId),
+    refetchInterval: LIVE_SYNC_INTERVAL,
+  });
+
+  const rules = useMemo(
+    () =>
+      [...(rulesQuery.data ?? [])].sort(
+        (a, b) =>
+          DAY_ORDER.indexOf(a.dayOfWeek) - DAY_ORDER.indexOf(b.dayOfWeek) ||
+          a.startsAtTime.localeCompare(b.startsAtTime)
+      ),
+    [rulesQuery.data]
+  );
+
+  const timeZoneId = timeZoneOverride || rules[0]?.timeZoneId || localTimeZone;
+
+  const invalidate = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: ["availability-rules", "admin", teacherId],
+      }),
+      queryClient.invalidateQueries({ queryKey: ["availability"] }),
+      queryClient.invalidateQueries({ queryKey: ["teachers"] }),
+      queryClient.invalidateQueries({ queryKey: ["teacher-profile"] }),
+    ]);
+  };
 
   const publishMutation = useMutation({
-    mutationFn: ({ startsAt, endsAt }: { startsAt: string; endsAt: string }) =>
-      publishAvailabilityForTeacher(teacherId, startsAt, endsAt),
-    onSuccess: async () => {
-      setStart("");
-      setEnd("");
-      setNotice("Availability published for this teacher.");
-      await invalidateAvailability();
+    mutationFn: () =>
+      publishWeeklyAvailabilityForTeacher(teacherId, {
+        daysOfWeek: days,
+        startsAtTime: start,
+        endsAtTime: end,
+        timeZoneId,
+      }),
+    onSuccess: async (created) => {
+      setFormError("");
+      setNotice(
+        `Announced ${created.length} weekly ${
+          created.length === 1 ? "time" : "times"
+        } for this teacher.`
+      );
+      await invalidate();
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (slotId: string) =>
-      deleteTeacherAvailabilityAsAdmin(teacherId, slotId),
+    mutationFn: (ruleId: string) =>
+      deleteTeacherWeeklyAvailabilityAsAdmin(teacherId, ruleId),
     onSuccess: async () => {
-      setNotice("Slot removed.");
-      await invalidateAvailability();
+      setFormError("");
+      setNotice("Weekly time removed.");
+      await invalidate();
     },
   });
 
-  function submit(event: FormEvent) {
-    event.preventDefault();
-    setFormError("");
+  const toggleDay = (day: number) => {
     setNotice("");
-    const a = new Date(start);
-    const b = new Date(end);
-    if (!(a < b)) {
-      setFormError("End time must be after start time.");
+    setDays((current) =>
+      current.includes(day)
+        ? current.filter((value) => value !== day)
+        : [...current, day]
+    );
+  };
+
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    setNotice("");
+    setFormError("");
+    if (!days.length) {
+      setFormError("Choose at least one weekday.");
       return;
     }
-    publishMutation.mutate({
-      startsAt: a.toISOString(),
-      endsAt: b.toISOString(),
-    });
-  }
+    const duration = minutesOf(end) - minutesOf(start);
+    if (!(duration > 0)) {
+      setFormError("The end time must be after the start time.");
+      return;
+    }
+    if (duration > MAX_SLOT_MINUTES) {
+      setFormError("A weekly slot can last up to 4 hours.");
+      return;
+    }
+    publishMutation.mutate();
+  };
 
-  const slots = slotsQuery.data ?? [];
+  const confirmRemove = (rule: WeeklyRule) => {
+    if (
+      window.confirm(
+        `Remove ${weekdayLabel(rule.dayOfWeek)} · ${formatWeeklyTimeRange(
+          rule.startsAtTime,
+          rule.endsAtTime
+        )}? Students will no longer see this time.`
+      )
+    ) {
+      setNotice("");
+      deleteMutation.mutate(rule.id);
+    }
+  };
+
+  const summary = days.length
+    ? `${days
+        .slice()
+        .sort((a, b) => DAY_ORDER.indexOf(a) - DAY_ORDER.indexOf(b))
+        .map((day) => WEEKDAY_SHORT[day])
+        .join(", ")} · ${start} – ${end}`
+    : "Choose the days this teacher teaches.";
+
   const error =
     formError ||
     (teacherQuery.error ??
-      slotsQuery.error ??
+      rulesQuery.error ??
       publishMutation.error ??
       deleteMutation.error);
 
@@ -119,18 +195,18 @@ export default function AdminTeacherAvailabilityPage() {
               Admin portal
             </p>
             <h1 className="mt-2 text-3xl font-bold">
-              Availability
+              Weekly availability
               {teacherQuery.data
                 ? ` · ${teacherQuery.data.fullName ?? teacherQuery.data.name}`
                 : ""}
             </h1>
             <p className="mt-2 text-[#6b7c73]">
-              Publish lesson times on behalf of this teacher and remove open
-              slots.
+              Announce weekly times on behalf of this teacher. Students book
+              them instantly.
             </p>
           </div>
           <button
-            onClick={() => void slotsQuery.refetch()}
+            onClick={() => void rulesQuery.refetch()}
             className="inline-flex items-center gap-2 rounded-xl border border-[#d8e2d4] bg-white px-4 py-2.5 text-sm font-semibold"
           >
             <RefreshCw size={16} /> Refresh
@@ -144,7 +220,7 @@ export default function AdminTeacherAvailabilityPage() {
           >
             {error instanceof Error
               ? error.message
-              : error || "Unable to load availability."}
+              : error || "Unable to update availability."}
           </p>
         )}
         {notice && (
@@ -156,90 +232,163 @@ export default function AdminTeacherAvailabilityPage() {
           </p>
         )}
 
-        <div className="mt-8 grid gap-6 md:grid-cols-[.8fr_1.2fr]">
+        <div className="mt-8 grid gap-6 md:grid-cols-[.9fr_1.1fr]">
           <form
             onSubmit={submit}
             className="h-fit rounded-3xl border border-[#e5e9df] bg-white p-6 shadow-sm"
           >
             <div className="flex items-center gap-3">
               <CalendarPlus className="text-[#6f8c69]" />
-              <h2 className="text-xl font-bold">Publish a time slot</h2>
+              <h2 className="text-xl font-bold">Announce weekly times</h2>
             </div>
-            <label className="mt-6 block text-sm font-semibold">
-              Starts at
-              <input
-                required
-                type="datetime-local"
-                value={start}
-                onChange={(event) => setStart(event.target.value)}
-                min={new Date().toISOString().slice(0, 16)}
-                className="mt-2 w-full rounded-xl border border-[#dce5d9] px-3 py-3 font-normal outline-none focus:border-[#6f8c69]"
-              />
-            </label>
+
+            <fieldset className="mt-6">
+              <legend className="text-sm font-semibold">Days</legend>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {DAY_ORDER.map((day) => {
+                  const selected = days.includes(day);
+                  return (
+                    <button
+                      key={day}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => toggleDay(day)}
+                      className={`rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+                        selected
+                          ? "border-[#1c5145] bg-[#eef3e9] text-[#1c5145]"
+                          : "border-[#dce5d9] bg-white text-[#7b8981] hover:border-[#6f8c69]"
+                      }`}
+                    >
+                      {WEEKDAY_SHORT[day]}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <label className="block text-sm font-semibold">
+                Starts at
+                <input
+                  required
+                  type="time"
+                  value={start}
+                  onChange={(event) => setStart(event.target.value)}
+                  className="mt-2 w-full rounded-xl border border-[#dce5d9] px-3 py-3 font-normal outline-none focus:border-[#6f8c69]"
+                />
+              </label>
+              <label className="block text-sm font-semibold">
+                Ends at
+                <input
+                  required
+                  type="time"
+                  value={end}
+                  onChange={(event) => setEnd(event.target.value)}
+                  className="mt-2 w-full rounded-xl border border-[#dce5d9] px-3 py-3 font-normal outline-none focus:border-[#6f8c69]"
+                />
+              </label>
+            </div>
+
             <label className="mt-4 block text-sm font-semibold">
-              Ends at
+              Teacher&apos;s time zone
               <input
                 required
-                type="datetime-local"
-                value={end}
-                onChange={(event) => setEnd(event.target.value)}
-                min={start || new Date().toISOString().slice(0, 16)}
+                type="text"
+                value={timeZoneId}
+                onChange={(event) => setTimeZoneOverride(event.target.value)}
+                placeholder="e.g. Africa/Cairo"
                 className="mt-2 w-full rounded-xl border border-[#dce5d9] px-3 py-3 font-normal outline-none focus:border-[#6f8c69]"
               />
             </label>
-            <p className="mt-3 text-xs leading-5 text-[#7b8981]">
-              Times are sent in UTC. The backend rejects overlaps with existing
-              slots and lessons.
+            <p className="mt-2 text-xs text-[#7b8981]">
+              Use one of the teacher&apos;s existing zones unless you know it
+              changed.
             </p>
+
+            <div className="mt-5 rounded-xl bg-[#f2f6ef] p-4 text-sm">
+              <p className="font-semibold">{summary}</p>
+              <p className="mt-1 text-xs text-[#7b8981]">
+                Repeats every week · times are in {timeZoneId}
+              </p>
+            </div>
+
             <button
               disabled={publishMutation.isPending}
               className="mt-6 w-full rounded-xl bg-[#1c5145] px-4 py-3 font-semibold text-white disabled:opacity-50"
             >
               {publishMutation.isPending
-                ? "Publishing…"
-                : "Publish availability"}
+                ? "Announcing…"
+                : "Announce availability"}
             </button>
           </form>
 
           <section className="rounded-3xl border border-[#e5e9df] bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold">Published slots</h2>
-            <div className="mt-5 space-y-3">
-              {[...slots]
-                .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
-                .map((slot) => (
-                  <div
-                    key={slot.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#e6ebe2] p-4"
-                  >
-                    <div>
-                      <p className="font-semibold">{display(slot.startsAt)}</p>
-                      <p className="mt-1 text-sm capitalize text-[#7b8981]">
-                        {slot.status}
+            <h2 className="text-xl font-bold">
+              Announced times ({rules.length})
+            </h2>
+            <div className="mt-5 space-y-4">
+              {rulesQuery.isLoading ? (
+                <p className="text-sm text-[#7b8981]">Loading availability…</p>
+              ) : rules.length ? (
+                DAY_ORDER.map((day) => {
+                  const dayRules = rules.filter(
+                    (rule) => rule.dayOfWeek === day
+                  );
+                  if (!dayRules.length) return null;
+                  return (
+                    <div key={day}>
+                      <p className="text-xs font-bold uppercase tracking-wide text-[#b58a52]">
+                        {WEEKDAY_LABELS[day]}
                       </p>
+                      <div className="mt-2 space-y-2">
+                        {dayRules.map((rule) => {
+                          const booked = rule.status !== "available";
+                          const removing =
+                            deleteMutation.isPending &&
+                            deleteMutation.variables === rule.id;
+                          return (
+                            <div
+                              key={rule.id}
+                              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#e6ebe2] p-4"
+                            >
+                              <div>
+                                <p className="font-semibold">
+                                  {formatWeeklyTimeRange(
+                                    rule.startsAtTime,
+                                    rule.endsAtTime
+                                  )}
+                                </p>
+                                <p className="mt-1 text-sm text-[#7b8981]">
+                                  {booked
+                                    ? "Booked by a student · repeats weekly."
+                                    : "Open for a student to book."}
+                                </p>
+                              </div>
+                              {booked ? (
+                                <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
+                                  Booked
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => confirmRemove(rule)}
+                                  disabled={removing}
+                                  aria-label="Remove weekly time"
+                                  className="rounded-lg p-2 text-[#a65d54] hover:bg-red-50 disabled:opacity-50"
+                                >
+                                  <Trash2 size={18} />
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                    {slot.status === "available" && (
-                      <button
-                        onClick={() => deleteMutation.mutate(slot.id)}
-                        disabled={
-                          deleteMutation.isPending &&
-                          deleteMutation.variables === slot.id
-                        }
-                        aria-label="Remove availability slot"
-                        className="rounded-lg p-2 text-[#a65d54] hover:bg-red-50 disabled:opacity-50"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              {slotsQuery.isLoading && (
+                  );
+                })
+              ) : (
                 <p className="rounded-xl border border-dashed border-[#d9e3d5] p-8 text-center text-sm text-[#75847b]">
-                  Loading slots…
-                </p>
-              )}
-              {!slotsQuery.isLoading && !slots.length && (
-                <p className="rounded-xl border border-dashed border-[#d9e3d5] p-8 text-center text-sm text-[#75847b]">
-                  No published availability yet.
+                  This teacher has no weekly availability yet.
                 </p>
               )}
             </div>

@@ -6,7 +6,8 @@ import { getStudents } from "@/services/student.service";
 import { getTeachers } from "@/services/teacher.service";
 import { getTeacherStudentAssignments } from "@/services/assignment.service";
 import { getLessons } from "@/services/lesson.service";
-import { getAdminLessonApprovals } from "@/services/scheduling.service";
+import { getAdminChangeRequests } from "@/services/scheduling.service";
+import { formatWeeklySlot } from "@/lib/utils";
 import { useAuth } from "@/providers/auth-provider";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 
@@ -44,9 +45,9 @@ export default function SuperAdminDashboard() {
     enabled: isSuperAdmin,
     refetchInterval: LIVE_SYNC_INTERVAL,
   });
-  const approvalsQuery = useQuery({
-    queryKey: ["lesson-requests", "pending-admin"],
-    queryFn: getAdminLessonApprovals,
+  const changesQuery = useQuery({
+    queryKey: ["change-requests", "admin", "pending"],
+    queryFn: () => getAdminChangeRequests("pending"),
     enabled: isSuperAdmin,
     refetchInterval: LIVE_SYNC_INTERVAL,
   });
@@ -64,18 +65,18 @@ export default function SuperAdminDashboard() {
     teachersQuery,
     assignmentsQuery,
     lessonsQuery,
-    approvalsQuery,
+    changesQuery,
   ];
   const loading = queries.some((query) => query.isLoading);
   const failed = queries.some((query) => query.isError);
-  const approvals = approvalsQuery.data ?? [];
+  const changes = changesQuery.data ?? [];
 
   const metrics = [
     { title: "Students", value: studentsQuery.data?.length },
     { title: "Teachers", value: teachersQuery.data?.length },
     { title: "Assignments", value: assignmentsQuery.data?.length },
     { title: "Lessons", value: lessonsQuery.data?.length },
-    { title: "Awaiting approval", value: approvals.length },
+    { title: "Time changes waiting", value: changes.length },
   ];
 
   return (
@@ -120,38 +121,50 @@ export default function SuperAdminDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <section className="rounded-3xl border border-card-border bg-card-bg p-6">
             <div className="flex items-center justify-between gap-3 mb-4">
-              <h2 className="text-xl font-semibold">
-                Pending lesson approvals
-              </h2>
+              <h2 className="text-xl font-semibold">Time change requests</h2>
               <Link
-                href="/admin/lesson-approvals"
+                href="/admin/change-requests"
                 className="text-sm font-semibold text-green-600 hover:underline"
               >
                 Review →
               </Link>
             </div>
             {loading ? (
-              <p className="text-foreground opacity-70">Loading approvals…</p>
-            ) : approvals.length ? (
+              <p className="text-foreground opacity-70">
+                Loading change requests…
+              </p>
+            ) : changes.length ? (
               <div className="space-y-3">
-                {approvals.slice(0, 5).map((request) => (
+                {changes.slice(0, 5).map((request) => (
                   <div
                     key={request.id}
                     className="rounded-2xl border border-card-border p-4"
                   >
                     <p className="font-semibold">
-                      {dateTime(request.startsAt)}
+                      {formatWeeklySlot(
+                        request.currentDayOfWeek,
+                        request.currentStartsAtTime,
+                        request.currentEndsAtTime
+                      )}{" "}
+                      →{" "}
+                      {formatWeeklySlot(
+                        request.requestedDayOfWeek,
+                        request.requestedStartsAtTime,
+                        request.requestedEndsAtTime
+                      )}
                     </p>
                     <p className="mt-1 text-sm text-foreground opacity-70">
-                      {request.studentName ?? "Student"} with{" "}
-                      {request.teacherName ?? "Teacher"}
+                      {request.studentName} with {request.teacherName}
+                    </p>
+                    <p className="mt-1 text-xs text-foreground opacity-60">
+                      Requested {dateTime(request.createdAt)}
                     </p>
                   </div>
                 ))}
               </div>
             ) : (
               <p className="text-foreground opacity-70">
-                Nothing is waiting for final approval.
+                No student is waiting for a time change.
               </p>
             )}
           </section>
@@ -178,12 +191,12 @@ export default function SuperAdminDashboard() {
                 </p>
               </Link>
               <Link
-                href="/admin/lesson-approvals"
+                href="/admin/change-requests"
                 className="block rounded-2xl border border-card-border p-4 hover:border-green-500 transition"
               >
-                <p className="font-semibold">Lesson approvals</p>
+                <p className="font-semibold">Time change requests</p>
                 <p className="text-sm text-foreground opacity-70">
-                  Approve lessons confirmed by teachers.
+                  Confirm new weekly times with teachers.
                 </p>
               </Link>
               <Link

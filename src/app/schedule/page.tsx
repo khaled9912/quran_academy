@@ -67,6 +67,24 @@ export default function StudentSchedulePage() {
     return filtered.sort((a, b) => a.startsAt.localeCompare(b.startsAt));
   }, [lessons, filter, now]);
 
+  // Offer "change time" once per weekly series, on its next lesson.
+  const firstOfSeries = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const lesson of lessons
+      .filter(
+        (item) =>
+          item.status !== "cancelled" &&
+          item.status !== "completed" &&
+          new Date(item.startsAt).getTime() >= now
+      )
+      .sort((a, b) => a.startsAt.localeCompare(b.startsAt))) {
+      if (lesson.seriesId && !seen.has(lesson.seriesId)) {
+        seen.set(lesson.seriesId, lesson.id);
+      }
+    }
+    return seen;
+  }, [lessons, now]);
+
   const groups = useMemo(() => {
     const byDay = new Map<string, Lesson[]>();
     for (const lesson of visible) {
@@ -97,7 +115,7 @@ export default function StudentSchedulePage() {
             </Link>
             <h1 className="text-4xl font-bold mb-2">My schedule</h1>
             <p className="text-lg text-foreground opacity-75">
-              Every lesson confirmed for you by your teacher and the academy.
+              Your weekly lessons and their lesson rooms.
             </p>
           </div>
           <button
@@ -167,10 +185,17 @@ export default function StudentSchedulePage() {
                         </p>
                       </div>
                       <div className="flex flex-col items-end gap-2">
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[lesson.status]}`}
-                        >
-                          {lesson.status.replaceAll("_", " ")}
+                        <span className="flex flex-wrap justify-end gap-2">
+                          {lesson.isTrial && (
+                            <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
+                              Trial
+                            </span>
+                          )}
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[lesson.status]}`}
+                          >
+                            {lesson.status.replaceAll("_", " ")}
+                          </span>
                         </span>
                         {(lesson.status === "scheduled" ||
                           lesson.status === "in_progress") &&
@@ -180,6 +205,15 @@ export default function StudentSchedulePage() {
                               className="inline-flex items-center gap-2 rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
                             >
                               <Video size={15} /> Attend lesson
+                            </Link>
+                          )}
+                        {lesson.seriesId &&
+                          firstOfSeries.get(lesson.seriesId) === lesson.id && (
+                            <Link
+                              href={`/student/change-time/${lesson.seriesId}`}
+                              className="inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2 text-sm font-semibold transition hover:border-green-500"
+                            >
+                              Change weekly time
                             </Link>
                           )}
                         {lesson.status !== "cancelled" &&
@@ -210,7 +244,7 @@ export default function StudentSchedulePage() {
                   href="/student/availability"
                   className="font-semibold text-green-600 hover:underline"
                 >
-                  Choose an available time
+                  Choose weekly times
                 </Link>
                 .
               </>

@@ -3,36 +3,41 @@
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
-import { getMyLessonRequests } from "@/services/scheduling.service";
+import {
+  getAssignedWeeklyAvailability,
+  getMyChangeRequests,
+} from "@/services/scheduling.service";
 import { TeacherDirectory } from "@/components/student/TeacherDirectory";
 import { useAuth } from "@/providers/auth-provider";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
-
-const dateTime = (value: string) =>
-  new Date(value).toLocaleString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+import { WEEKDAY_SHORT, formatWeeklySlot } from "@/lib/utils";
 
 export default function StudentAvailabilityPage() {
   const { role } = useAuth();
   const queryClient = useQueryClient();
-  const requestsQuery = useQuery({
-    queryKey: ["lesson-requests", "student"],
-    queryFn: getMyLessonRequests,
+  const assignedQuery = useQuery({
+    queryKey: ["availability", "student"],
+    queryFn: getAssignedWeeklyAvailability,
+    enabled: role === "student",
+    refetchInterval: LIVE_SYNC_INTERVAL,
+  });
+  const changesQuery = useQuery({
+    queryKey: ["change-requests", "student"],
+    queryFn: getMyChangeRequests,
     enabled: role === "student",
     refetchInterval: LIVE_SYNC_INTERVAL,
   });
 
-  const requests = requestsQuery.data ?? [];
+  const series = assignedQuery.data?.series ?? [];
+  const pending = (changesQuery.data ?? []).filter(
+    (change) => change.status === "pending"
+  );
+  const error = assignedQuery.error ?? changesQuery.error;
 
   if (role !== "student")
     return (
       <main className="mx-auto max-w-4xl px-5 py-16">
-        Please sign in with a student account to view available slots.
+        Please sign in with a student account to book weekly lessons.
       </main>
     );
 
@@ -45,16 +50,17 @@ export default function StudentAvailabilityPage() {
               Student portal
             </p>
             <h1 className="mt-2 text-3xl font-bold">
-              Teachers and lesson times
+              Teachers and weekly times
             </h1>
             <p className="mt-2 max-w-2xl text-[#6b7c73]">
-              Browse teacher profiles, pick an open time, and send a request.
-              Your teacher confirms first, then the academy approves the lesson.
+              Choose a teacher and the weekly times that suit you. Booking is
+              instant, repeats every week, and needs no approval.
             </p>
           </div>
           <button
             onClick={() => {
-              void requestsQuery.refetch();
+              void assignedQuery.refetch();
+              void changesQuery.refetch();
               void queryClient.invalidateQueries({
                 queryKey: ["teachers", "directory"],
               });
@@ -65,56 +71,81 @@ export default function StudentAvailabilityPage() {
           </button>
         </div>
 
-        {requestsQuery.error && (
+        {error && (
           <p
             role="alert"
             className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
           >
-            {requestsQuery.error instanceof Error
-              ? requestsQuery.error.message
-              : "Unable to load your requests."}
+            {error instanceof Error
+              ? error.message
+              : "Unable to load your weekly times."}
           </p>
         )}
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_.6fr]">
           <TeacherDirectory />
 
-          <aside className="h-fit rounded-3xl border border-[#e5e9df] bg-[#eef3e9] p-6 md:p-8">
-            <h2 className="text-xl font-bold">Your requests</h2>
-            <p className="mt-2 text-sm leading-6 text-[#6b7c73]">
-              A lesson becomes confirmed only after your teacher and the academy
-              admin approve it.
-            </p>
-            <div className="mt-5 space-y-3">
-              {requestsQuery.isLoading ? (
+          <aside className="h-fit space-y-4 rounded-3xl border border-[#e5e9df] bg-[#eef3e9] p-6 md:p-8">
+            <div>
+              <h2 className="text-xl font-bold">Your weekly times</h2>
+              <p className="mt-2 text-sm leading-6 text-[#6b7c73]">
+                These repeat every week. Ask the academy to move a time and your
+                current slot stays booked until they approve.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              {assignedQuery.isLoading ? (
                 <p className="rounded-xl bg-white/70 p-4 text-sm text-[#74847b]">
-                  Loading your requests…
+                  Loading your weekly times…
                 </p>
-              ) : requests.length ? (
-                requests.slice(0, 5).map((request) => (
-                  <div
-                    key={request.id}
-                    className="rounded-xl border border-[#dce6d8] bg-white p-4"
-                  >
-                    <p className="text-sm font-semibold">
-                      {dateTime(request.startsAt)}
-                    </p>
-                    <p className="mt-1 text-xs capitalize text-[#74847b]">
-                      {request.status.replaceAll("_", " ")}
-                    </p>
-                  </div>
-                ))
+              ) : series.length ? (
+                series.map((item) => {
+                  const pendingChange = pending.some(
+                    (change) => change.seriesId === item.id
+                  );
+                  return (
+                    <div
+                      key={item.id}
+                      className="rounded-xl border border-[#dce6d8] bg-white p-4"
+                    >
+                      <p className="text-sm font-semibold">
+                        {formatWeeklySlot(
+                          item.dayOfWeek,
+                          item.startsAtTime,
+                          item.endsAtTime
+                        )}
+                      </p>
+                      <p className="mt-1 text-xs text-[#74847b]">
+                        Repeats every {WEEKDAY_SHORT[item.dayOfWeek]}
+                        {pendingChange ? " · change with the academy" : ""}
+                      </p>
+                      <Link
+                        href={`/student/change-time/${item.id}`}
+                        className={`mt-3 inline-block text-xs font-semibold ${
+                          pendingChange
+                            ? "pointer-events-none text-[#9aa79e]"
+                            : "text-[#1c5145] hover:underline"
+                        }`}
+                      >
+                        Change weekly time →
+                      </Link>
+                    </div>
+                  );
+                })
               ) : (
                 <p className="rounded-xl bg-white/70 p-4 text-sm text-[#74847b]">
-                  You haven&apos;t requested a lesson yet.
+                  No weekly time booked yet. Choose a teacher and pick your
+                  times.
                 </p>
               )}
             </div>
+
             <Link
-              href="/student/dashboard"
-              className="mt-6 inline-block text-sm font-semibold text-[#1c5145] hover:underline"
+              href="/schedule"
+              className="inline-block text-sm font-semibold text-[#1c5145] hover:underline"
             >
-              Back to dashboard →
+              My schedule →
             </Link>
           </aside>
         </div>

@@ -3,13 +3,11 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { getLessons } from "@/services/lesson.service";
-import {
-  getIncomingLessonRequests,
-  getMyAvailability,
-} from "@/services/scheduling.service";
+import { getMyAvailabilityRules } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
 import { isReportDue } from "@/lib/lesson-feedback";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
+import { weekdayLabel, formatWeeklyTimeRange } from "@/lib/utils";
 
 const dateTime = (value: string) =>
   new Date(value).toLocaleString(undefined, {
@@ -30,24 +28,16 @@ export default function TeacherDashboardPage() {
     enabled: isTeacher,
     refetchInterval: LIVE_SYNC_INTERVAL,
   });
-  const requestsQuery = useQuery({
-    queryKey: ["lesson-requests", "teacher"],
-    queryFn: getIncomingLessonRequests,
-    enabled: isTeacher,
-    refetchInterval: LIVE_SYNC_INTERVAL,
-  });
-  const availabilityQuery = useQuery({
-    queryKey: ["availability", "teacher"],
-    queryFn: getMyAvailability,
+  const rulesQuery = useQuery({
+    queryKey: ["availability-rules", "teacher"],
+    queryFn: getMyAvailabilityRules,
     enabled: isTeacher,
     refetchInterval: LIVE_SYNC_INTERVAL,
   });
 
   const lessons = lessonsQuery.data ?? [];
-  const requests = requestsQuery.data ?? [];
-  const slots = availabilityQuery.data ?? [];
-  const failed =
-    lessonsQuery.isError || requestsQuery.isError || availabilityQuery.isError;
+  const rules = rulesQuery.data ?? [];
+  const failed = lessonsQuery.isError || rulesQuery.isError;
   const now = Date.now();
 
   const upcomingLessons = lessons
@@ -58,26 +48,20 @@ export default function TeacherDashboardPage() {
         new Date(lesson.startsAt).getTime() >= now
     )
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
-  const pendingRequests = requests.filter(
-    (request) => request.status === "pending_teacher"
-  );
-  const openSlots = slots.filter(
-    (slot) =>
-      slot.status === "available" && new Date(slot.startsAt).getTime() >= now
-  );
+  const bookedRules = rules.filter((rule) => rule.status !== "available");
   const reportsDue = lessons
     .filter(isReportDue)
     .sort((a, b) => b.startsAt.localeCompare(a.startsAt));
 
   const metrics: { title: string; value: number; href?: string }[] = [
     { title: "Upcoming lessons", value: upcomingLessons.length },
-    { title: "Requests awaiting you", value: pendingRequests.length },
+    { title: "Weekly slots", value: rules.length },
     {
       title: "Reports due",
       value: reportsDue.length,
       href: "/teacher/schedule?filter=reports",
     },
-    { title: "Available slots", value: openSlots.length },
+    { title: "Booked weekly slots", value: bookedRules.length },
   ];
 
   if (!isTeacher) {
@@ -94,8 +78,7 @@ export default function TeacherDashboardPage() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Teacher Dashboard</h1>
           <p className="text-lg text-foreground opacity-75">
-            Your confirmed lessons, student requests, and published
-            availability.
+            Your weekly lessons, announced times, and class reports.
           </p>
         </div>
 
@@ -185,35 +168,59 @@ export default function TeacherDashboardPage() {
 
           <section className="rounded-3xl border border-card-border bg-card-bg p-6">
             <div className="flex items-center justify-between gap-3 mb-4">
-              <h2 className="text-xl font-semibold">Lesson requests</h2>
+              <h2 className="text-xl font-semibold">Weekly times</h2>
               <Link
-                href="/teacher/lesson-requests"
+                href="/teacher/availability"
                 className="text-sm font-semibold text-green-600 hover:underline"
               >
-                Review all →
+                Manage →
               </Link>
             </div>
-            {requestsQuery.isLoading ? (
-              <p className="text-foreground opacity-70">Loading requests…</p>
-            ) : pendingRequests.length ? (
+            {rulesQuery.isLoading ? (
+              <p className="text-foreground opacity-70">
+                Loading your weekly times…
+              </p>
+            ) : rules.length ? (
               <div className="space-y-3">
-                {pendingRequests.slice(0, 4).map((request) => (
+                {rules.slice(0, 5).map((rule) => (
                   <div
-                    key={request.id}
-                    className="rounded-2xl border border-card-border p-4"
+                    key={rule.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-card-border p-4"
                   >
-                    <p className="font-semibold">
-                      {dateTime(request.startsAt)}
-                    </p>
-                    <p className="mt-1 text-sm text-foreground opacity-70">
-                      Student: {request.studentName ?? "Student"}
-                    </p>
+                    <div>
+                      <p className="font-semibold">
+                        {weekdayLabel(rule.dayOfWeek)} ·{" "}
+                        {formatWeeklyTimeRange(
+                          rule.startsAtTime,
+                          rule.endsAtTime
+                        )}
+                      </p>
+                      <p className="mt-1 text-sm text-foreground opacity-70">
+                        Repeats weekly · {rule.timeZoneId.replaceAll("_", " ")}
+                      </p>
+                    </div>
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                        rule.status === "available"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-sky-100 text-sky-800"
+                      }`}
+                    >
+                      {rule.status === "available" ? "Open" : "Booked"}
+                    </span>
                   </div>
                 ))}
               </div>
             ) : (
               <p className="text-foreground opacity-70">
-                No requests are waiting for your response.
+                No weekly times announced yet.{" "}
+                <Link
+                  href="/teacher/availability"
+                  className="font-semibold text-green-600 hover:underline"
+                >
+                  Announce your availability
+                </Link>{" "}
+                so students can book.
               </p>
             )}
           </section>
@@ -267,7 +274,7 @@ export default function TeacherDashboardPage() {
           >
             <h2 className="text-xl font-semibold mb-2">Manage availability</h2>
             <p className="text-foreground opacity-75">
-              Publish the lesson times your assigned students can request.
+              Announce the weekly times students can book instantly.
             </p>
           </Link>
           <Link

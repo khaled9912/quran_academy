@@ -10,9 +10,10 @@ A typical student journey looks like this:
 
 - Sign in or create an account from the login/signup screens.
 - Complete a profile, add contact details, and upload an avatar.
-- Browse teachers, view available lesson slots, and request a lesson.
-- Wait for teacher approval, then admin approval before the lesson is confirmed.
-- Join the live lesson room after confirmation and view the final class report or review afterward.
+- Browse teachers and the weekly times each one has announced.
+- Pick any number of weekly times and book them instantly — the earliest one is automatically their trial lesson.
+- Follow the recurring weekly schedule, receive reminders 5 minutes before and at the start, and request a different weekly time (handled by the admin) if their schedule changes.
+- Join the live lesson room and view the class report or review afterward.
 
 This means the student does not need to understand the backend details directly; they just interact with a clean interface while the API enforces the rules behind the scenes. The frontend fetches data from the API, submits requests for booking or profile updates, and displays the results in a friendly way.
 
@@ -97,14 +98,77 @@ The browser-readable `user-role` cookie is only a navigation hint. Never use it 
 
 Avatars live in a separate `UserAvatars` table (`bytea`) so user queries never load image bytes. Uploads validate the declared content type and magic bytes before storing. The frontend renders the stable `/api/users/{id}/avatar` URL with a cache-busting query string after an upload.
 
-## Teacher directory and self-service booking
+## Teacher directory and instant weekly booking
 
-| Method | Endpoint                     | Purpose                                                                |
-| ------ | ---------------------------- | ---------------------------------------------------------------------- |
-| GET    | `/api/teachers/directory`    | Active teachers with their future `available` slots and rating summary |
-| GET    | `/api/teachers/{id}/profile` | One active teacher plus open slots and latest reviews                  |
+A teacher announces **weekly availability rules** once — for example “Saturday 15:00–16:00” and “Tuesday 17:00–18:00” in their IANA time zone. Each rule stays bookable until it is removed. Students browse the announced rules and book as many as they want in a single call; there is **no teacher or admin approval step**, because announcing a rule is the teacher's consent. Each booking becomes a permanent `LessonSeries` and lessons are materialized 8 weeks ahead, rolling forward on every schedule request.
 
-Each item has the shape `{ "teacher": { ...UserDto }, "slots": [ ... ] }`. A student may request any teacher's open slot with `POST /api/lesson-requests`. When the request is created, the API claims the slot and makes that teacher the student's active assignment inside the same transaction. The request then follows the normal `pending_teacher → pending_admin → approved` flow.
+| Method | Endpoint                                   | Purpose                                                                    |
+| ------ | ------------------------------------------ | -------------------------------------------------------------------------- |
+| GET    | `/api/teachers/weekly-directory`           | Active teachers with their announced weekly rules and rating summary       |
+| GET    | `/api/teachers/{id}/weekly-availability`   | One active teacher's weekly rules, the caller's series, and latest reviews |
+| GET    | `/api/student/teacher/weekly-availability` | Same shape, restricted to the student's currently assigned teacher         |
+| POST   | `/api/student/bookings`                    | Book one or more weekly rules instantly                                    |
+
+Each directory item is `{ "teacher": { ...UserDto }, "slots": [ ...WeeklyRuleDto ], "averageRating": 4.8, "reviewCount": 12 }`. A `WeeklyRuleDto` is:
+
+```json
+{
+  "id": "uuid",
+  "teacherId": "uuid",
+  "dayOfWeek": 6,
+  "startsAtTime": "15:00:00",
+  "endsAtTime": "16:00:00",
+  "timeZoneId": "Africa/Cairo",
+  "status": "available"
+}
+```
+
+`dayOfWeek` uses `0 = Sunday … 6 = Saturday`. `startsAtTime`/`endsAtTime` are wall-clock `HH:mm:ss` values interpreted in `timeZoneId`, not UTC instants. A rule's `status` is `available`, `booked` (another student took it), or `yours` (the requesting student already books it); only `available` rules can be selected.
+
+`GET /api/teachers/{id}/weekly-availability` and `GET /api/student/teacher/weekly-availability` return:
+
+```json
+{
+  "teacher": {
+    "id": "uuid",
+    "fullName": "Teacher Name",
+    "avatarUrl": "/api/users/uuid/avatar"
+  },
+  "slots": [
+    {
+      "id": "uuid",
+      "dayOfWeek": 6,
+      "startsAtTime": "15:00:00",
+      "endsAtTime": "16:00:00",
+      "timeZoneId": "Africa/Cairo",
+      "status": "booked"
+    }
+  ],
+  "series": [
+    {
+      "id": "uuid",
+      "teacherId": "uuid",
+      "teacherName": "Teacher Name",
+      "studentId": "uuid",
+      "studentName": "Student Name",
+      "dayOfWeek": 6,
+      "startsAtTime": "15:00:00",
+      "endsAtTime": "16:00:00",
+      "timeZoneId": "Africa/Cairo",
+      "isActive": true,
+      "createdAt": "2026-11-01T12:00:00Z"
+    }
+  ],
+  "averageRating": 4.8,
+  "reviewCount": 12,
+  "reviews": [],
+  "hasLessons": false
+}
+```
+
+`hasLessons` is `false` until the student has ever had a lesson; the frontend uses it to show that the first booking will be a trial. When the student has no assigned teacher, `/api/student/teacher/weekly-availability` returns `{ "teacher": null, "slots": [], "series": [] }`.
+
+`POST /api/student/bookings` takes `{ "ruleIds": ["uuid", "uuid"] }` with any number of rules (at least one, all from the same teacher) and returns `201` with `{ "series": [...], "lessons": [...] }`. Booking the same teacher again simply adds series; booking a different teacher deactivates the previous active assignment in the same transaction. The API rejects with `409` when a rule was just taken by someone else, overlaps a lesson the student already has, or conflicts with either calendar, and `400` when `ruleIds` is empty.
 
 ## Core account and assignment endpoints
 
@@ -126,21 +190,23 @@ A student has at most one active teacher at a time; the API enforces this and re
 | Method | Endpoint                | Purpose                                                      |
 | ------ | ----------------------- | ------------------------------------------------------------ |
 | POST   | `/api/admin/users`      | Create a `teacher` (or `student`) account                    |
-| GET    | `/api/teachers/{id}`    | Teacher detail (used by the admin slot screen)               |
+| GET    | `/api/teachers/{id}`    | Teacher detail (used by the admin weekly-times screen)       |
 | PATCH  | `/api/admin/users/{id}` | Update `{ "fullName"?, "email"?, "password"?, "isActive"? }` |
 | DELETE | `/api/admin/users/{id}` | Deactivate a teacher/student account                         |
 
-`PATCH`/`DELETE` apply only to teacher and student accounts and return `409` for a duplicate email or when an account still has upcoming lessons. Deactivation is soft (`isActive=false`): lesson history is preserved, active assignments are removed, pending lesson requests are rejected with their slots released, and future unused availability slots are deleted. Deactivated users cannot log in and `GET /api/auth/me` returns `401`.
+`PATCH`/`DELETE` apply only to teacher and student accounts and return `409` for a duplicate email or when an account still has upcoming lessons. Deactivation is soft (`isActive=false`): lesson history is preserved, active assignments are removed, and future unused availability slots/rules stop being bookable. Deactivated users cannot log in and `GET /api/auth/me` returns `401`.
 
 ### Admin availability management
 
-| Method | Endpoint                                                | Purpose                                                                     |
-| ------ | ------------------------------------------------------- | --------------------------------------------------------------------------- |
-| GET    | `/api/admin/teachers/{teacherId}/availability`          | List a teacher's slots                                                      |
-| POST   | `/api/admin/teachers/{teacherId}/availability`          | Publish `{ "startsAt": "ISO-8601", "endsAt": "ISO-8601" }` for that teacher |
-| DELETE | `/api/admin/teachers/{teacherId}/availability/{slotId}` | Delete one of that teacher's unused available slots                         |
+| Method | Endpoint                                                      | Purpose                                      |
+| ------ | ------------------------------------------------------------- | -------------------------------------------- |
+| GET    | `/api/admin/teachers/{teacherId}/availability-rules`          | List that teacher's weekly rules             |
+| POST   | `/api/admin/teachers/{teacherId}/availability-rules`          | Publish weekly rules on the teacher's behalf |
+| DELETE | `/api/admin/teachers/{teacherId}/availability-rules/{ruleId}` | Delete an unbooked weekly rule               |
 
-Admin-published slots follow the same rules as teacher-published slots: they must be in the future, no longer than 4 hours, and must not overlap the teacher's other slots or lessons. Only slots in the `available` state can be deleted.
+The admin body is the same as the teacher's own publish call: `{ "daysOfWeek": [6, 0, 1], "startsAtTime": "15:00:00", "endsAtTime": "16:00:00", "timeZoneId": "Africa/Cairo" }`. Every rule must be 4 hours or shorter; rules that overlap the teacher's existing rules or lessons are rejected with `400`. A rule that already backs an active series cannot be deleted — the response is `409` — because deleting it would silently cancel a booked weekly time.
+
+The older one-off endpoints (`/api/admin/teachers/{teacherId}/availability`, `/api/teacher/availability`, `/api/student/teacher/availability`, `/api/teachers/directory`, `/api/lesson-requests`) are still mounted for backwards compatibility but the web and mobile apps no longer call them.
 
 `POST /api/students` is the admin-only provisioning flow used by `/admin/students`. The frontend sends:
 
@@ -159,121 +225,113 @@ The student scheduling endpoints derive the student identity from the authentica
 
 ## Teacher applications
 
-| Method | Endpoint                                      | Purpose                                                                       |
-| ------ | --------------------------------------------- | ----------------------------------------------------------------------------- |
-| POST   | `/api/teacher-applications`                   | Public multipart application with CV, Quran recitation, optional intro        |
-| GET    | `/api/admin/teacher-applications`             | Admin queue; optional `?status=pending\|approved\|rejected&take=50`           |
-| GET    | `/api/admin/teacher-applications/{id}/cv`     | Download the stored CV as an attachment                                       |
-| GET    | `/api/admin/teacher-applications/{id}/quran`  | Download the Quran recitation as an attachment                                |
-| GET    | `/api/admin/teacher-applications/{id}/intro`  | Download the self-introduction recording as an attachment                     |
-| PATCH  | `/api/admin/teacher-applications/{id}`        | Review `{ "status": "approved" \| "rejected", "reason"?: "..." }`             |
+| Method | Endpoint                                     | Purpose                                                                |
+| ------ | -------------------------------------------- | ---------------------------------------------------------------------- |
+| POST   | `/api/teacher-applications`                  | Public multipart application with CV, Quran recitation, optional intro |
+| GET    | `/api/admin/teacher-applications`            | Admin queue; optional `?status=pending\|approved\|rejected&take=50`    |
+| GET    | `/api/admin/teacher-applications/{id}/cv`    | Download the stored CV as an attachment                                |
+| GET    | `/api/admin/teacher-applications/{id}/quran` | Download the Quran recitation as an attachment                         |
+| GET    | `/api/admin/teacher-applications/{id}/intro` | Download the self-introduction recording as an attachment              |
+| PATCH  | `/api/admin/teacher-applications/{id}`       | Review `{ "status": "approved" \| "rejected", "reason"?: "..." }`      |
 
 `POST /api/teacher-applications` is anonymous and takes `multipart/form-data` with the fields `fullName`, `email`, `phoneNumber` (E.164), repeated `subjects` values (`quran`, `tajweed`, `islamic_studies`, `arabic`), `englishLevel` (`beginner`, `intermediate`, `advanced`, `fluent`), `experienceYears`, `bio`, `availabilityNote`, `cv`, `quran`, and `intro`. The CV must be PDF, DOC, or DOCX, at most 2 MB, and its magic bytes are checked. The Quran recitation is required and the intro recording is optional; both must be MP3, M4A, WAV, OGG, WebM, MP4, or MOV, at most 20 MB each, also magic-byte checked. Only one `pending` application per email is allowed. Applications and file bytes live in separate tables (`TeacherApplications`, `TeacherApplicationCvs`, `TeacherApplicationQuranRecordings`, `TeacherApplicationIntros`) so list queries never load the files, which are only fetched on demand through the `/cv`, `/quran`, and `/intro` endpoints. There is no automated deletion of applications.
 
 Approving an application creates an active `teacher` account (with a random internal password) and issues a 15-minute set-password code. If SMTP is configured, the code is emailed with `SendTeacherInviteCodeAsync`; otherwise the `PATCH` response returns `inviteCode` so an admin can share it. If the email already belongs to an account, approval returns `409` and leaves the application pending. Rejecting requires a reason of 3–500 characters.
 
-## Scheduling workflow (agreed MVP)
+## Weekly scheduling workflow
 
 - Lessons are **individual**: one teacher and one student.
-- A teacher publishes exact available time slots.
-- A student selects one published slot and submits **one active request at a time**.
-- The teacher confirms or rejects the request.
-- If confirmed by the teacher, the request moves to admin for final approval.
-- Only admin approval creates a confirmed `Lesson` and reserves the slot.
-- A rejected, cancelled, or expired request releases its slot.
-- Students repeat the process for each subsequent lesson. Recurring-series booking is deferred.
-- Students can only request availability belonging to their currently assigned teacher.
+- A teacher announces **weekly rules** — a weekday, a wall-clock range of at most 4 hours, and an IANA time zone. Announcing a rule is the teacher's consent to be booked.
+- A student selects **any number** of the teacher's open rules in one action and is booked instantly. There is no teacher confirmation and no admin approval.
+- Every booking creates a permanent `LessonSeries`, and the API materializes the next 8 weeks of lessons from it, rolling forward on every schedule read.
+- A rule can back only one active series, so a booked rule is no longer offered to other students.
+- The student's **first-ever lesson** is flagged `isTrial: true` automatically.
+- To move a weekly time, the student submits a change request that goes **to the admin only**. The teacher is not notified and has no screen for it; the admin contacts the teacher out of band and then approves or declines.
+- A student may only request a change to another open rule of the same teacher.
 
-### Suggested request states
+### Teacher availability endpoints
 
-`pending_teacher` → `pending_admin` → `approved`
+| Method | Endpoint                                   | Purpose                                  |
+| ------ | ------------------------------------------ | ---------------------------------------- |
+| GET    | `/api/teacher/availability-rules`          | The teacher's own announced weekly rules |
+| POST   | `/api/teacher/availability-rules`          | Announce rules for one or more weekdays  |
+| DELETE | `/api/teacher/availability-rules/{ruleId}` | Remove an unbooked rule                  |
 
-Terminal alternatives: `rejected`, `cancelled`, `expired`.
-
-### Availability endpoints
-
-| Method | Endpoint                             | Purpose                                                    |
-| ------ | ------------------------------------ | ---------------------------------------------------------- |
-| GET    | `/api/teacher/availability`          | Teacher's own slots                                        |
-| POST   | `/api/teacher/availability`          | Publish `{ "startsAt": "ISO-8601", "endsAt": "ISO-8601" }` |
-| DELETE | `/api/teacher/availability/{slotId}` | Delete an unused available slot                            |
-| GET    | `/api/student/teacher/availability`  | Assigned teacher plus their available slots                |
-
-Suggested `GET /api/student/teacher/availability` response:
+`POST /api/teacher/availability-rules` takes:
 
 ```json
 {
-  "teacher": { "id": "uuid", "fullName": "Teacher Name" },
-  "slots": [
-    {
-      "id": "uuid",
-      "teacherId": "uuid",
-      "startsAt": "2026-11-02T15:00:00Z",
-      "endsAt": "2026-11-02T16:00:00Z",
-      "status": "available"
-    }
-  ]
+  "daysOfWeek": [6, 0, 1],
+  "startsAtTime": "15:00:00",
+  "endsAtTime": "16:00:00",
+  "timeZoneId": "Africa/Cairo"
 }
 ```
 
-### Lesson request endpoints
+It creates one rule per weekday and returns `201` with the created `WeeklyRuleDto` list. It returns `400 { "message": "..." }` when no weekday is given, the end time is not after the start time, the range exceeds 4 hours, the time zone is unknown, or the hours overlap an existing rule. Deleting an unbooked rule returns `204`; a rule referenced by a series or a pending change request returns `409`.
 
-| Method | Endpoint                                          | Purpose                                             |
-| ------ | ------------------------------------------------- | --------------------------------------------------- |
-| GET    | `/api/teachers/directory`                         | Active teachers and their open slots                |
-| GET    | `/api/teachers/{id}/profile`                      | One active teacher, open slots, and latest reviews  |
-| GET    | `/api/teachers/public`                            | Public teacher list with ratings (no sign-in)       |
-| GET    | `/api/teachers/public/{id}`                       | Public teacher profile and up to 50 reviews         |
-| POST   | `/api/lesson-requests`                            | Student requests `{ "availabilitySlotId": "uuid" }` |
-| GET    | `/api/student/lesson-requests`                    | Student's own requests                              |
-| GET    | `/api/teacher/lesson-requests`                    | Requests for the authenticated teacher              |
-| POST   | `/api/teacher/lesson-requests/{id}/confirm`       | Teacher confirms; moves to `pending_admin`          |
-| POST   | `/api/teacher/lesson-requests/{id}/reject`        | Teacher rejects; releases slot                      |
-| GET    | `/api/admin/lesson-requests?status=pending_admin` | Admin approval queue                                |
-| POST   | `/api/admin/lesson-requests/{id}/approve`         | Final approval and creation of `Lesson`             |
-| POST   | `/api/admin/lesson-requests/{id}/reject`          | Admin rejects; releases slot                        |
+`GET /api/teacher/availability-rules` returns the same `WeeklyRuleDto` list, with `status` reflecting whether a student has booked each rule.
 
-Suggested request response:
+### Time-change requests
+
+| Method | Endpoint                                         | Purpose                                                 |
+| ------ | ------------------------------------------------ | ------------------------------------------------------- |
+| GET    | `/api/student/change-requests`                   | The student's own change requests                       |
+| POST   | `/api/student/series/{seriesId}/change-requests` | Request `{ "requestedRuleId": "uuid", "note"?: "..." }` |
+| GET    | `/api/admin/change-requests?status=pending`      | Admin queue (`pending`, `approved`, `rejected`)         |
+| POST   | `/api/admin/change-requests/{id}/approve`        | Move the series to the requested rule                   |
+| POST   | `/api/admin/change-requests/{id}/reject`         | Decline with `{ "note"?: "..." }`                       |
+
+A change request returns:
 
 ```json
 {
   "id": "uuid",
+  "seriesId": "uuid",
   "teacherId": "uuid",
-  "studentId": "uuid",
-  "availabilitySlotId": "uuid",
-  "startsAt": "2026-11-02T15:00:00Z",
-  "endsAt": "2026-11-02T16:00:00Z",
-  "status": "pending_teacher",
-  "studentName": "Student Name",
   "teacherName": "Teacher Name",
-  "createdAt": "2026-10-30T12:00:00Z"
+  "studentId": "uuid",
+  "studentName": "Student Name",
+  "currentDayOfWeek": 6,
+  "currentStartsAtTime": "15:00:00",
+  "currentEndsAtTime": "16:00:00",
+  "requestedDayOfWeek": 2,
+  "requestedStartsAtTime": "17:00:00",
+  "requestedEndsAtTime": "18:00:00",
+  "timeZoneId": "Africa/Cairo",
+  "status": "pending",
+  "studentNote": "I started a new class on Saturdays.",
+  "adminNote": null,
+  "createdAt": "2026-11-01T12:00:00Z",
+  "adminRespondedAt": null
 }
 ```
+
+The student may have only one pending request per series (`409`). The requested rule must belong to the same teacher (`404`), must differ from the current rule, must still be open, and must not overlap another of the student's series (`409`). Approving retargets the series to the requested rule in a serializable transaction, replaces that series' future lessons, and returns `409` if the slot was taken in the meantime. Rejecting keeps the original schedule and stores the optional `adminNote` for the student to read.
 
 ### Booking consistency requirements
 
 These are backend responsibilities, not frontend checks:
 
-1. Validate that the selected slot is still available and belongs to an active teacher.
-2. Enforce one open request per student at a time (`pending_teacher`, `pending_student`, or `pending_admin`).
-3. Use a database transaction and concurrency-safe update/constraint when claiming a slot. Two requests must never book the same slot.
-4. When a student chooses a slot from the teacher directory, make that teacher the student's active assignment in the same transaction.
-5. Recheck teacher and student calendar conflicts at final admin approval.
-6. When a teacher confirms, keep the slot unavailable to other students while waiting for admin. If admin rejects or the request expires, release it.
-7. Prevent teachers from changing/deleting slots that are already requested or booked.
-8. Store timestamps as UTC (`timestamp with time zone` in PostgreSQL) and validate end > start.
-9. Derive actor identity and role from the validated server-side session, never from request JSON or browser cookies.
+1. Validate that the chosen rules still exist, all belong to one teacher, and that teacher is active.
+2. Enforce one active series per rule with a database uniqueness constraint, and answer `409` when two students race for the same slot.
+3. Reassign the student's active teacher (and add the series, lessons, and trial flag) inside one transaction.
+4. Reject a booking that overlaps another of the student's series, the teacher's calendar, or the student's calendar for the next 8 weeks.
+5. Materialize 8 weeks of lessons per series and roll the window forward whenever lessons are read.
+6. Store instants as UTC (`timestamp with time zone`), weekly times as `time`, and zones as IANA ids; resolve daylight-saving transitions when materializing.
+7. Key the admin-only change request on `seriesId`, keep one pending request per series, and never expose it to the teacher.
+8. Derive actor identity and role from the validated server-side session, never from request JSON or browser cookies.
 
 ## Confirmed lessons
 
-| Method | Endpoint            | Purpose                             |
-| ------ | ------------------- | ----------------------------------- |
-| GET    | `/api/lessons`      | Role-scoped approved lessons        |
-| GET    | `/api/lessons/{id}` | Lesson detail                       |
-| PATCH  | `/api/lessons/{id}` | Authorized reschedule/status change |
-| DELETE | `/api/lessons/{id}` | Authorized cancellation             |
+| Method | Endpoint            | Purpose                                                |
+| ------ | ------------------- | ------------------------------------------------------ |
+| GET    | `/api/lessons`      | Role-scoped lessons (includes upcoming series lessons) |
+| GET    | `/api/lessons/{id}` | Lesson detail                                          |
+| PATCH  | `/api/lessons/{id}` | Authorized reschedule/status change                    |
+| DELETE | `/api/lessons/{id}` | Authorized cancellation                                |
 
-A lesson has `id`, `teacherId`, `studentId`, `startsAt`, `endsAt`, `status`, optional actual start/end timestamps, and embedded `report` and `review` objects when they exist.
+A lesson has `id`, `teacherId`, `studentId`, `startsAt`, `endsAt`, `status`, optional actual start/end timestamps, `seriesId` (the weekly booking it came from, `null` for legacy one-off lessons), `isTrial` (true for a student's first ever lesson), and embedded `report` and `review` objects when they exist.
 
 ## Class reports and teacher reviews
 
@@ -336,8 +394,8 @@ Prefer RFC 7807 Problem Details. Common status codes: `400` validation, `401` un
 - `/teach` — public teacher application form (details plus CV and recording uploads)
 - `/teachers`, `/teachers/{id}` — authenticated students only; anonymous visitors are redirected to `/login`, other roles to their dashboard
 - `/profile` — student/teacher/admin profile: name, email, mobile, photo, and class-report history
-- `/student/dashboard`, `/student/availability`, `/schedule`, `/lesson/{id}` — student overview, teacher directory booking, schedule, and post-lesson recap/review
-- `/teacher/dashboard`, `/teacher/availability`, `/teacher/lesson-requests`, `/teacher/schedule` — teacher tools including report-due indicators
-- `/admin/dashboard`, `/admin/lesson-approvals`, `/admin/students`, `/admin/teachers`, `/admin/teachers/{id}/availability`, `/admin/teacher-applications`, `/admin/assignments`, `/admin/lessons`, `/admin/transcripts` — admin tools
+- `/student/dashboard`, `/student/availability`, `/student/teachers/{id}`, `/student/change-time/{seriesId}`, `/schedule`, `/lesson/{id}` — student overview, teacher directory with unlimited weekly multi-select, time-change request, recurring schedule, and post-lesson recap/review
+- `/teacher/dashboard`, `/teacher/availability`, `/teacher/schedule` — teacher tools: announce weekly rules, see the weekly bookings, and submit reports. Teachers have no lesson-request or approval screens.
+- `/admin/dashboard`, `/admin/change-requests`, `/admin/students`, `/admin/teachers`, `/admin/teachers/{id}/availability`, `/admin/teacher-applications`, `/admin/assignments`, `/admin/lessons`, `/admin/transcripts` — admin tools; `/admin/change-requests` is the only place student time-change requests surface
 
 The landing page is implemented in `src/app/page.tsx`. Feature screens are App Router `page.tsx` files; do not add a `pages/` directory.

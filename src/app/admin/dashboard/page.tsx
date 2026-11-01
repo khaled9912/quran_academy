@@ -6,6 +6,7 @@ import { getStudents } from "@/services/student.service";
 import { getTeachers } from "@/services/teacher.service";
 import { getTeacherStudentAssignments } from "@/services/assignment.service";
 import { getLessons } from "@/services/lesson.service";
+import { getAdminChangeRequests } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 
@@ -34,12 +35,19 @@ export default function AdminDashboardPage() {
     enabled: canManage,
     refetchInterval: LIVE_SYNC_INTERVAL,
   });
+  const changesQuery = useQuery({
+    queryKey: ["change-requests", "admin", "pending"],
+    queryFn: () => getAdminChangeRequests("pending"),
+    enabled: canManage,
+    refetchInterval: LIVE_SYNC_INTERVAL,
+  });
 
   const queries = [
     studentsQuery,
     teachersQuery,
     assignmentsQuery,
     lessonsQuery,
+    changesQuery,
   ];
   const loading = queries.some((query) => query.isLoading);
   const failed = queries.some((query) => query.isError);
@@ -52,6 +60,10 @@ export default function AdminDashboardPage() {
       value: assignmentsQuery.data?.length,
     },
     { title: "Individual lessons", value: lessonsQuery.data?.length },
+    {
+      title: "Time changes waiting",
+      value: changesQuery.data?.length,
+    },
   ];
 
   if (!canManage) {
@@ -68,7 +80,8 @@ export default function AdminDashboardPage() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
           <p className="text-lg text-foreground opacity-75">
-            Manage teachers, students, assignments, and individual lessons.
+            Manage teachers, students, assignments, weekly lessons, and time
+            changes.
           </p>
         </div>
 
@@ -82,7 +95,7 @@ export default function AdminDashboardPage() {
           </p>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6 mb-10">
           {metrics.map((metric) => (
             <div
               key={metric.title}
@@ -128,12 +141,13 @@ export default function AdminDashboardPage() {
             </p>
           </Link>
           <Link
-            href="/admin/lesson-approvals"
+            href="/admin/change-requests"
             className="rounded-3xl border border-card-border bg-card-bg p-6 hover:border-green-500 transition"
           >
-            <h2 className="text-xl font-semibold mb-2">Lesson approvals</h2>
+            <h2 className="text-xl font-semibold mb-2">Time change requests</h2>
             <p className="text-foreground opacity-75">
-              Give final approval to lesson requests confirmed by teachers.
+              Check requested weekly-time changes with teachers, then approve or
+              decline them.
             </p>
           </Link>
           <Link

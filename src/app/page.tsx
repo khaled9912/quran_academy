@@ -26,15 +26,15 @@ const steps = [
   },
   {
     number: "02",
-    title: "Choose a time that works",
+    title: "Choose your weekly times",
     description:
-      "Explore your teacher’s available slots and request the lesson time that fits your routine.",
+      "See each teacher’s weekly schedule and pick the times that fit your routine — as many as you need.",
   },
   {
     number: "03",
-    title: "Learn one-to-one",
+    title: "Learn one-to-one every week",
     description:
-      "Once your teacher and our team approve the booking, join your lesson online.",
+      "Your times lock in instantly and repeat every week. Join each lesson online, starting with a trial.",
   },
 ];
 
@@ -49,13 +49,13 @@ const benefits = [
     icon: CalendarDays,
     title: "Flexible scheduling",
     description:
-      "Choose from your teacher’s available times and book one lesson at a time.",
+      "Pick your teacher’s weekly times. Booking is instant and repeats every week.",
   },
   {
     icon: ShieldCheck,
     title: "A guided experience",
     description:
-      "A clear approval process keeps students, teachers, and lesson times coordinated.",
+      "A clear weekly plan keeps students, teachers, and lesson times coordinated.",
   },
 ];
 
