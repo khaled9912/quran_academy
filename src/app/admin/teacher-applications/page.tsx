@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  BookOpen,
   CheckCircle2,
   Download,
   FileText,
@@ -15,6 +16,7 @@ import { teacherSubjectLabel } from "@/lib/teacher-subjects";
 import {
   downloadTeacherApplicationCv,
   downloadTeacherApplicationIntro,
+  downloadTeacherApplicationQuran,
   getTeacherApplications,
   reviewTeacherApplication,
 } from "@/services/teacher-application.service";
@@ -109,7 +111,7 @@ export default function AdminTeacherApplicationsPage() {
 
   const downloadFile = async (
     application: TeacherApplication,
-    kind: "cv" | "intro"
+    kind: "cv" | "intro" | "quran"
   ) => {
     setDownloadingKey(`${application.id}:${kind}`);
     setActionError("");
@@ -117,12 +119,21 @@ export default function AdminTeacherApplicationsPage() {
       const blob =
         kind === "cv"
           ? await downloadTeacherApplicationCv(application.id)
-          : await downloadTeacherApplicationIntro(application.id);
+          : kind === "intro"
+            ? await downloadTeacherApplicationIntro(application.id)
+            : await downloadTeacherApplicationQuran(application.id);
       const fallback =
-        kind === "cv" ? "teacher-cv.pdf" : "self-introduction.webm";
+        kind === "cv"
+          ? "teacher-cv.pdf"
+          : kind === "intro"
+            ? "self-introduction.webm"
+            : "quran-recitation.webm";
       const fileName =
-        (kind === "cv" ? application.cvFileName : application.introFileName) ??
-        fallback;
+        (kind === "cv"
+          ? application.cvFileName
+          : kind === "intro"
+            ? application.introFileName
+            : application.quranRecordingFileName) ?? fallback;
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -335,8 +346,26 @@ export default function AdminTeacherApplicationsPage() {
                         <Mic size={16} />
                       )}
                       {application.introFileName
-                        ? "Download recording"
-                        : "No recording"}
+                        ? "Download intro"
+                        : "No intro recording"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => downloadFile(application, "quran")}
+                      disabled={
+                        !application.quranRecordingFileName ||
+                        downloadingKey === `${application.id}:quran`
+                      }
+                      className="inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2 text-sm font-semibold transition hover:border-green-500 disabled:opacity-60"
+                    >
+                      {downloadingKey === `${application.id}:quran` ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <BookOpen size={16} />
+                      )}
+                      {application.quranRecordingFileName
+                        ? "Download Quran recitation"
+                        : "No Quran recording"}
                     </button>
 
                     {application.status === "pending" && (
@@ -430,8 +459,8 @@ export default function AdminTeacherApplicationsPage() {
         )}
 
         <p className="mt-8 flex items-center gap-2 text-xs opacity-60">
-          <FileText size={14} /> CVs and introduction recordings are stored
-          separately and downloaded only on demand, so this page stays light.
+          <FileText size={14} /> CVs and recordings are stored separately and
+          downloaded only on demand, so this page stays light.
         </p>
       </div>
     </div>

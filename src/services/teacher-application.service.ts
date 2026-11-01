@@ -21,6 +21,7 @@ export const submitTeacherApplication = (
   form.append("availabilityNote", input.availabilityNote);
   form.append("cv", input.cv, input.cv.name);
   if (input.intro) form.append("intro", input.intro, input.intro.name);
+  form.append("quran", input.quran, input.quran.name);
   return backendFetch<{ id: string; status: string }>(
     "/api/teacher-applications",
     { method: "POST", body: form }
@@ -53,4 +54,9 @@ export const downloadTeacherApplicationCv = (id: string) =>
 export const downloadTeacherApplicationIntro = (id: string) =>
   backendBlobFetch(
     `/api/admin/teacher-applications/${encodeURIComponent(id)}/intro`
+  );
+
+export const downloadTeacherApplicationQuran = (id: string) =>
+  backendBlobFetch(
+    `/api/admin/teacher-applications/${encodeURIComponent(id)}/quran`
   );

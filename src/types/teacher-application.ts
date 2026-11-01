@@ -35,6 +35,7 @@ export interface TeacherApplication {
   teacherId: string | null;
   cvFileName: string | null;
   introFileName: string | null;
+  quranRecordingFileName: string | null;
 }
 
 export interface SubmitTeacherApplicationInput {
@@ -48,6 +49,7 @@ export interface SubmitTeacherApplicationInput {
   availabilityNote: string;
   cv: File;
   intro?: File | null;
+  quran: File;
 }
 
 export interface ReviewTeacherApplicationInput {

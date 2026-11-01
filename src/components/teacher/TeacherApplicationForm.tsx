@@ -1,7 +1,15 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useState } from "react";
-import { CheckCircle2, FileText, Loader2, Mic, Upload, X } from "lucide-react";
+import {
+  BookOpen,
+  CheckCircle2,
+  FileText,
+  Loader2,
+  Mic,
+  Upload,
+  X,
+} from "lucide-react";
 import type { CountryCode } from "libphonenumber-js";
 import { toE164 } from "@/lib/countries";
 import { teacherSubjects, type TeacherSubject } from "@/lib/teacher-subjects";
@@ -36,6 +44,7 @@ export function TeacherApplicationForm() {
   const [availabilityNote, setAvailabilityNote] = useState("");
   const [cv, setCv] = useState<File | null>(null);
   const [intro, setIntro] = useState<File | null>(null);
+  const [quran, setQuran] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState("");
   const [status, setStatus] = useState<Status>("idle");
@@ -82,34 +91,36 @@ export function TeacherApplicationForm() {
     setCv(file);
   };
 
-  const onIntroChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] ?? null;
-    event.target.value = "";
-    if (!file) return;
-    if (!INTRO_PATTERN.test(file.name)) {
-      setErrors((current) => ({
-        ...current,
-        intro:
-          "Upload your recording as MP3, M4A, WAV, OGG, WebM, MP4, or MOV.",
-      }));
-      setIntro(null);
-      return;
-    }
-    if (file.size > MAX_INTRO_BYTES) {
-      setErrors((current) => ({
-        ...current,
-        intro: "The recording must be 20 MB or smaller.",
-      }));
-      setIntro(null);
-      return;
-    }
-    setErrors((current) => {
-      const next = { ...current };
-      delete next.intro;
-      return next;
-    });
-    setIntro(file);
-  };
+  const onRecordingChange =
+    (field: "intro" | "quran", setFile: (file: File | null) => void) =>
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0] ?? null;
+      event.target.value = "";
+      if (!file) return;
+      if (!INTRO_PATTERN.test(file.name)) {
+        setErrors((current) => ({
+          ...current,
+          [field]:
+            "Upload your recording as MP3, M4A, WAV, OGG, WebM, MP4, or MOV.",
+        }));
+        setFile(null);
+        return;
+      }
+      if (file.size > MAX_INTRO_BYTES) {
+        setErrors((current) => ({
+          ...current,
+          [field]: "The recording must be 20 MB or smaller.",
+        }));
+        setFile(null);
+        return;
+      }
+      setErrors((current) => {
+        const next = { ...current };
+        delete next[field];
+        return next;
+      });
+      setFile(file);
+    };
 
   const validate = () => {
     const next: Record<string, string> = {};
@@ -137,6 +148,9 @@ export function TeacherApplicationForm() {
       next.availabilityNote =
         "Keep the availability note under 500 characters.";
     if (!cv) next.cv = "Attach your CV (PDF, DOC, or DOCX, up to 2 MB).";
+    if (!quran)
+      next.quran =
+        "Attach a Quran recitation (MP3, M4A, WAV, OGG, WebM, MP4, or MOV, up to 20 MB).";
     return next;
   };
 
@@ -166,6 +180,7 @@ export function TeacherApplicationForm() {
         availabilityNote: availabilityNote.trim(),
         cv: cv!,
         intro: intro ?? undefined,
+        quran: quran!,
       });
       setReference(result.id);
       setStatus("success");
@@ -512,7 +527,7 @@ export function TeacherApplicationForm() {
                 id="intro"
                 type="file"
                 accept=".mp3,.m4a,.wav,.ogg,.webm,.mp4,.mov,audio/*,video/*"
-                onChange={onIntroChange}
+                onChange={onRecordingChange("intro", setIntro)}
                 className="sr-only"
               />
             </label>
@@ -524,6 +539,59 @@ export function TeacherApplicationForm() {
             Optional: record a 1–2 minute voice note on your phone introducing
             yourself, then upload it here. Only academy administrators can
             access it.
+          </p>
+        </div>
+
+        <div className="sm:col-span-2">
+          <span className="mb-2 block text-sm font-semibold">
+            Quran recitation <span className="text-red-500">*</span>
+          </span>
+          {quran ? (
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-green-500/40 bg-green-500/5 px-4 py-3">
+              <span className="flex min-w-0 items-center gap-2 text-sm">
+                <BookOpen size={18} className="shrink-0 text-green-600" />
+                <span className="truncate">{quran.name}</span>
+                <span className="shrink-0 opacity-60">
+                  {(quran.size / 1024 / 1024).toFixed(2)} MB
+                </span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setQuran(null)}
+                aria-label="Remove Quran recording"
+                className="rounded-lg p-1.5 text-foreground opacity-70 transition hover:bg-red-500/10 hover:text-red-600"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          ) : (
+            <label
+              htmlFor="quran"
+              className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-8 text-center text-sm transition hover:border-green-500 ${
+                errors.quran ? "border-red-400" : "border-card-border"
+              }`}
+            >
+              <BookOpen size={20} className="opacity-60" />
+              <span className="font-semibold">Upload a Quran recitation</span>
+              <span className="opacity-60">
+                Recite 1–2 minutes from any surah · MP3, M4A, WAV, OGG, WebM,
+                MP4, or MOV · up to 20 MB
+              </span>
+              <input
+                id="quran"
+                type="file"
+                accept=".mp3,.m4a,.wav,.ogg,.webm,.mp4,.mov,audio/*,video/*"
+                onChange={onRecordingChange("quran", setQuran)}
+                className="sr-only"
+              />
+            </label>
+          )}
+          {errors.quran && (
+            <p className="mt-2 text-xs text-red-500">{errors.quran}</p>
+          )}
+          <p className="mt-2 text-xs opacity-60">
+            Required: record 1–2 minutes of your Quran recitation and upload it
+            here. Only academy administrators can access it.
           </p>
         </div>
       </div>
