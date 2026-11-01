@@ -302,11 +302,11 @@ The room is unlisted, not access-controlled. The Jitsi room itself is unlisted r
 
 Transcripts are not captured by the web or mobile app: the call runs in a cross-origin iframe, so only the Jitsi deployment can record audio. The API exposes the storage and review side, ready for the transcription bot.
 
-| Method | Endpoint                                  | Purpose                                                        |
-| ------ | ----------------------------------------- | -------------------------------------------------------------- |
-| POST   | `/api/lessons/{id}/transcript`            | Bot ingest; `{ segments: [{ speaker?, text, atSeconds? }] }`   |
-| GET    | `/api/admin/transcripts`                  | Flagged lessons, newest first                                   |
-| GET    | `/api/admin/lessons/{id}/transcript`      | Full ordered transcript for one lesson                          |
+| Method | Endpoint                             | Purpose                                                      |
+| ------ | ------------------------------------ | ------------------------------------------------------------ |
+| POST   | `/api/lessons/{id}/transcript`       | Bot ingest; `{ segments: [{ speaker?, text, atSeconds? }] }` |
+| GET    | `/api/admin/transcripts`             | Flagged lessons, newest first                                |
+| GET    | `/api/admin/lessons/{id}/transcript` | Full ordered transcript for one lesson                       |
 
 Ingest rules: anonymous but requires the `X-Transcript-Key` header to equal `Transcripts:IngestKey`; the route returns `404` while no key is configured, which keeps the feature off. Each request carries 1–200 segments; empty text is skipped, text is capped at 4000 characters, and the speaker defaults to `Unknown`. `AtSeconds` is the offset from the start of the recording.
 

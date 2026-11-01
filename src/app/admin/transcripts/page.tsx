@@ -203,7 +203,9 @@ export default function AdminTranscriptsPage() {
                         {lesson.studentName ?? "Student"}
                       </p>
                       <p className="text-sm opacity-70">
-                        {lesson.startsAt ? display(lesson.startsAt) : "Unknown time"}
+                        {lesson.startsAt
+                          ? display(lesson.startsAt)
+                          : "Unknown time"}
                         {lesson.status ? ` · ${lesson.status}` : ""}
                       </p>
                     </div>
