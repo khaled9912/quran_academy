@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { MonitorPlay, RefreshCw, ShieldCheck } from "lucide-react";
+import { Clock, MonitorPlay, RefreshCw, ShieldCheck } from "lucide-react";
 import { ApiError } from "@/lib/backend-client";
 import { getLessonById } from "@/services/lesson.service";
 import { useAuth } from "@/providers/auth-provider";
@@ -53,16 +53,32 @@ export default function LessonCallPage() {
   const room = `rayan-academy-${id}`;
   const ended = lesson ? isLessonEnded(lesson.endsAt, lesson.status) : false;
 
+  // The room stays closed until the scheduled start. Waking up exactly at that
+  // moment lets the open button appear without a manual refresh.
+  const startsAtMs = lesson ? new Date(lesson.startsAt).getTime() : null;
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (startsAtMs === null) return;
+    const remaining = startsAtMs - Date.now();
+    if (remaining <= 0) return;
+    const timer = setTimeout(() => setNow(Date.now()), remaining + 500);
+    return () => clearTimeout(timer);
+  }, [startsAtMs]);
+  const beforeStart = startsAtMs !== null && now < startsAtMs;
+
   // Refreshes keep arriving after the lesson ends. Once a participant has been
   // in a live room, that must not rip the call away from them mid-session.
   const [enteredWhileLive, setEnteredWhileLive] = useState(false);
   useEffect(() => {
-    if (!lesson || lesson.status === "cancelled") return;
+    if (!lesson || lesson.status === "cancelled" || beforeStart) return;
     if (!isLessonEnded(lesson.endsAt, lesson.status)) setEnteredWhileLive(true);
-  }, [lesson]);
+  }, [lesson, beforeStart]);
 
   const showingRoom =
-    !!lesson && lesson.status !== "cancelled" && (!ended || enteredWhileLive);
+    !!lesson &&
+    lesson.status !== "cancelled" &&
+    !beforeStart &&
+    (!ended || enteredWhileLive);
 
   const { startCall, setMinimized } = useLessonCall();
 
@@ -147,6 +163,17 @@ export default function LessonCallPage() {
           <div className="rounded-2xl border border-dashed border-card-border bg-card-bg p-10 text-center text-foreground opacity-70">
             This lesson was cancelled. The room is closed.
           </div>
+        ) : lesson && beforeStart ? (
+          <section className="rounded-3xl border border-dashed border-card-border bg-card-bg p-10 text-center">
+            <Clock size={28} className="mx-auto text-green-600" />
+            <h2 className="mt-4 text-xl font-semibold">
+              The room is not open yet
+            </h2>
+            <p className="mx-auto mt-2 max-w-md text-sm text-foreground opacity-70">
+              This lesson room opens at {dateTime(lesson.startsAt)}. This page
+              updates automatically.
+            </p>
+          </section>
         ) : lesson && ended && !showingRoom ? (
           <LessonFeedback lesson={lesson} role={role} />
         ) : (
