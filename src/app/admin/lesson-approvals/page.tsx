@@ -9,6 +9,7 @@ import {
   getAdminLessonApprovals,
   rejectLessonRequest,
 } from "@/services/scheduling.service";
+import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 
 const display = (value: string) =>
   new Date(value).toLocaleString(undefined, {
@@ -28,6 +29,7 @@ export default function AdminLessonApprovalsPage() {
     queryKey: ["lesson-requests", "pending-admin"],
     queryFn: getAdminLessonApprovals,
     enabled: canManage,
+    refetchInterval: LIVE_SYNC_INTERVAL,
   });
   const decideMutation = useMutation({
     mutationFn: ({ id, approve }: { id: string; approve: boolean }) =>

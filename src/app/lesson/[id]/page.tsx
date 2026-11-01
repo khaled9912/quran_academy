@@ -11,6 +11,7 @@ import { useAuth } from "@/providers/auth-provider";
 import { useLessonCall } from "@/providers/lesson-call-provider";
 import { LessonFeedback } from "@/components/lesson/LessonFeedback";
 import { isLessonEnded } from "@/lib/lesson-feedback";
+import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 
 const JITSI_DOMAIN = (process.env.NEXT_PUBLIC_JITSI_DOMAIN ?? "meet.jit.si")
   .replace(/^https?:\/\//, "")
@@ -34,6 +35,7 @@ export default function LessonCallPage() {
     queryKey: ["lessons", id],
     queryFn: () => getLessonById(id),
     enabled: !!id && !!profile,
+    refetchInterval: LIVE_SYNC_INTERVAL,
   });
 
   const lesson = lessonQuery.data;
@@ -93,15 +95,7 @@ export default function LessonCallPage() {
       displayName,
       backHref,
     });
-  }, [
-    showingRoom,
-    lesson,
-    id,
-    room,
-    displayName,
-    backHref,
-    startCall,
-  ]);
+  }, [showingRoom, lesson, id, room, displayName, backHref, startCall]);
 
   if (authLoading || !profile) return null;
 

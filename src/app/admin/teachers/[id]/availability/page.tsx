@@ -12,6 +12,7 @@ import {
   publishAvailabilityForTeacher,
 } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
+import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 
 const display = (value: string) =>
   new Date(value).toLocaleString(undefined, {
@@ -38,6 +39,7 @@ export default function AdminTeacherAvailabilityPage() {
     queryKey: ["availability", "admin", teacherId],
     queryFn: () => getTeacherAvailabilityForAdmin(teacherId),
     enabled: canManage && !!teacherId,
+    refetchInterval: LIVE_SYNC_INTERVAL,
   });
 
   const [start, setStart] = useState("");

@@ -7,6 +7,7 @@ import { getTeachers } from "@/services/teacher.service";
 import { getTeacherStudentAssignments } from "@/services/assignment.service";
 import { getLessons } from "@/services/lesson.service";
 import { useAuth } from "@/providers/auth-provider";
+import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 
 export default function AdminDashboardPage() {
   const { role } = useAuth();
@@ -31,6 +32,7 @@ export default function AdminDashboardPage() {
     queryKey: ["lessons"],
     queryFn: () => getLessons(),
     enabled: canManage,
+    refetchInterval: LIVE_SYNC_INTERVAL,
   });
 
   const queries = [

@@ -13,6 +13,7 @@ import {
 import { Avatar } from "@/components/ui/avatar";
 import { StarRating } from "@/components/ui/star-rating";
 import { useAuth } from "@/providers/auth-provider";
+import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 
 const dateTime = (value: string) =>
   new Date(value).toLocaleString(undefined, {
@@ -42,11 +43,13 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
     queryKey: ["lesson-requests", "student"],
     queryFn: getMyLessonRequests,
     enabled,
+    refetchInterval: LIVE_SYNC_INTERVAL,
   });
   const assignedQuery = useQuery({
     queryKey: ["availability", "student"],
     queryFn: getAssignedTeacherAvailability,
     enabled,
+    refetchInterval: LIVE_SYNC_INTERVAL,
   });
 
   const requestMutation = useMutation({

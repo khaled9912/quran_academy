@@ -9,6 +9,7 @@ import {
   getMyAvailability,
   publishAvailability,
 } from "@/services/scheduling.service";
+import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 
 const display = (value: string) =>
   new Date(value).toLocaleString(undefined, {
@@ -29,6 +30,7 @@ export default function TeacherAvailabilityPage() {
     queryKey: ["availability", "teacher"],
     queryFn: getMyAvailability,
     enabled: role === "teacher",
+    refetchInterval: LIVE_SYNC_INTERVAL,
   });
   const invalidateAvailability = () =>
     queryClient.invalidateQueries({ queryKey: ["availability"] });

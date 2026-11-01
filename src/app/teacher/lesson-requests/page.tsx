@@ -8,6 +8,7 @@ import {
   getIncomingLessonRequests,
   respondToLessonRequest,
 } from "@/services/scheduling.service";
+import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 
 const display = (value: string) =>
   new Date(value).toLocaleString(undefined, {
@@ -25,6 +26,7 @@ export default function TeacherLessonRequestsPage() {
     queryKey: ["lesson-requests", "teacher"],
     queryFn: getIncomingLessonRequests,
     enabled: role === "teacher",
+    refetchInterval: LIVE_SYNC_INTERVAL,
   });
   const respondMutation = useMutation({
     mutationFn: ({

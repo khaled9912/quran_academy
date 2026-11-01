@@ -6,6 +6,7 @@ import { RefreshCw } from "lucide-react";
 import { getMyLessonRequests } from "@/services/scheduling.service";
 import { TeacherDirectory } from "@/components/student/TeacherDirectory";
 import { useAuth } from "@/providers/auth-provider";
+import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 
 const dateTime = (value: string) =>
   new Date(value).toLocaleString(undefined, {
@@ -23,6 +24,7 @@ export default function StudentAvailabilityPage() {
     queryKey: ["lesson-requests", "student"],
     queryFn: getMyLessonRequests,
     enabled: role === "student",
+    refetchInterval: LIVE_SYNC_INTERVAL,
   });
 
   const requests = requestsQuery.data ?? [];

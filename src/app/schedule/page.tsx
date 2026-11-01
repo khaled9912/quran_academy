@@ -13,6 +13,7 @@ import {
 import { getLessons } from "@/services/lesson.service";
 import { useAuth } from "@/providers/auth-provider";
 import { isLessonEnded } from "@/lib/lesson-feedback";
+import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 import type { Lesson } from "@/types/lesson";
 
 type Filter = "all" | "upcoming" | "completed" | "cancelled";
@@ -45,6 +46,7 @@ export default function StudentSchedulePage() {
     queryKey: ["lessons"],
     queryFn: () => getLessons(),
     enabled: role === "student",
+    refetchInterval: LIVE_SYNC_INTERVAL,
   });
 
   const lessons = lessonsQuery.data ?? [];

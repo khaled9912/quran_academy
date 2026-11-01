@@ -8,6 +8,7 @@ import { getTeacherStudentAssignments } from "@/services/assignment.service";
 import { getLessons } from "@/services/lesson.service";
 import { getAdminLessonApprovals } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
+import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 
 const dateTime = (value: string) =>
   new Date(value).toLocaleString(undefined, {
@@ -41,11 +42,13 @@ export default function SuperAdminDashboard() {
     queryKey: ["lessons"],
     queryFn: () => getLessons(),
     enabled: isSuperAdmin,
+    refetchInterval: LIVE_SYNC_INTERVAL,
   });
   const approvalsQuery = useQuery({
     queryKey: ["lesson-requests", "pending-admin"],
     queryFn: getAdminLessonApprovals,
     enabled: isSuperAdmin,
+    refetchInterval: LIVE_SYNC_INTERVAL,
   });
 
   if (!isSuperAdmin) {

@@ -9,6 +9,7 @@ import {
 } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
 import { isReportDue } from "@/lib/lesson-feedback";
+import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 
 const dateTime = (value: string) =>
   new Date(value).toLocaleString(undefined, {
@@ -27,16 +28,19 @@ export default function TeacherDashboardPage() {
     queryKey: ["lessons"],
     queryFn: () => getLessons(),
     enabled: isTeacher,
+    refetchInterval: LIVE_SYNC_INTERVAL,
   });
   const requestsQuery = useQuery({
     queryKey: ["lesson-requests", "teacher"],
     queryFn: getIncomingLessonRequests,
     enabled: isTeacher,
+    refetchInterval: LIVE_SYNC_INTERVAL,
   });
   const availabilityQuery = useQuery({
     queryKey: ["availability", "teacher"],
     queryFn: getMyAvailability,
     enabled: isTeacher,
+    refetchInterval: LIVE_SYNC_INTERVAL,
   });
 
   const lessons = lessonsQuery.data ?? [];

@@ -12,6 +12,7 @@ import {
   isReportSubmitted,
 } from "@/lib/lesson-feedback";
 import type { Lesson } from "@/types/lesson";
+import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 
 type ReportFilter = "all" | "reports" | "submitted";
 
@@ -46,6 +47,7 @@ export default function TeacherSchedulePage() {
     queryKey: ["lessons"],
     queryFn: () => getLessons(),
     enabled: role === "teacher",
+    refetchInterval: LIVE_SYNC_INTERVAL,
   });
 
   const cancelMutation = useMutation({
