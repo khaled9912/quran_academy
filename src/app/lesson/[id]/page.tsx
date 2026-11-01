@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { MonitorPlay, Loader2, RefreshCw, ShieldCheck } from "lucide-react";
+import { MonitorPlay, RefreshCw, ShieldCheck } from "lucide-react";
 import { ApiError } from "@/lib/backend-client";
-import { getLessonById, getLessonPresence } from "@/services/lesson.service";
+import { getLessonById } from "@/services/lesson.service";
 import { useAuth } from "@/providers/auth-provider";
 import { useLessonCall } from "@/providers/lesson-call-provider";
 import { LessonFeedback } from "@/components/lesson/LessonFeedback";
@@ -65,13 +65,11 @@ export default function LessonCallPage() {
     !!lesson && lesson.status !== "cancelled" && (!ended || enteredWhileLive);
 
   const { startCall, setMinimized } = useLessonCall();
-  const [teacherStarted, setTeacherStarted] = useState(false);
 
   // The call itself lives in the root-layout provider, so this only registers
   // which room should be live. Navigating away no longer ends the conference.
   useEffect(() => {
     if (!showingRoom || !lesson) return;
-    if (role === "student" && !teacherStarted) return;
     startCall({
       lessonId: id,
       room,
@@ -82,26 +80,12 @@ export default function LessonCallPage() {
   }, [
     showingRoom,
     lesson,
-    role,
-    teacherStarted,
     id,
     room,
     displayName,
     backHref,
     startCall,
   ]);
-
-  // Students only see the join controls once the teacher is actually in the room.
-  const presenceQuery = useQuery({
-    queryKey: ["lesson-presence", id],
-    queryFn: () => getLessonPresence(id),
-    enabled: role === "student" && !!lesson && !ended,
-    refetchInterval: 5000,
-  });
-
-  useEffect(() => {
-    if (presenceQuery.data?.teacherPresent) setTeacherStarted(true);
-  }, [presenceQuery.data]);
 
   if (authLoading || !profile) return null;
 
@@ -165,36 +149,6 @@ export default function LessonCallPage() {
           </div>
         ) : lesson && ended && !showingRoom ? (
           <LessonFeedback lesson={lesson} role={role} />
-        ) : role === "student" && !teacherStarted ? (
-          <section className="rounded-3xl border border-dashed border-card-border bg-card-bg p-10 text-center">
-            <Loader2
-              size={28}
-              className="mx-auto animate-spin text-green-600"
-            />
-            <h2 className="mt-4 text-xl font-semibold">
-              Waiting for your teacher
-            </h2>
-            <p className="mx-auto mt-2 max-w-md text-sm text-foreground opacity-70">
-              The lesson room opens when your teacher starts the lesson. This
-              page checks automatically — the join buttons appear as soon as the
-              room is open.
-            </p>
-            {presenceQuery.isError && (
-              <p
-                role="alert"
-                className="mx-auto mt-4 max-w-md rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm"
-              >
-                Could not check the room status. Still retrying…
-              </p>
-            )}
-            <button
-              type="button"
-              onClick={() => void presenceQuery.refetch()}
-              className="mt-4 inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2 text-sm font-semibold hover:border-green-500"
-            >
-              <RefreshCw size={15} /> Check now
-            </button>
-          </section>
         ) : (
           <>
             <section className="rounded-3xl border border-card-border bg-card-bg p-8 text-center">

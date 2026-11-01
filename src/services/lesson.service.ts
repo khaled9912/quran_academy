@@ -22,20 +22,6 @@ export const cancelLesson = (id: string) =>
     method: "DELETE",
   });
 
-export interface LessonPresence {
-  teacherPresent: boolean;
-}
-
-export const getLessonPresence = (id: string) =>
-  backendFetch<LessonPresence>(
-    `/api/lessons/${encodeURIComponent(id)}/presence`
-  );
-
-export const markTeacherPresent = (id: string) =>
-  backendFetch<null>(`/api/lessons/${encodeURIComponent(id)}/presence`, {
-    method: "POST",
-  });
-
 export const getLessonReport = (id: string) =>
   backendFetch<LessonReport>(`/api/lessons/${encodeURIComponent(id)}/report`);
 export const saveLessonReport = (

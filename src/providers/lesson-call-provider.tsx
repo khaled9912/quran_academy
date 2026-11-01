@@ -12,8 +12,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Minimize2, PhoneOff } from "lucide-react";
 import { JitsiRoom } from "@/components/JitsiRoom";
-import { useAuth } from "@/providers/auth-provider";
-import { markTeacherPresent } from "@/services/lesson.service";
 
 export interface ActiveLessonCall {
   lessonId: string;
@@ -54,7 +52,6 @@ export function LessonCallProvider({
   const [call, setCall] = useState<ActiveLessonCall | null>(null);
   const [joined, setJoined] = useState(false);
   const [minimized, setMinimized] = useState(false);
-  const { role } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -75,17 +72,6 @@ export function LessonCallProvider({
     setMinimized(false);
     setJoined(false);
   }, [activeRoom]);
-
-  // The teacher heartbeat used to live on the lesson page, so it stopped as
-  // soon as they browsed elsewhere. They are still in the room, so keep it.
-  const lessonId = call?.lessonId ?? null;
-  useEffect(() => {
-    if (role !== "teacher" || !joined || !lessonId) return;
-    const beat = () => void markTeacherPresent(lessonId).catch(() => {});
-    beat();
-    const timer = setInterval(beat, 15000);
-    return () => clearInterval(timer);
-  }, [role, joined, lessonId]);
 
   const endAndReturn = useCallback(() => {
     if (!call) return;

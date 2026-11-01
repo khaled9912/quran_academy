@@ -294,9 +294,9 @@ Rules enforced by the API: one report and one review per lesson; both are reject
 
 After `endsAt` the page closes the room and switches to the lesson recap: teachers submit or edit the class report, students read the report and rate the lesson, and admins see both.
 
-Only the teacher opens a room. While connected, the teacher's client sends `POST /api/lessons/{id}/presence` every 15 seconds (teacher-only, ownership-checked). Students poll `GET /api/lessons/{id}/presence` every 5 seconds and see a "Waiting for your teacher" panel instead of join buttons until `teacherPresent` is true. The API drops a heartbeat after 45 seconds, so a closed tab stops counting without an explicit leave request, and app-pool recycles only cause a short wait. Once a student has joined, the room stays mounted even if the heartbeat lapses.
+Either participant can open the room; there is no presence check or heartbeat. The page registers the room on load and the "Show lesson room" button re-opens it after navigation, so nobody waits for the other side to arrive.
 
-This is a UX gate, not access control. The Jitsi room itself is unlisted rather than locked: anyone who knows the room name can join directly on the Jitsi deployment, and display names are not verified. Real enforcement requires a JWT-enabled Jitsi (JaaS or self-hosted) where only the teacher receives a moderator token and the room is protected by lobby or required moderator.
+The room is unlisted, not access-controlled. The Jitsi room itself is unlisted rather than locked: anyone who knows the room name can join directly on the Jitsi deployment, and display names are not verified. Real enforcement requires a JWT-enabled Jitsi (JaaS or self-hosted) where only the teacher receives a moderator token and the room is protected by lobby or required moderator.
 
 ## Contact form
 
