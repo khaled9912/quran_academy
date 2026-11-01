@@ -183,6 +183,15 @@ export default function SuperAdminDashboard() {
                   Approve lessons confirmed by teachers.
                 </p>
               </Link>
+              <Link
+                href="/admin/teacher-applications"
+                className="block rounded-2xl border border-card-border p-4 hover:border-green-500 transition"
+              >
+                <p className="font-semibold">Teacher applications</p>
+                <p className="text-sm text-foreground opacity-70">
+                  Review CVs and approve new teachers.
+                </p>
+              </Link>
             </div>
           </section>
         </div>

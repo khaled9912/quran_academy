@@ -386,6 +386,15 @@ const SignUpPage = () => {
             Sign in
           </Link>
         </div>
+        <div className="mt-3 text-center text-sm text-foreground opacity-75">
+          Want to teach instead?{" "}
+          <Link
+            href="/teach"
+            className="font-semibold text-green-500 hover:underline"
+          >
+            Apply as a teacher
+          </Link>
+        </div>
       </div>
     </div>
   );

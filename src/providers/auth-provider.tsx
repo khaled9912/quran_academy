@@ -8,6 +8,7 @@ import React, {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
@@ -19,7 +20,9 @@ import { ROLE_DASHBOARDS } from "@/constants/role-routes";
 import { useAuthStore } from "@/stores/useAuthStore";
 import {
   clearCachedProfile,
-  readCachedProfile,
+  getCachedProfileServerSnapshot,
+  getCachedProfileSnapshot,
+  subscribeCachedProfile,
   writeCachedProfile,
 } from "@/lib/session-cache";
 
@@ -83,14 +86,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Redirects must key off where the user landed, not later navigation.
   const initialPathRef = useRef(pathname);
 
-  const [profile, setProfile] = useState<UserProfile | null>(readCachedProfile);
-  const profileRef = useRef<UserProfile | null>(profile);
-  profileRef.current = profile;
+  // Read the cache through useSyncExternalStore: the server snapshot is null,
+  // so SSR and the first client render agree, and the cached identity is
+  // applied immediately after hydration instead of causing a mismatch.
+  const cachedProfile = useSyncExternalStore(
+    subscribeCachedProfile,
+    getCachedProfileSnapshot,
+    getCachedProfileServerSnapshot
+  );
+  const [profile, setProfile] = useState<UserProfile | null>(cachedProfile);
+  const effectiveProfile = profile ?? cachedProfile;
+  const profileRef = useRef<UserProfile | null>(effectiveProfile);
+  profileRef.current = effectiveProfile;
 
   // Only a protected page without a cached identity has to wait for the API.
   const [isLoading, setIsLoading] = useState(
-    () => !profile && isProtectedPath(initialPathRef.current)
+    () => !cachedProfile && isProtectedPath(initialPathRef.current)
   );
+  // A cached identity means the session can restore in the background without
+  // holding the page, even while isLoading is still true.
+  const authPending = isLoading && !effectiveProfile;
 
   /** Single entry point for every session change (restore, login, logout). */
   const applySession = useCallback(
@@ -187,20 +202,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Centralized redirects: pages never redirect themselves, so a session
   // restore and a login submit can never race into a redirect loop.
   useEffect(() => {
-    if (isLoading) return;
+    if (authPending) return;
     if (hasRedirected.current) return;
 
-    if (profile) {
+    if (effectiveProfile) {
       if (!AUTH_PAGES.has(pathname)) return;
       hasRedirected.current = true;
-      router.replace(ROLE_DASHBOARDS[profile.role] ?? "/");
+      router.replace(ROLE_DASHBOARDS[effectiveProfile.role] ?? "/");
       return;
     }
 
     if (!isProtectedPath(pathname)) return;
     hasRedirected.current = true;
     router.replace("/login");
-  }, [isLoading, profile, pathname, router]);
+  }, [authPending, effectiveProfile, pathname, router]);
 
   const logout = async () => {
     try {
@@ -212,7 +227,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const role = profile?.role ?? null;
+  const role = effectiveProfile?.role ?? null;
   const permissions = useMemo(() => {
     if (!role) return [];
     if (role === "super_admin") return ["*"];
@@ -228,19 +243,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return ["view_lessons"];
   }, [role]);
   const value: AuthContextType = {
-    user: profile,
-    profile,
+    user: effectiveProfile,
+    profile: effectiveProfile,
     role,
     permissions,
-    isAuthenticated: !!profile,
-    isLoading,
+    isAuthenticated: !!effectiveProfile,
+    isLoading: authPending,
     applySession,
     updateUser,
     logout,
   };
   // Public pages render immediately while the session is still restoring; only
   // protected routes wait, and they show a visible loader instead of a blank page.
-  const holdForAuth = isLoading && isProtectedPath(pathname);
+  const holdForAuth = authPending && isProtectedPath(pathname);
 
   return (
     <AuthContext.Provider value={value}>
