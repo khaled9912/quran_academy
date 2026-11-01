@@ -149,6 +149,11 @@ export function JitsiRoom({
     let disposed = false;
     let api: JitsiExternalApi | null = null;
 
+    // A different room means a new conference; never show the previous one's
+    // joined state while it connects.
+    setJoined(false);
+    setLoadError("");
+
     loadJitsiScript(domain)
       .then(() => {
         if (disposed || !containerRef.current || !window.JitsiMeetExternalAPI)
@@ -214,7 +219,7 @@ export function JitsiRoom({
   }, [domain, room, mode]);
 
   return (
-    <div className="relative h-[70vh] min-h-[420px] w-full overflow-hidden rounded-3xl border border-card-border bg-black">
+    <div className="relative h-full w-full overflow-hidden bg-black">
       <div ref={containerRef} className="h-full w-full" />
 
       {!mode && (

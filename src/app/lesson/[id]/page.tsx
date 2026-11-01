@@ -2,17 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { MonitorPlay, Loader2, RefreshCw, ShieldCheck } from "lucide-react";
 import { ApiError } from "@/lib/backend-client";
-import {
-  getLessonById,
-  getLessonPresence,
-  markTeacherPresent,
-} from "@/services/lesson.service";
+import { getLessonById, getLessonPresence } from "@/services/lesson.service";
 import { useAuth } from "@/providers/auth-provider";
-import { JitsiRoom } from "@/components/JitsiRoom";
+import { useLessonCall } from "@/providers/lesson-call-provider";
 import { LessonFeedback } from "@/components/lesson/LessonFeedback";
 import { isLessonEnded } from "@/lib/lesson-feedback";
 
@@ -32,7 +28,6 @@ const dateTime = (value: string) =>
 export default function LessonCallPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id ?? "";
-  const router = useRouter();
   const { profile, role, isLoading: authLoading } = useAuth();
 
   const lessonQuery = useQuery({
@@ -69,8 +64,32 @@ export default function LessonCallPage() {
   const showingRoom =
     !!lesson && lesson.status !== "cancelled" && (!ended || enteredWhileLive);
 
-  const [joined, setJoined] = useState(false);
+  const { startCall, setMinimized } = useLessonCall();
   const [teacherStarted, setTeacherStarted] = useState(false);
+
+  // The call itself lives in the root-layout provider, so this only registers
+  // which room should be live. Navigating away no longer ends the conference.
+  useEffect(() => {
+    if (!showingRoom || !lesson) return;
+    if (role === "student" && !teacherStarted) return;
+    startCall({
+      lessonId: id,
+      room,
+      domain: JITSI_DOMAIN,
+      displayName,
+      backHref,
+    });
+  }, [
+    showingRoom,
+    lesson,
+    role,
+    teacherStarted,
+    id,
+    room,
+    displayName,
+    backHref,
+    startCall,
+  ]);
 
   // Students only see the join controls once the teacher is actually in the room.
   const presenceQuery = useQuery({
@@ -83,15 +102,6 @@ export default function LessonCallPage() {
   useEffect(() => {
     if (presenceQuery.data?.teacherPresent) setTeacherStarted(true);
   }, [presenceQuery.data]);
-
-  // Heartbeat while the teacher is in the call; the API expires it after 45s.
-  useEffect(() => {
-    if (role !== "teacher" || !joined) return;
-    const beat = () => void markTeacherPresent(id).catch(() => {});
-    beat();
-    const timer = setInterval(beat, 15000);
-    return () => clearInterval(timer);
-  }, [role, joined, id]);
 
   if (authLoading || !profile) return null;
 
@@ -166,8 +176,8 @@ export default function LessonCallPage() {
             </h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-foreground opacity-70">
               The lesson room opens when your teacher starts the lesson. This
-              page checks automatically — the join buttons appear as soon as
-              the room is open.
+              page checks automatically — the join buttons appear as soon as the
+              room is open.
             </p>
             {presenceQuery.isError && (
               <p
@@ -187,13 +197,33 @@ export default function LessonCallPage() {
           </section>
         ) : (
           <>
-            <JitsiRoom
-              domain={JITSI_DOMAIN}
-              room={room}
-              displayName={displayName}
-              onClose={() => router.push(backHref)}
-              onJoined={() => setJoined(true)}
-            />
+            <section className="rounded-3xl border border-card-border bg-card-bg p-8 text-center">
+              <h2 className="text-xl font-semibold">
+                Your lesson room is open
+              </h2>
+              <p className="mx-auto mt-2 max-w-md text-sm text-foreground opacity-70">
+                The video call stays connected while you browse the site. Bring
+                it back whenever you need it.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  // Re-registering is a no-op for an active room, and recovers
+                  // the page if the call state was lost (e.g. a dev refresh).
+                  startCall({
+                    lessonId: id,
+                    room,
+                    domain: JITSI_DOMAIN,
+                    displayName,
+                    backHref,
+                  });
+                  setMinimized(false);
+                }}
+                className="mt-4 inline-flex items-center gap-2 rounded-xl bg-green-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-600"
+              >
+                <MonitorPlay size={16} /> Show lesson room
+              </button>
+            </section>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-foreground opacity-70">
               <p className="inline-flex items-center gap-2">
                 <MonitorPlay size={16} className="text-green-600" />
