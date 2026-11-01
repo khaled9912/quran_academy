@@ -109,6 +109,7 @@ export function LessonCallProvider({
           joined={joined}
           minimized={minimized}
           onMinimize={() => setMinimized(true)}
+          onExpand={() => setMinimized(false)}
           onJoined={() => setJoined(true)}
           onHangup={endAndReturn}
         />
@@ -122,6 +123,7 @@ function LessonCallHost({
   joined,
   minimized,
   onMinimize,
+  onExpand,
   onJoined,
   onHangup,
 }: {
@@ -129,6 +131,7 @@ function LessonCallHost({
   joined: boolean;
   minimized: boolean;
   onMinimize: () => void;
+  onExpand: () => void;
   onJoined: () => void;
   onHangup: () => void;
 }) {
@@ -150,7 +153,7 @@ function LessonCallHost({
     >
       <div
         className={
-          showMini
+          showMini || expanded
             ? "flex items-center justify-between gap-2 bg-neutral-900 px-3 py-2 text-white"
             : "hidden"
         }
@@ -159,12 +162,25 @@ function LessonCallHost({
           Lesson in progress
         </span>
         <div className="flex shrink-0 items-center gap-1">
-          <Link
-            href={`/lesson/${call.lessonId}`}
-            className="rounded-lg bg-white/10 px-2.5 py-1.5 text-xs font-semibold transition hover:bg-white/20"
-          >
-            Open
-          </Link>
+          {!expanded && (
+            <Link
+              href={`/lesson/${call.lessonId}`}
+              onClick={onExpand}
+              className="rounded-lg bg-white/10 px-2.5 py-1.5 text-xs font-semibold transition hover:bg-white/20"
+            >
+              Open
+            </Link>
+          )}
+          {expanded && (
+            <button
+              type="button"
+              onClick={onMinimize}
+              aria-label="Minimize lesson"
+              className="rounded-lg bg-white/10 p-1.5 transition hover:bg-white/20"
+            >
+              <Minimize2 size={14} />
+            </button>
+          )}
           <button
             type="button"
             onClick={onHangup}
@@ -189,34 +205,13 @@ function LessonCallHost({
           onJoined={onJoined}
         />
         <img
-          src="/logo-ana-quran-light.svg"
+          src="/logo-ana-quran.svg"
           alt="Ana Quran"
           className={`pointer-events-none absolute left-3 top-3 z-10 w-auto drop-shadow-[0_1px_6px_rgba(0,0,0,0.65)] ${
             expanded ? "h-12 sm:h-16" : "h-8"
           }`}
         />
       </div>
-
-      {expanded && (
-        <div className="absolute right-3 top-3 z-20 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onMinimize}
-            aria-label="Minimize lesson"
-            className="rounded-xl bg-black/55 p-2 text-white backdrop-blur transition hover:bg-black/75"
-          >
-            <Minimize2 size={16} />
-          </button>
-          <button
-            type="button"
-            onClick={onHangup}
-            aria-label="Leave lesson"
-            className="rounded-xl bg-red-500/90 p-2 text-white backdrop-blur transition hover:bg-red-500"
-          >
-            <PhoneOff size={16} />
-          </button>
-        </div>
-      )}
     </div>
   );
 }
