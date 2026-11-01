@@ -30,9 +30,7 @@ type Phase = "live" | "upcoming" | "past";
 const phaseOf = (lesson: Lesson): Phase => {
   if (lesson.status === "cancelled") return "past";
   if (isLessonEnded(lesson.endsAt, lesson.status)) return "past";
-  return new Date(lesson.startsAt).getTime() > Date.now()
-    ? "upcoming"
-    : "live";
+  return new Date(lesson.startsAt).getTime() > Date.now() ? "upcoming" : "live";
 };
 
 const LessonRow = ({ lesson }: { lesson: Lesson }) => {
