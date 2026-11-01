@@ -83,6 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const hasRedirected = useRef(false);
+  const confirmingSession = useRef<Promise<UserProfile | null> | null>(null);
   // Redirects must key off where the user landed, not later navigation.
   const initialPathRef = useRef(pathname);
 
@@ -190,14 +191,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [applySession, updateUser, setUser]);
 
-  // A restored session can expire server-side (API restarts invalidate cookies).
-  // backendFetch signals this so pages do not sit on empty, unauthorized lists.
+  // A restored session can expire server-side. backendFetch signals any 401,
+  // but one failing request is not proof: confirm with /auth/me before
+  // dropping the cached identity, and keep it when the API is unreachable.
   useEffect(() => {
-    const handleUnauthorized = () => applySession(null);
+    const handleUnauthorized = () => {
+      void (async () => {
+        try {
+          if (!confirmingSession.current) {
+            confirmingSession.current = getCurrentUser().finally(() => {
+              confirmingSession.current = null;
+            });
+          }
+          const current = await confirmingSession.current;
+          if (!current) {
+            applySession(null);
+          } else if (profileRef.current) {
+            updateUser(current);
+          } else {
+            applySession(current);
+          }
+        } catch (error) {
+          reportUnexpectedError(error);
+        }
+      })();
+    };
     window.addEventListener("academy:unauthorized", handleUnauthorized);
     return () =>
       window.removeEventListener("academy:unauthorized", handleUnauthorized);
-  }, [applySession]);
+  }, [applySession, updateUser]);
 
   // Centralized redirects: pages never redirect themselves, so a session
   // restore and a login submit can never race into a redirect loop.
