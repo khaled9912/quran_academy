@@ -17,6 +17,8 @@ interface PhoneInputProps {
   onChange: (value: string) => void;
   disabled?: boolean;
   error?: string;
+  /** Locks the country: shows the dial code instead of a select. */
+  locked?: boolean;
   /** Overrides the default helper text under the field. */
   hintText?: string;
 }
@@ -29,6 +31,7 @@ export function PhoneInput({
   onChange,
   disabled = false,
   error,
+  locked = false,
   hintText,
 }: PhoneInputProps) {
   const selected = countryByCode(country);
@@ -42,25 +45,36 @@ export function PhoneInput({
     : (hintText ??
       (e164
         ? `Code will be sent to ${e164}.`
-        : "Pick your country, then enter the number without the country code."));
+        : locked
+          ? "Enter the number without the country code."
+          : "Pick your country, then enter the number without the country code."));
 
   return (
     <div>
       <div className="flex gap-2">
-        <SelectField
-          id={`${id}-country`}
-          ariaLabel="Country code"
-          className="w-32 shrink-0"
-          menuClassName="left-0 w-72 max-w-[82vw]"
-          value={country}
-          onChange={(next) => onCountryChange(next as CountryCode)}
-          options={options}
-          searchable
-          selectedLabel={
-            selected ? `${selected.flag} ${selected.dial}` : undefined
-          }
-          disabled={disabled}
-        />
+        {locked ? (
+          <div
+            aria-label="Country code"
+            className="flex w-32 shrink-0 items-center justify-center gap-1 rounded-xl border border-card-border bg-background px-3 text-sm text-foreground opacity-80"
+          >
+            {selected ? `${selected.flag} ${selected.dial}` : country}
+          </div>
+        ) : (
+          <SelectField
+            id={`${id}-country`}
+            ariaLabel="Country code"
+            className="w-32 shrink-0"
+            menuClassName="left-0 w-72 max-w-[82vw]"
+            value={country}
+            onChange={(next) => onCountryChange(next as CountryCode)}
+            options={options}
+            searchable
+            selectedLabel={
+              selected ? `${selected.flag} ${selected.dial}` : undefined
+            }
+            disabled={disabled}
+          />
+        )}
         <input
           id={id}
           type="tel"

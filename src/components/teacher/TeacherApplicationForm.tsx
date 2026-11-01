@@ -3,7 +3,7 @@
 import { ChangeEvent, FormEvent, useState } from "react";
 import { CheckCircle2, FileText, Loader2, Mic, Upload, X } from "lucide-react";
 import type { CountryCode } from "libphonenumber-js";
-import { DEFAULT_COUNTRY, toE164 } from "@/lib/countries";
+import { toE164 } from "@/lib/countries";
 import { teacherSubjects, type TeacherSubject } from "@/lib/teacher-subjects";
 import {
   englishLevelLabel,
@@ -20,12 +20,14 @@ const INTRO_PATTERN = /\.(mp3|m4a|wav|ogg|webm|mp4|mov)$/i;
 const inputClass =
   "w-full rounded-xl border border-card-border bg-background px-4 py-3 text-foreground focus:outline-none focus:border-green-500";
 
+// Teachers are hired in Egypt; the applicant cannot switch the dial code.
+const APPLICANT_COUNTRY: CountryCode = "EG";
+
 type Status = "idle" | "submitting" | "success";
 
 export function TeacherApplicationForm() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [country, setCountry] = useState<CountryCode>(DEFAULT_COUNTRY);
   const [phone, setPhone] = useState("");
   const [subjects, setSubjects] = useState<TeacherSubject[]>([]);
   const [englishLevel, setEnglishLevel] = useState<EnglishLevel | "">("");
@@ -115,7 +117,7 @@ export function TeacherApplicationForm() {
       next.fullName = "Enter your full name (2 to 160 characters).";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
       next.email = "Enter a valid email address.";
-    if (!toE164(phone, country))
+    if (!toE164(phone, APPLICANT_COUNTRY))
       next.phoneNumber = "Enter a valid mobile number.";
     if (subjects.length === 0)
       next.subjects = "Choose at least one subject you teach.";
@@ -156,7 +158,7 @@ export function TeacherApplicationForm() {
       const result = await submitTeacherApplication({
         fullName: fullName.trim(),
         email: email.trim(),
-        phoneNumber: toE164(phone, country)!,
+        phoneNumber: toE164(phone, APPLICANT_COUNTRY)!,
         subjects,
         englishLevel: englishLevel as EnglishLevel,
         experienceYears: Number(experienceYears),
@@ -263,12 +265,13 @@ export function TeacherApplicationForm() {
           </label>
           <PhoneInput
             id="phone"
-            country={country}
-            onCountryChange={setCountry}
+            country={APPLICANT_COUNTRY}
+            onCountryChange={() => undefined}
+            locked
             value={phone}
             onChange={setPhone}
             error={errors.phoneNumber}
-            hintText="Pick your country, then enter the number without the country code."
+            hintText="Egypt only: enter your mobile number without the country code."
           />
         </div>
 
