@@ -178,7 +178,13 @@ export function JitsiRoom({
             startWithVideoMuted: mode !== "audio-video",
             enableInsecureRoomNameWarning: false,
             // Only the controls a lesson actually needs.
-            toolbarButtons: ["microphone", "camera", "desktop", "chat", "hangup"],
+            toolbarButtons: [
+              "microphone",
+              "camera",
+              "desktop",
+              "chat",
+              "hangup",
+            ],
             disableReactions: true,
             disablePolls: true,
             disableWhiteboard: true,

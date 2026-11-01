@@ -30,13 +30,15 @@ const statusStyles: Record<TeacherApplicationStatus, string> = {
   rejected: "bg-red-500/15 text-red-600",
 };
 
-const filters: Array<{ value: TeacherApplicationStatus | "all"; label: string }> =
-  [
-    { value: "pending", label: "Pending" },
-    { value: "approved", label: "Approved" },
-    { value: "rejected", label: "Rejected" },
-    { value: "all", label: "All" },
-  ];
+const filters: Array<{
+  value: TeacherApplicationStatus | "all";
+  label: string;
+}> = [
+  { value: "pending", label: "Pending" },
+  { value: "approved", label: "Approved" },
+  { value: "rejected", label: "Rejected" },
+  { value: "all", label: "All" },
+];
 
 const formatDate = (value: string) =>
   new Date(value).toLocaleString(undefined, {
@@ -274,7 +276,8 @@ export default function AdminTeacherApplicationsPage() {
                     </span>
                     <span className="rounded-full border border-card-border px-3 py-1 text-xs">
                       {application.experienceYears} year
-                      {application.experienceYears === 1 ? "" : "s"} of experience
+                      {application.experienceYears === 1 ? "" : "s"} of
+                      experience
                     </span>
                   </div>
 
@@ -391,7 +394,9 @@ export default function AdminTeacherApplicationsPage() {
                         id={`reason-${application.id}`}
                         rows={3}
                         value={rejectReason}
-                        onChange={(event) => setRejectReason(event.target.value)}
+                        onChange={(event) =>
+                          setRejectReason(event.target.value)
+                        }
                         maxLength={500}
                         className="w-full rounded-xl border border-card-border bg-background px-4 py-3 text-sm text-foreground focus:outline-none focus:border-green-500"
                         placeholder="Explain briefly why this application was not accepted."

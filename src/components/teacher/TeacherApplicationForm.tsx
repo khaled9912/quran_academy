@@ -1,14 +1,7 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useState } from "react";
-import {
-  CheckCircle2,
-  FileText,
-  Loader2,
-  Mic,
-  Upload,
-  X,
-} from "lucide-react";
+import { CheckCircle2, FileText, Loader2, Mic, Upload, X } from "lucide-react";
 import type { CountryCode } from "libphonenumber-js";
 import { DEFAULT_COUNTRY, toE164 } from "@/lib/countries";
 import { teacherSubjects, type TeacherSubject } from "@/lib/teacher-subjects";
@@ -94,7 +87,8 @@ export function TeacherApplicationForm() {
     if (!INTRO_PATTERN.test(file.name)) {
       setErrors((current) => ({
         ...current,
-        intro: "Upload your recording as MP3, M4A, WAV, OGG, WebM, MP4, or MOV.",
+        intro:
+          "Upload your recording as MP3, M4A, WAV, OGG, WebM, MP4, or MOV.",
       }));
       setIntro(null);
       return;
@@ -133,11 +127,13 @@ export function TeacherApplicationForm() {
       years < 0 ||
       years > 70
     )
-      next.experienceYears = "Enter your years of teaching experience (0 to 70).";
+      next.experienceYears =
+        "Enter your years of teaching experience (0 to 70).";
     if (bio.trim().length < 20)
       next.bio = "Write a short introduction (at least 20 characters).";
     if (availabilityNote.trim().length > 500)
-      next.availabilityNote = "Keep the availability note under 500 characters.";
+      next.availabilityNote =
+        "Keep the availability note under 500 characters.";
     if (!cv) next.cv = "Attach your CV (PDF, DOC, or DOCX, up to 2 MB).";
     return next;
   };
@@ -224,7 +220,10 @@ export function TeacherApplicationForm() {
 
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
-          <label htmlFor="fullName" className="mb-2 block text-sm font-semibold">
+          <label
+            htmlFor="fullName"
+            className="mb-2 block text-sm font-semibold"
+          >
             Full name <span className="text-red-500">*</span>
           </label>
           <input
@@ -453,9 +452,7 @@ export function TeacherApplicationForm() {
             >
               <Upload size={20} className="opacity-60" />
               <span className="font-semibold">Upload your CV</span>
-              <span className="opacity-60">
-                PDF, DOC, or DOCX · up to 2 MB
-              </span>
+              <span className="opacity-60">PDF, DOC, or DOCX · up to 2 MB</span>
               <input
                 id="cv"
                 type="file"
@@ -504,9 +501,7 @@ export function TeacherApplicationForm() {
               }`}
             >
               <Mic size={20} className="opacity-60" />
-              <span className="font-semibold">
-                Upload a short introduction
-              </span>
+              <span className="font-semibold">Upload a short introduction</span>
               <span className="opacity-60">
                 MP3, M4A, WAV, OGG, WebM, MP4, or MOV · up to 20 MB
               </span>
