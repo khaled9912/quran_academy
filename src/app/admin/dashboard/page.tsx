@@ -146,6 +146,16 @@ export default function AdminDashboardPage() {
               teachers, then approve or reject them.
             </p>
           </Link>
+          <Link
+            href="/admin/transcripts"
+            className="rounded-3xl border border-card-border bg-card-bg p-6 hover:border-green-500 transition"
+          >
+            <h2 className="text-xl font-semibold mb-2">Lesson transcripts</h2>
+            <p className="text-foreground opacity-75">
+              Read lesson transcripts and review attempts to move students
+              off-platform.
+            </p>
+          </Link>
         </div>
       </div>
     </div>

@@ -30,6 +30,7 @@ export const navigationConfig: Record<string, NavLink[]> = {
     { label: "Teachers", href: "/admin/teachers" },
     { label: "Assignments", href: "/admin/assignments" },
     { label: "Approvals", href: "/admin/lesson-approvals" },
+    { label: "Transcripts", href: "/admin/transcripts" },
     { label: "Profile", href: "/profile" },
   ],
   super_admin: [
@@ -38,6 +39,7 @@ export const navigationConfig: Record<string, NavLink[]> = {
     { label: "Teachers", href: "/admin/teachers" },
     { label: "Assignments", href: "/admin/assignments" },
     { label: "Approvals", href: "/admin/lesson-approvals" },
+    { label: "Transcripts", href: "/admin/transcripts" },
     { label: "Profile", href: "/profile" },
   ],
 };

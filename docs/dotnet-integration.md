@@ -298,6 +298,22 @@ Either participant can open the room; there is no presence check or heartbeat. T
 
 The room is unlisted, not access-controlled. The Jitsi room itself is unlisted rather than locked: anyone who knows the room name can join directly on the Jitsi deployment, and display names are not verified. Real enforcement requires a JWT-enabled Jitsi (JaaS or self-hosted) where only the teacher receives a moderator token and the room is protected by lobby or required moderator.
 
+## Lesson transcripts and off-platform flags
+
+Transcripts are not captured by the web or mobile app: the call runs in a cross-origin iframe, so only the Jitsi deployment can record audio. The API exposes the storage and review side, ready for the transcription bot.
+
+| Method | Endpoint                                  | Purpose                                                        |
+| ------ | ----------------------------------------- | -------------------------------------------------------------- |
+| POST   | `/api/lessons/{id}/transcript`            | Bot ingest; `{ segments: [{ speaker?, text, atSeconds? }] }`   |
+| GET    | `/api/admin/transcripts`                  | Flagged lessons, newest first                                   |
+| GET    | `/api/admin/lessons/{id}/transcript`      | Full ordered transcript for one lesson                          |
+
+Ingest rules: anonymous but requires the `X-Transcript-Key` header to equal `Transcripts:IngestKey`; the route returns `404` while no key is configured, which keeps the feature off. Each request carries 1–200 segments; empty text is skipped, text is capped at 4000 characters, and the speaker defaults to `Unknown`. `AtSeconds` is the offset from the start of the recording.
+
+The API scans every segment for `phone`, `email`, `platform` (WhatsApp, Telegram, Instagram, TikTok, Signal, Skype, …) and `offplatform` ("call me", "my number", "outside the lesson"). Matches are stored as comma-separated flags on the segment. The admin list groups flagged segments per lesson and merges the reasons; the detail view returns every segment with `flags` as an array so the UI can highlight the offending lines.
+
+Transcript text belongs in this API and Postgres only. Never enable Jitsi's `/transcripts` static route: it publishes files at a guessable public URL, which is unacceptable for lessons involving minors.
+
 ## Contact form
 
 | Method | Endpoint       | Purpose                                               |
@@ -319,6 +335,6 @@ Prefer RFC 7807 Problem Details. Common status codes: `400` validation, `401` un
 - `/profile` — student/teacher/admin profile: name, email, mobile, photo, and class-report history
 - `/student/dashboard`, `/student/availability`, `/schedule`, `/lesson/{id}` — student overview, teacher directory booking, schedule, and post-lesson recap/review
 - `/teacher/dashboard`, `/teacher/availability`, `/teacher/lesson-requests`, `/teacher/schedule` — teacher tools including report-due indicators
-- `/admin/dashboard`, `/admin/lesson-approvals`, `/admin/students`, `/admin/teachers`, `/admin/teachers/{id}/availability`, `/admin/teacher-applications`, `/admin/assignments` — admin tools
+- `/admin/dashboard`, `/admin/lesson-approvals`, `/admin/students`, `/admin/teachers`, `/admin/teachers/{id}/availability`, `/admin/teacher-applications`, `/admin/assignments`, `/admin/transcripts` — admin tools
 
 The landing page is implemented in `src/app/page.tsx`. Feature screens are App Router `page.tsx` files; do not add a `pages/` directory.

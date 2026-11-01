@@ -9,3 +9,4 @@ export * from "./lesson";
 export * from "./teacher-student-assignment";
 
 export * from "./scheduling";
+export * from "./transcript";
