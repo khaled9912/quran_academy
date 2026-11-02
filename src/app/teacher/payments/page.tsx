@@ -43,10 +43,22 @@ const fields: {
   label: string;
   placeholder: string;
 }[] = [
-  { key: "instaPayAccount", label: "InstaPay", placeholder: "name@instapay or phone" },
-  { key: "vodafoneCashNumber", label: "Vodafone Cash", placeholder: "01xxxxxxxxx" },
+  {
+    key: "instaPayAccount",
+    label: "InstaPay",
+    placeholder: "name@instapay or phone",
+  },
+  {
+    key: "vodafoneCashNumber",
+    label: "Vodafone Cash",
+    placeholder: "01xxxxxxxxx",
+  },
   { key: "bankName", label: "Bank name", placeholder: "e.g. Banque Misr" },
-  { key: "bankAccountHolder", label: "Account holder", placeholder: "Name on the account" },
+  {
+    key: "bankAccountHolder",
+    label: "Account holder",
+    placeholder: "Name on the account",
+  },
   { key: "bankIban", label: "IBAN", placeholder: "EG..." },
 ];
 
@@ -133,8 +145,8 @@ export default function TeacherPaymentsPage() {
 
             {billing.payoutPerLessonEgp <= 0 ? (
               <div className="mb-6 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
-                The academy has not set your per-lesson rate yet, so this summary
-                shows 0. Contact the academy if this looks wrong.
+                The academy has not set your per-lesson rate yet, so this
+                summary shows 0. Contact the academy if this looks wrong.
               </div>
             ) : null}
 
@@ -200,7 +212,10 @@ export default function TeacherPaymentsPage() {
                       </tbody>
                       <tfoot>
                         <tr>
-                          <td colSpan={3} className="pt-4 text-right font-semibold">
+                          <td
+                            colSpan={3}
+                            className="pt-4 text-right font-semibold"
+                          >
                             Total
                           </td>
                           <td className="pt-4 text-right text-lg font-bold">
@@ -243,13 +258,17 @@ function PayoutForm({ billing }: { billing: TeacherBilling }) {
 
   const saved = toForm(billing);
   const dirty = fields.some((field) => saved[field.key] !== form[field.key]);
-  const hasAnyMethod = fields.some((field) => form[field.key].trim().length > 0);
+  const hasAnyMethod = fields.some(
+    (field) => form[field.key].trim().length > 0
+  );
 
   const saveMutation = useMutation({
     mutationFn: () => savePayoutDetails(form),
     onSuccess: async () => {
       setError("");
-      setNotice("Payout details saved. The academy will use them for your transfers.");
+      setNotice(
+        "Payout details saved. The academy will use them for your transfers."
+      );
       await queryClient.invalidateQueries({ queryKey: ["billing"] });
     },
     onError: (mutationError) => {

@@ -45,8 +45,7 @@ export default function TeacherDashboardPage() {
       (lesson) =>
         // Keep started (or early-completed) lessons until their scheduled end
         // so teachers can rejoin after a dropped call.
-        lesson.status !== "cancelled" &&
-        new Date(lesson.endsAt).getTime() > now
+        lesson.status !== "cancelled" && new Date(lesson.endsAt).getTime() > now
     )
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
   const bookedRules = rules.filter((rule) => rule.status !== "available");

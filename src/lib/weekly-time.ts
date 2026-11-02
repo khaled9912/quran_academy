@@ -120,12 +120,7 @@ export const getViewerTimeZone = () => {
 /** "America/New_York" -> "New York"; keeps UTC as-is. */
 export const timeZoneLabel = (timeZone: string) => {
   if (!timeZone || timeZone === "UTC") return timeZone || "UTC";
-  return (
-    timeZone
-      .split("/")
-      .pop()
-      ?.replaceAll("_", " ") ?? timeZone
-  );
+  return timeZone.split("/").pop()?.replaceAll("_", " ") ?? timeZone;
 };
 
 /**
@@ -249,7 +244,11 @@ export const toViewerWeeklySlotLabel = (
   now: Date = new Date()
 ) => {
   const local = toViewerWeeklyTime(slot, viewerTimeZone, now);
-  return formatWeeklySlot(local.dayOfWeek, local.startsAtTime, local.endsAtTime);
+  return formatWeeklySlot(
+    local.dayOfWeek,
+    local.startsAtTime,
+    local.endsAtTime
+  );
 };
 
 export const toViewerWeeklyTimeRangeLabel = (

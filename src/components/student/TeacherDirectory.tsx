@@ -129,93 +129,95 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
           <TimeZoneNote zone={viewerTimeZone} className="mt-5" />
           <div className="mt-3 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {visibleTeachers.map((entry) => {
-            const open = entry.slots.filter(
-              (slot) => slot.status === "available"
-            );
-            const days = viewerWeekdays(open, viewerTimeZone);
-            const isAssigned = entry.teacher.id === assignedTeacherId;
-            return (
-              <article
-                key={entry.teacher.id}
-                className="flex flex-col rounded-2xl border border-card-border bg-background p-5"
-              >
-                <div className="flex items-start gap-3">
-                  <Avatar
-                    name={entry.teacher.fullName ?? ""}
-                    src={entry.teacher.avatarUrl}
-                    className="h-14 w-14 rounded-2xl text-lg"
-                  />
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Link
-                        href={`/student/teachers/${entry.teacher.id}`}
-                        className="text-lg font-semibold hover:text-green-600 hover:underline"
-                      >
-                        {entry.teacher.fullName}
-                      </Link>
-                      {isAssigned && (
-                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-green-800">
-                          Your teacher
-                        </span>
+              const open = entry.slots.filter(
+                (slot) => slot.status === "available"
+              );
+              const days = viewerWeekdays(open, viewerTimeZone);
+              const isAssigned = entry.teacher.id === assignedTeacherId;
+              return (
+                <article
+                  key={entry.teacher.id}
+                  className="flex flex-col rounded-2xl border border-card-border bg-background p-5"
+                >
+                  <div className="flex items-start gap-3">
+                    <Avatar
+                      name={entry.teacher.fullName ?? ""}
+                      src={entry.teacher.avatarUrl}
+                      className="h-14 w-14 rounded-2xl text-lg"
+                    />
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Link
+                          href={`/student/teachers/${entry.teacher.id}`}
+                          className="text-lg font-semibold hover:text-green-600 hover:underline"
+                        >
+                          {entry.teacher.fullName}
+                        </Link>
+                        {isAssigned && (
+                          <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-green-800">
+                            Your teacher
+                          </span>
+                        )}
+                      </div>
+                      {entry.reviewCount > 0 ? (
+                        <StarRating
+                          value={entry.averageRating ?? null}
+                          count={entry.reviewCount}
+                          className="mt-1"
+                        />
+                      ) : (
+                        <p className="mt-1 text-xs text-foreground opacity-60">
+                          New teacher
+                        </p>
+                      )}
+                      {entry.teacher.email && (
+                        <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-foreground opacity-70">
+                          <Mail size={13} className="shrink-0" />
+                          <span className="truncate">
+                            {entry.teacher.email}
+                          </span>
+                        </p>
+                      )}
+                      {entry.teacher.phoneNumber && (
+                        <p className="mt-1 flex items-center gap-1.5 text-xs text-foreground opacity-70">
+                          <Phone size={13} className="shrink-0" />
+                          {entry.teacher.phoneNumber}
+                        </p>
                       )}
                     </div>
-                    {entry.reviewCount > 0 ? (
-                      <StarRating
-                        value={entry.averageRating ?? null}
-                        count={entry.reviewCount}
-                        className="mt-1"
-                      />
-                    ) : (
-                      <p className="mt-1 text-xs text-foreground opacity-60">
-                        New teacher
-                      </p>
-                    )}
-                    {entry.teacher.email && (
-                      <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-foreground opacity-70">
-                        <Mail size={13} className="shrink-0" />
-                        <span className="truncate">{entry.teacher.email}</span>
-                      </p>
-                    )}
-                    {entry.teacher.phoneNumber && (
-                      <p className="mt-1 flex items-center gap-1.5 text-xs text-foreground opacity-70">
-                        <Phone size={13} className="shrink-0" />
-                        {entry.teacher.phoneNumber}
-                      </p>
+                  </div>
+
+                  <div className="mt-4 flex-1">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-foreground opacity-60">
+                      {open.length
+                        ? `${open.length} weekly ${
+                            open.length === 1 ? "time" : "times"
+                          } available`
+                        : "No weekly times right now"}
+                    </p>
+                    {days.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {days.map((day) => (
+                          <span
+                            key={day}
+                            className="rounded-full bg-green-500/10 px-2.5 py-1 text-[11px] font-semibold text-green-700"
+                          >
+                            {WEEKDAY_SHORT[day]}
+                          </span>
+                        ))}
+                      </div>
                     )}
                   </div>
-                </div>
 
-                <div className="mt-4 flex-1">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-foreground opacity-60">
-                    {open.length
-                      ? `${open.length} weekly ${
-                          open.length === 1 ? "time" : "times"
-                        } available`
-                      : "No weekly times right now"}
-                  </p>
-                  {days.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {days.map((day) => (
-                        <span
-                          key={day}
-                          className="rounded-full bg-green-500/10 px-2.5 py-1 text-[11px] font-semibold text-green-700"
-                        >
-                          {WEEKDAY_SHORT[day]}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <Link
-                  href={`/student/teachers/${entry.teacher.id}`}
-                  className="mt-4 inline-flex items-center justify-center rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
-                >
-                  {open.length ? "Choose weekly times" : "View profile"}
-                </Link>
-              </article>
-            );
-          })}
+                  <Link
+                    href={`/student/teachers/${entry.teacher.id}`}
+                    className="mt-4 inline-flex items-center justify-center rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
+                  >
+                    {open.length ? "Choose weekly times" : "View profile"}
+                  </Link>
+                </article>
+              );
+            })}
           </div>
         </>
       ) : (

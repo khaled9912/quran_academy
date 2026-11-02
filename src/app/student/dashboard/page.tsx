@@ -65,8 +65,7 @@ const StudentDashboard = () => {
   // so students can rejoin after a dropped call.
   const upcoming = sorted.filter(
     (lesson) =>
-      lesson.status !== "cancelled" &&
-      new Date(lesson.endsAt).getTime() > now
+      lesson.status !== "cancelled" && new Date(lesson.endsAt).getTime() > now
   );
   const upcomingPage = upcomingDayPage(upcoming, upcomingDays, now);
   const nextDayLabel = upcomingPage.nextDay

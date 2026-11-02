@@ -4,10 +4,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Copy, Landmark, Send } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
-import {
-  getStudentBilling,
-  markPaymentSent,
-} from "@/services/billing.service";
+import { getStudentBilling, markPaymentSent } from "@/services/billing.service";
 import type { AcademyBankAccount, StudentBilling } from "@/types/billing";
 
 const usd = (value: number) =>
@@ -96,7 +93,10 @@ export default function StudentPaymentsPage() {
     try {
       await navigator.clipboard.writeText(value);
       setCopied(key);
-      window.setTimeout(() => setCopied((current) => (current === key ? null : current)), 1600);
+      window.setTimeout(
+        () => setCopied((current) => (current === key ? null : current)),
+        1600
+      );
     } catch {
       setError("Could not copy. Select the text and copy it manually.");
     }
@@ -231,7 +231,10 @@ export default function StudentPaymentsPage() {
                       </tbody>
                       <tfoot>
                         <tr>
-                          <td colSpan={3} className="pt-4 text-right font-semibold">
+                          <td
+                            colSpan={3}
+                            className="pt-4 text-right font-semibold"
+                          >
                             Total due
                           </td>
                           <td className="pt-4 text-right text-lg font-bold">
@@ -272,7 +275,9 @@ export default function StudentPaymentsPage() {
                             <button
                               type="button"
                               aria-label={`Copy ${field.label}`}
-                              onClick={() => void copy(field.label, field.value)}
+                              onClick={() =>
+                                void copy(field.label, field.value)
+                              }
                               className="shrink-0 rounded-lg border border-card-border p-1.5 text-foreground opacity-70 transition hover:opacity-100"
                             >
                               {copied === field.label ? (
@@ -295,8 +300,14 @@ export default function StudentPaymentsPage() {
                       onClick={() => void copy("all", allDetails)}
                       className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-card-border px-4 py-2.5 text-sm font-semibold transition hover:bg-green-500/10"
                     >
-                      {copied === "all" ? <Check size={16} /> : <Copy size={16} />}
-                      {copied === "all" ? "Copied all details" : "Copy all details"}
+                      {copied === "all" ? (
+                        <Check size={16} />
+                      ) : (
+                        <Copy size={16} />
+                      )}
+                      {copied === "all"
+                        ? "Copied all details"
+                        : "Copy all details"}
                     </button>
                   </>
                 ) : (

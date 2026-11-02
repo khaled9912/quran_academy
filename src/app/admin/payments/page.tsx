@@ -44,7 +44,9 @@ const payoutSummary = (details: TeacherPayoutDetail) => {
   const parts = [
     details.instaPayAccount ? `InstaPay: ${details.instaPayAccount}` : "",
     details.vodafoneCashNumber ? `Vodafone: ${details.vodafoneCashNumber}` : "",
-    details.bankIban ? `${details.bankName || "Bank"} IBAN: ${details.bankIban}` : "",
+    details.bankIban
+      ? `${details.bankName || "Bank"} IBAN: ${details.bankIban}`
+      : "",
   ].filter(Boolean);
   return parts.length > 0 ? parts.join(" · ") : "No payout details yet";
 };
@@ -67,9 +69,17 @@ const emptyAccount: AccountForm = {
   notes: "",
 };
 
-const accountFields: { key: keyof AccountForm; label: string; placeholder: string }[] = [
+const accountFields: {
+  key: keyof AccountForm;
+  label: string;
+  placeholder: string;
+}[] = [
   { key: "bankName", label: "Bank name", placeholder: "Bank of example" },
-  { key: "accountHolder", label: "Account holder", placeholder: "Academy legal name" },
+  {
+    key: "accountHolder",
+    label: "Account holder",
+    placeholder: "Academy legal name",
+  },
   { key: "accountNumber", label: "Account number", placeholder: "0000000000" },
   { key: "iban", label: "IBAN", placeholder: "US..." },
   { key: "swift", label: "SWIFT/BIC", placeholder: "XXXXXXXX" },
@@ -130,7 +140,8 @@ export default function AdminPaymentsPage() {
     if (overview) setRates(toRateForm(overview.rates));
   }, [overview?.rates]);
 
-  const refresh = () => queryClient.invalidateQueries({ queryKey: ["billing"] });
+  const refresh = () =>
+    queryClient.invalidateQueries({ queryKey: ["billing"] });
 
   const accountMutation = useMutation({
     mutationFn: () => saveAcademyAccount(account),
@@ -211,8 +222,10 @@ export default function AdminPaymentsPage() {
     );
   }
 
-  const pending = overview?.claims.filter((claim) => claim.status === "pending") ?? [];
-  const reviewed = overview?.claims.filter((claim) => claim.status !== "pending") ?? [];
+  const pending =
+    overview?.claims.filter((claim) => claim.status === "pending") ?? [];
+  const reviewed =
+    overview?.claims.filter((claim) => claim.status !== "pending") ?? [];
 
   return (
     <div className="min-h-screen bg-background pt-24 pb-16 text-foreground">
@@ -281,7 +294,10 @@ export default function AdminPaymentsPage() {
                   <textarea
                     value={account.notes}
                     onChange={(event) =>
-                      setAccount((current) => ({ ...current, notes: event.target.value }))
+                      setAccount((current) => ({
+                        ...current,
+                        notes: event.target.value,
+                      }))
                     }
                     maxLength={500}
                     rows={2}
@@ -336,7 +352,9 @@ export default function AdminPaymentsPage() {
                           <th className="py-2 pr-3 text-right font-semibold">
                             Lessons
                           </th>
-                          <th className="py-2 text-right font-semibold">Total</th>
+                          <th className="py-2 text-right font-semibold">
+                            Total
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -346,7 +364,9 @@ export default function AdminPaymentsPage() {
                             className="border-b border-card-border/60 last:border-0 align-top"
                           >
                             <td className="py-3 pr-3">
-                              <div className="font-medium">{payout.teacherName}</div>
+                              <div className="font-medium">
+                                {payout.teacherName}
+                              </div>
                               <div className="text-xs text-foreground opacity-60">
                                 {payoutSummary(payout.payoutDetails)}
                               </div>
@@ -484,7 +504,9 @@ export default function AdminPaymentsPage() {
                           key={claim.id}
                           className="border-b border-card-border/60 last:border-0"
                         >
-                          <td className="py-2 pr-3">{claim.studentName || "Student"}</td>
+                          <td className="py-2 pr-3">
+                            {claim.studentName || "Student"}
+                          </td>
                           <td className="py-2 pr-3">{claim.month}</td>
                           <td className="py-2 pr-3 text-right">
                             {usd(claim.amountUsd)}
@@ -536,7 +558,9 @@ export default function AdminPaymentsPage() {
                         <th className="py-2 pr-3 font-semibold">
                           Student price (USD)
                         </th>
-                        <th className="py-2 pr-3 font-semibold">Payout (EGP)</th>
+                        <th className="py-2 pr-3 font-semibold">
+                          Payout (EGP)
+                        </th>
                         <th className="py-2 font-semibold" />
                       </tr>
                     </thead>
@@ -562,7 +586,9 @@ export default function AdminPaymentsPage() {
                             className="border-b border-card-border/60 last:border-0"
                           >
                             <td className="py-2 pr-3">
-                              <div className="font-medium">{rate.teacherName}</div>
+                              <div className="font-medium">
+                                {rate.teacherName}
+                              </div>
                               <div className="text-xs text-foreground opacity-60">
                                 {rate.teacherEmail}
                               </div>
@@ -617,7 +643,9 @@ export default function AdminPaymentsPage() {
                                     payoutEgp: payout,
                                   })
                                 }
-                                disabled={!dirty || !valid || rateMutation.isPending}
+                                disabled={
+                                  !dirty || !valid || rateMutation.isPending
+                                }
                                 className="inline-flex items-center gap-1.5 rounded-xl border border-card-border px-3 py-1.5 text-sm font-semibold transition hover:bg-green-500/10 disabled:opacity-40"
                               >
                                 <Save size={14} />

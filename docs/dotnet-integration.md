@@ -407,17 +407,17 @@ The API stores the submission, then sends a plain-text notification to **one rec
 
 Each month has a student statement (USD) and a teacher earnings summary (EGP). Months follow the academy clock (`Africa/Cairo`); a month can be claimed only after it ends.
 
-| Method | Endpoint                                | Role    | Purpose                                                                 |
-| ------ | --------------------------------------- | ------- | ----------------------------------------------------------------------- |
-| GET    | `/api/student/billing?month=YYYY-MM`    | student | Month list (last 12), completed lessons, amount due, USD bank account, claim |
-| POST   | `/api/student/billing/claims`           | student | `{ "month": "YYYY-MM", "note": "..." }` — mark a closed month as paid   |
-| GET    | `/api/teacher/billing?month=YYYY-MM`    | teacher | Completed lessons, EGP total, per-lesson rate, saved payout details     |
-| PUT    | `/api/teacher/billing/payout-details`   | teacher | InstaPay, Vodafone Cash, bank name/holder/IBAN                          |
-| GET    | `/api/admin/billing?month=YYYY-MM`      | admin   | Academy USD account, teacher rates, claims, per-teacher payouts          |
-| PUT    | `/api/admin/billing/academy-account`    | admin   | The USD account students copy into their banking app                    |
-| PUT    | `/api/admin/billing/rates/{teacherId}`  | admin   | `{ "studentPriceUsd": 12.5, "payoutEgp": 300 }`                          |
-| POST   | `/api/admin/billing/claims/{id}/confirm`| admin   | Confirm a pending claim                                                 |
-| POST   | `/api/admin/billing/claims/{id}/reject` | admin   | `{ "note": "..." }` — student may re-claim the month later               |
+| Method | Endpoint                                 | Role    | Purpose                                                                      |
+| ------ | ---------------------------------------- | ------- | ---------------------------------------------------------------------------- |
+| GET    | `/api/student/billing?month=YYYY-MM`     | student | Month list (last 12), completed lessons, amount due, USD bank account, claim |
+| POST   | `/api/student/billing/claims`            | student | `{ "month": "YYYY-MM", "note": "..." }` — mark a closed month as paid        |
+| GET    | `/api/teacher/billing?month=YYYY-MM`     | teacher | Completed lessons, EGP total, per-lesson rate, saved payout details          |
+| PUT    | `/api/teacher/billing/payout-details`    | teacher | InstaPay, Vodafone Cash, bank name/holder/IBAN                               |
+| GET    | `/api/admin/billing?month=YYYY-MM`       | admin   | Academy USD account, teacher rates, claims, per-teacher payouts              |
+| PUT    | `/api/admin/billing/academy-account`     | admin   | The USD account students copy into their banking app                         |
+| PUT    | `/api/admin/billing/rates/{teacherId}`   | admin   | `{ "studentPriceUsd": 12.5, "payoutEgp": 300 }`                              |
+| POST   | `/api/admin/billing/claims/{id}/confirm` | admin   | Confirm a pending claim                                                      |
+| POST   | `/api/admin/billing/claims/{id}/reject`  | admin   | `{ "note": "..." }` — student may re-claim the month later                   |
 
 - A student's trial lesson appears on the statement with amount `0`; the teacher is still paid the normal EGP rate for it.
 - One claim per student and month (`pending`, `confirmed`, `rejected`). Only closed months with a total above zero can be claimed; a confirmed or pending claim blocks a new one, while a rejected claim can be re-submitted and returns to `pending`.
