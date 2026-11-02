@@ -10,3 +10,4 @@ export * from "./teacher-student-assignment";
 
 export * from "./scheduling";
 export * from "./transcript";
+export * from "./review";

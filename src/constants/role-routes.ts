@@ -10,6 +10,7 @@ export const ROLE_DASHBOARDS: Record<UserRole, string> = {
   admin: "/admin/dashboard",
   teacher: "/teacher/dashboard",
   student: "/student/dashboard",
+  support: "/support/transcripts",
 };
 
 export const DEFAULT_DASHBOARD = ROLE_DASHBOARDS.student;

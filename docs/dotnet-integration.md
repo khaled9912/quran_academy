@@ -366,14 +366,32 @@ Transcripts are not captured by the web or mobile app: the call runs in a cross-
 | Method | Endpoint                             | Purpose                                                      |
 | ------ | ------------------------------------ | ------------------------------------------------------------ |
 | POST   | `/api/lessons/{id}/transcript`       | Bot ingest; `{ segments: [{ speaker?, text, atSeconds? }] }` |
-| GET    | `/api/admin/transcripts`             | Flagged lessons, newest first                                |
-| GET    | `/api/admin/lessons/{id}/transcript` | Full ordered transcript for one lesson                       |
+| GET    | `/api/admin/transcripts`             | Flagged lessons, newest first (ReviewerOnly)                 |
+| GET    | `/api/admin/lessons/{id}/transcript` | Full ordered transcript for one lesson (ReviewerOnly)        |
+| GET    | `/api/admin/review-queue`            | Review queue: `status=all\|unreviewed\|draft\|submitted\|flagged`, optional `flagged=true`, `from`, `to` |
+| GET    | `/api/admin/lessons/{id}/review`     | Lesson, metrics, existing review and ordered segments        |
+| PUT    | `/api/admin/lessons/{id}/review`     | Upsert the rubric review (draft or submitted)                |
+| GET    | `/api/admin/review-digest`           | Weekly per-teacher rollup: `weekStart=yyyy-MM-dd` (defaults to this Monday, UTC) |
 
 Ingest rules: anonymous but requires the `X-Transcript-Key` header to equal `Transcripts:IngestKey`; the route returns `404` while no key is configured, which keeps the feature off. Each request carries 1–200 segments; empty text is skipped, text is capped at 4000 characters, and the speaker defaults to `Unknown`. `AtSeconds` is the offset from the start of the recording.
 
 The API scans every segment for `phone`, `email`, `platform` (WhatsApp, Telegram, Instagram, TikTok, Signal, Skype, …) and `offplatform` ("call me", "my number", "outside the lesson"). Matches are stored as comma-separated flags on the segment. The admin list groups flagged segments per lesson and merges the reasons; the detail view returns every segment with `flags` as an array so the UI can highlight the offending lines.
 
 Transcript text belongs in this API and Postgres only. Never enable Jitsi's `/transcripts` static route: it publishes files at a guessable public URL, which is unacceptable for lessons involving minors.
+
+### Support review workflow
+
+The `support` role is read-only outside reviews: it can open the transcript endpoints above, save a rubric review, and read the weekly digest. It cannot change lessons, students, teachers, or assignments. Admins and super admins share the same review access through the `ReviewerOnly` policy (`admin`, `super_admin`, `support`); `AdminOnly` still guards everything else under `/api/admin`.
+
+- **Automated metrics** in the workspace: segment counts by speaker, estimated talk-time balance (~150 words per minute; a signal, not a clock), recorded length from `atSeconds`, and flagged segments/reasons. The text comes from ASR, so the API never scores recitation or tajweed automatically.
+- **Rubric**: four 1–5 scores (`teachingClarity`, `studentPractice`, `correctionQuality`, `engagement`) plus `strengths`, `gaps`, `teacherAction`, `studentAction`. Drafts can be incomplete; submitting requires all four scores and a gap of at least 3 characters. A lesson must have at least one transcript segment before it can be reviewed.
+- **Audit**: every workspace or transcript read writes a `TranscriptAccessLogs` row (`lessonId`, `userId`, `accessedAt`). There is no UI for the log yet; query it directly when an access audit is needed.
+- **Weekly digest**: groups submitted reviews by teacher for the week, with rubric averages, follow-up actions, and the lessons still unreviewed or only drafted. This is the artifact the support lead reviews at the end of the week.
+- **Accounts**: admins create support reviewers from `/admin/support` (`POST /api/admin/users` with `role: "support"`), list them with `GET /api/admin/support-users`, and deactivate/reactivate them through the existing `PATCH`/`DELETE /api/admin/users/{id}` endpoints.
+
+The frontend mirrors the API: `/support/transcripts` is the queue, `/support/transcripts/{id}` is the transcript plus rubric, and `/support/weekly` is the digest. Admins reach the same pages from the navigation.
+
+Consent and retention are product decisions, not API details: transcripts cover lessons that may involve minors, so tell students and guardians what is recorded, who can read it, and how long it is kept before enabling capture.
 
 ## Contact form
 
@@ -396,6 +414,7 @@ Prefer RFC 7807 Problem Details. Common status codes: `400` validation, `401` un
 - `/profile` — student/teacher/admin profile: name, email, mobile, photo, and class-report history
 - `/student/dashboard`, `/student/availability`, `/student/teachers/{id}`, `/student/change-time/{seriesId}`, `/schedule`, `/lesson/{id}` — student overview, teacher directory with unlimited weekly multi-select, time-change request, recurring schedule, and post-lesson recap/review
 - `/teacher/dashboard`, `/teacher/availability`, `/teacher/schedule` — teacher tools: announce weekly rules, see the weekly bookings, and submit reports. Teachers have no lesson-request or approval screens.
-- `/admin/dashboard`, `/admin/change-requests`, `/admin/students`, `/admin/teachers`, `/admin/teachers/{id}/availability`, `/admin/teacher-applications`, `/admin/assignments`, `/admin/lessons`, `/admin/transcripts` — admin tools; `/admin/change-requests` is the only place student time-change requests surface
+- `/admin/dashboard`, `/admin/change-requests`, `/admin/students`, `/admin/teachers`, `/admin/teachers/{id}/availability`, `/admin/teacher-applications`, `/admin/assignments`, `/admin/lessons`, `/admin/transcripts`, `/admin/support` — admin tools; `/admin/change-requests` is the only place student time-change requests surface
+- `/support/transcripts`, `/support/transcripts/{id}`, `/support/weekly` — support reviewers (also reachable by admins): queue, transcript plus rubric review, and the weekly per-teacher digest
 
 The landing page is implemented in `src/app/page.tsx`. Feature screens are App Router `page.tsx` files; do not add a `pages/` directory.

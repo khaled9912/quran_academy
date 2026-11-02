@@ -6,3 +6,4 @@ export * from "./assignment.service";
 export * from "./scheduling.service";
 export * from "./profile.service";
 export * from "./transcript.service";
+export * from "./review.service";

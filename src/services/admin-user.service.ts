@@ -1,4 +1,5 @@
 import { backendFetch } from "@/lib/backend-client";
+import type { CreateTeacherInput } from "@/services/teacher.service";
 
 export interface AdminUserUpdate {
   fullName?: string;
@@ -26,3 +27,17 @@ export const deactivateManagedUser = (id: string) =>
   backendFetch<null>(`/api/admin/users/${encodeURIComponent(id)}`, {
     method: "DELETE",
   });
+
+export const getSupportUsers = () =>
+  backendFetch<AdminManagedUser[]>("/api/admin/support-users");
+
+export const createSupportUser = async (input: CreateTeacherInput) => {
+  const { user } = await backendFetch<{ user: AdminManagedUser }>(
+    "/api/admin/users",
+    {
+      method: "POST",
+      body: JSON.stringify({ ...input, role: "support" }),
+    }
+  );
+  return user;
+};

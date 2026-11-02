@@ -13,6 +13,7 @@ export const sidebarConfig: Record<UserRole, string[]> = {
   teacher: navigationConfig.teacher.map((l) => l.label),
   admin: navigationConfig.admin.map((l) => l.label),
   super_admin: navigationConfig.super_admin.map((l) => l.label),
+  support: navigationConfig.support.map((l) => l.label),
 };
 
 export default sidebarConfig;

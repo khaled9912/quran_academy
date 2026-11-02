@@ -7,9 +7,11 @@ export const permissions: Record<UserRole, string[]> = {
     "manage_assignments",
     "manage_lessons",
     "view_reports",
+    "review_transcripts",
   ],
   teacher: ["view_students", "view_lessons"],
   student: ["view_lessons"],
+  support: ["review_transcripts"],
 };
 /** UI helper only. The .NET API must enforce all permissions. */
 export function hasPermission(

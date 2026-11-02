@@ -57,6 +57,7 @@ const PROTECTED_PREFIXES = [
   "/teacher",
   "/admin",
   "/super-admin",
+  "/support",
   "/schedule",
   "/student-dashboard",
   "/lesson",
@@ -260,8 +261,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         "manage_assignments",
         "manage_lessons",
         "view_reports",
+        "review_transcripts",
       ];
     if (role === "teacher") return ["view_students", "view_lessons"];
+    if (role === "support") return ["review_transcripts"];
     return ["view_lessons"];
   }, [role]);
   const value: AuthContextType = {

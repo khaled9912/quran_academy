@@ -9,11 +9,13 @@ const ROLE_DASHBOARDS: Record<string, string> = {
   admin: "/admin/dashboard",
   teacher: "/teacher/dashboard",
   student: "/student/dashboard",
+  support: "/support/transcripts",
 };
 
 const ROLE_PATHS: Record<string, RegExp[]> = {
-  super_admin: [/^\/super-admin(\/|$)/, /^\/admin(\/|$)/],
-  admin: [/^\/admin(\/|$)/],
+  super_admin: [/^\/super-admin(\/|$)/, /^\/admin(\/|$)/, /^\/support(\/|$)/],
+  admin: [/^\/admin(\/|$)/, /^\/support(\/|$)/],
+  support: [/^\/support(\/|$)/],
   teacher: [/^\/teacher(\/|$)/],
   student: [
     /^\/student(\/|$)/,
@@ -81,6 +83,7 @@ export const config = {
   matcher: [
     "/super-admin/:path*",
     "/admin/:path*",
+    "/support/:path*",
     "/teacher/:path*",
     "/student/:path*",
     "/student-dashboard/:path*",

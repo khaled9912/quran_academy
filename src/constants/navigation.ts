@@ -31,6 +31,8 @@ export const navigationConfig: Record<string, NavLink[]> = {
     { label: "Time changes", href: "/admin/change-requests" },
     { label: "Lessons", href: "/admin/lessons" },
     { label: "Transcripts", href: "/admin/transcripts" },
+    { label: "Reviews", href: "/support/transcripts" },
+    { label: "Support team", href: "/admin/support" },
     { label: "Profile", href: "/profile" },
   ],
   super_admin: [
@@ -41,6 +43,13 @@ export const navigationConfig: Record<string, NavLink[]> = {
     { label: "Time changes", href: "/admin/change-requests" },
     { label: "Lessons", href: "/admin/lessons" },
     { label: "Transcripts", href: "/admin/transcripts" },
+    { label: "Reviews", href: "/support/transcripts" },
+    { label: "Support team", href: "/admin/support" },
+    { label: "Profile", href: "/profile" },
+  ],
+  support: [
+    { label: "Review queue", href: "/support/transcripts" },
+    { label: "Weekly digest", href: "/support/weekly" },
     { label: "Profile", href: "/profile" },
   ],
 };
