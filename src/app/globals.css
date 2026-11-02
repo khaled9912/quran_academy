@@ -9,6 +9,13 @@
   --card-border: #e5e5e5;
   --navbar-bg: #f7f5f1;
   --navbar-text: #173d3f;
+  --nav-text-muted: #4a6664;
+  --nav-hover-bg: rgba(23, 61, 63, 0.08);
+  --nav-active-bg: #173d3f;
+  --nav-active-text: #f7f5f1;
+  --menu-hover-bg: rgba(23, 61, 63, 0.08);
+  --menu-active-bg: #173d3f;
+  --menu-active-text: #f7f5f1;
   --brand-badge-bg: rgba(23, 61, 63, 0.08);
   --brand-badge-text: #173d3f;
   --toggle-bg: rgba(15, 23, 42, 0.08);
@@ -24,6 +31,13 @@
   --card-border: #3a5a7a;
   --navbar-bg: #0d3d4b;
   --navbar-text: #f8fafc;
+  --nav-text-muted: rgba(248, 250, 252, 0.75);
+  --nav-hover-bg: rgba(255, 255, 255, 0.12);
+  --nav-active-bg: rgba(241, 209, 161, 0.18);
+  --nav-active-text: #f8e3bd;
+  --menu-hover-bg: rgba(255, 255, 255, 0.1);
+  --menu-active-bg: rgba(241, 209, 161, 0.18);
+  --menu-active-text: #f8e3bd;
   --brand-badge-bg: rgba(255, 255, 255, 0.08);
   --brand-badge-text: #f8fafc;
   --toggle-bg: rgba(255, 255, 255, 0.08);
@@ -40,6 +54,13 @@
     --card-border: #3a5a7a;
     --navbar-bg: #0d3d4b;
     --navbar-text: #f8fafc;
+    --nav-text-muted: rgba(248, 250, 252, 0.75);
+    --nav-hover-bg: rgba(255, 255, 255, 0.12);
+    --nav-active-bg: rgba(241, 209, 161, 0.18);
+    --nav-active-text: #f8e3bd;
+    --menu-hover-bg: rgba(255, 255, 255, 0.1);
+    --menu-active-bg: rgba(241, 209, 161, 0.18);
+    --menu-active-text: #f8e3bd;
     --brand-badge-bg: rgba(255, 255, 255, 0.08);
     --brand-badge-text: #f8fafc;
     --toggle-bg: rgba(255, 255, 255, 0.08);
@@ -104,15 +125,39 @@ body {
 
 .menu-item-link,
 .menu-item-button {
-  color: var(--menu-panel-text) !important;
+  color: var(--menu-panel-text);
   text-decoration: none;
   font-weight: 600;
+  padding: 0.5rem 1.5rem;
+  border-radius: 9999px;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.menu-item-link:hover,
+.menu-item-button:hover,
+.menu-item-link:focus-visible,
+.menu-item-button:focus-visible {
+  background: var(--menu-hover-bg);
+}
+
+.menu-item-link.menu-item-active,
+.menu-item-button.menu-item-active {
+  background: var(--menu-active-bg);
+  color: var(--menu-active-text);
+}
+
+.menu-item-link:focus-visible,
+.menu-item-button:focus-visible {
+  outline: 2px solid var(--menu-active-text);
+  outline-offset: 2px;
 }
 
 .menu-item-button {
   background: transparent;
   border: 0;
-  padding: 0;
+  cursor: pointer;
 }
 
 /* keep menu panel colors tied to the active theme, not the OS preference */

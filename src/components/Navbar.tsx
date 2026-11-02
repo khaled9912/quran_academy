@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import React from "react";
 import Menu from "./Menu";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -10,8 +11,16 @@ import { Avatar } from "@/components/ui/avatar";
 
 const Navbar = () => {
   const { role, profile, logout, isAuthenticated } = useAuth();
+  const pathname = usePathname();
   const displayName =
     profile?.fullName ?? profile?.full_name ?? role?.replace("_", " ") ?? "";
+
+  // Anchor links point at a section, so they never become the active route
+  const isActiveLink = (href: string) => {
+    if (href.includes("#")) return false;
+    if (href === "/") return pathname === "/";
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
 
   // Choose links based on authentication and role
   const links =
@@ -57,16 +66,27 @@ const Navbar = () => {
             />
           </Link>
 
-          <div className="hidden md:flex items-center gap-6 text-sm font-medium text-[var(--navbar-text)]/80">
-            {links.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="transition hover:text-[var(--navbar-text)]"
-              >
-                {link.label}
-              </Link>
-            ))}
+          <div className="hidden items-center gap-2 text-sm font-medium md:flex">
+            {links.map((link) => {
+              const active = isActiveLink(link.href);
+
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  aria-current={active ? "page" : undefined}
+                  className={[
+                    "rounded-full px-3 py-1.5 transition-colors",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--navbar-text)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--navbar-bg)]",
+                    active
+                      ? "bg-[var(--nav-active-bg)] font-semibold text-[var(--nav-active-text)]"
+                      : "text-[var(--nav-text-muted)] hover:bg-[var(--nav-hover-bg)] hover:text-[var(--navbar-text)]",
+                  ].join(" ")}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </div>
         </div>
 

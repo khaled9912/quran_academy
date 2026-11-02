@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useAuth } from "@/providers/auth-provider";
 import { navigationConfig } from "@/constants/navigation";
@@ -8,11 +9,23 @@ import { navigationConfig } from "@/constants/navigation";
 const Menu = () => {
   const [open, setOpen] = useState(false);
   const { role, logout, isAuthenticated } = useAuth();
+  const pathname = usePathname();
 
   const links =
     isAuthenticated && role && navigationConfig[role]
       ? navigationConfig[role]
       : navigationConfig.anonymous;
+
+  const isActiveLink = (href: string) => {
+    if (href.includes("#")) return false;
+    if (href === "/") return pathname === "/";
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
+
+  const linkClassName = (href: string) =>
+    ["menu-item-link", isActiveLink(href) ? "menu-item-active" : ""]
+      .filter(Boolean)
+      .join(" ");
 
   return (
     <div>
@@ -29,16 +42,32 @@ const Menu = () => {
       {open && (
         <div className="menu-items" onClick={() => setOpen(false)}>
           {links.map((link) => (
-            <Link key={link.href} href={link.href} className="menu-item-link">
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setOpen(false)}
+              aria-current={isActiveLink(link.href) ? "page" : undefined}
+              className={linkClassName(link.href)}
+            >
               {link.label}
             </Link>
           ))}
           {!isAuthenticated ? (
             <>
-              <Link href="/login" className="menu-item-link">
+              <Link
+                href="/login"
+                onClick={() => setOpen(false)}
+                aria-current={isActiveLink("/login") ? "page" : undefined}
+                className={linkClassName("/login")}
+              >
                 Login
               </Link>
-              <Link href="/signup" className="menu-item-link">
+              <Link
+                href="/signup"
+                onClick={() => setOpen(false)}
+                aria-current={isActiveLink("/signup") ? "page" : undefined}
+                className={linkClassName("/signup")}
+              >
                 Register
               </Link>
             </>
