@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import {
   CalendarDays,
   Clock3,
@@ -11,9 +12,16 @@ import {
   Video,
 } from "lucide-react";
 import type { Lesson } from "@/types/lesson";
+import { upcomingDayPage } from "@/lib/lesson-window";
 import { useStudentDashboard } from "@/features/students/hooks/useStudentDashboard";
 import { TeacherDirectory } from "@/components/student/TeacherDirectory";
-import { WEEKDAY_SHORT, formatWeeklySlot } from "@/lib/utils";
+import { TimeZoneNote } from "@/components/student/TimeZoneNote";
+import { WEEKDAY_SHORT } from "@/lib/utils";
+import {
+  getViewerTimeZone,
+  toViewerWeeklySlotLabel,
+  toViewerWeeklyTime,
+} from "@/lib/weekly-time";
 
 const dateTime = (value: string) =>
   new Date(value).toLocaleString(undefined, {
@@ -46,17 +54,28 @@ const statusStyles: Record<Lesson["status"], string> = {
 const StudentDashboard = () => {
   const { lessonsQuery, availabilityQuery, changesQuery } =
     useStudentDashboard();
+  const viewerTimeZone = getViewerTimeZone();
+  const [upcomingDays, setUpcomingDays] = useState(1);
   const lessons = lessonsQuery.data ?? [];
   const sorted = [...lessons].sort((a, b) =>
     a.startsAt.localeCompare(b.startsAt)
   );
   const now = Date.now();
+  // Started (or early-completed) lessons stay listed until their scheduled end
+  // so students can rejoin after a dropped call.
   const upcoming = sorted.filter(
     (lesson) =>
-      new Date(lesson.startsAt).getTime() >= now &&
       lesson.status !== "cancelled" &&
-      lesson.status !== "completed"
+      new Date(lesson.endsAt).getTime() > now
   );
+  const upcomingPage = upcomingDayPage(upcoming, upcomingDays, now);
+  const nextDayLabel = upcomingPage.nextDay
+    ? new Date(upcomingPage.nextDay).toLocaleDateString(undefined, {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      })
+    : null;
   const completed = sorted.filter((lesson) => lesson.status === "completed");
   const cancelled = sorted.filter((lesson) => lesson.status === "cancelled");
   const teacher = availabilityQuery.data?.teacher;
@@ -127,6 +146,13 @@ const StudentDashboard = () => {
                 <Repeat className="text-green-600" />
                 <h2 className="text-2xl font-semibold">Your weekly times</h2>
               </div>
+              {series.length ? (
+                <TimeZoneNote
+                  zone={viewerTimeZone}
+                  sourceZone={series[0]?.timeZoneId}
+                  className="mb-4"
+                />
+              ) : null}
               {availabilityQuery.isLoading ? (
                 <p className="text-foreground opacity-70">
                   Loading your weekly times…
@@ -137,6 +163,7 @@ const StudentDashboard = () => {
                     const pending = pendingChanges.some(
                       (change) => change.seriesId === item.id
                     );
+                    const local = toViewerWeeklyTime(item, viewerTimeZone);
                     return (
                       <div
                         key={item.id}
@@ -144,15 +171,11 @@ const StudentDashboard = () => {
                       >
                         <div>
                           <p className="font-semibold">
-                            {formatWeeklySlot(
-                              item.dayOfWeek,
-                              item.startsAtTime,
-                              item.endsAtTime
-                            )}
+                            {toViewerWeeklySlotLabel(item, viewerTimeZone)}
                           </p>
                           <p className="mt-1 text-sm text-foreground opacity-70">
                             With {item.teacherName} · repeats every{" "}
-                            {WEEKDAY_SHORT[item.dayOfWeek]}
+                            {WEEKDAY_SHORT[local.dayOfWeek]}
                           </p>
                           {pending && (
                             <p className="mt-1 text-xs font-semibold text-amber-700">
@@ -193,6 +216,13 @@ const StudentDashboard = () => {
                 <Hourglass className="text-green-600" />
                 <h2 className="text-2xl font-semibold">Time change requests</h2>
               </div>
+              {changes.length ? (
+                <TimeZoneNote
+                  zone={viewerTimeZone}
+                  sourceZone={changes[0]?.timeZoneId}
+                  className="mb-4"
+                />
+              ) : null}
               {changesQuery.isLoading ? (
                 <p className="text-foreground opacity-70">
                   Loading your requests…
@@ -207,16 +237,24 @@ const StudentDashboard = () => {
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
                           <p className="font-medium">
-                            {formatWeeklySlot(
-                              change.currentDayOfWeek,
-                              change.currentStartsAtTime,
-                              change.currentEndsAtTime
+                            {toViewerWeeklySlotLabel(
+                              {
+                                dayOfWeek: change.currentDayOfWeek,
+                                startsAtTime: change.currentStartsAtTime,
+                                endsAtTime: change.currentEndsAtTime,
+                                timeZoneId: change.timeZoneId,
+                              },
+                              viewerTimeZone
                             )}{" "}
                             →{" "}
-                            {formatWeeklySlot(
-                              change.requestedDayOfWeek,
-                              change.requestedStartsAtTime,
-                              change.requestedEndsAtTime
+                            {toViewerWeeklySlotLabel(
+                              {
+                                dayOfWeek: change.requestedDayOfWeek,
+                                startsAtTime: change.requestedStartsAtTime,
+                                endsAtTime: change.requestedEndsAtTime,
+                                timeZoneId: change.timeZoneId,
+                              },
+                              viewerTimeZone
                             )}
                           </p>
                           <p className="mt-1 text-sm text-foreground opacity-70">
@@ -259,53 +297,67 @@ const StudentDashboard = () => {
                   Loading your lessons…
                 </p>
               ) : upcoming.length ? (
-                <div className="space-y-4">
-                  {upcoming.map((lesson) => (
-                    <article
-                      key={lesson.id}
-                      className="rounded-2xl border border-card-border p-5"
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <p className="font-semibold">
-                            {dateTime(lesson.startsAt)}
-                          </p>
-                          <p className="mt-1 flex items-center gap-2 text-sm text-foreground opacity-70">
-                            <Clock3 size={15} />
-                            Until{" "}
-                            {new Date(lesson.endsAt).toLocaleTimeString([], {
-                              hour: "numeric",
-                              minute: "2-digit",
-                            })}
-                          </p>
-                          <p className="mt-1 text-sm text-foreground opacity-70">
-                            Teacher: {lesson.teacherName ?? "Assigned teacher"}
-                          </p>
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                          <span className="flex flex-wrap justify-end gap-2">
-                            {lesson.isTrial && (
-                              <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
-                                Trial
+                <>
+                  <div className="space-y-4">
+                    {upcomingPage.lessons.map((lesson) => (
+                      <article
+                        key={lesson.id}
+                        className="rounded-2xl border border-card-border p-5"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <p className="font-semibold">
+                              {dateTime(lesson.startsAt)}
+                            </p>
+                            <p className="mt-1 flex items-center gap-2 text-sm text-foreground opacity-70">
+                              <Clock3 size={15} />
+                              Until{" "}
+                              {new Date(lesson.endsAt).toLocaleTimeString([], {
+                                hour: "numeric",
+                                minute: "2-digit",
+                              })}
+                            </p>
+                            <p className="mt-1 text-sm text-foreground opacity-70">
+                              Teacher:{" "}
+                              {lesson.teacherName ?? "Assigned teacher"}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-end gap-2">
+                            <span className="flex flex-wrap justify-end gap-2">
+                              {lesson.isTrial && (
+                                <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
+                                  Trial
+                                </span>
+                              )}
+                              <span
+                                className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[lesson.status]}`}
+                              >
+                                {lesson.status.replaceAll("_", " ")}
                               </span>
-                            )}
-                            <span
-                              className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[lesson.status]}`}
-                            >
-                              {lesson.status.replaceAll("_", " ")}
                             </span>
-                          </span>
-                          <Link
-                            href={`/lesson/${lesson.id}`}
-                            className="inline-flex items-center gap-2 rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
-                          >
-                            <Video size={15} /> Attend lesson
-                          </Link>
+                            <Link
+                              href={`/lesson/${lesson.id}`}
+                              className="inline-flex items-center gap-2 rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
+                            >
+                              <Video size={15} /> Attend lesson
+                            </Link>
+                          </div>
                         </div>
-                      </div>
-                    </article>
-                  ))}
-                </div>
+                      </article>
+                    ))}
+                  </div>
+                  {upcomingPage.hasMore && (
+                    <div className="mt-4 flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() => setUpcomingDays((value) => value + 1)}
+                        className="rounded-xl border border-card-border bg-card-bg px-5 py-2.5 text-sm font-semibold transition hover:border-green-500"
+                      >
+                        Load more{nextDayLabel ? ` · ${nextDayLabel}` : ""}
+                      </button>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="rounded-2xl border border-dashed border-card-border p-8 text-center text-foreground opacity-70">
                   No upcoming lessons.{" "}

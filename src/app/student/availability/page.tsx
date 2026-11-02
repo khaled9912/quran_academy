@@ -8,13 +8,20 @@ import {
   getMyChangeRequests,
 } from "@/services/scheduling.service";
 import { TeacherDirectory } from "@/components/student/TeacherDirectory";
+import { TimeZoneNote } from "@/components/student/TimeZoneNote";
 import { useAuth } from "@/providers/auth-provider";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
-import { WEEKDAY_SHORT, formatWeeklySlot } from "@/lib/utils";
+import { WEEKDAY_SHORT } from "@/lib/utils";
+import {
+  getViewerTimeZone,
+  toViewerWeeklySlotLabel,
+  toViewerWeeklyTime,
+} from "@/lib/weekly-time";
 
 export default function StudentAvailabilityPage() {
   const { role } = useAuth();
   const queryClient = useQueryClient();
+  const viewerTimeZone = getViewerTimeZone();
   const assignedQuery = useQuery({
     queryKey: ["availability", "student"],
     queryFn: getAssignedWeeklyAvailability,
@@ -92,6 +99,13 @@ export default function StudentAvailabilityPage() {
                 These repeat every week. Ask the academy to move a time and your
                 current slot stays booked until they approve.
               </p>
+              {series.length ? (
+                <TimeZoneNote
+                  zone={viewerTimeZone}
+                  sourceZone={series[0]?.timeZoneId}
+                  className="mt-2"
+                />
+              ) : null}
             </div>
 
             <div className="space-y-3">
@@ -104,20 +118,17 @@ export default function StudentAvailabilityPage() {
                   const pendingChange = pending.some(
                     (change) => change.seriesId === item.id
                   );
+                  const local = toViewerWeeklyTime(item, viewerTimeZone);
                   return (
                     <div
                       key={item.id}
                       className="rounded-xl border border-[#dce6d8] bg-white p-4"
                     >
                       <p className="text-sm font-semibold">
-                        {formatWeeklySlot(
-                          item.dayOfWeek,
-                          item.startsAtTime,
-                          item.endsAtTime
-                        )}
+                        {toViewerWeeklySlotLabel(item, viewerTimeZone)}
                       </p>
                       <p className="mt-1 text-xs text-[#74847b]">
-                        Repeats every {WEEKDAY_SHORT[item.dayOfWeek]}
+                        Repeats every {WEEKDAY_SHORT[local.dayOfWeek]}
                         {pendingChange ? " · change with the academy" : ""}
                       </p>
                       <Link

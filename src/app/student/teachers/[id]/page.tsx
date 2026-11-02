@@ -12,13 +12,15 @@ import {
 } from "@/services/scheduling.service";
 import { Avatar } from "@/components/ui/avatar";
 import { StarRating } from "@/components/ui/star-rating";
+import { TimeZoneNote } from "@/components/student/TimeZoneNote";
 import { useAuth } from "@/providers/auth-provider";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
+import { WEEKDAY_LABELS, formatWeeklyTimeRange } from "@/lib/utils";
 import {
-  WEEKDAY_LABELS,
-  formatWeeklySlot,
-  formatWeeklyTimeRange,
-} from "@/lib/utils";
+  getViewerTimeZone,
+  toViewerWeeklySlotLabel,
+  toViewerWeeklyTime,
+} from "@/lib/weekly-time";
 import type { WeeklyRule } from "@/types/scheduling";
 
 const DAY_ORDER = [6, 0, 1, 2, 3, 4, 5];
@@ -28,6 +30,7 @@ export default function StudentTeacherBookingPage() {
   const teacherId = params?.id ?? "";
   const { role } = useAuth();
   const queryClient = useQueryClient();
+  const viewerTimeZone = getViewerTimeZone();
   const [selected, setSelected] = useState<string[]>([]);
   const [notice, setNotice] = useState("");
   const [formError, setFormError] = useState("");
@@ -55,10 +58,16 @@ export default function StudentTeacherBookingPage() {
     return DAY_ORDER.map((day) => ({
       day,
       rules: rules
-        .filter((rule) => rule.dayOfWeek === day)
-        .sort((a, b) => a.startsAtTime.localeCompare(b.startsAtTime)),
+        .map((rule) => ({
+          rule,
+          local: toViewerWeeklyTime(rule, viewerTimeZone),
+        }))
+        .filter((entry) => entry.local.dayOfWeek === day)
+        .sort((a, b) =>
+          a.local.startsAtTime.localeCompare(b.local.startsAtTime)
+        ),
     })).filter((group) => group.rules.length > 0);
-  }, [teacher?.slots]);
+  }, [teacher?.slots, viewerTimeZone]);
 
   const book = useMutation({
     mutationFn: (ruleIds: string[]) => bookWeeklySlots(ruleIds),
@@ -213,6 +222,11 @@ export default function StudentTeacherBookingPage() {
             {teacher.series.length > 0 && (
               <section className="mt-8 rounded-3xl border border-card-border bg-card-bg p-6">
                 <h2 className="text-xl font-semibold">Your weekly times</h2>
+                <TimeZoneNote
+                  zone={viewerTimeZone}
+                  sourceZone={teacher.series[0]?.timeZoneId}
+                  className="mt-2"
+                />
                 <div className="mt-4 space-y-3">
                   {teacher.series.map((series) => {
                     const pending = pendingChanges.some(
@@ -225,11 +239,7 @@ export default function StudentTeacherBookingPage() {
                       >
                         <div>
                           <p className="font-semibold">
-                            {formatWeeklySlot(
-                              series.dayOfWeek,
-                              series.startsAtTime,
-                              series.endsAtTime
-                            )}
+                            {toViewerWeeklySlotLabel(series, viewerTimeZone)}
                           </p>
                           <p className="mt-1 text-sm text-foreground opacity-70">
                             {pending
@@ -269,6 +279,11 @@ export default function StudentTeacherBookingPage() {
                   </span>
                 )}
               </div>
+              <TimeZoneNote
+                zone={viewerTimeZone}
+                sourceZone={teacher.slots[0]?.timeZoneId}
+                className="mt-3"
+              />
 
               {grouped.length ? (
                 <div className="mt-6 space-y-5">
@@ -278,7 +293,7 @@ export default function StudentTeacherBookingPage() {
                         {WEEKDAY_LABELS[group.day]}
                       </p>
                       <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                        {group.rules.map((rule) => {
+                        {group.rules.map(({ rule, local }) => {
                           const chosen = selected.includes(rule.id);
                           const open = rule.status === "available";
                           const yours = rule.status === "yours";
@@ -307,8 +322,8 @@ export default function StudentTeacherBookingPage() {
                               <span className="min-w-0 flex-1">
                                 <span className="block font-semibold">
                                   {formatWeeklyTimeRange(
-                                    rule.startsAtTime,
-                                    rule.endsAtTime
+                                    local.startsAtTime,
+                                    local.endsAtTime
                                   )}
                                 </span>
                                 <span className="block text-xs text-foreground opacity-65">
@@ -350,11 +365,7 @@ export default function StudentTeacherBookingPage() {
                       Selected:{" "}
                       {selectedSlots
                         .map((rule) =>
-                          formatWeeklySlot(
-                            rule.dayOfWeek,
-                            rule.startsAtTime,
-                            rule.endsAtTime
-                          )
+                          toViewerWeeklySlotLabel(rule, viewerTimeZone)
                         )
                         .join(" · ")}
                     </p>

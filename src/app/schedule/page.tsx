@@ -12,11 +12,26 @@ import {
 } from "lucide-react";
 import { getLessons } from "@/services/lesson.service";
 import { useAuth } from "@/providers/auth-provider";
-import { isLessonEnded } from "@/lib/lesson-feedback";
+import { isLessonJoinable } from "@/lib/lesson-feedback";
+import {
+  cancelledLessons,
+  COMPLETED_PAGE_SIZE,
+  countCompletedLessons,
+  LESSON_WINDOW_DAYS,
+  pastLessons,
+  upcomingDayPage,
+  upcomingLessons,
+} from "@/lib/lesson-window";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 import type { Lesson } from "@/types/lesson";
 
-type Filter = "all" | "upcoming" | "completed" | "cancelled";
+type Filter = "upcoming" | "past" | "cancelled";
+
+const filterOptions: { value: Filter; label: string }[] = [
+  { value: "upcoming", label: "Upcoming" },
+  { value: "past", label: "Past" },
+  { value: "cancelled", label: "Cancelled" },
+];
 
 const dayLabel = (value: string) =>
   new Date(value).toLocaleDateString(undefined, {
@@ -42,6 +57,8 @@ const statusStyles: Record<Lesson["status"], string> = {
 export default function StudentSchedulePage() {
   const { role } = useAuth();
   const [filter, setFilter] = useState<Filter>("upcoming");
+  const [completedLimit, setCompletedLimit] = useState(COMPLETED_PAGE_SIZE);
+  const [upcomingDays, setUpcomingDays] = useState(1);
   const lessonsQuery = useQuery({
     queryKey: ["lessons"],
     queryFn: () => getLessons(),
@@ -51,33 +68,36 @@ export default function StudentSchedulePage() {
 
   const lessons = lessonsQuery.data ?? [];
   const now = Date.now();
+  const upcomingPage = useMemo(
+    () => upcomingDayPage(lessons, upcomingDays, now),
+    [lessons, now, upcomingDays]
+  );
 
   const visible = useMemo(() => {
-    const filtered = lessons.filter((lesson) => {
-      if (filter === "all") return true;
-      if (filter === "upcoming") {
-        return (
-          lesson.status !== "cancelled" &&
-          lesson.status !== "completed" &&
-          new Date(lesson.startsAt).getTime() >= now
-        );
-      }
-      return lesson.status === filter;
+    if (filter === "upcoming") return upcomingPage.lessons;
+    if (filter === "cancelled") return cancelledLessons(lessons, now);
+    return pastLessons(lessons, {
+      now,
+      windowDays: LESSON_WINDOW_DAYS,
+      completedLimit,
     });
-    return filtered.sort((a, b) => a.startsAt.localeCompare(b.startsAt));
-  }, [lessons, filter, now]);
+  }, [completedLimit, filter, lessons, now, upcomingPage]);
+
+  const hasMoreCompleted =
+    filter === "past" && countCompletedLessons(lessons) > completedLimit;
+  const hasMoreUpcoming = filter === "upcoming" && upcomingPage.hasMore;
+  const nextDayLabel = upcomingPage.nextDay
+    ? new Date(upcomingPage.nextDay).toLocaleDateString(undefined, {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      })
+    : null;
 
   // Offer "change time" once per weekly series, on its next lesson.
   const firstOfSeries = useMemo(() => {
     const seen = new Map<string, string>();
-    for (const lesson of lessons
-      .filter(
-        (item) =>
-          item.status !== "cancelled" &&
-          item.status !== "completed" &&
-          new Date(item.startsAt).getTime() >= now
-      )
-      .sort((a, b) => a.startsAt.localeCompare(b.startsAt))) {
+    for (const lesson of upcomingLessons(lessons, now)) {
       if (lesson.seriesId && !seen.has(lesson.seriesId)) {
         seen.set(lesson.seriesId, lesson.id);
       }
@@ -126,23 +146,29 @@ export default function StudentSchedulePage() {
           </button>
         </div>
 
-        <div className="mb-6 flex flex-wrap gap-2">
-          {(["upcoming", "all", "completed", "cancelled"] as Filter[]).map(
-            (option) => (
-              <button
-                key={option}
-                onClick={() => setFilter(option)}
-                className={`rounded-lg px-4 py-2 text-sm font-semibold capitalize transition ${
-                  filter === option
-                    ? "bg-green-500 text-white"
-                    : "border border-card-border text-foreground hover:border-green-500"
-                }`}
-              >
-                {option}
-              </button>
-            )
-          )}
+        <div className="mb-2 flex flex-wrap gap-2">
+          {filterOptions.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => setFilter(option.value)}
+              aria-pressed={filter === option.value}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                filter === option.value
+                  ? "bg-green-500 text-white"
+                  : "border border-card-border text-foreground hover:border-green-500"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
+        <p className="mb-6 text-sm text-foreground opacity-60">
+          {filter === "upcoming"
+            ? "Showing one lesson day at a time."
+            : filter === "past"
+              ? "Showing the last 7 days · completed lessons load four at a time."
+              : "Showing cancelled lessons within one week of today."}
+        </p>
 
         {lessonsQuery.error && (
           <p
@@ -197,16 +223,18 @@ export default function StudentSchedulePage() {
                             {lesson.status.replaceAll("_", " ")}
                           </span>
                         </span>
-                        {(lesson.status === "scheduled" ||
-                          lesson.status === "in_progress") &&
-                          !isLessonEnded(lesson.endsAt, lesson.status) && (
-                            <Link
-                              href={`/lesson/${lesson.id}`}
-                              className="inline-flex items-center gap-2 rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
-                            >
-                              <Video size={15} /> Attend lesson
-                            </Link>
-                          )}
+                        {isLessonJoinable(
+                          lesson.endsAt,
+                          lesson.status,
+                          now
+                        ) && (
+                          <Link
+                            href={`/lesson/${lesson.id}`}
+                            className="inline-flex items-center gap-2 rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
+                          >
+                            <Video size={15} /> Attend lesson
+                          </Link>
+                        )}
                         {lesson.seriesId &&
                           firstOfSeries.get(lesson.seriesId) === lesson.id && (
                             <Link
@@ -217,7 +245,11 @@ export default function StudentSchedulePage() {
                             </Link>
                           )}
                         {lesson.status !== "cancelled" &&
-                          isLessonEnded(lesson.endsAt, lesson.status) && (
+                          !isLessonJoinable(
+                            lesson.endsAt,
+                            lesson.status,
+                            now
+                          ) && (
                             <Link
                               href={`/lesson/${lesson.id}`}
                               className="inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2 text-sm font-semibold transition hover:border-green-500"
@@ -248,9 +280,35 @@ export default function StudentSchedulePage() {
                 </Link>
                 .
               </>
+            ) : filter === "past" ? (
+              "No lessons in the last 7 days."
             ) : (
-              "No lessons match this filter."
+              "No cancelled lessons within one week of today."
             )}
+          </div>
+        )}
+
+        {!lessonsQuery.isLoading && hasMoreUpcoming && (
+          <div className="mt-6 flex justify-center">
+            <button
+              onClick={() => setUpcomingDays((value) => value + 1)}
+              className="rounded-xl border border-card-border bg-card-bg px-5 py-2.5 text-sm font-semibold transition hover:border-green-500"
+            >
+              Load more{nextDayLabel ? ` · ${nextDayLabel}` : ""}
+            </button>
+          </div>
+        )}
+
+        {!lessonsQuery.isLoading && hasMoreCompleted && (
+          <div className="mt-6 flex justify-center">
+            <button
+              onClick={() =>
+                setCompletedLimit((value) => value + COMPLETED_PAGE_SIZE)
+              }
+              className="rounded-xl border border-card-border bg-card-bg px-5 py-2.5 text-sm font-semibold transition hover:border-green-500"
+            >
+              Load more completed lessons
+            </button>
           </div>
         )}
       </div>

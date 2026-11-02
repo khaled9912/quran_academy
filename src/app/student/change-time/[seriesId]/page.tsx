@@ -13,13 +13,17 @@ import {
 } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
+import { TimeZoneNote } from "@/components/student/TimeZoneNote";
+import {
+  getViewerTimeZone,
+  toViewerWeeklySlotLabel,
+  toViewerWeeklyTime,
+} from "@/lib/weekly-time";
 import {
   WEEKDAY_LABELS,
   WEEKDAY_SHORT,
-  formatWeeklySlot,
   formatWeeklyTimeRange,
 } from "@/lib/utils";
-import type { WeeklyRule } from "@/types/scheduling";
 
 const DAY_ORDER = [6, 0, 1, 2, 3, 4, 5];
 
@@ -28,6 +32,7 @@ export default function ChangeWeeklyTimePage() {
   const seriesId = params?.seriesId ?? "";
   const { role } = useAuth();
   const queryClient = useQueryClient();
+  const viewerTimeZone = getViewerTimeZone();
   const [selected, setSelected] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [notice, setNotice] = useState("");
@@ -41,6 +46,9 @@ export default function ChangeWeeklyTimePage() {
   });
   const series = (seriesQuery.data ?? []).find((item) => item.id === seriesId);
   const teacherId = series?.teacherId ?? "";
+  const seriesLocal = series
+    ? toViewerWeeklyTime(series, viewerTimeZone)
+    : null;
 
   const teacherQuery = useQuery({
     queryKey: ["teacher-profile", teacherId],
@@ -63,20 +71,24 @@ export default function ChangeWeeklyTimePage() {
     const rules = teacherQuery.data?.slots ?? [];
     return rules
       .filter((rule) => rule.status === "available")
+      .map((rule) => ({
+        rule,
+        local: toViewerWeeklyTime(rule, viewerTimeZone),
+      }))
       .sort(
         (a, b) =>
-          DAY_ORDER.indexOf(a.dayOfWeek) - DAY_ORDER.indexOf(b.dayOfWeek) ||
-          a.startsAtTime.localeCompare(b.startsAtTime)
+          DAY_ORDER.indexOf(a.local.dayOfWeek) -
+            DAY_ORDER.indexOf(b.local.dayOfWeek) ||
+          a.local.startsAtTime.localeCompare(b.local.startsAtTime)
       );
-  }, [teacherQuery.data]);
+  }, [teacherQuery.data, viewerTimeZone]);
 
-  const grouped = available.reduce<Record<number, WeeklyRule[]>>(
-    (acc, rule) => {
-      (acc[rule.dayOfWeek] ??= []).push(rule);
-      return acc;
-    },
-    {}
-  );
+  const grouped = available.reduce<
+    Record<number, (typeof available)[number][]>
+  >((acc, entry) => {
+    (acc[entry.local.dayOfWeek] ??= []).push(entry);
+    return acc;
+  }, {});
 
   const submit = useMutation({
     mutationFn: (ruleId: string) =>
@@ -169,10 +181,14 @@ export default function ChangeWeeklyTimePage() {
           >
             You already asked to move this weekly time to{" "}
             <strong>
-              {formatWeeklySlot(
-                pending.requestedDayOfWeek,
-                pending.requestedStartsAtTime,
-                pending.requestedEndsAtTime
+              {toViewerWeeklySlotLabel(
+                {
+                  dayOfWeek: pending.requestedDayOfWeek,
+                  startsAtTime: pending.requestedStartsAtTime,
+                  endsAtTime: pending.requestedEndsAtTime,
+                  timeZoneId: pending.timeZoneId,
+                },
+                viewerTimeZone
               )}
             </strong>
             . Wait for the academy to respond first.
@@ -206,20 +222,33 @@ export default function ChangeWeeklyTimePage() {
             <section className="mt-8 rounded-3xl border border-[#e5e9df] bg-white p-6 shadow-sm">
               <h2 className="text-lg font-bold">Current weekly time</h2>
               <p className="mt-3 text-lg font-semibold">
-                {formatWeeklySlot(
-                  series.dayOfWeek,
-                  series.startsAtTime,
-                  series.endsAtTime
+                {formatWeeklyTimeRange(
+                  seriesLocal?.startsAtTime ?? series.startsAtTime,
+                  seriesLocal?.endsAtTime ?? series.endsAtTime
                 )}
               </p>
               <p className="mt-1 text-sm text-[#6b7c73]">
                 With {series.teacherName} · repeats every{" "}
-                {WEEKDAY_SHORT[series.dayOfWeek]}
+                {WEEKDAY_SHORT[seriesLocal?.dayOfWeek ?? series.dayOfWeek]}
               </p>
+              <TimeZoneNote
+                zone={viewerTimeZone}
+                sourceZone={series.timeZoneId}
+                className="mt-3"
+              />
             </section>
 
             <section className="mt-6 rounded-3xl border border-[#e5e9df] bg-white p-6 shadow-sm">
               <h2 className="text-lg font-bold">Choose a new time</h2>
+              {available.length > 0 && (
+                <TimeZoneNote
+                  zone={viewerTimeZone}
+                  sourceZone={
+                    available[0]?.rule.timeZoneId ?? series.timeZoneId
+                  }
+                  className="mt-2"
+                />
+              )}
               {teacherQuery.isLoading ? (
                 <p className="mt-4 text-sm text-[#6b7c73]">
                   Loading available times…
@@ -242,7 +271,7 @@ export default function ChangeWeeklyTimePage() {
                           {WEEKDAY_LABELS[day]}
                         </p>
                         <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                          {grouped[day].map((rule) => {
+                          {grouped[day].map(({ rule, local }) => {
                             const chosen = selected === rule.id;
                             return (
                               <button
@@ -261,8 +290,8 @@ export default function ChangeWeeklyTimePage() {
                                 <span className="min-w-0">
                                   <span className="block font-semibold">
                                     {formatWeeklyTimeRange(
-                                      rule.startsAtTime,
-                                      rule.endsAtTime
+                                      local.startsAtTime,
+                                      local.endsAtTime
                                     )}
                                   </span>
                                   <span className="block text-xs text-[#74847b]">

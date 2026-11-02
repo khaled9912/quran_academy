@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { MonitorPlay, RefreshCw } from "lucide-react";
 import { getLessons } from "@/services/lesson.service";
 import { useAuth } from "@/providers/auth-provider";
-import { isLessonEnded } from "@/lib/lesson-feedback";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 import type { Lesson } from "@/types/lesson";
 
@@ -29,7 +28,9 @@ type Phase = "live" | "upcoming" | "past";
 
 const phaseOf = (lesson: Lesson): Phase => {
   if (lesson.status === "cancelled") return "past";
-  if (isLessonEnded(lesson.endsAt, lesson.status)) return "past";
+  // The clock decides: a lesson marked ended early is still joinable until its
+  // scheduled end, matching the room page.
+  if (new Date(lesson.endsAt).getTime() <= Date.now()) return "past";
   return new Date(lesson.startsAt).getTime() > Date.now() ? "upcoming" : "live";
 };
 

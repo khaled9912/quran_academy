@@ -24,6 +24,17 @@ export const lessonDateTime = (value: string) =>
 export const isLessonEnded = (endsAt: string, status: string) =>
   status === "completed" || new Date(endsAt).getTime() <= Date.now();
 
+/**
+ * A lesson stays on the schedule with a join action until its scheduled end,
+ * even if it already started or was marked ended early. Either side can rejoin
+ * after a dropped call. The room itself still opens no earlier than the start.
+ */
+export const isLessonJoinable = (
+  endsAt: string,
+  status: string,
+  now = Date.now()
+) => status !== "cancelled" && new Date(endsAt).getTime() > now;
+
 export const isReportDue = (lesson: Lesson) =>
   lesson.status !== "cancelled" &&
   isLessonEnded(lesson.endsAt, lesson.status) &&

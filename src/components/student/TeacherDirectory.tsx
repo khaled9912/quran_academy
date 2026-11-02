@@ -12,9 +12,13 @@ import { Avatar } from "@/components/ui/avatar";
 import { StarRating } from "@/components/ui/star-rating";
 import { useAuth } from "@/providers/auth-provider";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
-import { WEEKDAY_SHORT, formatWeeklyTimeRange } from "@/lib/utils";
-
-const DAY_ORDER = [6, 0, 1, 2, 3, 4, 5];
+import { WEEKDAY_SHORT } from "@/lib/utils";
+import { TimeZoneNote } from "@/components/student/TimeZoneNote";
+import {
+  getViewerTimeZone,
+  toViewerWeeklySlotLabel,
+  viewerWeekdays,
+} from "@/lib/weekly-time";
 
 interface TeacherDirectoryProps {
   compact?: boolean;
@@ -23,6 +27,7 @@ interface TeacherDirectoryProps {
 export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
   const { role } = useAuth();
   const enabled = role === "student";
+  const viewerTimeZone = getViewerTimeZone();
 
   const directoryQuery = useQuery({
     queryKey: ["teachers", "directory"],
@@ -100,10 +105,14 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
         <p className="mt-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-800">
           Your time change for{" "}
           <strong>
-            {WEEKDAY_SHORT[pendingChange.currentDayOfWeek]}{" "}
-            {formatWeeklyTimeRange(
-              pendingChange.currentStartsAtTime,
-              pendingChange.currentEndsAtTime
+            {toViewerWeeklySlotLabel(
+              {
+                dayOfWeek: pendingChange.currentDayOfWeek,
+                startsAtTime: pendingChange.currentStartsAtTime,
+                endsAtTime: pendingChange.currentEndsAtTime,
+                timeZoneId: pendingChange.timeZoneId,
+              },
+              viewerTimeZone
             )}
           </strong>{" "}
           is with the academy. Your current weekly time stays booked until they
@@ -116,14 +125,14 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
           Loading teacher profiles…
         </p>
       ) : visibleTeachers.length ? (
-        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {visibleTeachers.map((entry) => {
+        <>
+          <TimeZoneNote zone={viewerTimeZone} className="mt-5" />
+          <div className="mt-3 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {visibleTeachers.map((entry) => {
             const open = entry.slots.filter(
               (slot) => slot.status === "available"
             );
-            const days = DAY_ORDER.filter((day) =>
-              open.some((slot) => slot.dayOfWeek === day)
-            );
+            const days = viewerWeekdays(open, viewerTimeZone);
             const isAssigned = entry.teacher.id === assignedTeacherId;
             return (
               <article
@@ -207,7 +216,8 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
               </article>
             );
           })}
-        </div>
+          </div>
+        </>
       ) : (
         <p className="mt-6 rounded-2xl border border-dashed border-card-border p-8 text-center text-sm text-foreground opacity-70">
           No teacher has announced weekly times yet. Please check back soon.

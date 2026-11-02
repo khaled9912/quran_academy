@@ -10,7 +10,6 @@ import { getLessonById } from "@/services/lesson.service";
 import { useAuth } from "@/providers/auth-provider";
 import { useLessonCall } from "@/providers/lesson-call-provider";
 import { LessonFeedback } from "@/components/lesson/LessonFeedback";
-import { isLessonEnded } from "@/lib/lesson-feedback";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 
 const JITSI_DOMAIN = (process.env.NEXT_PUBLIC_JITSI_DOMAIN ?? "meet.jit.si")
@@ -57,11 +56,11 @@ export default function LessonCallPage() {
       : "Back to schedule";
 
   const room = `rayan-academy-${id}`;
-  const ended = lesson ? isLessonEnded(lesson.endsAt, lesson.status) : false;
 
-  // The room stays closed until the scheduled start. Waking up exactly at that
-  // moment lets the open button appear without a manual refresh.
+  // Waking up at the scheduled start and end keeps the room controls accurate
+  // without a manual refresh.
   const startsAtMs = lesson ? new Date(lesson.startsAt).getTime() : null;
+  const endsAtMs = lesson ? new Date(lesson.endsAt).getTime() : null;
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     if (startsAtMs === null) return;
@@ -70,21 +69,34 @@ export default function LessonCallPage() {
     const timer = setTimeout(() => setNow(Date.now()), remaining + 500);
     return () => clearTimeout(timer);
   }, [startsAtMs]);
+  useEffect(() => {
+    if (endsAtMs === null) return;
+    const remaining = endsAtMs - Date.now();
+    if (remaining <= 0) return;
+    const timer = setTimeout(() => setNow(Date.now()), remaining + 500);
+    return () => clearTimeout(timer);
+  }, [endsAtMs]);
   const beforeStart = startsAtMs !== null && now < startsAtMs;
+  const afterEnd = endsAtMs !== null && now >= endsAtMs;
 
   // Refreshes keep arriving after the lesson ends. Once a participant has been
   // in a live room, that must not rip the call away from them mid-session.
   const [enteredWhileLive, setEnteredWhileLive] = useState(false);
   useEffect(() => {
-    if (!lesson || lesson.status === "cancelled" || beforeStart) return;
-    if (!isLessonEnded(lesson.endsAt, lesson.status)) setEnteredWhileLive(true);
-  }, [lesson, beforeStart]);
+    if (!lesson || lesson.status === "cancelled" || beforeStart || afterEnd) {
+      return;
+    }
+    setEnteredWhileLive(true);
+  }, [lesson, beforeStart, afterEnd]);
 
+  // The clock alone decides when the room is open. A lesson that was started
+  // or marked ended early stays joinable until its scheduled end, so either
+  // side can rejoin after a dropped call.
   const showingRoom =
     !!lesson &&
     lesson.status !== "cancelled" &&
     !beforeStart &&
-    (!ended || enteredWhileLive);
+    (!afterEnd || enteredWhileLive);
 
   const { startCall, setMinimized } = useLessonCall();
 
@@ -119,7 +131,7 @@ export default function LessonCallPage() {
               ← {backLabel}
             </Link>
             <h1 className="text-4xl font-bold mb-2">
-              {ended && !showingRoom ? "Lesson recap" : "Lesson room"}
+              {afterEnd && !showingRoom ? "Lesson recap" : "Lesson room"}
             </h1>
             {lesson ? (
               <p className="text-lg text-foreground opacity-75">
@@ -180,7 +192,7 @@ export default function LessonCallPage() {
               updates automatically.
             </p>
           </section>
-        ) : lesson && ended && !showingRoom ? (
+        ) : lesson && afterEnd && !showingRoom ? (
           <LessonFeedback lesson={lesson} role={role} />
         ) : (
           <>

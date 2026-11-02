@@ -7,7 +7,7 @@ import { CalendarDays, RefreshCw } from "lucide-react";
 import { cancelLesson, getLessons } from "@/services/lesson.service";
 import { useAuth } from "@/providers/auth-provider";
 import {
-  isLessonEnded,
+  isLessonJoinable,
   isReportDue,
   isReportSubmitted,
 } from "@/lib/lesson-feedback";
@@ -68,6 +68,7 @@ export default function TeacherSchedulePage() {
   });
 
   const lessons = lessonsQuery.data ?? [];
+  const now = Date.now();
   const dueCount = lessons.filter(isReportDue).length;
   const submittedCount = lessons.filter(isReportSubmitted).length;
 
@@ -232,7 +233,11 @@ export default function TeacherSchedulePage() {
                           {lesson.status.replaceAll("_", " ")}
                         </p>
                         {lesson.status !== "cancelled" &&
-                          isLessonEnded(lesson.endsAt, lesson.status) && (
+                          !isLessonJoinable(
+                            lesson.endsAt,
+                            lesson.status,
+                            now
+                          ) && (
                             <p
                               className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
                                 lesson.report
@@ -247,18 +252,24 @@ export default function TeacherSchedulePage() {
                           )}
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
-                        {(lesson.status === "scheduled" ||
-                          lesson.status === "in_progress") &&
-                          !isLessonEnded(lesson.endsAt, lesson.status) && (
-                            <Link
-                              href={`/lesson/${lesson.id}`}
-                              className="rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
-                            >
-                              Join lesson
-                            </Link>
-                          )}
+                        {isLessonJoinable(
+                          lesson.endsAt,
+                          lesson.status,
+                          now
+                        ) && (
+                          <Link
+                            href={`/lesson/${lesson.id}`}
+                            className="rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
+                          >
+                            Join lesson
+                          </Link>
+                        )}
                         {lesson.status !== "cancelled" &&
-                          isLessonEnded(lesson.endsAt, lesson.status) &&
+                          !isLessonJoinable(
+                            lesson.endsAt,
+                            lesson.status,
+                            now
+                          ) &&
                           (lesson.report ? (
                             <Link
                               href={`/lesson/${lesson.id}`}
