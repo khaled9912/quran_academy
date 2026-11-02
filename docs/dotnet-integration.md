@@ -351,6 +351,8 @@ Rules enforced by the API: one report and one review per lesson; both are reject
 
 `/lesson/{id}` loads the lesson through `GET /api/lessons/{id}` (which already enforces ownership) and embeds Jitsi Meet through the official External API (`https://{domain}/external_api.js`) inside our own page. The room name is derived from the lesson id and the Jitsi domain is configurable with `NEXT_PUBLIC_JITSI_DOMAIN` (defaults to `meet.jit.si`). Before joining, the page asks for camera/microphone access and offers three modes: camera + mic, mic only, or watch/listen only. Devices are enumerated first; when none are present (or permission is blocked) the page explains why and keeps a working "Join without camera & mic" path instead of dead-ending. Screen sharing is part of the standard Jitsi toolbar.
 
+The mobile app embeds the same room with the same External API options in a WebView and must point at the same self-hosted Jitsi host as the web build (the domain is baked into the app bundle). The room header exposes a native share sheet with the room URL so a participant can invite someone they trust; the room stays unlisted.
+
 After `endsAt` the page closes the room and switches to the lesson recap: teachers submit or edit the class report, students read the report and rate the lesson, and admins see both.
 
 Either participant can open the room; there is no presence check or heartbeat. The page registers the room on load and the "Show lesson room" button re-opens it after navigation, so nobody waits for the other side to arrive.
@@ -363,15 +365,15 @@ The room is unlisted, not access-controlled. The Jitsi room itself is unlisted r
 
 Transcripts are not captured by the web or mobile app: the call runs in a cross-origin iframe, so only the Jitsi deployment can record audio. The API exposes the storage and review side, ready for the transcription bot.
 
-| Method | Endpoint                             | Purpose                                                      |
-| ------ | ------------------------------------ | ------------------------------------------------------------ |
-| POST   | `/api/lessons/{id}/transcript`       | Bot ingest; `{ segments: [{ speaker?, text, atSeconds? }] }` |
-| GET    | `/api/admin/transcripts`             | Flagged lessons, newest first (ReviewerOnly)                 |
-| GET    | `/api/admin/lessons/{id}/transcript` | Full ordered transcript for one lesson (ReviewerOnly)        |
+| Method | Endpoint                             | Purpose                                                                                                  |
+| ------ | ------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| POST   | `/api/lessons/{id}/transcript`       | Bot ingest; `{ segments: [{ speaker?, text, atSeconds? }] }`                                             |
+| GET    | `/api/admin/transcripts`             | Flagged lessons, newest first (ReviewerOnly)                                                             |
+| GET    | `/api/admin/lessons/{id}/transcript` | Full ordered transcript for one lesson (ReviewerOnly)                                                    |
 | GET    | `/api/admin/review-queue`            | Review queue: `status=all\|unreviewed\|draft\|submitted\|flagged`, optional `flagged=true`, `from`, `to` |
-| GET    | `/api/admin/lessons/{id}/review`     | Lesson, metrics, existing review and ordered segments        |
-| PUT    | `/api/admin/lessons/{id}/review`     | Upsert the rubric review (draft or submitted)                |
-| GET    | `/api/admin/review-digest`           | Weekly per-teacher rollup: `weekStart=yyyy-MM-dd` (defaults to this Monday, UTC) |
+| GET    | `/api/admin/lessons/{id}/review`     | Lesson, metrics, existing review and ordered segments                                                    |
+| PUT    | `/api/admin/lessons/{id}/review`     | Upsert the rubric review (draft or submitted)                                                            |
+| GET    | `/api/admin/review-digest`           | Weekly per-teacher rollup: `weekStart=yyyy-MM-dd` (defaults to this Monday, UTC)                         |
 
 Ingest rules: anonymous but requires the `X-Transcript-Key` header to equal `Transcripts:IngestKey`; the route returns `404` while no key is configured, which keeps the feature off. Each request carries 1–200 segments; empty text is skipped, text is capped at 4000 characters, and the speaker defaults to `Unknown`. `AtSeconds` is the offset from the start of the recording.
 
@@ -401,6 +403,30 @@ Consent and retention are product decisions, not API details: transcripts cover 
 
 The API stores the submission, then sends a plain-text notification to **one receiver configured on the server** (`Email:To` / `CONTACT_RECEIVER_EMAIL`). The browser cannot choose the recipient, so the form cannot be used as an open relay. The student's address is used as `Reply-To`. Email delivery is best effort: a failure is logged and does not lose the stored submission.
 
+## Monthly payments
+
+Each month has a student statement (USD) and a teacher earnings summary (EGP). Months follow the academy clock (`Africa/Cairo`); a month can be claimed only after it ends.
+
+| Method | Endpoint                                | Role    | Purpose                                                                 |
+| ------ | --------------------------------------- | ------- | ----------------------------------------------------------------------- |
+| GET    | `/api/student/billing?month=YYYY-MM`    | student | Month list (last 12), completed lessons, amount due, USD bank account, claim |
+| POST   | `/api/student/billing/claims`           | student | `{ "month": "YYYY-MM", "note": "..." }` — mark a closed month as paid   |
+| GET    | `/api/teacher/billing?month=YYYY-MM`    | teacher | Completed lessons, EGP total, per-lesson rate, saved payout details     |
+| PUT    | `/api/teacher/billing/payout-details`   | teacher | InstaPay, Vodafone Cash, bank name/holder/IBAN                          |
+| GET    | `/api/admin/billing?month=YYYY-MM`      | admin   | Academy USD account, teacher rates, claims, per-teacher payouts          |
+| PUT    | `/api/admin/billing/academy-account`    | admin   | The USD account students copy into their banking app                    |
+| PUT    | `/api/admin/billing/rates/{teacherId}`  | admin   | `{ "studentPriceUsd": 12.5, "payoutEgp": 300 }`                          |
+| POST   | `/api/admin/billing/claims/{id}/confirm`| admin   | Confirm a pending claim                                                 |
+| POST   | `/api/admin/billing/claims/{id}/reject` | admin   | `{ "note": "..." }` — student may re-claim the month later               |
+
+- A student's trial lesson appears on the statement with amount `0`; the teacher is still paid the normal EGP rate for it.
+- One claim per student and month (`pending`, `confirmed`, `rejected`). Only closed months with a total above zero can be claimed; a confirmed or pending claim blocks a new one, while a rejected claim can be re-submitted and returns to `pending`.
+- Claim lesson count and USD amount are frozen when the claim is created, so later rate changes do not rewrite a submitted statement.
+- `canClaim` on the student response is the single source of truth for showing the "I've sent the payment" action.
+- Teacher and student responses are role-scoped: the API derives the user id from the session, never from a query parameter.
+
+The web pages are `/student/payments`, `/teacher/payments`, and `/admin/payments`; the mobile app mirrors the first two as `/payments` and `/earnings`.
+
 ## Error contract
 
 Prefer RFC 7807 Problem Details. Common status codes: `400` validation, `401` unauthenticated, `403` forbidden, `404` missing resource, `409` slot/assignment/scheduling conflict. The frontend displays `title`, `detail`, or `message` when available.
@@ -412,9 +438,9 @@ Prefer RFC 7807 Problem Details. Common status codes: `400` validation, `401` un
 - `/teach` — public teacher application form (details plus CV and recording uploads)
 - `/teachers`, `/teachers/{id}` — authenticated students only; anonymous visitors are redirected to `/login`, other roles to their dashboard
 - `/profile` — student/teacher/admin profile: name, email, mobile, photo, and class-report history
-- `/student/dashboard`, `/student/availability`, `/student/teachers/{id}`, `/student/change-time/{seriesId}`, `/schedule`, `/lesson/{id}` — student overview, teacher directory with unlimited weekly multi-select, time-change request, recurring schedule, and post-lesson recap/review
-- `/teacher/dashboard`, `/teacher/availability`, `/teacher/schedule` — teacher tools: announce weekly rules, see the weekly bookings, and submit reports. Teachers have no lesson-request or approval screens.
-- `/admin/dashboard`, `/admin/change-requests`, `/admin/students`, `/admin/teachers`, `/admin/teachers/{id}/availability`, `/admin/teacher-applications`, `/admin/assignments`, `/admin/lessons`, `/admin/transcripts`, `/admin/support` — admin tools; `/admin/change-requests` is the only place student time-change requests surface
+- `/student/dashboard`, `/student/availability`, `/student/teachers/{id}`, `/student/change-time/{seriesId}`, `/student/payments`, `/schedule`, `/lesson/{id}` — student overview, teacher directory with unlimited weekly multi-select, time-change request, monthly payment statement, recurring schedule, and post-lesson recap/review
+- `/teacher/dashboard`, `/teacher/availability`, `/teacher/schedule`, `/teacher/payments` — teacher tools: announce weekly rules, see the weekly bookings, submit reports, and review monthly EGP earnings with payout details. Teachers have no lesson-request or approval screens.
+- `/admin/dashboard`, `/admin/change-requests`, `/admin/students`, `/admin/teachers`, `/admin/teachers/{id}/availability`, `/admin/teacher-applications`, `/admin/assignments`, `/admin/lessons`, `/admin/payments`, `/admin/transcripts`, `/admin/support` — admin tools; `/admin/change-requests` is the only place student time-change requests surface, and `/admin/payments` holds the USD account, per-teacher rates, and student claim reviews
 - `/support/transcripts`, `/support/transcripts/{id}`, `/support/weekly` — support reviewers (also reachable by admins): queue, transcript plus rubric review, and the weekly per-teacher digest
 
 The landing page is implemented in `src/app/page.tsx`. Feature screens are App Router `page.tsx` files; do not add a `pages/` directory.
