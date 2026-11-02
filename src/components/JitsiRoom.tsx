@@ -59,6 +59,7 @@ interface JitsiRoomProps {
   displayName: string;
   onClose: () => void;
   onJoined?: () => void;
+  onApiReady?: (api: JitsiExternalApi | null) => void;
 }
 
 export function JitsiRoom({
@@ -67,10 +68,12 @@ export function JitsiRoom({
   displayName,
   onClose,
   onJoined,
+  onApiReady,
 }: JitsiRoomProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   const onJoinedRef = useRef(onJoined);
+  const onApiReadyRef = useRef(onApiReady);
   // Re-creating the Jitsi instance drops the participant out of the call, so
   // the effect below must not depend on values that can change mid-call.
   const displayNameRef = useRef(displayName);
@@ -83,6 +86,7 @@ export function JitsiRoom({
 
   onCloseRef.current = onClose;
   onJoinedRef.current = onJoined;
+  onApiReadyRef.current = onApiReady;
   displayNameRef.current = displayName;
 
   useEffect(() => {
@@ -191,6 +195,12 @@ export function JitsiRoom({
             disableVirtualBackground: true,
             hideConferenceSubject: true,
             hideConferenceTimer: true,
+            // The embedded API opens and owns the floating window, so the lesson
+            // preview can stay visible on other tabs and windows.
+            pip: {
+              enableBrowserPiP: true,
+              showToolbarButton: true,
+            },
           },
           interfaceConfigOverwrite: {
             SHOW_JITSI_WATERMARK: false,
@@ -202,6 +212,7 @@ export function JitsiRoom({
           },
         };
         api = new window.JitsiMeetExternalAPI(domain, options);
+        onApiReadyRef.current?.(api);
         api.addListener("videoConferenceJoined", () => {
           setJoined(true);
           onJoinedRef.current?.();
@@ -220,6 +231,7 @@ export function JitsiRoom({
 
     return () => {
       disposed = true;
+      onApiReadyRef.current?.(null);
       api?.dispose();
     };
   }, [domain, room, mode]);

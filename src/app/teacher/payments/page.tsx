@@ -201,7 +201,11 @@ export default function TeacherPaymentsPage() {
                                 ? "Trial lesson"
                                 : new Date(lesson.startsAt).toLocaleTimeString(
                                     undefined,
-                                    { hour: "numeric", minute: "2-digit" }
+                                    {
+                                      hour: "numeric",
+                                      minute: "2-digit",
+                                      hour12: true,
+                                    }
                                   )}
                             </td>
                             <td className="py-3 text-right font-semibold">

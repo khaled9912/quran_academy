@@ -12,7 +12,9 @@ import {
 } from "lucide-react";
 import { getLessons } from "@/services/lesson.service";
 import { useAuth } from "@/providers/auth-provider";
-import { isLessonJoinable } from "@/lib/lesson-feedback";
+import { isLessonJoinable, isLessonLive } from "@/lib/lesson-feedback";
+import { useNow } from "@/hooks/use-now";
+import { LiveNowBadge } from "@/components/LiveNowBadge";
 import {
   cancelledLessons,
   COMPLETED_PAGE_SIZE,
@@ -45,6 +47,7 @@ const timeLabel = (value: string) =>
   new Date(value).toLocaleTimeString(undefined, {
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
   });
 
 const statusStyles: Record<Lesson["status"], string> = {
@@ -67,7 +70,7 @@ export default function StudentSchedulePage() {
   });
 
   const lessons = lessonsQuery.data ?? [];
-  const now = Date.now();
+  const now = useNow();
   const upcomingPage = useMemo(
     () => upcomingDayPage(lessons, upcomingDays, now),
     [lessons, now, upcomingDays]
@@ -192,77 +195,91 @@ export default function StudentSchedulePage() {
                   {dayLabel(lessonsForDay[0].startsAt)}
                 </h2>
                 <div className="space-y-3">
-                  {lessonsForDay.map((lesson) => (
-                    <article
-                      key={lesson.id}
-                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-card-border bg-card-bg p-5"
-                    >
-                      <div>
-                        <p className="font-semibold">
-                          {timeLabel(lesson.startsAt)} –{" "}
-                          {timeLabel(lesson.endsAt)}
-                        </p>
-                        <p className="mt-1 flex items-center gap-2 text-sm text-foreground opacity-70">
-                          <Clock3 size={15} />
-                          {dayLabel(lesson.startsAt)}
-                        </p>
-                        <p className="mt-1 text-sm text-foreground opacity-70">
-                          Teacher: {lesson.teacherName ?? "Assigned teacher"}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-end gap-2">
-                        <span className="flex flex-wrap justify-end gap-2">
-                          {lesson.isTrial && (
-                            <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
-                              Trial
-                            </span>
-                          )}
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[lesson.status]}`}
-                          >
-                            {lesson.status.replaceAll("_", " ")}
+                  {lessonsForDay.map((lesson) => {
+                    const live = isLessonLive(
+                      lesson.startsAt,
+                      lesson.endsAt,
+                      lesson.status,
+                      now
+                    );
+                    return (
+                      <article
+                        key={lesson.id}
+                        className={`flex flex-wrap items-center justify-between gap-4 rounded-2xl border bg-card-bg p-5 ${
+                          live ? "border-green-400" : "border-card-border"
+                        }`}
+                      >
+                        <div>
+                          <p className="flex flex-wrap items-center gap-2 font-semibold">
+                            {timeLabel(lesson.startsAt)} –{" "}
+                            {timeLabel(lesson.endsAt)}
+                            {live && <LiveNowBadge />}
+                          </p>
+                          <p className="mt-1 flex items-center gap-2 text-sm text-foreground opacity-70">
+                            <Clock3 size={15} />
+                            {dayLabel(lesson.startsAt)}
+                          </p>
+                          <p className="mt-1 text-sm text-foreground opacity-70">
+                            Teacher: {lesson.teacherName ?? "Assigned teacher"}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                          <span className="flex flex-wrap justify-end gap-2">
+                            {lesson.isTrial && (
+                              <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
+                                Trial
+                              </span>
+                            )}
+                            {!live && (
+                              <span
+                                className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[lesson.status]}`}
+                              >
+                                {lesson.status.replaceAll("_", " ")}
+                              </span>
+                            )}
                           </span>
-                        </span>
-                        {isLessonJoinable(
-                          lesson.endsAt,
-                          lesson.status,
-                          now
-                        ) && (
-                          <Link
-                            href={`/lesson/${lesson.id}`}
-                            className="inline-flex items-center gap-2 rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
-                          >
-                            <Video size={15} /> Attend lesson
-                          </Link>
-                        )}
-                        {lesson.seriesId &&
-                          firstOfSeries.get(lesson.seriesId) === lesson.id && (
-                            <Link
-                              href={`/student/change-time/${lesson.seriesId}`}
-                              className="inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2 text-sm font-semibold transition hover:border-green-500"
-                            >
-                              Change weekly time
-                            </Link>
-                          )}
-                        {lesson.status !== "cancelled" &&
-                          !isLessonJoinable(
+                          {isLessonJoinable(
                             lesson.endsAt,
                             lesson.status,
                             now
                           ) && (
                             <Link
                               href={`/lesson/${lesson.id}`}
-                              className="inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2 text-sm font-semibold transition hover:border-green-500"
+                              className="inline-flex items-center gap-2 rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
                             >
-                              <MessageSquareQuote size={15} />
-                              {lesson.review
-                                ? "View feedback"
-                                : "Feedback & review"}
+                              <Video size={15} /> Attend lesson
                             </Link>
                           )}
-                      </div>
-                    </article>
-                  ))}
+                          {lesson.seriesId &&
+                            firstOfSeries.get(lesson.seriesId) ===
+                              lesson.id && (
+                              <Link
+                                href={`/student/change-time/${lesson.seriesId}`}
+                                className="inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2 text-sm font-semibold transition hover:border-green-500"
+                              >
+                                Change weekly time
+                              </Link>
+                            )}
+                          {lesson.status !== "cancelled" &&
+                            !isLessonJoinable(
+                              lesson.endsAt,
+                              lesson.status,
+                              now
+                            ) && (
+                              <Link
+                                href={`/lesson/${lesson.id}`}
+                                className="inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2 text-sm font-semibold transition hover:border-green-500"
+                              >
+                                <MessageSquareQuote size={15} />
+                                {lesson.review
+                                  ? "View feedback"
+                                  : "Feedback & review"}
+                              </Link>
+                            )}
+                        </div>
+                      </article>
+                    );
+                  })}
                 </div>
               </section>
             ))}

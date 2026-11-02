@@ -196,7 +196,10 @@ export default function AdminChangeRequestsPage() {
                         )}
                       </p>
                       <p className="mt-1 text-xs text-[#9a794f]">
-                        Requested {new Date(item.createdAt).toLocaleString()}
+                        Requested{" "}
+                        {new Date(item.createdAt).toLocaleString(undefined, {
+                          hour12: true,
+                        })}
                       </p>
                       {item.studentNote && (
                         <p className="mt-2 rounded-xl bg-[#f7f8f4] p-3 text-sm text-[#66786e]">

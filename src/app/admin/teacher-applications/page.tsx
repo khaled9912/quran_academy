@@ -46,6 +46,7 @@ const formatDate = (value: string) =>
   new Date(value).toLocaleString(undefined, {
     dateStyle: "medium",
     timeStyle: "short",
+    hour12: true,
   });
 
 export default function AdminTeacherApplicationsPage() {

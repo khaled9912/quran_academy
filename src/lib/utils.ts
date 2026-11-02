@@ -8,6 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 const timeOfDayFormatter = new Intl.DateTimeFormat("en-GB", {
   hour: "numeric",
   minute: "2-digit",
+  hour12: true,
 });
 
 export const WEEKDAY_LABELS = [

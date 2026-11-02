@@ -19,6 +19,7 @@ export const lessonDateTime = (value: string) =>
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
   });
 
 export const isLessonEnded = (endsAt: string, status: string) =>
@@ -34,6 +35,17 @@ export const isLessonJoinable = (
   status: string,
   now = Date.now()
 ) => status !== "cancelled" && new Date(endsAt).getTime() > now;
+
+/** Inside the scheduled window, regardless of what the stored status says. */
+export const isLessonLive = (
+  startsAt: string,
+  endsAt: string,
+  status: string,
+  now = Date.now()
+) =>
+  status !== "cancelled" &&
+  new Date(startsAt).getTime() <= now &&
+  new Date(endsAt).getTime() > now;
 
 export const isReportDue = (lesson: Lesson) =>
   lesson.status !== "cancelled" &&

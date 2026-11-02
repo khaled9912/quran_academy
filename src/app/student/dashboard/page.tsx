@@ -13,6 +13,9 @@ import {
 } from "lucide-react";
 import type { Lesson } from "@/types/lesson";
 import { upcomingDayPage } from "@/lib/lesson-window";
+import { isLessonLive } from "@/lib/lesson-feedback";
+import { useNow } from "@/hooks/use-now";
+import { LiveNowBadge } from "@/components/LiveNowBadge";
 import { useStudentDashboard } from "@/features/students/hooks/useStudentDashboard";
 import { TeacherDirectory } from "@/components/student/TeacherDirectory";
 import { TimeZoneNote } from "@/components/student/TimeZoneNote";
@@ -30,6 +33,7 @@ const dateTime = (value: string) =>
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
   });
 
 const changeStatusLabels: Record<string, string> = {
@@ -60,7 +64,7 @@ const StudentDashboard = () => {
   const sorted = [...lessons].sort((a, b) =>
     a.startsAt.localeCompare(b.startsAt)
   );
-  const now = Date.now();
+  const now = useNow();
   // Started (or early-completed) lessons stay listed until their scheduled end
   // so students can rejoin after a dropped call.
   const upcoming = sorted.filter(
@@ -298,52 +302,69 @@ const StudentDashboard = () => {
               ) : upcoming.length ? (
                 <>
                   <div className="space-y-4">
-                    {upcomingPage.lessons.map((lesson) => (
-                      <article
-                        key={lesson.id}
-                        className="rounded-2xl border border-card-border p-5"
-                      >
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                          <div>
-                            <p className="font-semibold">
-                              {dateTime(lesson.startsAt)}
-                            </p>
-                            <p className="mt-1 flex items-center gap-2 text-sm text-foreground opacity-70">
-                              <Clock3 size={15} />
-                              Until{" "}
-                              {new Date(lesson.endsAt).toLocaleTimeString([], {
-                                hour: "numeric",
-                                minute: "2-digit",
-                              })}
-                            </p>
-                            <p className="mt-1 text-sm text-foreground opacity-70">
-                              Teacher:{" "}
-                              {lesson.teacherName ?? "Assigned teacher"}
-                            </p>
-                          </div>
-                          <div className="flex flex-col items-end gap-2">
-                            <span className="flex flex-wrap justify-end gap-2">
-                              {lesson.isTrial && (
-                                <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
-                                  Trial
-                                </span>
-                              )}
-                              <span
-                                className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[lesson.status]}`}
-                              >
-                                {lesson.status.replaceAll("_", " ")}
+                    {upcomingPage.lessons.map((lesson) => {
+                      const live = isLessonLive(
+                        lesson.startsAt,
+                        lesson.endsAt,
+                        lesson.status,
+                        now
+                      );
+                      return (
+                        <article
+                          key={lesson.id}
+                          className={`rounded-2xl border p-5 ${
+                            live ? "border-green-400" : "border-card-border"
+                          }`}
+                        >
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                              <p className="flex flex-wrap items-center gap-2 font-semibold">
+                                {dateTime(lesson.startsAt)}
+                                {live && <LiveNowBadge />}
+                              </p>
+                              <p className="mt-1 flex items-center gap-2 text-sm text-foreground opacity-70">
+                                <Clock3 size={15} />
+                                Until{" "}
+                                {new Date(lesson.endsAt).toLocaleTimeString(
+                                  [],
+                                  {
+                                    hour: "numeric",
+                                    minute: "2-digit",
+                                    hour12: true,
+                                  }
+                                )}
+                              </p>
+                              <p className="mt-1 text-sm text-foreground opacity-70">
+                                Teacher:{" "}
+                                {lesson.teacherName ?? "Assigned teacher"}
+                              </p>
+                            </div>
+                            <div className="flex flex-col items-end gap-2">
+                              <span className="flex flex-wrap justify-end gap-2">
+                                {lesson.isTrial && (
+                                  <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
+                                    Trial
+                                  </span>
+                                )}
+                                {!live && (
+                                  <span
+                                    className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[lesson.status]}`}
+                                  >
+                                    {lesson.status.replaceAll("_", " ")}
+                                  </span>
+                                )}
                               </span>
-                            </span>
-                            <Link
-                              href={`/lesson/${lesson.id}`}
-                              className="inline-flex items-center gap-2 rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
-                            >
-                              <Video size={15} /> Attend lesson
-                            </Link>
+                              <Link
+                                href={`/lesson/${lesson.id}`}
+                                className="inline-flex items-center gap-2 rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
+                              >
+                                <Video size={15} /> Attend lesson
+                              </Link>
+                            </div>
                           </div>
-                        </div>
-                      </article>
-                    ))}
+                        </article>
+                      );
+                    })}
                   </div>
                   {upcomingPage.hasMore && (
                     <div className="mt-4 flex justify-center">

@@ -8,9 +8,12 @@ import { cancelLesson, getLessons } from "@/services/lesson.service";
 import { useAuth } from "@/providers/auth-provider";
 import {
   isLessonJoinable,
+  isLessonLive,
   isReportDue,
   isReportSubmitted,
 } from "@/lib/lesson-feedback";
+import { useNow } from "@/hooks/use-now";
+import { LiveNowBadge } from "@/components/LiveNowBadge";
 import type { Lesson } from "@/types/lesson";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 
@@ -27,6 +30,7 @@ const timeLabel = (value: string) =>
   new Date(value).toLocaleTimeString(undefined, {
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
   });
 
 export default function TeacherSchedulePage() {
@@ -68,7 +72,7 @@ export default function TeacherSchedulePage() {
   });
 
   const lessons = lessonsQuery.data ?? [];
-  const now = Date.now();
+  const now = useNow();
   const dueCount = lessons.filter(isReportDue).length;
   const submittedCount = lessons.filter(isReportSubmitted).length;
 
@@ -216,99 +220,112 @@ export default function TeacherSchedulePage() {
                   {dayLabel(lessonsForDay[0].startsAt)}
                 </h2>
                 <div className="space-y-3">
-                  {lessonsForDay.map((lesson) => (
-                    <article
-                      key={lesson.id}
-                      className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-card-border bg-card-bg p-5"
-                    >
-                      <div>
-                        <p className="font-semibold">
-                          {timeLabel(lesson.startsAt)} –{" "}
-                          {timeLabel(lesson.endsAt)}
-                        </p>
-                        <p className="mt-1 text-sm text-foreground opacity-70">
-                          Student: {lesson.studentName ?? "Assigned student"}
-                        </p>
-                        <p className="mt-1 text-xs capitalize text-foreground opacity-60">
-                          {lesson.status.replaceAll("_", " ")}
-                        </p>
-                        {lesson.status !== "cancelled" &&
-                          !isLessonJoinable(
+                  {lessonsForDay.map((lesson) => {
+                    const live = isLessonLive(
+                      lesson.startsAt,
+                      lesson.endsAt,
+                      lesson.status,
+                      now
+                    );
+                    return (
+                      <article
+                        key={lesson.id}
+                        className={`flex flex-wrap items-center justify-between gap-4 rounded-2xl border bg-card-bg p-5 ${
+                          live ? "border-green-400" : "border-card-border"
+                        }`}
+                      >
+                        <div>
+                          <p className="flex flex-wrap items-center gap-2 font-semibold">
+                            {timeLabel(lesson.startsAt)} –{" "}
+                            {timeLabel(lesson.endsAt)}
+                            {live && <LiveNowBadge />}
+                          </p>
+                          <p className="mt-1 text-sm text-foreground opacity-70">
+                            Student: {lesson.studentName ?? "Assigned student"}
+                          </p>
+                          {!live && (
+                            <p className="mt-1 text-xs capitalize text-foreground opacity-60">
+                              {lesson.status.replaceAll("_", " ")}
+                            </p>
+                          )}
+                          {lesson.status !== "cancelled" &&
+                            !isLessonJoinable(
+                              lesson.endsAt,
+                              lesson.status,
+                              now
+                            ) && (
+                              <p
+                                className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+                                  lesson.report
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-amber-100 text-amber-900"
+                                }`}
+                              >
+                                {lesson.report
+                                  ? "Report submitted"
+                                  : "Report required"}
+                              </p>
+                            )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {isLessonJoinable(
                             lesson.endsAt,
                             lesson.status,
                             now
                           ) && (
-                            <p
-                              className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
-                                lesson.report
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-amber-100 text-amber-900"
-                              }`}
+                            <Link
+                              href={`/lesson/${lesson.id}`}
+                              className="rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
                             >
-                              {lesson.report
-                                ? "Report submitted"
-                                : "Report required"}
-                            </p>
+                              Join lesson
+                            </Link>
                           )}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        {isLessonJoinable(
-                          lesson.endsAt,
-                          lesson.status,
-                          now
-                        ) && (
-                          <Link
-                            href={`/lesson/${lesson.id}`}
-                            className="rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
-                          >
-                            Join lesson
-                          </Link>
-                        )}
-                        {lesson.status !== "cancelled" &&
-                          !isLessonJoinable(
-                            lesson.endsAt,
-                            lesson.status,
-                            now
-                          ) &&
-                          (lesson.report ? (
-                            <Link
-                              href={`/lesson/${lesson.id}`}
-                              className="rounded-xl border border-card-border px-4 py-2 text-sm font-semibold transition hover:border-green-500"
+                          {lesson.status !== "cancelled" &&
+                            !isLessonJoinable(
+                              lesson.endsAt,
+                              lesson.status,
+                              now
+                            ) &&
+                            (lesson.report ? (
+                              <Link
+                                href={`/lesson/${lesson.id}`}
+                                className="rounded-xl border border-card-border px-4 py-2 text-sm font-semibold transition hover:border-green-500"
+                              >
+                                View report
+                              </Link>
+                            ) : (
+                              <Link
+                                href={`/lesson/${lesson.id}`}
+                                className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-600"
+                              >
+                                Write report
+                              </Link>
+                            ))}
+                          {lesson.status === "scheduled" && (
+                            <button
+                              onClick={() => {
+                                setError("");
+                                setNotice("");
+                                if (
+                                  window.confirm(
+                                    "Cancel this lesson? This cannot be undone."
+                                  )
+                                ) {
+                                  cancelMutation.mutate(lesson.id);
+                                }
+                              }}
+                              disabled={cancelMutation.isPending}
+                              className="rounded-xl border border-red-300 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-500 hover:text-white disabled:opacity-50"
                             >
-                              View report
-                            </Link>
-                          ) : (
-                            <Link
-                              href={`/lesson/${lesson.id}`}
-                              className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-600"
-                            >
-                              Write report
-                            </Link>
-                          ))}
-                        {lesson.status === "scheduled" && (
-                          <button
-                            onClick={() => {
-                              setError("");
-                              setNotice("");
-                              if (
-                                window.confirm(
-                                  "Cancel this lesson? This cannot be undone."
-                                )
-                              ) {
-                                cancelMutation.mutate(lesson.id);
-                              }
-                            }}
-                            disabled={cancelMutation.isPending}
-                            className="rounded-xl border border-red-300 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-500 hover:text-white disabled:opacity-50"
-                          >
-                            {cancelMutation.isPending
-                              ? "Cancelling…"
-                              : "Cancel lesson"}
-                          </button>
-                        )}
-                      </div>
-                    </article>
-                  ))}
+                              {cancelMutation.isPending
+                                ? "Cancelling…"
+                                : "Cancel lesson"}
+                            </button>
+                          )}
+                        </div>
+                      </article>
+                    );
+                  })}
                 </div>
               </section>
             ))}

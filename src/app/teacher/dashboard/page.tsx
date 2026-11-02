@@ -16,6 +16,7 @@ const dateTime = (value: string) =>
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
   });
 
 export default function TeacherDashboardPage() {

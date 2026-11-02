@@ -6,12 +6,14 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Minimize2, PhoneOff } from "lucide-react";
+import { Minimize2, PhoneOff, PictureInPicture2 } from "lucide-react";
 import { JitsiRoom } from "@/components/JitsiRoom";
+import type { JitsiExternalApi } from "@/types/jitsi";
 
 export interface ActiveLessonCall {
   lessonId: string;
@@ -127,6 +129,59 @@ function LessonCallHost({
   // off-screen if the visitor leaves the lesson page before joining.
   const showMini = !expanded && joined;
 
+  const apiRef = useRef<JitsiExternalApi | null>(null);
+  const [pipSupported, setPipSupported] = useState(false);
+  const [pipActive, setPipActive] = useState(false);
+  const wasExpanded = useRef(expanded);
+
+  useEffect(() => {
+    setPipSupported(
+      "documentPictureInPicture" in window ||
+        Boolean(document.pictureInPictureEnabled)
+    );
+  }, []);
+
+  const handleApiReady = useCallback((api: JitsiExternalApi | null) => {
+    apiRef.current = api;
+    setPipActive(false);
+    if (!api) return;
+    api.addListener("pipEntered", () => setPipActive(true));
+    api.addListener("pipLeft", () => setPipActive(false));
+  }, []);
+
+  const togglePip = () => {
+    apiRef.current?.executeCommand(pipActive ? "hidePiP" : "showPiP");
+  };
+
+  // A click that leaves the room page is also the browser gesture needed to
+  // open the floating window, so the lesson stays visible while browsing.
+  useEffect(() => {
+    if (!pipSupported || !joined || !expanded) return;
+    const onClick = (event: MouseEvent) => {
+      const anchor = (event.target as Element | null)?.closest?.("a[href]");
+      const href = anchor?.getAttribute("href");
+      if (
+        !href ||
+        href.startsWith("#") ||
+        href.startsWith(`/lesson/${call.lessonId}`)
+      ) {
+        return;
+      }
+      apiRef.current?.executeCommand("showPiP");
+    };
+    document.addEventListener("click", onClick, { capture: true });
+    return () =>
+      document.removeEventListener("click", onClick, { capture: true });
+  }, [pipSupported, joined, expanded, call.lessonId]);
+
+  // Returning to the full room makes the floating preview redundant.
+  useEffect(() => {
+    if (expanded && !wasExpanded.current) {
+      apiRef.current?.executeCommand("hidePiP");
+    }
+    wasExpanded.current = expanded;
+  }, [expanded]);
+
   return (
     <div
       className={
@@ -167,6 +222,27 @@ function LessonCallHost({
               <Minimize2 size={14} />
             </button>
           )}
+          {pipSupported && (
+            <button
+              type="button"
+              onClick={togglePip}
+              aria-label={
+                pipActive ? "Return video to this page" : "Pop out video"
+              }
+              title={
+                pipActive
+                  ? "Return video to this page"
+                  : "Pop out video to keep it visible on other tabs and windows"
+              }
+              className={`rounded-lg p-1.5 transition ${
+                pipActive
+                  ? "bg-green-500/90 hover:bg-green-500"
+                  : "bg-white/10 hover:bg-white/20"
+              }`}
+            >
+              <PictureInPicture2 size={14} />
+            </button>
+          )}
           <button
             type="button"
             onClick={onHangup}
@@ -189,6 +265,7 @@ function LessonCallHost({
           displayName={call.displayName}
           onClose={onHangup}
           onJoined={onJoined}
+          onApiReady={handleApiReady}
         />
         <img
           src="/logo-ana-quran.svg"

@@ -56,6 +56,7 @@ const display = (value: string) =>
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
   });
 
 const score = (label: string, value: number | null) => (

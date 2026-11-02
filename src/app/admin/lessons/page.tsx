@@ -16,12 +16,14 @@ const display = (value: string) =>
     year: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
   });
 
 const timeOnly = (value: string) =>
   new Date(value).toLocaleTimeString(undefined, {
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
   });
 
 type Phase = "live" | "upcoming" | "past";

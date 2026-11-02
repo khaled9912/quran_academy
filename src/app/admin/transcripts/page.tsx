@@ -20,6 +20,7 @@ const display = (value: string) =>
     year: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
   });
 
 const flagLabel: Record<TranscriptFlag, string> = {

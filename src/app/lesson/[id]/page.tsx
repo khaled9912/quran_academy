@@ -23,6 +23,7 @@ const dateTime = (value: string) =>
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
   });
 
 export default function LessonCallPage() {
@@ -201,8 +202,9 @@ export default function LessonCallPage() {
                 Your lesson room is open
               </h2>
               <p className="mx-auto mt-2 max-w-md text-sm text-foreground opacity-70">
-                The video call stays connected while you browse the site. Bring
-                it back whenever you need it.
+                The video call stays connected while you browse the site. Use
+                the pop-out button in the call header to keep the video visible
+                on other tabs and windows.
               </p>
               <button
                 type="button"
