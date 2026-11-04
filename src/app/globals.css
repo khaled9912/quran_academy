@@ -117,8 +117,14 @@ body {
 }
 
 .menu-items {
-  @apply absolute left-0 top-20 w-full h-[calc(100vh-80px)] flex flex-col items-center justify-center gap-8 text-xl z-10;
+  @apply absolute left-0 top-20 w-full flex flex-col items-center gap-4 sm:gap-8 text-xl z-10 overflow-y-auto overscroll-contain;
   @apply border-t border-card-border;
+  height: calc(100vh - 5rem);
+  height: calc(100dvh - 5rem);
+  padding: 2rem 1rem;
+  justify-content: center;
+  justify-content: safe center;
+  -webkit-overflow-scrolling: touch;
   background: var(--menu-panel-bg);
   color: var(--menu-panel-text);
 }

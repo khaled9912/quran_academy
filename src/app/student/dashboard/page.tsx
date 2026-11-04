@@ -19,7 +19,7 @@ import { LiveNowBadge } from "@/components/LiveNowBadge";
 import { useStudentDashboard } from "@/features/students/hooks/useStudentDashboard";
 import { TeacherDirectory } from "@/components/student/TeacherDirectory";
 import { TimeZoneNote } from "@/components/student/TimeZoneNote";
-import { WEEKDAY_SHORT } from "@/lib/utils";
+import { WEEKDAY_SHORT, startsInLabel } from "@/lib/utils";
 import {
   getViewerTimeZone,
   toViewerWeeklySlotLabel,
@@ -296,9 +296,14 @@ const StudentDashboard = () => {
                 <h2 className="text-2xl font-semibold">Upcoming lessons</h2>
               </div>
               {lessonsQuery.isLoading ? (
-                <p className="text-foreground opacity-70">
-                  Loading your lessons…
-                </p>
+                <div className="space-y-4">
+                  {[0, 1].map((row) => (
+                    <div
+                      key={row}
+                      className="h-24 animate-pulse rounded-2xl bg-foreground/10"
+                    />
+                  ))}
+                </div>
               ) : upcoming.length ? (
                 <>
                   <div className="space-y-4">
@@ -309,6 +314,10 @@ const StudentDashboard = () => {
                         lesson.status,
                         now
                       );
+                      const countdown =
+                        lesson.status === "scheduled"
+                          ? startsInLabel(lesson.startsAt, now)
+                          : null;
                       return (
                         <article
                           key={lesson.id}
@@ -322,6 +331,11 @@ const StudentDashboard = () => {
                                 {dateTime(lesson.startsAt)}
                                 {live && <LiveNowBadge />}
                               </p>
+                              {countdown ? (
+                                <p className="mt-1 text-sm font-semibold text-green-600">
+                                  {countdown}
+                                </p>
+                              ) : null}
                               <p className="mt-1 flex items-center gap-2 text-sm text-foreground opacity-70">
                                 <Clock3 size={15} />
                                 Until{" "}

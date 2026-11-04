@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/providers/auth-provider";
 import { navigationConfig } from "@/constants/navigation";
 import { Avatar } from "@/components/ui/avatar";
+import { NotificationsBell } from "@/components/NotificationsBell";
 
 const Navbar = () => {
   const { role, profile, logout, isAuthenticated } = useAuth();
@@ -46,6 +47,7 @@ const Navbar = () => {
         </Link>
         <div className="flex items-center gap-2">
           <ThemeToggle className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-[var(--toggle-bg)] text-[var(--toggle-icon)] shadow-sm" />
+          <NotificationsBell />
           <Menu />
         </div>
       </div>
@@ -92,6 +94,7 @@ const Navbar = () => {
 
         <div className="flex items-center gap-3">
           <ThemeToggle className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-[var(--toggle-bg)] text-[var(--toggle-icon)] shadow-sm" />
+          <NotificationsBell />
 
           {!isAuthenticated ? (
             <>

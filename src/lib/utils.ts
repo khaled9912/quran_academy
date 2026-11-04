@@ -55,3 +55,36 @@ export const formatWeeklySlot = (
     startsAtTime,
     endsAtTime
   )}`;
+
+/** "Starts in 2h 15m" for a lesson later today; null for other days/past. */
+export const startsInLabel = (
+  value: string,
+  now: number = Date.now()
+): string | null => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  const diffMs = date.getTime() - now;
+  if (diffMs <= 0) return null;
+  const today = new Date(now);
+  const sameDay =
+    date.getFullYear() === today.getFullYear() &&
+    date.getMonth() === today.getMonth() &&
+    date.getDate() === today.getDate();
+  if (!sameDay) return null;
+
+  const totalMinutes = Math.ceil(diffMs / 60_000);
+  if (totalMinutes < 60) return `Starts in ${totalMinutes} min`;
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  return minutes ? `Starts in ${hours}h ${minutes}m` : `Starts in ${hours}h`;
+};
+
+export const isToday = (value: string, now: number = Date.now()) => {
+  const date = new Date(value);
+  const today = new Date(now);
+  return (
+    date.getFullYear() === today.getFullYear() &&
+    date.getMonth() === today.getMonth() &&
+    date.getDate() === today.getDate()
+  );
+};

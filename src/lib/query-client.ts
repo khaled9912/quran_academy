@@ -6,7 +6,7 @@ import { reportUnexpectedError } from "@/lib/sentry";
  * so an approval or status change made by another role appears without a manual
  * refresh. True push updates would need a server-side channel.
  */
-export const LIVE_SYNC_INTERVAL = 60_000;
+export const LIVE_SYNC_INTERVAL = 15_000;
 
 /**
  * Shared defaults: API data is session-scoped, so window refetches are noisy.

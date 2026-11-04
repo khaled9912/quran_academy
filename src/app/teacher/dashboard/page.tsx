@@ -7,7 +7,7 @@ import { getMyAvailabilityRules } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
 import { isReportDue } from "@/lib/lesson-feedback";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
-import { weekdayLabel, formatWeeklyTimeRange } from "@/lib/utils";
+import { weekdayLabel, formatWeeklyTimeRange, isToday, startsInLabel } from "@/lib/utils";
 
 const dateTime = (value: string) =>
   new Date(value).toLocaleString(undefined, {
@@ -50,19 +50,27 @@ export default function TeacherDashboardPage() {
     )
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
   const bookedRules = rules.filter((rule) => rule.status !== "available");
+  const todayLessons = upcomingLessons.filter((lesson) =>
+    isToday(lesson.startsAt, now)
+  );
   const reportsDue = lessons
     .filter(isReportDue)
     .sort((a, b) => b.startsAt.localeCompare(a.startsAt));
 
-  const metrics: { title: string; value: number; href?: string }[] = [
-    { title: "Upcoming lessons", value: upcomingLessons.length },
-    { title: "Weekly slots", value: rules.length },
+  const metrics: { title: string; value: number; loading: boolean; href?: string }[] = [
+    { title: "Today's lessons", value: todayLessons.length, loading: lessonsQuery.isLoading },
+    { title: "Weekly slots", value: rules.length, loading: rulesQuery.isLoading },
     {
       title: "Reports due",
       value: reportsDue.length,
+      loading: lessonsQuery.isLoading,
       href: "/teacher/schedule?filter=reports",
     },
-    { title: "Booked weekly slots", value: bookedRules.length },
+    {
+      title: "Booked weekly slots",
+      value: bookedRules.length,
+      loading: rulesQuery.isLoading,
+    },
   ];
 
   if (!isTeacher) {
@@ -101,7 +109,11 @@ export default function TeacherDashboardPage() {
                   {metric.title}
                 </p>
                 <p className="text-3xl font-semibold text-green-600">
-                  {metric.value}
+                  {metric.loading ? (
+                    <span className="inline-block h-8 w-10 animate-pulse rounded-lg bg-foreground/10 align-middle" />
+                  ) : (
+                    metric.value
+                  )}
                 </p>
               </>
             );
@@ -126,7 +138,7 @@ export default function TeacherDashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <section className="rounded-3xl border border-card-border bg-card-bg p-6">
             <div className="flex items-center justify-between gap-3 mb-4">
-              <h2 className="text-xl font-semibold">Next lessons</h2>
+              <h2 className="text-xl font-semibold">Today&apos;s lessons</h2>
               <Link
                 href="/teacher/schedule"
                 className="text-sm font-semibold text-green-600 hover:underline"
@@ -135,34 +147,52 @@ export default function TeacherDashboardPage() {
               </Link>
             </div>
             {lessonsQuery.isLoading ? (
-              <p className="text-foreground opacity-70">Loading lessons…</p>
-            ) : upcomingLessons.length ? (
               <div className="space-y-3">
-                {upcomingLessons.slice(0, 4).map((lesson) => (
+                {[0, 1].map((row) => (
                   <div
-                    key={lesson.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-card-border p-4"
-                  >
-                    <div>
-                      <p className="font-semibold">
-                        {dateTime(lesson.startsAt)}
-                      </p>
-                      <p className="mt-1 text-sm text-foreground opacity-70">
-                        Student: {lesson.studentName ?? "Assigned student"}
-                      </p>
-                    </div>
-                    <Link
-                      href={`/lesson/${lesson.id}`}
-                      className="rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
-                    >
-                      Join lesson
-                    </Link>
-                  </div>
+                    key={row}
+                    className="h-20 animate-pulse rounded-2xl bg-foreground/10"
+                  />
                 ))}
+              </div>
+            ) : todayLessons.length ? (
+              <div className="space-y-3">
+                {todayLessons.map((lesson) => {
+                  const countdown =
+                    lesson.status === "scheduled"
+                      ? startsInLabel(lesson.startsAt, now)
+                      : null;
+                  return (
+                    <div
+                      key={lesson.id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-card-border p-4"
+                    >
+                      <div>
+                        <p className="font-semibold">
+                          {dateTime(lesson.startsAt)}
+                        </p>
+                        {countdown ? (
+                          <p className="mt-1 text-sm font-semibold text-green-600">
+                            {countdown}
+                          </p>
+                        ) : null}
+                        <p className="mt-1 text-sm text-foreground opacity-70">
+                          Student: {lesson.studentName ?? "Assigned student"}
+                        </p>
+                      </div>
+                      <Link
+                        href={`/lesson/${lesson.id}`}
+                        className="rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
+                      >
+                        Join lesson
+                      </Link>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <p className="text-foreground opacity-70">
-                No confirmed lessons yet.
+                No lessons today. Open the full schedule to see the week ahead.
               </p>
             )}
           </section>
@@ -178,9 +208,14 @@ export default function TeacherDashboardPage() {
               </Link>
             </div>
             {rulesQuery.isLoading ? (
-              <p className="text-foreground opacity-70">
-                Loading your weekly times…
-              </p>
+              <div className="space-y-3">
+                {[0, 1, 2].map((row) => (
+                  <div
+                    key={row}
+                    className="h-16 animate-pulse rounded-2xl bg-foreground/10"
+                  />
+                ))}
+              </div>
             ) : rules.length ? (
               <div className="space-y-3">
                 {rules.slice(0, 5).map((rule) => (

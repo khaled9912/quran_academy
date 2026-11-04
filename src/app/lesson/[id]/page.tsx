@@ -4,12 +4,13 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, MonitorPlay, RefreshCw, ShieldCheck } from "lucide-react";
+import { Clock, MonitorPlay, RefreshCw, Share2, ShieldCheck } from "lucide-react";
 import { ApiError } from "@/lib/backend-client";
 import { getLessonById } from "@/services/lesson.service";
 import { useAuth } from "@/providers/auth-provider";
 import { useLessonCall } from "@/providers/lesson-call-provider";
 import { LessonFeedback } from "@/components/lesson/LessonFeedback";
+import { ShareLessonDrawer } from "@/components/lesson/ShareLessonDrawer";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 
 const JITSI_DOMAIN = (process.env.NEXT_PUBLIC_JITSI_DOMAIN ?? "meet.jit.si")
@@ -56,7 +57,9 @@ export default function LessonCallPage() {
       ? "Back to dashboard"
       : "Back to schedule";
 
-  const room = `rayan-academy-${id}`;
+  // Must match the mobile app's room name (ana-quran-<id>) so both clients
+  // join the same conference.
+  const room = `ana-quran-${id}`;
 
   // Waking up at the scheduled start and end keeps the room controls accurate
   // without a manual refresh.
@@ -83,6 +86,7 @@ export default function LessonCallPage() {
   // Refreshes keep arriving after the lesson ends. Once a participant has been
   // in a live room, that must not rip the call away from them mid-session.
   const [enteredWhileLive, setEnteredWhileLive] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   useEffect(() => {
     if (!lesson || lesson.status === "cancelled" || beforeStart || afterEnd) {
       return;
@@ -145,12 +149,22 @@ export default function LessonCallPage() {
               </p>
             )}
           </div>
-          <button
-            onClick={() => void lessonQuery.refetch()}
-            className="inline-flex items-center gap-2 rounded-xl border border-card-border bg-card-bg px-4 py-2.5 text-sm font-semibold hover:border-green-500"
-          >
-            <RefreshCw size={16} /> Refresh
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShareOpen(true)}
+              disabled={!lesson || lesson.status === "cancelled"}
+              className="inline-flex items-center gap-2 rounded-xl border border-card-border bg-card-bg px-4 py-2.5 text-sm font-semibold transition hover:border-green-500 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Share2 size={16} /> Share
+            </button>
+            <button
+              onClick={() => void lessonQuery.refetch()}
+              className="inline-flex items-center gap-2 rounded-xl border border-card-border bg-card-bg px-4 py-2.5 text-sm font-semibold hover:border-green-500"
+            >
+              <RefreshCw size={16} /> Refresh
+            </button>
+          </div>
         </div>
 
         {isSupport ? (
@@ -241,6 +255,11 @@ export default function LessonCallPage() {
           </>
         )}
       </div>
+      <ShareLessonDrawer
+        open={shareOpen}
+        shareUrl={`https://${JITSI_DOMAIN}/${room}`}
+        onClose={() => setShareOpen(false)}
+      />
     </main>
   );
 }
