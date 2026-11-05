@@ -12,6 +12,7 @@ import {
   markNotificationRead,
   type AppNotification,
 } from "@/services/notification.service";
+import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 
 const timeAgo = (value: string) => {
   const date = new Date(value);
@@ -36,7 +37,7 @@ const useNotificationsFeed = () => {
     queryKey: ["notifications"],
     queryFn: getNotifications,
     enabled: isAuthenticated,
-    refetchInterval: 15_000,
+    refetchInterval: LIVE_SYNC_INTERVAL,
   });
 };
 
@@ -124,7 +125,7 @@ export const NotificationsBell = () => {
                     })
                   )
                 }
-                className="text-xs font-semibold text-green-600 hover:underline"
+                className="text-xs font-semibold text-green-600 dark:text-green-400 hover:underline"
               >
                 Mark all read
               </button>
@@ -147,7 +148,7 @@ export const NotificationsBell = () => {
                 <button
                   type="button"
                   onClick={() => void query.refetch()}
-                  className="font-semibold text-green-600 hover:underline"
+                  className="font-semibold text-green-600 dark:text-green-400 hover:underline"
                 >
                   Try again
                 </button>

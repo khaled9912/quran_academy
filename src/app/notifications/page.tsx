@@ -8,6 +8,7 @@ import {
   markNotificationRead,
 } from "@/services/notification.service";
 import { useAuth } from "@/providers/auth-provider";
+import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 
 const timeAgo = (value: string) => {
   const date = new Date(value);
@@ -33,7 +34,7 @@ const NotificationsPage = () => {
     queryKey: ["notifications"],
     queryFn: getNotifications,
     enabled: isAuthenticated,
-    refetchInterval: 15_000,
+    refetchInterval: LIVE_SYNC_INTERVAL,
   });
 
   const items = query.data?.items ?? [];
@@ -48,7 +49,10 @@ const NotificationsPage = () => {
         <div className="mx-auto max-w-3xl px-4 md:px-8">
           <h1 className="mb-2 text-4xl font-bold">Notifications</h1>
           <p className="text-lg text-foreground opacity-75">
-            <Link href="/login" className="font-semibold text-green-600">
+            <Link
+              href="/login"
+              className="font-semibold text-green-600 dark:text-green-400"
+            >
               Sign in
             </Link>{" "}
             to see booking confirmations and lesson reminders.
@@ -96,7 +100,7 @@ const NotificationsPage = () => {
             <button
               type="button"
               onClick={() => void query.refetch()}
-              className="font-semibold text-green-600 hover:underline"
+              className="font-semibold text-green-600 dark:text-green-400 hover:underline"
             >
               Try again
             </button>
@@ -120,7 +124,7 @@ const NotificationsPage = () => {
               const className = `block rounded-3xl border p-6 transition hover:border-green-400 ${
                 item.readAt
                   ? "border-card-border bg-card-bg"
-                  : "border-green-300 bg-green-50/70 dark:bg-green-500/5"
+                  : "border-green-300 dark:border-green-500/30 bg-green-50/70 dark:bg-green-500/5"
               }`;
               return (
                 <li key={item.id}>

@@ -2,11 +2,11 @@ import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query";
 import { reportUnexpectedError } from "@/lib/sentry";
 
 /**
- * Class and request screens re-fetch on this cadence while the tab is focused,
- * so an approval or status change made by another role appears without a manual
- * refresh. True push updates would need a server-side channel.
+ * Screens that used to re-fetch every 15s now receive SignalR change events and
+ * invalidate on demand. This slow cadence is only a safety net for a dropped
+ * socket (a missed event is repaired on reconnect, not in between).
  */
-export const LIVE_SYNC_INTERVAL = 15_000;
+export const LIVE_SYNC_INTERVAL = 120_000;
 
 /**
  * Shared defaults: API data is session-scoped, so window refetches are noisy.

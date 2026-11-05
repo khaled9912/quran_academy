@@ -48,6 +48,15 @@ The API is a separate .NET host (for example `https://your-site.runasp.net`). Ne
 
 This keeps the `academy-auth` cookie on the frontend domain, so `middleware.ts` can read it and browsers do not treat it as a third-party cookie. Keep `Cookie__SameSite=Lax` on the API, and keep `AllowedOrigins` on the API set to the frontend origin, because proxied POSTs forward the browser's `Origin` header.
 
+### Real-time updates
+
+The browser holds a SignalR WebSocket to the API for change hints (the screens still fetch through REST). WebSocket upgrades do not reliably pass through the `/api` rewrite, so point the socket straight at the API:
+
+1. Set `NEXT_PUBLIC_REALTIME_URL=https://your-site.runasp.net` (origin only) for Production and Preview. Without it the client uses the `hub` URL returned by `GET /api/realtime/ticket`.
+2. On the API, optionally set `Realtime__PublicUrl=https://your-site.runasp.net` so the ticket always reports the API origin, even when the request arrived through the proxy.
+
+Authentication uses a short-lived ticket from `/api/realtime/ticket` (sent with the cookie), never a long-lived token in the URL.
+
 ### Direct cross-origin
 
 1. Set `NEXT_PUBLIC_BACKEND_URL=https://your-site.runasp.net` (origin only, no `/api` suffix) for Production and Preview.
