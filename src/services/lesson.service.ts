@@ -73,7 +73,8 @@ export const saveLessonReview = (
 
 // ---------------------------------------------------------------- operations
 
-export const getLessonPolicy = () => backendFetch<AcademyPolicy>("/api/lesson-policy");
+export const getLessonPolicy = () =>
+  backendFetch<AcademyPolicy>("/api/lesson-policy");
 export const updateLessonPolicy = (input: Partial<AcademyPolicy>) =>
   backendFetch<AcademyPolicy>("/api/lesson-policy", {
     method: "PUT",
@@ -105,9 +106,12 @@ export const respondToRescheduleRequest = (
     { method: "POST", body: JSON.stringify({ note: note ?? "" }) }
   );
 export const cancelRescheduleRequest = (requestId: string) =>
-  backendFetch<null>(`/api/reschedule-requests/${encodeURIComponent(requestId)}/cancel`, {
-    method: "POST",
-  });
+  backendFetch<null>(
+    `/api/reschedule-requests/${encodeURIComponent(requestId)}/cancel`,
+    {
+      method: "POST",
+    }
+  );
 
 export const createReplacementLesson = (
   id: string,
@@ -197,9 +201,7 @@ const adminQuery = (params: Record<string, string | undefined>) => {
 };
 
 export const getAdminLessonOps = (date?: string) =>
-  backendFetch<AdminLessonOps>(
-    `/api/admin/lesson-ops${adminQuery({ date })}`
-  );
+  backendFetch<AdminLessonOps>(`/api/admin/lesson-ops${adminQuery({ date })}`);
 export const getAdminLessonOpsDetail = (lessonId: string) =>
   backendFetch<AdminLessonOpsDetail>(
     `/api/admin/lesson-ops/${encodeURIComponent(lessonId)}`

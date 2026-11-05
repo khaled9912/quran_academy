@@ -350,28 +350,28 @@ Month/day keys use the academy clock (`Africa/Cairo`); every instant is stored U
 
 ### Cancellation outcomes
 
-| Outcome                    | Actor   | Late | Credit                         | Teacher payable        | Reliability                      |
-| -------------------------- | ------- | ---- | ------------------------------ | ---------------------- | -------------------------------- |
-| `free_cancellation`        | student | no   | none                           | 0                      | none                             |
-| `grace_cancellation`       | student | yes  | none (one free late cancel/mo) | scheduled minutes      | `student_grace_cancellation`     |
-| `late_cancellation`        | student | yes  | −1 (trials excluded)           | scheduled minutes      | `student_late_cancellation`      |
-| `cancelled_by_teacher`     | teacher | no   | +1 (trials excluded)           | 0                      | `teacher_early_cancellation`     |
-| `late_cancelled_by_teacher`| teacher | yes  | +1 (trials excluded)           | 0                      | admin review required            |
-| `admin_cancelled`          | admin   | —    | +1 (trials excluded)           | scheduled minutes      | none                             |
-| `student_no_show` / `teacher_no_show` / `both_absent` | admin decision | — | follows incident resolution | incident value | strike + admin queue |
+| Outcome                                               | Actor          | Late | Credit                         | Teacher payable   | Reliability                  |
+| ----------------------------------------------------- | -------------- | ---- | ------------------------------ | ----------------- | ---------------------------- |
+| `free_cancellation`                                   | student        | no   | none                           | 0                 | none                         |
+| `grace_cancellation`                                  | student        | yes  | none (one free late cancel/mo) | scheduled minutes | `student_grace_cancellation` |
+| `late_cancellation`                                   | student        | yes  | −1 (trials excluded)           | scheduled minutes | `student_late_cancellation`  |
+| `cancelled_by_teacher`                                | teacher        | no   | +1 (trials excluded)           | 0                 | `teacher_early_cancellation` |
+| `late_cancelled_by_teacher`                           | teacher        | yes  | +1 (trials excluded)           | 0                 | admin review required        |
+| `admin_cancelled`                                     | admin          | —    | +1 (trials excluded)           | scheduled minutes | none                         |
+| `student_no_show` / `teacher_no_show` / `both_absent` | admin decision | —    | follows incident resolution    | incident value    | strike + admin queue         |
 
 Cancellation is blocked for support, for already cancelled/completed/ended lessons, and once the lesson has started (admins may still cancel). A successful cancellation also withdraws any pending reschedule request and closes any open attendance interval. The preview returns `allowed`, `blockedReason`, the outcome, `hoursBefore`, `scheduledMinutes`, `teacherPayableMinutes`, `creditEffect`, `requiresAdminReview`, a server-written `explanation`, and the policy snapshot.
 
 ### Rescheduling and make-up lessons
 
-| Method | Endpoint                                              | Purpose                                              |
-| ------ | ----------------------------------------------------- | ---------------------------------------------------- |
-| GET    | `/api/lessons/{id}/reschedule-requests`               | Request history for the lesson                       |
-| POST   | `/api/lessons/{id}/reschedule-requests`               | `{ startsAt, endsAt, note? }` (teacher/student/admin) |
-| POST   | `/api/reschedule-requests/{requestId}/accept`         | Accept; moves the existing lesson only              |
-| POST   | `/api/reschedule-requests/{requestId}/decline`        | Keep the current time                                |
-| POST   | `/api/reschedule-requests/{requestId}/cancel`         | Withdraw a request                                   |
-| POST   | `/api/lessons/{id}/replacement`                       | Create one make-up lesson for a cancelled lesson     |
+| Method | Endpoint                                       | Purpose                                               |
+| ------ | ---------------------------------------------- | ----------------------------------------------------- |
+| GET    | `/api/lessons/{id}/reschedule-requests`        | Request history for the lesson                        |
+| POST   | `/api/lessons/{id}/reschedule-requests`        | `{ startsAt, endsAt, note? }` (teacher/student/admin) |
+| POST   | `/api/reschedule-requests/{requestId}/accept`  | Accept; moves the existing lesson only                |
+| POST   | `/api/reschedule-requests/{requestId}/decline` | Keep the current time                                 |
+| POST   | `/api/reschedule-requests/{requestId}/cancel`  | Withdraw a request                                    |
+| POST   | `/api/lessons/{id}/replacement`                | Create one make-up lesson for a cancelled lesson      |
 
 Rules: one `pending` request per lesson; the default reply deadline is the policy's `rescheduleResponseHours`; pending requests expire in the background monitor. Accepting moves the original lesson's `startsAt`/`endsAt` — it never creates a duplicate — and is rejected if the lesson was cancelled or already ended. A reschedule does not cancel the lesson, so no cancellation outcome or credit movement is recorded.
 
@@ -379,27 +379,27 @@ A make-up lesson has `isMakeup = true`, `originalLessonId`, the original duratio
 
 ### Attendance (real participation)
 
-| Method | Endpoint                              | Purpose                                                        |
-| ------ | ------------------------------------- | -------------------------------------------------------------- |
-| GET    | `/api/lessons/{id}/attendance`        | Participant minutes, status, late/early, reconnections         |
-| POST   | `/api/lessons/{id}/attendance/events` | `{ action: "join" \| "leave", deviceId, eventId, clientAt? }`  |
+| Method | Endpoint                              | Purpose                                                       |
+| ------ | ------------------------------------- | ------------------------------------------------------------- |
+| GET    | `/api/lessons/{id}/attendance`        | Participant minutes, status, late/early, reconnections        |
+| POST   | `/api/lessons/{id}/attendance/events` | `{ action: "join" \| "leave", deviceId, eventId, clientAt? }` |
 
 The web External API listens to `videoConferenceJoined` / `videoConferenceLeft`; the React Native SDK listens to `onConferenceJoined` / `onConferenceLeft`. A device sends a unique `eventId` per beacon so retries are idempotent. The server owns timestamps, clamps intervals to the lesson window, keeps one open interval per lesson/user/device, and closes open intervals at the lesson end. This is independent per participant and is not derived from page opens or `ActualStartedAt`.
 
 ### Teacher hours, credits, reliability, salary
 
-| Method | Endpoint                                 | Role    | Purpose                                              |
-| ------ | ---------------------------------------- | ------- | ---------------------------------------------------- |
-| GET    | `/api/student/credits`                   | student | Balance plus append-only ledger                      |
-| GET    | `/api/student/reliability`               | student | Own reliability events                               |
-| GET    | `/api/teacher/reliability`               | teacher | Own reliability events                               |
-| GET    | `/api/teacher/hours?month=&status=`      | teacher | Per-lesson hours                                     |
-| GET    | `/api/teacher/salary-periods`            | teacher | Monthly salary periods                               |
-| POST   | `/api/devices/register`                  | any     | `{ token, platform }` Expo push token                |
-| POST   | `/api/devices/unregister`                | any     | `{ token, platform? }` — call on sign-out            |
-| GET    | `/api/lessons/{id}/excuse`               | student | Existing excuse request                              |
-| POST   | `/api/lessons/{id}/excuse`               | student | `{ category, explanation }` (late/no-show lessons)   |
-| POST   | `/api/lessons/{id}/incident`             | teacher/student | `{ type, detail }` attendance dispute or no-show |
+| Method | Endpoint                            | Role            | Purpose                                            |
+| ------ | ----------------------------------- | --------------- | -------------------------------------------------- |
+| GET    | `/api/student/credits`              | student         | Balance plus append-only ledger                    |
+| GET    | `/api/student/reliability`          | student         | Own reliability events                             |
+| GET    | `/api/teacher/reliability`          | teacher         | Own reliability events                             |
+| GET    | `/api/teacher/hours?month=&status=` | teacher         | Per-lesson hours                                   |
+| GET    | `/api/teacher/salary-periods`       | teacher         | Monthly salary periods                             |
+| POST   | `/api/devices/register`             | any             | `{ token, platform }` Expo push token              |
+| POST   | `/api/devices/unregister`           | any             | `{ token, platform? }` — call on sign-out          |
+| GET    | `/api/lessons/{id}/excuse`          | student         | Existing excuse request                            |
+| POST   | `/api/lessons/{id}/excuse`          | student         | `{ category, explanation }` (late/no-show lessons) |
+| POST   | `/api/lessons/{id}/incident`        | teacher/student | `{ type, detail }` attendance dispute or no-show   |
 
 Three independent teacher-hour values are stored per lesson: `actualAttendanceMinutes` from intervals, `proposedPayableMinutes` (actual, or the full scheduled time when the policy pays scheduled duration and both sides attended), and admin `approvedPayableMinutes`. Approval status is `pending`, `approved`, `adjusted`, `rejected`, or `not_applicable`, with the auditor and adjustment reason recorded.
 
@@ -407,28 +407,28 @@ The student credit ledger (`LessonCreditTransactions`) is append-only and idempo
 
 ### Admin operations
 
-| Method | Endpoint                                      | Purpose                                                        |
-| ------ | --------------------------------------------- | -------------------------------------------------------------- |
-| GET    | `/api/admin/lesson-ops?date=YYYY-MM-DD`       | Day monitor: summary counters plus every lesson and its state  |
-| GET    | `/api/admin/lesson-ops/{lessonId}`            | Full detail with intervals, cancellations, requests, hours     |
-| GET    | `/api/admin/excuse-requests?status=`          | Excuse queue                                                   |
-| POST   | `/api/admin/excuse-requests/{id}/approve`     | Approve (restores the lesson credit)                           |
-| POST   | `/api/admin/excuse-requests/{id}/reject`      | Reject                                                         |
-| GET    | `/api/admin/lesson-incidents?status=`         | Incident queue                                                 |
-| POST   | `/api/admin/lesson-incidents/{id}/resolve`    | `{ action, note?, teacherPayableMinutes? }`                    |
-| GET    | `/api/admin/teacher-hours?month=&status=`     | Hours approval queue                                           |
-| POST   | `/api/admin/teacher-hours/{id}/approve`       | `{ approvedMinutes?, note? }`                                  |
-| POST   | `/api/admin/teacher-hours/{id}/reject`        | Reject                                                         |
-| GET    | `/api/admin/teacher-penalties?status=`        | Penalty list                                                   |
-| POST   | `/api/admin/teacher-penalties`                | Create penalty                                                 |
-| POST   | `/api/admin/teacher-penalties/{id}/review`    | Approve/reject/void                                            |
-| GET    | `/api/admin/reliability?role=&userId=&type=`  | Reliability queue                                              |
-| POST   | `/api/admin/reliability/{id}/resolve`         | Resolve with note                                              |
-| GET    | `/api/admin/students/{id}/credits`            | Student ledger and balance                                     |
-| POST   | `/api/admin/students/{id}/credits/adjust`     | Manual adjustment with reason                                  |
-| GET    | `/api/admin/salary-periods?month=`            | Salary periods                                                 |
-| POST   | `/api/admin/salary-periods/generate`          | Materialize a month from approved hours                        |
-| PATCH  | `/api/admin/salary-periods/{id}`              | Adjustment, final amount, notes, or status                     |
+| Method | Endpoint                                     | Purpose                                                       |
+| ------ | -------------------------------------------- | ------------------------------------------------------------- |
+| GET    | `/api/admin/lesson-ops?date=YYYY-MM-DD`      | Day monitor: summary counters plus every lesson and its state |
+| GET    | `/api/admin/lesson-ops/{lessonId}`           | Full detail with intervals, cancellations, requests, hours    |
+| GET    | `/api/admin/excuse-requests?status=`         | Excuse queue                                                  |
+| POST   | `/api/admin/excuse-requests/{id}/approve`    | Approve (restores the lesson credit)                          |
+| POST   | `/api/admin/excuse-requests/{id}/reject`     | Reject                                                        |
+| GET    | `/api/admin/lesson-incidents?status=`        | Incident queue                                                |
+| POST   | `/api/admin/lesson-incidents/{id}/resolve`   | `{ action, note?, teacherPayableMinutes? }`                   |
+| GET    | `/api/admin/teacher-hours?month=&status=`    | Hours approval queue                                          |
+| POST   | `/api/admin/teacher-hours/{id}/approve`      | `{ approvedMinutes?, note? }`                                 |
+| POST   | `/api/admin/teacher-hours/{id}/reject`       | Reject                                                        |
+| GET    | `/api/admin/teacher-penalties?status=`       | Penalty list                                                  |
+| POST   | `/api/admin/teacher-penalties`               | Create penalty                                                |
+| POST   | `/api/admin/teacher-penalties/{id}/review`   | Approve/reject/void                                           |
+| GET    | `/api/admin/reliability?role=&userId=&type=` | Reliability queue                                             |
+| POST   | `/api/admin/reliability/{id}/resolve`        | Resolve with note                                             |
+| GET    | `/api/admin/students/{id}/credits`           | Student ledger and balance                                    |
+| POST   | `/api/admin/students/{id}/credits/adjust`    | Manual adjustment with reason                                 |
+| GET    | `/api/admin/salary-periods?month=`           | Salary periods                                                |
+| POST   | `/api/admin/salary-periods/generate`         | Materialize a month from approved hours                       |
+| PATCH  | `/api/admin/salary-periods/{id}`             | Adjustment, final amount, notes, or status                    |
 
 `LessonOpsMonitor` runs every minute: it expires reschedule requests, closes attendance and finalizes hours, opens/dismisses no-show incidents after the grace period, sends reminders and report-due notices, and notifies admins. `AcademyPushSender` delivers through the Expo Push API using the device tokens above; notifications are also written to the in-app feed and email where configured.
 

@@ -262,9 +262,8 @@ export default function TeacherSchedulePage() {
                           {lesson.status === "cancelled" &&
                           lesson.cancellationOutcome ? (
                             <p className="mt-1 text-xs font-semibold text-red-700 dark:text-red-300">
-                              {cancellationLabels[
-                                lesson.cancellationOutcome
-                              ] ?? "Cancelled"}
+                              {cancellationLabels[lesson.cancellationOutcome] ??
+                                "Cancelled"}
                             </p>
                           ) : (
                             !live && (

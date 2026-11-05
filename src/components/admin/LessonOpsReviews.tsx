@@ -197,7 +197,9 @@ export function HoursReview({
       </div>
       <dl className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
         <div>
-          <dt className="text-xs uppercase tracking-wide opacity-60">Scheduled</dt>
+          <dt className="text-xs uppercase tracking-wide opacity-60">
+            Scheduled
+          </dt>
           <dd>{hours.scheduledMinutes} min</dd>
         </div>
         <div>
@@ -205,16 +207,28 @@ export function HoursReview({
           <dd>{hours.actualAttendanceMinutes} min</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide opacity-60">Proposed</dt>
+          <dt className="text-xs uppercase tracking-wide opacity-60">
+            Proposed
+          </dt>
           <dd>{hours.proposedPayableMinutes} min</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide opacity-60">Approved</dt>
+          <dt className="text-xs uppercase tracking-wide opacity-60">
+            Approved
+          </dt>
           <dd>{hours.approvedPayableMinutes ?? "—"}</dd>
         </div>
       </dl>
-      {notice && <div className="mt-3"><Notice>{notice}</Notice></div>}
-      {error && <div className="mt-3"><ErrorNotice>{error}</ErrorNotice></div>}
+      {notice && (
+        <div className="mt-3">
+          <Notice>{notice}</Notice>
+        </div>
+      )}
+      {error && (
+        <div className="mt-3">
+          <ErrorNotice>{error}</ErrorNotice>
+        </div>
+      )}
       <div className="mt-3 flex flex-wrap items-end gap-2">
         <label className="block w-28">
           <span className="mb-1 block text-xs font-semibold">Minutes</span>
@@ -327,8 +341,16 @@ export function IncidentReview({
       )}
       {!resolved && (
         <>
-          {notice && <div className="mt-3"><Notice>{notice}</Notice></div>}
-          {error && <div className="mt-3"><ErrorNotice>{error}</ErrorNotice></div>}
+          {notice && (
+            <div className="mt-3">
+              <Notice>{notice}</Notice>
+            </div>
+          )}
+          {error && (
+            <div className="mt-3">
+              <ErrorNotice>{error}</ErrorNotice>
+            </div>
+          )}
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <SelectField
               value={action}
@@ -422,14 +444,24 @@ export function ExcuseReview({
           {excuse.status}
         </span>
       </div>
-      <p className="mt-2 whitespace-pre-line opacity-75">{excuse.explanation}</p>
+      <p className="mt-2 whitespace-pre-line opacity-75">
+        {excuse.explanation}
+      </p>
       {excuse.adminNote && (
         <p className="mt-2 text-xs opacity-60">Note: {excuse.adminNote}</p>
       )}
       {pending && (
         <>
-          {notice && <div className="mt-3"><Notice>{notice}</Notice></div>}
-          {error && <div className="mt-3"><ErrorNotice>{error}</ErrorNotice></div>}
+          {notice && (
+            <div className="mt-3">
+              <Notice>{notice}</Notice>
+            </div>
+          )}
+          {error && (
+            <div className="mt-3">
+              <ErrorNotice>{error}</ErrorNotice>
+            </div>
+          )}
           <div className="mt-3 flex flex-wrap gap-2">
             <input
               value={note}
@@ -499,8 +531,16 @@ export function CreditAdjust({
       <p className="font-semibold">
         Student credits{balance != null ? ` · balance ${balance}` : ""}
       </p>
-      {notice && <div className="mt-2"><Notice>{notice}</Notice></div>}
-      {error && <div className="mt-2"><ErrorNotice>{error}</ErrorNotice></div>}
+      {notice && (
+        <div className="mt-2">
+          <Notice>{notice}</Notice>
+        </div>
+      )}
+      {error && (
+        <div className="mt-2">
+          <ErrorNotice>{error}</ErrorNotice>
+        </div>
+      )}
       <div className="mt-2 flex flex-wrap gap-2">
         <input
           type="number"
@@ -524,9 +564,7 @@ export function CreditAdjust({
           disabled={mutation.isPending}
           className="inline-flex items-center gap-2 rounded-lg border border-card-border px-3 py-2 font-semibold hover:border-green-500 disabled:opacity-50"
         >
-          {mutation.isPending && (
-            <Loader2 size={14} className="animate-spin" />
-          )}
+          {mutation.isPending && <Loader2 size={14} className="animate-spin" />}
           Adjust
         </button>
       </div>
@@ -571,8 +609,16 @@ export function PenaltyCreate({
   return (
     <div className="rounded-xl border border-card-border bg-background p-3 text-sm">
       <p className="font-semibold">Propose a teacher penalty</p>
-      {notice && <div className="mt-2"><Notice>{notice}</Notice></div>}
-      {error && <div className="mt-2"><ErrorNotice>{error}</ErrorNotice></div>}
+      {notice && (
+        <div className="mt-2">
+          <Notice>{notice}</Notice>
+        </div>
+      )}
+      {error && (
+        <div className="mt-2">
+          <ErrorNotice>{error}</ErrorNotice>
+        </div>
+      )}
       <div className="mt-2 flex flex-wrap gap-2">
         <input
           type="number"
@@ -597,9 +643,7 @@ export function PenaltyCreate({
           disabled={mutation.isPending}
           className="inline-flex items-center gap-2 rounded-lg border border-card-border px-3 py-2 font-semibold hover:border-green-500 disabled:opacity-50"
         >
-          {mutation.isPending && (
-            <Loader2 size={14} className="animate-spin" />
-          )}
+          {mutation.isPending && <Loader2 size={14} className="animate-spin" />}
           Add
         </button>
       </div>
@@ -640,7 +684,11 @@ export function PenaltyReview({
           {penalty.status}
         </span>
       </div>
-      {error && <div className="mt-2"><ErrorNotice>{error}</ErrorNotice></div>}
+      {error && (
+        <div className="mt-2">
+          <ErrorNotice>{error}</ErrorNotice>
+        </div>
+      )}
       {penalty.status === "pending" && (
         <div className="mt-2 flex flex-wrap gap-2">
           <input
@@ -711,7 +759,11 @@ export function ReliabilityCard({
           Resolution: {event.resolutionNote}
         </p>
       )}
-      {error && <div className="mt-2"><ErrorNotice>{error}</ErrorNotice></div>}
+      {error && (
+        <div className="mt-2">
+          <ErrorNotice>{error}</ErrorNotice>
+        </div>
+      )}
       {!event.resolvedAt && (
         <div className="mt-2 flex flex-wrap gap-2">
           <input
@@ -794,7 +846,9 @@ export function SalaryCard({
       </div>
       <dl className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
         <div>
-          <dt className="text-xs uppercase tracking-wide opacity-60">Scheduled</dt>
+          <dt className="text-xs uppercase tracking-wide opacity-60">
+            Scheduled
+          </dt>
           <dd>{period.totalScheduledMinutes} min</dd>
         </div>
         <div>
@@ -802,34 +856,54 @@ export function SalaryCard({
           <dd>{period.totalActualMinutes} min</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide opacity-60">Approved</dt>
+          <dt className="text-xs uppercase tracking-wide opacity-60">
+            Approved
+          </dt>
           <dd>{period.totalApprovedMinutes} min</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide opacity-60">Lessons</dt>
+          <dt className="text-xs uppercase tracking-wide opacity-60">
+            Lessons
+          </dt>
           <dd>{period.completedLessons}</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide opacity-60">Penalties</dt>
+          <dt className="text-xs uppercase tracking-wide opacity-60">
+            Penalties
+          </dt>
           <dd>{period.approvedPenaltyEgp.toFixed(2)} EGP</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide opacity-60">Late cancels</dt>
+          <dt className="text-xs uppercase tracking-wide opacity-60">
+            Late cancels
+          </dt>
           <dd>{period.studentLateCancellations}</dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide opacity-60">No-shows</dt>
+          <dt className="text-xs uppercase tracking-wide opacity-60">
+            No-shows
+          </dt>
           <dd>
             {period.teacherNoShows} teacher / {period.studentNoShows} student
           </dd>
         </div>
         <div>
-          <dt className="text-xs uppercase tracking-wide opacity-60">Pending penalties</dt>
+          <dt className="text-xs uppercase tracking-wide opacity-60">
+            Pending penalties
+          </dt>
           <dd>{period.pendingPenaltyEgp.toFixed(2)} EGP</dd>
         </div>
       </dl>
-      {notice && <div className="mt-3"><Notice>{notice}</Notice></div>}
-      {error && <div className="mt-3"><ErrorNotice>{error}</ErrorNotice></div>}
+      {notice && (
+        <div className="mt-3">
+          <Notice>{notice}</Notice>
+        </div>
+      )}
+      {error && (
+        <div className="mt-3">
+          <ErrorNotice>{error}</ErrorNotice>
+        </div>
+      )}
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
         <label className="block">
           <span className="mb-1 block text-xs font-semibold">
@@ -889,9 +963,7 @@ export function SalaryCard({
         disabled={locked || mutation.isPending}
         className="mt-3 inline-flex items-center gap-2 rounded-lg bg-green-500 px-4 py-2 font-semibold text-white hover:bg-green-600 disabled:opacity-50"
       >
-        {mutation.isPending && (
-          <Loader2 size={14} className="animate-spin" />
-        )}
+        {mutation.isPending && <Loader2 size={14} className="animate-spin" />}
         Save salary review
       </button>
     </div>

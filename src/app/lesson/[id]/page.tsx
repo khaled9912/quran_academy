@@ -124,7 +124,16 @@ export default function LessonCallPage() {
       backHref,
       trackAttendance: role === "teacher" || role === "student",
     });
-  }, [showingRoom, lesson, id, room, roomDisplayName, backHref, role, startCall]);
+  }, [
+    showingRoom,
+    lesson,
+    id,
+    room,
+    roomDisplayName,
+    backHref,
+    role,
+    startCall,
+  ]);
 
   if (authLoading || !profile) return null;
 

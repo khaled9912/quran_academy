@@ -152,7 +152,9 @@ function CreditSummary({ preview }: { preview: CancellationPreview }) {
     parts.push("One lesson credit will be restored to the student.");
   }
   if (preview.teacherPayableMinutes > 0) {
-    parts.push(`${preview.teacherPayableMinutes} teacher minutes may be payable.`);
+    parts.push(
+      `${preview.teacherPayableMinutes} teacher minutes may be payable.`
+    );
   }
   if (parts.length === 0) return null;
   return (
@@ -282,7 +284,9 @@ function CancellationSection({
       setError("");
       setNotice("The lesson was cancelled and both sides were notified.");
       void queryClient.invalidateQueries({ queryKey: ["lessons"] });
-      void queryClient.invalidateQueries({ queryKey: ["lesson-ops", lesson.id] });
+      void queryClient.invalidateQueries({
+        queryKey: ["lesson-ops", lesson.id],
+      });
       void queryClient.invalidateQueries({ queryKey: ["student", "credits"] });
     },
     onError: (failure) =>
@@ -334,7 +338,8 @@ function CancellationSection({
                 Credit
               </dt>
               <dd>
-                {outcome === "late_cancellation" || outcome === "student_no_show"
+                {outcome === "late_cancellation" ||
+                outcome === "student_no_show"
                   ? "One credit deducted"
                   : outcome === "free_cancellation" ||
                       outcome === "grace_cancellation"
@@ -476,7 +481,8 @@ function RescheduleSection({
     lesson.status === "scheduled" &&
     new Date(lesson.endsAt).getTime() > Date.now();
 
-  const durationMs = new Date(lesson.endsAt).getTime() - new Date(lesson.startsAt).getTime();
+  const durationMs =
+    new Date(lesson.endsAt).getTime() - new Date(lesson.startsAt).getTime();
   const proposedStart = startsAt ? new Date(startsAt) : null;
   const proposedEnd =
     proposedStart && !Number.isNaN(proposedStart.getTime())
@@ -497,18 +503,23 @@ function RescheduleSection({
       }),
     onSuccess: () => {
       setError("");
-      setNotice("Your reschedule request was sent. The lesson stays as scheduled until it is accepted.");
+      setNotice(
+        "Your reschedule request was sent. The lesson stays as scheduled until it is accepted."
+      );
       refresh();
     },
     onError: (failure) =>
-      setError(
-        errorMessage(failure, "Unable to send the reschedule request.")
-      ),
+      setError(errorMessage(failure, "Unable to send the reschedule request.")),
   });
 
   const respondMutation = useMutation({
-    mutationFn: ({ action, note: reply }: { action: "accept" | "decline"; note: string }) =>
-      respondToRescheduleRequest(pending!.id, action, reply),
+    mutationFn: ({
+      action,
+      note: reply,
+    }: {
+      action: "accept" | "decline";
+      note: string;
+    }) => respondToRescheduleRequest(pending!.id, action, reply),
     onSuccess: (_, variables) => {
       setError("");
       setNotice(
@@ -689,7 +700,9 @@ function MakeupSection({
     onSuccess: () => {
       setError("");
       setNotice("A make-up lesson was scheduled and the student was notified.");
-      void queryClient.invalidateQueries({ queryKey: ["lesson-ops", lesson.id] });
+      void queryClient.invalidateQueries({
+        queryKey: ["lesson-ops", lesson.id],
+      });
       void queryClient.invalidateQueries({ queryKey: ["lessons"] });
     },
     onError: (failure) =>
@@ -775,7 +788,9 @@ function MakeupSection({
         className="space-y-3"
       >
         <label className="block">
-          <span className="mb-1 block font-semibold">Make-up date and time</span>
+          <span className="mb-1 block font-semibold">
+            Make-up date and time
+          </span>
           <input
             type="datetime-local"
             value={startsAt}
@@ -809,11 +824,7 @@ function MakeupSection({
   );
 }
 
-function AttendanceSection({
-  operations,
-}: {
-  operations: LessonOperations;
-}) {
+function AttendanceSection({ operations }: { operations: LessonOperations }) {
   const summary = operations.attendance;
   const hours = operations.hours;
   return (
@@ -931,7 +942,9 @@ function ExcuseSection({
     onSuccess: () => {
       setError("");
       setNotice("Your excuse request was sent for review.");
-      void queryClient.invalidateQueries({ queryKey: ["lesson-ops", lesson.id] });
+      void queryClient.invalidateQueries({
+        queryKey: ["lesson-ops", lesson.id],
+      });
     },
     onError: (failure) =>
       setError(errorMessage(failure, "Unable to send the excuse request.")),
@@ -951,7 +964,9 @@ function ExcuseSection({
             <span className="font-semibold capitalize">{existing.status}</span>{" "}
             · {existing.category.replaceAll("_", " ")}
           </p>
-          <p className="whitespace-pre-line opacity-75">{existing.explanation}</p>
+          <p className="whitespace-pre-line opacity-75">
+            {existing.explanation}
+          </p>
           {existing.adminNote && (
             <p className="rounded-xl bg-background p-3 opacity-75">
               Academy note: {existing.adminNote}
@@ -967,8 +982,8 @@ function ExcuseSection({
         <>
           <p className="text-foreground opacity-70">
             If illness, a family emergency, or a technical problem caused this,
-            ask the academy to review it. An approved excuse restores the
-            lesson credit.
+            ask the academy to review it. An approved excuse restores the lesson
+            credit.
           </p>
           {notice && <Notice>{notice}</Notice>}
           {error && <ErrorNotice>{error}</ErrorNotice>}
@@ -1040,7 +1055,9 @@ function IncidentSection({
     onSuccess: () => {
       setError("");
       setNotice("The issue was reported to the academy.");
-      void queryClient.invalidateQueries({ queryKey: ["lesson-ops", lesson.id] });
+      void queryClient.invalidateQueries({
+        queryKey: ["lesson-ops", lesson.id],
+      });
     },
     onError: (failure) =>
       setError(errorMessage(failure, "Unable to report the issue.")),
@@ -1173,7 +1190,11 @@ export function LessonOperationsPanel({
       <div className="flex items-center gap-2 text-sm text-foreground opacity-60">
         <Clock3 size={15} /> Lesson management updates automatically.
       </div>
-      <CancellationSection lesson={lesson} operations={stable} role={role ?? null} />
+      <CancellationSection
+        lesson={lesson}
+        operations={stable}
+        role={role ?? null}
+      />
       {lesson.status !== "cancelled" && (
         <RescheduleSection
           lesson={lesson}
@@ -1185,7 +1206,11 @@ export function LessonOperationsPanel({
       <MakeupSection lesson={lesson} operations={stable} role={role ?? null} />
       <AttendanceSection operations={stable} />
       <ExcuseSection lesson={lesson} operations={stable} role={role ?? null} />
-      <IncidentSection lesson={lesson} operations={stable} role={role ?? null} />
+      <IncidentSection
+        lesson={lesson}
+        operations={stable}
+        role={role ?? null}
+      />
     </div>
   );
 }

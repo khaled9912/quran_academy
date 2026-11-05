@@ -50,7 +50,11 @@ type Tab = "day" | "queues" | "pay" | "policy";
 
 const tabs: { value: Tab; label: string; icon: React.ReactNode }[] = [
   { value: "day", label: "Day monitor", icon: <CalendarDays size={16} /> },
-  { value: "queues", label: "Review queues", icon: <ClipboardList size={16} /> },
+  {
+    value: "queues",
+    label: "Review queues",
+    icon: <ClipboardList size={16} />,
+  },
   { value: "pay", label: "Salary review", icon: <Wallet size={16} /> },
   { value: "policy", label: "Policy", icon: <Settings2 size={16} /> },
 ];
@@ -143,7 +147,9 @@ function DayLessonRow({
       type="button"
       onClick={onSelect}
       className={`w-full rounded-2xl border bg-card-bg p-4 text-left transition ${
-        selected ? "border-green-500" : "border-card-border hover:border-green-400"
+        selected
+          ? "border-green-500"
+          : "border-card-border hover:border-green-400"
       }`}
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -169,7 +175,9 @@ function DayLessonRow({
               statusStyles[row.lesson.status]
             }`}
           >
-            {phase === "ended" ? "ended" : row.lesson.status.replaceAll("_", " ")}
+            {phase === "ended"
+              ? "ended"
+              : row.lesson.status.replaceAll("_", " ")}
           </span>
           {row.cancellationOutcome && (
             <span className="rounded-full bg-red-500/10 px-2.5 py-0.5 text-xs font-semibold text-red-700 dark:text-red-300">
@@ -460,7 +468,9 @@ function PolicyForm({ policy }: { policy: AcademyPolicy }) {
     },
     onError: (failure) =>
       setError(
-        failure instanceof Error ? failure.message : "Unable to save the policy."
+        failure instanceof Error
+          ? failure.message
+          : "Unable to save the policy."
       ),
   });
 
@@ -534,9 +544,7 @@ function PolicyForm({ policy }: { policy: AcademyPolicy }) {
           disabled={mutation.isPending}
           className="inline-flex items-center gap-2 rounded-xl bg-green-500 px-5 py-2.5 font-semibold text-white hover:bg-green-600 disabled:opacity-50"
         >
-          {mutation.isPending && (
-            <Loader2 size={16} className="animate-spin" />
-          )}
+          {mutation.isPending && <Loader2 size={16} className="animate-spin" />}
           Save policy
         </button>
       </form>
@@ -725,10 +733,19 @@ export default function AdminLessonOpsPage() {
                     <Stat label="Live now" value={summary.liveNow} />
                     <Stat label="Upcoming" value={summary.upcoming} />
                     <Stat label="Reports due" value={summary.pendingReports} />
-                    <Stat label="No attendance" value={summary.missingAttendance} />
-                    <Stat label="Reschedules" value={summary.pendingReschedules} />
+                    <Stat
+                      label="No attendance"
+                      value={summary.missingAttendance}
+                    />
+                    <Stat
+                      label="Reschedules"
+                      value={summary.pendingReschedules}
+                    />
                     <Stat label="Excuses" value={summary.pendingExcuses} />
-                    <Stat label="No-show incidents" value={summary.noShowIncidents} />
+                    <Stat
+                      label="No-show incidents"
+                      value={summary.noShowIncidents}
+                    />
                     <Stat label="Hours pending" value={summary.pendingHours} />
                   </div>
                 )}
