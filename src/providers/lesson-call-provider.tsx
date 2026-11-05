@@ -11,8 +11,10 @@ import {
 } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Minimize2, PhoneOff, PictureInPicture2 } from "lucide-react";
+import { Minimize2, PenLine, PhoneOff, PictureInPicture2 } from "lucide-react";
 import { JitsiRoom } from "@/components/JitsiRoom";
+import { LessonPenOverlay } from "@/components/lesson/LessonPenOverlay";
+import { useAuth } from "@/providers/auth-provider";
 import { sendAttendanceEvent } from "@/services/lesson.service";
 import type { JitsiExternalApi } from "@/types/jitsi";
 
@@ -219,7 +221,17 @@ function LessonCallHost({
   const apiRef = useRef<JitsiExternalApi | null>(null);
   const [pipSupported, setPipSupported] = useState(false);
   const [pipActive, setPipActive] = useState(false);
+  const [penActive, setPenActive] = useState(false);
   const wasExpanded = useRef(expanded);
+  const { role } = useAuth();
+  // The server enforces the same rule; this only decides who sees the button.
+  const canMark =
+    role === "teacher" || role === "admin" || role === "super_admin";
+
+  // Marking takes over the pointer, so leaving the full room must drop it.
+  useEffect(() => {
+    if (!expanded) setPenActive(false);
+  }, [expanded, call.lessonId]);
 
   useEffect(() => {
     setPipSupported(
@@ -290,6 +302,28 @@ function LessonCallHost({
           Lesson in progress
         </span>
         <div className="flex shrink-0 items-center gap-1">
+          {expanded && canMark && (
+            <button
+              type="button"
+              onClick={() => setPenActive((value) => !value)}
+              aria-label={
+                penActive ? "Stop marking the screen" : "Mark on the screen"
+              }
+              aria-pressed={penActive}
+              title={
+                penActive
+                  ? "Stop marking"
+                  : "Mark words on the shared screen for your student"
+              }
+              className={`rounded-lg p-1.5 transition ${
+                penActive
+                  ? "bg-amber-400 text-black hover:bg-amber-300"
+                  : "bg-white/10 hover:bg-white/20"
+              }`}
+            >
+              <PenLine size={14} />
+            </button>
+          )}
           {!expanded && (
             <Link
               href={`/lesson/${call.lessonId}`}
@@ -360,8 +394,16 @@ function LessonCallHost({
           alt="Ana Quran"
           className={`pointer-events-none absolute left-3 top-3 z-10 w-auto drop-shadow-[0_1px_6px_rgba(0,0,0,0.65)] ${
             expanded ? "h-12 sm:h-16" : "h-8"
-          }`}
+          } ${penActive && expanded ? "hidden" : ""}`}
         />
+        {expanded && (
+          <LessonPenOverlay
+            lessonId={call.lessonId}
+            active={penActive}
+            canDraw={canMark}
+            onDone={() => setPenActive(false)}
+          />
+        )}
       </div>
     </div>
   );

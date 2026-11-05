@@ -30,6 +30,10 @@ export const getAssignedWeeklyAvailability = () =>
   backendFetch<WeeklyAvailability>("/api/student/teacher/weekly-availability");
 export const getMySeries = () =>
   backendFetch<LessonSeries[]>("/api/student/series");
+export const endWeeklySeries = (seriesId: string) =>
+  backendFetch<null>(`/api/student/series/${encodeURIComponent(seriesId)}`, {
+    method: "DELETE",
+  });
 export const bookWeeklySlots = (ruleIds: string[]) =>
   backendFetch<BookWeeklySlotsResult>("/api/student/bookings", {
     method: "POST",

@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   HubConnection,
   HubConnectionBuilder,
@@ -78,6 +85,25 @@ const INVALIDATE_DEBOUNCE_MS = 250;
 type RealtimeTicket = { token: string; expiresAt: string; hub: string };
 type ChangedEvent = { scope?: string };
 
+interface RealtimeConnectionValue {
+  /** Null while the socket is down; consumers can safely wait for it. */
+  connection: HubConnection | null;
+  /** Bumped on every successful (re)connect so consumers can re-subscribe. */
+  revision: number;
+}
+
+const RealtimeConnectionContext = createContext<RealtimeConnectionValue>({
+  connection: null,
+  revision: 0,
+});
+
+/**
+ * Escape hatch for features that need the live socket itself (lesson pens).
+ * Query invalidation still belongs to the provider; nothing else should join
+ * groups or listen to hub events from UI code without a reason.
+ */
+export const useRealtimeConnection = () => useContext(RealtimeConnectionContext);
+
 const resolveHubUrl = (ticket: RealtimeTicket) => {
   const override = (process.env.NEXT_PUBLIC_REALTIME_URL ?? "")
     .trim()
@@ -92,12 +118,15 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const ticketRef = useRef<RealtimeTicket | null>(null);
+  const [liveConnection, setLiveConnection] = useState<HubConnection | null>(null);
+  const [revision, setRevision] = useState(0);
 
   useEffect(() => {
     if (!isAuthenticated) return;
 
     // A cached ticket belongs to the session that requested it.
     ticketRef.current = null;
+    setLiveConnection(null);
     let stopped = false;
     let connection: HubConnection | null = null;
     let retryTimer: number | undefined;
@@ -181,9 +210,11 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
           retryAttempts = 0;
           // Events published while offline are gone; refetch everything.
           void queryClient.invalidateQueries();
+          setRevision((value) => value + 1);
         });
         next.onclose(() => {
           connection = null;
+          setLiveConnection(null);
           scheduleRetry();
         });
         await next.start();
@@ -193,6 +224,8 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         }
         connection = next;
         retryAttempts = 0;
+        setLiveConnection(next);
+        setRevision((value) => value + 1);
       } catch {
         scheduleRetry();
       }
@@ -221,9 +254,19 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       if (flushTimer !== undefined) window.clearTimeout(flushTimer);
       const current = connection;
       connection = null;
+      setLiveConnection(null);
       if (current) void current.stop();
     };
   }, [isAuthenticated, queryClient]);
 
-  return <>{children}</>;
+  const connectionValue = useMemo(
+    () => ({ connection: liveConnection, revision }),
+    [liveConnection, revision]
+  );
+
+  return (
+    <RealtimeConnectionContext.Provider value={connectionValue}>
+      {children}
+    </RealtimeConnectionContext.Provider>
+  );
 }

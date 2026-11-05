@@ -42,14 +42,14 @@ const Navbar = () => {
             alt="Ana Quran logo"
             width={40}
             height={56}
-            className="navbar-brand-logo h-14 w-auto dark:hidden"
+            className="navbar-brand-logo h-16 w-auto dark:hidden"
           />
           <img
             src="/logo-ana-quran-light.svg?v=2026-10-31-6"
             alt="Ana Quran logo"
             width={40}
             height={56}
-            className="navbar-brand-logo hidden h-14 w-auto dark:block"
+            className="navbar-brand-logo hidden h-16 w-auto dark:block"
           />
         </Link>
         <div className="flex items-center gap-2">
@@ -71,14 +71,14 @@ const Navbar = () => {
               alt="Ana Quran logo"
               width={46}
               height={64}
-              className="navbar-brand-logo h-16 w-auto dark:hidden"
+              className="navbar-brand-logo h-[4.5rem] w-auto dark:hidden"
             />
             <img
               src="/logo-ana-quran-light.svg?v=2026-10-31-6"
               alt="Ana Quran logo"
               width={46}
               height={64}
-              className="navbar-brand-logo hidden h-16 w-auto dark:block"
+              className="navbar-brand-logo hidden h-[4.5rem] w-auto dark:block"
             />
           </Link>
 

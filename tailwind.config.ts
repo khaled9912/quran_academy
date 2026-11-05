@@ -11,10 +11,10 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-        "card-bg": "var(--card-bg)",
-        "card-border": "var(--card-border)",
+        background: "rgb(var(--background-rgb) / <alpha-value>)",
+        foreground: "rgb(var(--foreground-rgb) / <alpha-value>)",
+        "card-bg": "rgb(var(--card-bg-rgb) / <alpha-value>)",
+        "card-border": "rgb(var(--card-border-rgb) / <alpha-value>)",
       },
     },
   },

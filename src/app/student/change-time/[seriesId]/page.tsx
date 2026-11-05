@@ -2,10 +2,11 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import {
+  endWeeklySeries,
   getMyChangeRequests,
   getMySeries,
   getTeacherWeeklyAvailability,
@@ -30,6 +31,7 @@ const DAY_ORDER = [6, 0, 1, 2, 3, 4, 5];
 export default function ChangeWeeklyTimePage() {
   const params = useParams<{ seriesId: string }>();
   const seriesId = params?.seriesId ?? "";
+  const router = useRouter();
   const { role } = useAuth();
   const queryClient = useQueryClient();
   const viewerTimeZone = getViewerTimeZone();
@@ -118,6 +120,43 @@ export default function ChangeWeeklyTimePage() {
       );
     },
   });
+
+  const endSeries = useMutation({
+    mutationFn: () =>
+      series
+        ? endWeeklySeries(series.id)
+        : Promise.reject(new Error("This weekly time no longer exists.")),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["series"] }),
+        queryClient.invalidateQueries({ queryKey: ["availability"] }),
+        queryClient.invalidateQueries({ queryKey: ["change-requests"] }),
+        queryClient.invalidateQueries({ queryKey: ["lessons"] }),
+      ]);
+      router.push("/student/availability");
+    },
+    onError: (error) => {
+      setNotice("");
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : "Unable to end the weekly time. Please try again."
+      );
+    },
+  });
+
+  const confirmEndSeries = () => {
+    if (!series) return;
+    if (
+      !window.confirm(
+        `End these weekly lessons?\n\nThis cancels your future lessons with ${series.teacherName} and lets your teacher know. You can book a new weekly time at any time.`
+      )
+    )
+      return;
+    setFormError("");
+    setNotice("");
+    endSeries.mutate();
+  };
 
   if (role !== "student") {
     return (
@@ -312,10 +351,30 @@ export default function ChangeWeeklyTimePage() {
                   )}
                 </div>
               ) : (
-                <p className="mt-4 rounded-2xl border border-dashed border-card-border p-8 text-center text-sm text-foreground/60">
-                  {series.teacherName} has not announced any other weekly times
-                  right now.
-                </p>
+                <div className="mt-4 rounded-2xl border border-dashed border-card-border p-8 text-center">
+                  <p className="font-semibold">No other times available</p>
+                  <p className="mt-2 text-sm text-foreground/60">
+                    {series.teacherName} has not announced any other weekly
+                    times right now. You can look for another teacher, or end
+                    this weekly time.
+                  </p>
+                  <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
+                    <Link
+                      href="/student/availability"
+                      className="rounded-xl bg-[#1c5145] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#163f36] dark:bg-green-600 dark:hover:bg-green-500"
+                    >
+                      Browse other teachers
+                    </Link>
+                    <button
+                      type="button"
+                      disabled={endSeries.isPending}
+                      onClick={confirmEndSeries}
+                      className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-300"
+                    >
+                      {endSeries.isPending ? "Ending…" : "End weekly lessons"}
+                    </button>
+                  </div>
+                </div>
               )}
             </section>
 

@@ -99,6 +99,7 @@ const outcomeLabels: Record<string, string> = {
   student_no_show: "Student no-show",
   teacher_no_show: "Teacher no-show",
   both_absent: "Both absent",
+  series_ended: "Weekly lessons ended",
 };
 
 const statusStyles: Record<LessonStatus, string> = {

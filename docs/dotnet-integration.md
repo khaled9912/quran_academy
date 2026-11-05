@@ -278,6 +278,7 @@ It creates one rule per weekday and returns `201` with the created `WeeklyRuleDt
 | ------ | ------------------------------------------------ | ------------------------------------------------------- |
 | GET    | `/api/student/change-requests`                   | The student's own change requests                       |
 | POST   | `/api/student/series/{seriesId}/change-requests` | Request `{ "requestedRuleId": "uuid", "note"?: "..." }` |
+| DELETE | `/api/student/series/{seriesId}`                 | End a weekly series (`204`); future lessons cancelled    |
 | GET    | `/api/admin/change-requests?status=pending`      | Admin queue (`pending`, `approved`, `rejected`)         |
 | POST   | `/api/admin/change-requests/{id}/approve`        | Move the series to the requested rule                   |
 | POST   | `/api/admin/change-requests/{id}/reject`         | Decline with `{ "note"?: "..." }`                       |
@@ -307,7 +308,9 @@ A change request returns:
 }
 ```
 
-The student may have only one pending request per series (`409`). The requested rule must belong to the same teacher (`404`), must differ from the current rule, must still be open, and must not overlap another of the student's series (`409`). Approving retargets the series to the requested rule in a serializable transaction, replaces that series' future lessons, and returns `409` if the slot was taken in the meantime. Rejecting keeps the original schedule and stores the optional `adminNote` for the student to read.
+The student may have only one pending request per series (`409`). The requested rule must belong to the same teacher (`404`), must differ from the current rule, must still be open, and must not overlap another of the student's series (`409`). Creating a request adds a notification for the teacher ("Time change requested", without the requested time) so they know the academy will contact them. Approving retargets the series to the requested rule in a serializable transaction, replaces that series' future lessons, and returns `409` if the slot was taken in the meantime. Rejecting keeps the original schedule and stores the optional `adminNote` for the student to read.
+
+`DELETE /api/student/series/{seriesId}` ends the student's own weekly series. It deactivates the series, cancels its future scheduled lessons with `cancellationOutcome = "series_ended"`, declines any pending change request for that series, and deactivates the teacher assignment when no other active series with that teacher remains. The teacher receives a notification; the response is `204`. The slot becomes bookable again immediately.
 
 ### Booking consistency requirements
 
@@ -319,7 +322,7 @@ These are backend responsibilities, not frontend checks:
 4. Reject a booking that overlaps another of the student's series, the teacher's calendar, or the student's calendar for the next 8 weeks.
 5. Materialize 8 weeks of lessons per series and roll the window forward whenever lessons are read.
 6. Store instants as UTC (`timestamp with time zone`), weekly times as `time`, and zones as IANA ids; resolve daylight-saving transitions when materializing.
-7. Key the admin-only change request on `seriesId`, keep one pending request per series, and never expose it to the teacher.
+7. Key the admin-only change request on `seriesId`, keep one pending request per series, and never expose the requested time to the teacher (they only get a "being reviewed" notice).
 8. Derive actor identity and role from the validated server-side session, never from request JSON or browser cookies.
 
 ## Confirmed lessons
@@ -465,6 +468,20 @@ Either participant can open the room; there is no presence check that blocks the
 Admins and super admins can open any confirmed lesson room as academy support: `/admin/lessons` lists live, upcoming, and past lessons with a link to `/lesson/{id}`. The API already authorizes admins on the lesson, report, and review reads; the room adds "(Academy support)" to the admin's Jitsi display name so the teacher and student know why a third person joined. The start-time gate still applies to admins, and the room allows three participants (there is no participant cap on the Jitsi deployment).
 
 The room is unlisted, not access-controlled. The Jitsi room itself is unlisted rather than locked: anyone who knows the room name can join directly on the Jitsi deployment, and display names are not verified. Real enforcement requires a JWT-enabled Jitsi (JaaS or self-hosted) where only the teacher receives a moderator token and the room is protected by lobby or required moderator.
+
+### Screen marking (lesson pen)
+
+Jitsi cannot annotate a live screen share, so marks travel over the existing realtime hub as a lesson-scoped ink layer. Clients draw on a transparent canvas/SVG over the Jitsi view; points are normalized to that overlay (`0..1`) and the REST layer is not involved.
+
+| Hub method                                             | Purpose                                                                                                  |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `JoinLessonPen(lessonId)`                              | Participant-only. Adds the connection to `lesson-pen:{lessonId}` and returns `{ strokes: [{ id, color, width, points }] }` |
+| `StartPenStroke(lessonId, strokeId, color, width, x, y)` | Drawer-only. Broadcasts `PenStrokeStarted { id, color, width, x, y }` to the other participants         |
+| `AppendPenStroke(lessonId, strokeId, points)`          | Drawer-only. `points` is `[x, y, ...]` (at most 256 doubles per call); broadcasts `PenStrokeAppended`     |
+| `EndPenStroke(lessonId, strokeId)`                     | Drawer-only. Broadcasts `PenStrokeEnded`                                                                 |
+| `ClearLessonPen(lessonId)`                             | Drawer-only. Broadcasts `PenCleared`                                                                     |
+
+Only the lesson's teacher, an admin, or a super admin may draw; support staff and students receive the marks read-only. Ink is ephemeral in-memory state (newest 400 strokes, dropped after 6 idle hours) and is never persisted. Points are normalized to each viewer's own stage, so a share that is letterboxed or cropped differently — especially a portrait phone — can drift from the shared picture.
 
 ## Lesson transcripts and off-platform flags
 

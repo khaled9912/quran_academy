@@ -67,6 +67,7 @@ const outcomeLabels: Record<string, string> = {
   student_no_show: "Student no-show",
   teacher_no_show: "Teacher no-show",
   both_absent: "Both participants absent",
+  series_ended: "Weekly lessons ended",
 };
 
 const rescheduleStatusLabels: Record<string, string> = {
