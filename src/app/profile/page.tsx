@@ -277,7 +277,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-background text-foreground pt-24 pb-16">
       <div className="mx-auto max-w-6xl px-4 md:px-8 lg:px-16">
         <div className="mb-8">
-          <p className="text-sm font-bold uppercase tracking-[.18em] text-green-600">
+          <p className="text-sm font-bold uppercase tracking-[.18em] text-green-600 dark:text-green-400">
             Your account
           </p>
           <h1 className="mt-2 text-4xl font-bold">Profile</h1>
@@ -297,13 +297,13 @@ export default function ProfilePage() {
                 className="h-32 w-32 rounded-3xl text-3xl"
               />
               <p className="mt-4 text-sm font-semibold">{fullName || "—"}</p>
-              <span className="mt-1 rounded-full bg-green-100 px-3 py-1 text-xs font-semibold capitalize text-green-800">
+              <span className="mt-1 rounded-full bg-green-100 dark:bg-green-500/15 px-3 py-1 text-xs font-semibold capitalize text-green-800 dark:text-green-300">
                 {profile.role.replace("_", " ")}
               </span>
               {isTeacher && (
                 <Link
                   href={`/teachers/${profile.id}`}
-                  className="mt-3 text-sm font-semibold text-green-600 hover:underline"
+                  className="mt-3 text-sm font-semibold text-green-600 dark:text-green-400 hover:underline"
                 >
                   View public profile & reviews →
                 </Link>
@@ -339,7 +339,7 @@ export default function ProfilePage() {
                   type="button"
                   onClick={() => removeAvatarMutation.mutate()}
                   disabled={busy}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-red-300 px-4 py-3 font-semibold text-red-600 transition hover:bg-red-500/10 disabled:opacity-50"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-red-300 dark:border-red-500/30 px-4 py-3 font-semibold text-red-600 dark:text-red-400 transition hover:bg-red-500/10 disabled:opacity-50"
                 >
                   <Trash2 size={18} />
                   {removeAvatarMutation.isPending
@@ -351,7 +351,10 @@ export default function ProfilePage() {
                 PNG, JPEG, or WebP. Up to 2 MB.
               </p>
               {avatarError && (
-                <p role="alert" className="text-sm text-red-600">
+                <p
+                  role="alert"
+                  className="text-sm text-red-600 dark:text-red-400"
+                >
                   {avatarError}
                 </p>
               )}
@@ -436,7 +439,7 @@ export default function ProfilePage() {
               {notice && (
                 <p
                   role="status"
-                  className="flex items-start gap-2 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800"
+                  className="flex items-start gap-2 rounded-xl border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 p-4 text-sm text-green-800 dark:text-green-300"
                 >
                   <CheckCircle2 size={18} className="mt-0.5 shrink-0" />
                   {notice}
@@ -445,7 +448,7 @@ export default function ProfilePage() {
               {formError && (
                 <p
                   role="alert"
-                  className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+                  className="rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
                 >
                   {formError}
                 </p>
@@ -467,7 +470,10 @@ export default function ProfilePage() {
 
         <section className="mt-8 rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
           <h2 className="flex items-center gap-2 text-lg font-semibold">
-            <KeyRound size={20} className="text-green-600" />
+            <KeyRound
+              size={20}
+              className="text-green-600 dark:text-green-400"
+            />
             Password
           </h2>
           <p className="mt-1 text-sm text-foreground opacity-70">
@@ -542,7 +548,7 @@ export default function ProfilePage() {
               {passwordNotice && (
                 <p
                   role="status"
-                  className="mt-4 flex items-start gap-2 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800"
+                  className="mt-4 flex items-start gap-2 rounded-xl border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 p-4 text-sm text-green-800 dark:text-green-300"
                 >
                   <CheckCircle2 size={18} className="mt-0.5 shrink-0" />
                   {passwordNotice}
@@ -551,7 +557,7 @@ export default function ProfilePage() {
               {passwordError && (
                 <p
                   role="alert"
-                  className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+                  className="mt-4 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
                 >
                   {passwordError}
                 </p>
@@ -573,7 +579,10 @@ export default function ProfilePage() {
 
         <section className="mt-8 rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
           <h2 className="flex items-center gap-2 text-lg font-semibold">
-            <ClipboardList size={20} className="text-green-600" />
+            <ClipboardList
+              size={20}
+              className="text-green-600 dark:text-green-400"
+            />
             {isTeacher ? "Reports you submitted" : "Class reports"}
           </h2>
           <p className="mt-1 text-sm text-foreground opacity-70">
@@ -589,7 +598,7 @@ export default function ProfilePage() {
           ) : reportsQuery.error ? (
             <p
               role="alert"
-              className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+              className="mt-5 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
             >
               {reportsQuery.error instanceof Error
                 ? reportsQuery.error.message
@@ -637,7 +646,7 @@ export default function ProfilePage() {
                   </div>
                   <Link
                     href={`/lesson/${report.lessonId}`}
-                    className="mt-3 inline-block text-sm font-semibold text-green-600 hover:underline"
+                    className="mt-3 inline-block text-sm font-semibold text-green-600 dark:text-green-400 hover:underline"
                   >
                     Open lesson →
                   </Link>

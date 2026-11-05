@@ -51,10 +51,11 @@ const timeLabel = (value: string) =>
   });
 
 const statusStyles: Record<Lesson["status"], string> = {
-  scheduled: "bg-green-100 text-green-800",
-  in_progress: "bg-sky-100 text-sky-800",
-  completed: "bg-gray-100 text-gray-700",
-  cancelled: "bg-red-100 text-red-700",
+  scheduled:
+    "bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300",
+  in_progress: "bg-sky-100 dark:bg-sky-500/15 text-sky-800 dark:text-sky-300",
+  completed: "bg-gray-100 dark:bg-gray-500/15 text-gray-700 dark:text-gray-300",
+  cancelled: "bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-300",
 };
 
 const cancellationLabels: Record<string, string> = {
@@ -144,7 +145,7 @@ export default function StudentSchedulePage() {
           <div>
             <Link
               href="/student/dashboard"
-              className="text-green-600 hover:text-green-700 mb-3 inline-block"
+              className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-400 mb-3 inline-block"
             >
               ← Back to dashboard
             </Link>
@@ -188,7 +189,7 @@ export default function StudentSchedulePage() {
         {lessonsQuery.error && (
           <p
             role="alert"
-            className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            className="mb-6 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
           >
             {lessonsQuery.error instanceof Error
               ? lessonsQuery.error.message
@@ -203,7 +204,10 @@ export default function StudentSchedulePage() {
             {groups.map(([day, lessonsForDay]) => (
               <section key={day}>
                 <h2 className="mb-3 flex items-center gap-2 text-xl font-semibold">
-                  <CalendarDays size={18} className="text-green-600" />
+                  <CalendarDays
+                    size={18}
+                    className="text-green-600 dark:text-green-400"
+                  />
                   {dayLabel(lessonsForDay[0].startsAt)}
                 </h2>
                 <div className="space-y-3">
@@ -238,18 +242,18 @@ export default function StudentSchedulePage() {
                         <div className="flex flex-col items-end gap-2">
                           <span className="flex flex-wrap justify-end gap-2">
                             {lesson.isTrial && (
-                              <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
+                              <span className="rounded-full bg-sky-100 dark:bg-sky-500/15 px-3 py-1 text-xs font-semibold text-sky-800 dark:text-sky-300">
                                 Trial
                               </span>
                             )}
                             {lesson.isMakeup && (
-                              <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
+                              <span className="rounded-full bg-green-100 dark:bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-800 dark:text-green-300">
                                 Make-up
                               </span>
                             )}
                             {lesson.status === "cancelled" &&
                             lesson.cancellationOutcome ? (
-                              <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+                              <span className="rounded-full bg-red-100 dark:bg-red-500/15 px-3 py-1 text-xs font-semibold text-red-700 dark:text-red-300">
                                 {cancellationLabels[
                                   lesson.cancellationOutcome
                                 ] ?? "Cancelled"}
@@ -317,7 +321,7 @@ export default function StudentSchedulePage() {
                 No upcoming lessons.{" "}
                 <Link
                   href="/student/availability"
-                  className="font-semibold text-green-600 hover:underline"
+                  className="font-semibold text-green-600 dark:text-green-400 hover:underline"
                 >
                   Choose weekly times
                 </Link>

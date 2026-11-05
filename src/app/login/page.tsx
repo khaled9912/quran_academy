@@ -239,7 +239,7 @@ const LoginPage = () => {
                 </label>
                 <Link
                   href="/forgot-password"
-                  className="text-xs font-semibold text-green-600 hover:underline"
+                  className="text-xs font-semibold text-green-600 dark:text-green-400 hover:underline"
                 >
                   Forgot password?
                 </Link>
@@ -329,7 +329,7 @@ const LoginPage = () => {
                 Sent to {sentTo}.
               </p>
               {devCode && (
-                <p className="mt-2 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-700">
+                <p className="mt-2 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300">
                   Development code:{" "}
                   <span className="font-bold tracking-widest">{devCode}</span>
                 </p>
@@ -369,7 +369,7 @@ const LoginPage = () => {
             <button
               type="button"
               onClick={resetPhoneFlow}
-              className="w-full text-center text-sm font-semibold text-green-600 hover:underline"
+              className="w-full text-center text-sm font-semibold text-green-600 dark:text-green-400 hover:underline"
             >
               Use a different number
             </button>
@@ -377,7 +377,10 @@ const LoginPage = () => {
         )}
 
         {message && (
-          <p role="alert" className="mt-4 text-center text-sm text-red-500">
+          <p
+            role="alert"
+            className="mt-4 text-center text-sm text-red-500 dark:text-red-400"
+          >
             {message}
           </p>
         )}
@@ -386,7 +389,7 @@ const LoginPage = () => {
           New here?{" "}
           <Link
             href="/signup"
-            className="font-semibold text-green-500 hover:underline"
+            className="font-semibold text-green-500 dark:text-green-400 hover:underline"
           >
             Create account
           </Link>

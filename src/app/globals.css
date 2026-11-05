@@ -101,18 +101,10 @@ body {
   opacity: 1;
 }
 
-:root[data-theme="dark"] .navbar img.navbar-brand-logo {
-  filter: brightness(1.55) saturate(1.1);
-}
-
 @media (prefers-color-scheme: dark) {
   .navbar img {
     mix-blend-mode: screen;
     opacity: 1;
-  }
-
-  :root:not([data-theme]) .navbar img.navbar-brand-logo {
-    filter: brightness(1.55) saturate(1.1);
   }
 }
 

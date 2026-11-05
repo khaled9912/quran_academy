@@ -164,7 +164,7 @@ export default function ForgotPasswordPage() {
                   Sent to {email}.
                 </p>
                 {devCode && (
-                  <p className="mt-2 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-700">
+                  <p className="mt-2 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300">
                     Development code:{" "}
                     <span className="font-bold tracking-widest">{devCode}</span>
                   </p>
@@ -224,7 +224,7 @@ export default function ForgotPasswordPage() {
                   setError("");
                   setMessage("");
                 }}
-                className="w-full text-center text-sm font-semibold text-green-600 hover:underline"
+                className="w-full text-center text-sm font-semibold text-green-600 dark:text-green-400 hover:underline"
               >
                 Use a different email
               </button>
@@ -234,7 +234,7 @@ export default function ForgotPasswordPage() {
 
         {step === "done" && (
           <div className="space-y-5">
-            <p className="rounded-xl border border-green-200 bg-green-50 p-4 text-center text-sm text-green-800">
+            <p className="rounded-xl border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 p-4 text-center text-sm text-green-800 dark:text-green-300">
               Your password has been reset. Sign in with your new password.
             </p>
             <Link
@@ -247,7 +247,10 @@ export default function ForgotPasswordPage() {
         )}
 
         {error && (
-          <p role="alert" className="mt-4 text-center text-sm text-red-500">
+          <p
+            role="alert"
+            className="mt-4 text-center text-sm text-red-500 dark:text-red-400"
+          >
             {error}
           </p>
         )}
@@ -257,7 +260,7 @@ export default function ForgotPasswordPage() {
             Remembered it?{" "}
             <Link
               href="/login"
-              className="font-semibold text-green-500 hover:underline"
+              className="font-semibold text-green-500 dark:text-green-400 hover:underline"
             >
               Sign in
             </Link>

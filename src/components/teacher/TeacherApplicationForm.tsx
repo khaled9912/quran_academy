@@ -207,7 +207,7 @@ export function TeacherApplicationForm() {
   if (status === "success") {
     return (
       <div className="rounded-3xl border border-green-500/30 bg-green-500/10 p-8 text-center">
-        <CheckCircle2 className="mx-auto mb-4 h-12 w-12 text-green-600" />
+        <CheckCircle2 className="mx-auto mb-4 h-12 w-12 text-green-600 dark:text-green-400" />
         <h2 className="text-2xl font-semibold mb-2">Application received</h2>
         <p className="text-foreground opacity-80 mb-4">
           Thank you, {fullName.trim()}. Our team will review your CV and contact
@@ -229,7 +229,7 @@ export function TeacherApplicationForm() {
       {submitError && (
         <p
           role="alert"
-          className="mb-6 rounded-xl border border-red-400/40 bg-red-500/10 p-4 text-sm text-red-600"
+          className="mb-6 rounded-xl border border-red-400/40 bg-red-500/10 p-4 text-sm text-red-600 dark:text-red-400"
         >
           {submitError}
         </p>
@@ -241,7 +241,7 @@ export function TeacherApplicationForm() {
             htmlFor="fullName"
             className="mb-2 block text-sm font-semibold"
           >
-            Full name <span className="text-red-500">*</span>
+            Full name <span className="text-red-500 dark:text-red-400">*</span>
           </label>
           <input
             id="fullName"
@@ -253,13 +253,15 @@ export function TeacherApplicationForm() {
             }`}
           />
           {errors.fullName && (
-            <p className="mt-2 text-xs text-red-500">{errors.fullName}</p>
+            <p className="mt-2 text-xs text-red-500 dark:text-red-400">
+              {errors.fullName}
+            </p>
           )}
         </div>
 
         <div>
           <label htmlFor="email" className="mb-2 block text-sm font-semibold">
-            Email <span className="text-red-500">*</span>
+            Email <span className="text-red-500 dark:text-red-400">*</span>
           </label>
           <input
             id="email"
@@ -270,13 +272,16 @@ export function TeacherApplicationForm() {
             className={`${inputClass} ${errors.email ? "border-red-400" : ""}`}
           />
           {errors.email && (
-            <p className="mt-2 text-xs text-red-500">{errors.email}</p>
+            <p className="mt-2 text-xs text-red-500 dark:text-red-400">
+              {errors.email}
+            </p>
           )}
         </div>
 
         <div className="sm:col-span-2">
           <label htmlFor="phone" className="mb-2 block text-sm font-semibold">
-            Mobile number <span className="text-red-500">*</span>
+            Mobile number{" "}
+            <span className="text-red-500 dark:text-red-400">*</span>
           </label>
           <PhoneInput
             id="phone"
@@ -292,7 +297,8 @@ export function TeacherApplicationForm() {
 
         <div className="sm:col-span-2">
           <span className="mb-2 block text-sm font-semibold">
-            Subjects you teach <span className="text-red-500">*</span>
+            Subjects you teach{" "}
+            <span className="text-red-500 dark:text-red-400">*</span>
           </span>
           <div className="grid gap-3 sm:grid-cols-2">
             {teacherSubjects.map((subject) => {
@@ -318,13 +324,16 @@ export function TeacherApplicationForm() {
             })}
           </div>
           {errors.subjects && (
-            <p className="mt-2 text-xs text-red-500">{errors.subjects}</p>
+            <p className="mt-2 text-xs text-red-500 dark:text-red-400">
+              {errors.subjects}
+            </p>
           )}
         </div>
 
         <div className="sm:col-span-2">
           <span className="mb-2 block text-sm font-semibold">
-            English level <span className="text-red-500">*</span>
+            English level{" "}
+            <span className="text-red-500 dark:text-red-400">*</span>
           </span>
           <div className="grid gap-3 sm:grid-cols-2">
             {englishLevels.map((level) => {
@@ -358,7 +367,9 @@ export function TeacherApplicationForm() {
             })}
           </div>
           {errors.englishLevel && (
-            <p className="mt-2 text-xs text-red-500">{errors.englishLevel}</p>
+            <p className="mt-2 text-xs text-red-500 dark:text-red-400">
+              {errors.englishLevel}
+            </p>
           )}
         </div>
 
@@ -367,7 +378,8 @@ export function TeacherApplicationForm() {
             htmlFor="experienceYears"
             className="mb-2 block text-sm font-semibold"
           >
-            Years of teaching experience <span className="text-red-500">*</span>
+            Years of teaching experience{" "}
+            <span className="text-red-500 dark:text-red-400">*</span>
           </label>
           <input
             id="experienceYears"
@@ -382,7 +394,7 @@ export function TeacherApplicationForm() {
             }`}
           />
           {errors.experienceYears && (
-            <p className="mt-2 text-xs text-red-500">
+            <p className="mt-2 text-xs text-red-500 dark:text-red-400">
               {errors.experienceYears}
             </p>
           )}
@@ -406,7 +418,7 @@ export function TeacherApplicationForm() {
             }`}
           />
           {errors.availabilityNote && (
-            <p className="mt-2 text-xs text-red-500">
+            <p className="mt-2 text-xs text-red-500 dark:text-red-400">
               {errors.availabilityNote}
             </p>
           )}
@@ -414,7 +426,7 @@ export function TeacherApplicationForm() {
 
         <div className="sm:col-span-2">
           <label htmlFor="bio" className="mb-2 block text-sm font-semibold">
-            About you <span className="text-red-500">*</span>
+            About you <span className="text-red-500 dark:text-red-400">*</span>
           </label>
           <textarea
             id="bio"
@@ -430,7 +442,9 @@ export function TeacherApplicationForm() {
           <div className="mt-2 flex items-center justify-between text-xs opacity-70">
             <span>
               {errors.bio ? (
-                <span className="text-red-500">{errors.bio}</span>
+                <span className="text-red-500 dark:text-red-400">
+                  {errors.bio}
+                </span>
               ) : (
                 "20 to 2000 characters."
               )}
@@ -441,12 +455,15 @@ export function TeacherApplicationForm() {
 
         <div className="sm:col-span-2">
           <span className="mb-2 block text-sm font-semibold">
-            CV <span className="text-red-500">*</span>
+            CV <span className="text-red-500 dark:text-red-400">*</span>
           </span>
           {cv ? (
             <div className="flex items-center justify-between gap-3 rounded-xl border border-green-500/40 bg-green-500/5 px-4 py-3">
               <span className="flex min-w-0 items-center gap-2 text-sm">
-                <FileText size={18} className="shrink-0 text-green-600" />
+                <FileText
+                  size={18}
+                  className="shrink-0 text-green-600 dark:text-green-400"
+                />
                 <span className="truncate">{cv.name}</span>
                 <span className="shrink-0 opacity-60">
                   {(cv.size / 1024 / 1024).toFixed(2)} MB
@@ -481,7 +498,9 @@ export function TeacherApplicationForm() {
             </label>
           )}
           {errors.cv && (
-            <p className="mt-2 text-xs text-red-500">{errors.cv}</p>
+            <p className="mt-2 text-xs text-red-500 dark:text-red-400">
+              {errors.cv}
+            </p>
           )}
           <p className="mt-2 text-xs opacity-60">
             Your CV is only visible to academy administrators.
@@ -496,7 +515,10 @@ export function TeacherApplicationForm() {
           {intro ? (
             <div className="flex items-center justify-between gap-3 rounded-xl border border-green-500/40 bg-green-500/5 px-4 py-3">
               <span className="flex min-w-0 items-center gap-2 text-sm">
-                <Mic size={18} className="shrink-0 text-green-600" />
+                <Mic
+                  size={18}
+                  className="shrink-0 text-green-600 dark:text-green-400"
+                />
                 <span className="truncate">{intro.name}</span>
                 <span className="shrink-0 opacity-60">
                   {(intro.size / 1024 / 1024).toFixed(2)} MB
@@ -533,7 +555,9 @@ export function TeacherApplicationForm() {
             </label>
           )}
           {errors.intro && (
-            <p className="mt-2 text-xs text-red-500">{errors.intro}</p>
+            <p className="mt-2 text-xs text-red-500 dark:text-red-400">
+              {errors.intro}
+            </p>
           )}
           <p className="mt-2 text-xs opacity-60">
             Optional: record a 1–2 minute voice note on your phone introducing
@@ -544,12 +568,16 @@ export function TeacherApplicationForm() {
 
         <div className="sm:col-span-2">
           <span className="mb-2 block text-sm font-semibold">
-            Quran recitation <span className="text-red-500">*</span>
+            Quran recitation{" "}
+            <span className="text-red-500 dark:text-red-400">*</span>
           </span>
           {quran ? (
             <div className="flex items-center justify-between gap-3 rounded-xl border border-green-500/40 bg-green-500/5 px-4 py-3">
               <span className="flex min-w-0 items-center gap-2 text-sm">
-                <BookOpen size={18} className="shrink-0 text-green-600" />
+                <BookOpen
+                  size={18}
+                  className="shrink-0 text-green-600 dark:text-green-400"
+                />
                 <span className="truncate">{quran.name}</span>
                 <span className="shrink-0 opacity-60">
                   {(quran.size / 1024 / 1024).toFixed(2)} MB
@@ -587,7 +615,9 @@ export function TeacherApplicationForm() {
             </label>
           )}
           {errors.quran && (
-            <p className="mt-2 text-xs text-red-500">{errors.quran}</p>
+            <p className="mt-2 text-xs text-red-500 dark:text-red-400">
+              {errors.quran}
+            </p>
           )}
           <p className="mt-2 text-xs opacity-60">
             Required: record 1–2 minutes of your Quran recitation and upload it

@@ -242,7 +242,7 @@ export default function AdminPaymentsPage() {
         {overviewQuery.isLoading ? (
           <p className="text-foreground opacity-70">Loading billing data…</p>
         ) : overviewQuery.isError ? (
-          <div className="rounded-2xl border border-red-300 bg-red-50 p-4 text-red-800">
+          <div className="rounded-2xl border border-red-300 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-red-800 dark:text-red-300">
             {overviewQuery.error instanceof Error
               ? overviewQuery.error.message
               : "Unable to load billing data."}
@@ -315,7 +315,7 @@ export default function AdminPaymentsPage() {
                   {accountMutation.isPending ? "Saving…" : "Save account"}
                 </button>
                 {accountNotice ? (
-                  <p className="mt-3 rounded-xl bg-green-500/10 px-3 py-2 text-sm text-green-700">
+                  <p className="mt-3 rounded-xl bg-green-500/10 px-3 py-2 text-sm text-green-700 dark:text-green-400">
                     {accountNotice}
                   </p>
                 ) : null}
@@ -396,7 +396,7 @@ export default function AdminPaymentsPage() {
                 <h2 className="text-xl font-semibold">
                   Payment claims
                   {pending.length > 0 ? (
-                    <span className="ml-2 rounded-full bg-amber-100 px-2.5 py-0.5 text-sm font-semibold text-amber-800">
+                    <span className="ml-2 rounded-full bg-amber-100 dark:bg-amber-500/15 px-2.5 py-0.5 text-sm font-semibold text-amber-800 dark:text-amber-300">
                       {pending.length} to review
                     </span>
                   ) : null}
@@ -416,7 +416,7 @@ export default function AdminPaymentsPage() {
                   {pending.map((claim) => (
                     <div
                       key={claim.id}
-                      className="rounded-2xl border border-amber-300 bg-amber-50/60 p-4"
+                      className="rounded-2xl border border-amber-300 dark:border-amber-500/30 bg-amber-50/60 dark:bg-amber-500/10 p-4"
                     >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
@@ -457,7 +457,7 @@ export default function AdminPaymentsPage() {
                               })
                             }
                             disabled={rejectMutation.isPending}
-                            className="inline-flex items-center gap-1.5 rounded-xl border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:opacity-50"
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-red-300 dark:border-red-500/30 px-3 py-2 text-sm font-semibold text-red-700 dark:text-red-300 transition hover:bg-red-50 dark:hover:bg-red-500/10 disabled:opacity-50"
                           >
                             <X size={15} />
                             Reject
@@ -515,8 +515,8 @@ export default function AdminPaymentsPage() {
                             <span
                               className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                                 claim.status === "confirmed"
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-red-100 text-red-700"
+                                  ? "bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300"
+                                  : "bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-300"
                               }`}
                             >
                               {claim.status}
@@ -662,7 +662,7 @@ export default function AdminPaymentsPage() {
             </section>
 
             {error ? (
-              <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">
+              <p className="mt-4 rounded-xl bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">
                 {error}
               </p>
             ) : null}

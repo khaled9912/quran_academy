@@ -49,17 +49,17 @@ export default function StudentAvailabilityPage() {
     );
 
   return (
-    <main className="min-h-[75vh] bg-[#fbfaf6] px-5 py-12 text-[#173b35] md:px-8">
+    <main className="min-h-[75vh] bg-background px-5 py-12 text-foreground md:px-8">
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[.18em] text-[#a7773e]">
+            <p className="text-sm font-bold uppercase tracking-[.18em] text-amber-700 dark:text-amber-300">
               Student portal
             </p>
             <h1 className="mt-2 text-3xl font-bold">
               Teachers and weekly times
             </h1>
-            <p className="mt-2 max-w-2xl text-[#6b7c73]">
+            <p className="mt-2 max-w-2xl text-foreground/70">
               Choose a teacher and the weekly times that suit you. Booking is
               instant, repeats every week, and needs no approval.
             </p>
@@ -72,7 +72,7 @@ export default function StudentAvailabilityPage() {
                 queryKey: ["teachers", "directory"],
               });
             }}
-            className="inline-flex items-center gap-2 rounded-xl border border-[#d8e2d4] bg-white px-4 py-2.5 text-sm font-semibold hover:bg-[#f2f6ef]"
+            className="inline-flex items-center gap-2 rounded-xl border border-card-border bg-card-bg px-4 py-2.5 text-sm font-semibold transition hover:border-green-500"
           >
             <RefreshCw size={16} /> Refresh
           </button>
@@ -81,7 +81,7 @@ export default function StudentAvailabilityPage() {
         {error && (
           <p
             role="alert"
-            className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
           >
             {error instanceof Error
               ? error.message
@@ -92,10 +92,10 @@ export default function StudentAvailabilityPage() {
         <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_.6fr]">
           <TeacherDirectory />
 
-          <aside className="h-fit space-y-4 rounded-3xl border border-[#e5e9df] bg-[#eef3e9] p-6 md:p-8">
+          <aside className="h-fit space-y-4 rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
             <div>
               <h2 className="text-xl font-bold">Your weekly times</h2>
-              <p className="mt-2 text-sm leading-6 text-[#6b7c73]">
+              <p className="mt-2 text-sm leading-6 text-foreground/70">
                 These repeat every week. Ask the academy to move a time and your
                 current slot stays booked until they approve.
               </p>
@@ -110,7 +110,7 @@ export default function StudentAvailabilityPage() {
 
             <div className="space-y-3">
               {assignedQuery.isLoading ? (
-                <p className="rounded-xl bg-white/70 p-4 text-sm text-[#74847b]">
+                <p className="rounded-xl bg-foreground/5 p-4 text-sm text-foreground/60">
                   Loading your weekly times…
                 </p>
               ) : series.length ? (
@@ -122,12 +122,12 @@ export default function StudentAvailabilityPage() {
                   return (
                     <div
                       key={item.id}
-                      className="rounded-xl border border-[#dce6d8] bg-white p-4"
+                      className="rounded-xl border border-card-border bg-background p-4"
                     >
                       <p className="text-sm font-semibold">
                         {toViewerWeeklySlotLabel(item, viewerTimeZone)}
                       </p>
-                      <p className="mt-1 text-xs text-[#74847b]">
+                      <p className="mt-1 text-xs text-foreground/60">
                         Repeats every {WEEKDAY_SHORT[local.dayOfWeek]}
                         {pendingChange ? " · change with the academy" : ""}
                       </p>
@@ -135,8 +135,8 @@ export default function StudentAvailabilityPage() {
                         href={`/student/change-time/${item.id}`}
                         className={`mt-3 inline-block text-xs font-semibold ${
                           pendingChange
-                            ? "pointer-events-none text-[#9aa79e]"
-                            : "text-[#1c5145] hover:underline"
+                            ? "pointer-events-none text-foreground/40"
+                            : "text-green-700 hover:underline dark:text-green-400"
                         }`}
                       >
                         Change weekly time →
@@ -145,7 +145,7 @@ export default function StudentAvailabilityPage() {
                   );
                 })
               ) : (
-                <p className="rounded-xl bg-white/70 p-4 text-sm text-[#74847b]">
+                <p className="rounded-xl bg-foreground/5 p-4 text-sm text-foreground/60">
                   No weekly time booked yet. Choose a teacher and pick your
                   times.
                 </p>
@@ -154,7 +154,7 @@ export default function StudentAvailabilityPage() {
 
             <Link
               href="/schedule"
-              className="inline-block text-sm font-semibold text-[#1c5145] hover:underline"
+              className="inline-block text-sm font-semibold text-green-700 hover:underline dark:text-green-400"
             >
               My schedule →
             </Link>

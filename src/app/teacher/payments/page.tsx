@@ -97,7 +97,7 @@ export default function TeacherPaymentsPage() {
         {billingQuery.isLoading ? (
           <p className="text-foreground opacity-70">Loading your earnings…</p>
         ) : billingQuery.isError ? (
-          <div className="rounded-2xl border border-red-300 bg-red-50 p-4 text-red-800">
+          <div className="rounded-2xl border border-red-300 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-red-800 dark:text-red-300">
             {billingQuery.error instanceof Error
               ? billingQuery.error.message
               : "Unable to load your earnings."}
@@ -131,7 +131,7 @@ export default function TeacherPaymentsPage() {
                   </option>
                 ))}
               </select>
-              <span className="rounded-full bg-green-500/10 px-3 py-1 text-sm font-semibold text-green-700">
+              <span className="rounded-full bg-green-500/10 px-3 py-1 text-sm font-semibold text-green-700 dark:text-green-400">
                 {billing.lessons.length} lesson
                 {billing.lessons.length === 1 ? "" : "s"} ·{" "}
                 {egp(billing.totalEgp)}
@@ -144,14 +144,14 @@ export default function TeacherPaymentsPage() {
             </div>
 
             {billing.payoutPerLessonEgp <= 0 ? (
-              <div className="mb-6 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
+              <div className="mb-6 rounded-2xl border border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-4 text-amber-900 dark:text-amber-300">
                 The academy has not set your per-lesson rate yet, so this
                 summary shows 0. Contact the academy if this looks wrong.
               </div>
             ) : null}
 
             {!billing.hasPayoutDetails ? (
-              <div className="mb-6 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
+              <div className="mb-6 rounded-2xl border border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-4 text-amber-900 dark:text-amber-300">
                 Add at least one payout method below so the academy can transfer
                 your earnings.
               </div>
@@ -340,12 +340,12 @@ function PayoutForm({ billing }: { billing: TeacherBilling }) {
       ) : null}
 
       {notice ? (
-        <p className="mt-3 rounded-xl bg-green-500/10 px-3 py-2 text-sm text-green-700">
+        <p className="mt-3 rounded-xl bg-green-500/10 px-3 py-2 text-sm text-green-700 dark:text-green-400">
           {notice}
         </p>
       ) : null}
       {error ? (
-        <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="mt-3 rounded-xl bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">
           {error}
         </p>
       ) : null}

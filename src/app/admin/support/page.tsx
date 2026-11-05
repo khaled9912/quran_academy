@@ -154,12 +154,12 @@ export default function AdminSupportPage() {
             {createMutation.isPending ? "Creating…" : "Create support account"}
           </button>
           {error ? (
-            <p className="mt-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-600">
+            <p className="mt-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400">
               {error}
             </p>
           ) : null}
           {notice ? (
-            <p className="mt-4 rounded-xl border border-green-500/40 bg-green-500/10 px-4 py-3 text-sm text-green-700">
+            <p className="mt-4 rounded-xl border border-green-500/40 bg-green-500/10 px-4 py-3 text-sm text-green-700 dark:text-green-400">
               {notice}
             </p>
           ) : null}
@@ -195,7 +195,7 @@ export default function AdminSupportPage() {
                         className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                           active
                             ? "bg-green-500/15 text-green-700"
-                            : "bg-red-500/10 text-red-600"
+                            : "bg-red-500/10 text-red-600 dark:text-red-400"
                         }`}
                       >
                         {active ? "Active" : "Inactive"}
@@ -211,7 +211,7 @@ export default function AdminSupportPage() {
                         }
                         className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold disabled:opacity-60 ${
                           active
-                            ? "border-red-500/40 text-red-600 hover:border-red-500"
+                            ? "border-red-500/40 text-red-600 dark:text-red-400 hover:border-red-500"
                             : "border-card-border hover:border-green-500"
                         }`}
                       >

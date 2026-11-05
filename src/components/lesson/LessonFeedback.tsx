@@ -146,7 +146,10 @@ function TeacherReportSection({
       <section className="rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <h2 className="flex items-center gap-2 text-xl font-semibold">
-            <ClipboardList size={20} className="text-green-600" />
+            <ClipboardList
+              size={20}
+              className="text-green-600 dark:text-green-400"
+            />
             Class report
           </h2>
           <button
@@ -163,7 +166,7 @@ function TeacherReportSection({
         {notice && (
           <p
             role="status"
-            className="mt-5 flex items-start gap-2 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800"
+            className="mt-5 flex items-start gap-2 rounded-xl border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 p-4 text-sm text-green-800 dark:text-green-300"
           >
             <CheckCircle2 size={18} className="mt-0.5 shrink-0" />
             {notice}
@@ -176,7 +179,10 @@ function TeacherReportSection({
   return (
     <section className="rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
       <h2 className="flex items-center gap-2 text-xl font-semibold">
-        <ClipboardList size={20} className="text-green-600" />
+        <ClipboardList
+          size={20}
+          className="text-green-600 dark:text-green-400"
+        />
         Class report required
       </h2>
       <p className="mt-2 text-sm text-foreground opacity-70">
@@ -254,7 +260,7 @@ function TeacherReportSection({
         {formError && (
           <p
             role="alert"
-            className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            className="rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
           >
             {formError}
           </p>
@@ -296,7 +302,10 @@ function StudentReportCard({ report }: { report: LessonReport | null }) {
     return (
       <section className="rounded-3xl border border-dashed border-card-border bg-card-bg p-6 md:p-8">
         <h2 className="flex items-center gap-2 text-xl font-semibold">
-          <ClipboardList size={20} className="text-green-600" />
+          <ClipboardList
+            size={20}
+            className="text-green-600 dark:text-green-400"
+          />
           Class report
         </h2>
         <p className="mt-2 text-sm text-foreground opacity-70">
@@ -310,7 +319,10 @@ function StudentReportCard({ report }: { report: LessonReport | null }) {
   return (
     <section className="rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
       <h2 className="flex items-center gap-2 text-xl font-semibold">
-        <ClipboardList size={20} className="text-green-600" />
+        <ClipboardList
+          size={20}
+          className="text-green-600 dark:text-green-400"
+        />
         Class report
       </h2>
       <div className="mt-5">
@@ -368,7 +380,10 @@ function StudentReviewSection({
       <section className="rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <h2 className="flex items-center gap-2 text-xl font-semibold">
-            <MessageSquareQuote size={20} className="text-green-600" />
+            <MessageSquareQuote
+              size={20}
+              className="text-green-600 dark:text-green-400"
+            />
             Your review
           </h2>
           <button
@@ -385,7 +400,7 @@ function StudentReviewSection({
         {notice && (
           <p
             role="status"
-            className="mt-5 flex items-start gap-2 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800"
+            className="mt-5 flex items-start gap-2 rounded-xl border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 p-4 text-sm text-green-800 dark:text-green-300"
           >
             <CheckCircle2 size={18} className="mt-0.5 shrink-0" />
             {notice}
@@ -398,7 +413,10 @@ function StudentReviewSection({
   return (
     <section className="rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
       <h2 className="flex items-center gap-2 text-xl font-semibold">
-        <MessageSquareQuote size={20} className="text-green-600" />
+        <MessageSquareQuote
+          size={20}
+          className="text-green-600 dark:text-green-400"
+        />
         Rate this lesson
       </h2>
       <p className="mt-2 text-sm text-foreground opacity-70">
@@ -440,7 +458,7 @@ function StudentReviewSection({
         {formError && (
           <p
             role="alert"
-            className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            className="rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
           >
             {formError}
           </p>
@@ -508,7 +526,10 @@ export function LessonFeedback({
         {review && (
           <section className="rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
             <h2 className="flex items-center gap-2 text-xl font-semibold">
-              <MessageSquareQuote size={20} className="text-green-600" />
+              <MessageSquareQuote
+                size={20}
+                className="text-green-600 dark:text-green-400"
+              />
               Student review
             </h2>
             <div className="mt-4">
@@ -537,7 +558,10 @@ export function LessonFeedback({
     <div className="grid gap-6 lg:grid-cols-2">
       <section className="rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
         <h2 className="flex items-center gap-2 text-xl font-semibold">
-          <ClipboardList size={20} className="text-green-600" />
+          <ClipboardList
+            size={20}
+            className="text-green-600 dark:text-green-400"
+          />
           Class report
         </h2>
         <div className="mt-5">
@@ -552,7 +576,10 @@ export function LessonFeedback({
       </section>
       <section className="rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
         <h2 className="flex items-center gap-2 text-xl font-semibold">
-          <MessageSquareQuote size={20} className="text-green-600" />
+          <MessageSquareQuote
+            size={20}
+            className="text-green-600 dark:text-green-400"
+          />
           Student review
         </h2>
         <div className="mt-4">

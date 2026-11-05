@@ -20,9 +20,11 @@ const TABS: { value: ChangeRequestStatus; label: string }[] = [
 ];
 
 const statusStyles: Record<ChangeRequestStatus, string> = {
-  pending: "bg-amber-100 text-amber-800",
-  approved: "bg-green-100 text-green-800",
-  rejected: "bg-red-100 text-red-700",
+  pending:
+    "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300",
+  approved:
+    "bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-300",
+  rejected: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300",
 };
 
 const statusLabels: Record<ChangeRequestStatus, string> = {
@@ -96,22 +98,22 @@ export default function AdminChangeRequestsPage() {
     );
 
   return (
-    <main className="min-h-[75vh] bg-[#fbfaf6] px-5 py-12 text-[#173b35] md:px-8">
+    <main className="min-h-[75vh] bg-background px-5 py-12 text-foreground md:px-8">
       <div className="mx-auto max-w-5xl">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[.18em] text-[#a7773e]">
+            <p className="text-sm font-bold uppercase tracking-[.18em] text-amber-700 dark:text-amber-300">
               Admin portal
             </p>
             <h1 className="mt-2 text-3xl font-bold">Time change requests</h1>
-            <p className="mt-2 max-w-2xl text-[#6b7c73]">
+            <p className="mt-2 max-w-2xl text-foreground/70">
               Students ask the academy to move a weekly time. Check the new slot
               with the teacher, then approve or decline here.
             </p>
           </div>
           <button
             onClick={() => void requestsQuery.refetch()}
-            className="inline-flex items-center gap-2 rounded-xl border border-[#d8e2d4] bg-white px-4 py-2.5 text-sm font-semibold"
+            className="inline-flex items-center gap-2 rounded-xl border border-card-border bg-card-bg px-4 py-2.5 text-sm font-semibold transition hover:border-green-500"
           >
             <RefreshCw size={16} /> Refresh
           </button>
@@ -128,8 +130,8 @@ export default function AdminChangeRequestsPage() {
               }}
               className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${
                 tab === option.value
-                  ? "bg-[#1c5145] text-white"
-                  : "border border-[#d8e2d4] bg-white hover:border-[#1c5145]"
+                  ? "bg-[#1c5145] text-white dark:bg-green-600"
+                  : "border border-card-border bg-card-bg hover:border-green-500"
               }`}
             >
               {option.label}
@@ -140,7 +142,7 @@ export default function AdminChangeRequestsPage() {
         {error && (
           <p
             role="alert"
-            className="mt-6 rounded-xl bg-red-50 p-4 text-sm text-red-700"
+            className="mt-6 rounded-xl bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
           >
             {error instanceof Error
               ? error.message
@@ -150,7 +152,7 @@ export default function AdminChangeRequestsPage() {
         {notice && (
           <p
             role="status"
-            className="mt-6 rounded-xl bg-green-50 p-4 text-sm text-green-800"
+            className="mt-6 rounded-xl bg-green-500/10 p-4 text-sm text-green-800 dark:text-green-300"
           >
             {notice}
           </p>
@@ -158,7 +160,7 @@ export default function AdminChangeRequestsPage() {
 
         <section className="mt-6 space-y-3">
           {requestsQuery.isLoading ? (
-            <p className="text-sm text-[#7b8981]">Loading requests…</p>
+            <p className="text-sm text-foreground/60">Loading requests…</p>
           ) : items.length ? (
             items.map((item) => {
               const busy =
@@ -170,16 +172,18 @@ export default function AdminChangeRequestsPage() {
               return (
                 <article
                   key={item.id}
-                  className="rounded-2xl border border-[#e5e9df] bg-white p-5 shadow-sm"
+                  className="rounded-2xl border border-card-border bg-card-bg p-5 shadow-sm"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
                       <p className="font-bold">
                         {item.studentName}{" "}
-                        <span className="font-normal text-[#7b8981]">with</span>{" "}
+                        <span className="font-normal text-foreground/60">
+                          with
+                        </span>{" "}
                         {item.teacherName}
                       </p>
-                      <p className="mt-2 text-sm text-[#66786e]">
+                      <p className="mt-2 text-sm text-foreground/70">
                         <span className="font-semibold">Current:</span>{" "}
                         {formatWeeklySlot(
                           item.currentDayOfWeek,
@@ -187,7 +191,7 @@ export default function AdminChangeRequestsPage() {
                           item.currentEndsAtTime
                         )}
                       </p>
-                      <p className="mt-1 text-sm text-[#66786e]">
+                      <p className="mt-1 text-sm text-foreground/70">
                         <span className="font-semibold">Requested:</span>{" "}
                         {formatWeeklySlot(
                           item.requestedDayOfWeek,
@@ -195,19 +199,19 @@ export default function AdminChangeRequestsPage() {
                           item.requestedEndsAtTime
                         )}
                       </p>
-                      <p className="mt-1 text-xs text-[#9a794f]">
+                      <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
                         Requested{" "}
                         {new Date(item.createdAt).toLocaleString(undefined, {
                           hour12: true,
                         })}
                       </p>
                       {item.studentNote && (
-                        <p className="mt-2 rounded-xl bg-[#f7f8f4] p-3 text-sm text-[#66786e]">
+                        <p className="mt-2 rounded-xl bg-foreground/5 p-3 text-sm text-foreground/70">
                           Student note: {item.studentNote}
                         </p>
                       )}
                       {item.adminNote && (
-                        <p className="mt-2 text-sm text-[#66786e]">
+                        <p className="mt-2 text-sm text-foreground/70">
                           Academy note: {item.adminNote}
                         </p>
                       )}
@@ -228,7 +232,7 @@ export default function AdminChangeRequestsPage() {
                             setNotice("");
                             approveMutation.mutate(item.id);
                           }}
-                          className="inline-flex items-center gap-2 rounded-xl bg-[#1c5145] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                          className="inline-flex items-center gap-2 rounded-xl bg-[#1c5145] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50 dark:bg-green-600 dark:hover:bg-green-500"
                         >
                           <Check size={16} />
                           {approveMutation.isPending &&
@@ -243,13 +247,13 @@ export default function AdminChangeRequestsPage() {
                             setRejectingId(rejecting ? null : item.id);
                             setNote("");
                           }}
-                          className="inline-flex items-center gap-2 rounded-xl border border-[#ead8d4] px-4 py-2.5 text-sm font-semibold text-[#9a554c] disabled:opacity-50"
+                          className="inline-flex items-center gap-2 rounded-xl border border-red-500/30 px-4 py-2.5 text-sm font-semibold text-red-600 disabled:opacity-50 dark:text-red-400"
                         >
                           <X size={16} /> Decline
                         </button>
                       </div>
                       {rejecting && (
-                        <div className="mt-3 rounded-xl border border-[#ead8d4] bg-[#fdf7f5] p-3">
+                        <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/5 p-3">
                           <label className="block text-sm font-semibold">
                             Note for the student (optional)
                             <textarea
@@ -257,7 +261,7 @@ export default function AdminChangeRequestsPage() {
                               onChange={(event) => setNote(event.target.value)}
                               rows={2}
                               placeholder="Why can this time not be changed?"
-                              className="mt-2 w-full rounded-xl border border-[#e6d6d2] px-3 py-2 font-normal outline-none focus:border-[#9a554c]"
+                              className="mt-2 w-full rounded-xl border border-card-border bg-background px-3 py-2 font-normal text-foreground placeholder:text-foreground/40 outline-none focus:border-red-500"
                             />
                           </label>
                           <div className="mt-2 flex gap-2">
@@ -270,7 +274,7 @@ export default function AdminChangeRequestsPage() {
                                   reason: note,
                                 });
                               }}
-                              className="rounded-xl bg-[#9a554c] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                              className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                             >
                               {rejectMutation.isPending &&
                               rejectMutation.variables?.id === item.id
@@ -279,7 +283,7 @@ export default function AdminChangeRequestsPage() {
                             </button>
                             <button
                               onClick={() => setRejectingId(null)}
-                              className="rounded-xl border border-[#e6d6d2] px-4 py-2 text-sm font-semibold"
+                              className="rounded-xl border border-card-border px-4 py-2 text-sm font-semibold"
                             >
                               Cancel
                             </button>
@@ -292,7 +296,7 @@ export default function AdminChangeRequestsPage() {
               );
             })
           ) : (
-            <div className="rounded-2xl border border-dashed border-[#d9e3d5] bg-white p-10 text-center text-[#75847b]">
+            <div className="rounded-2xl border border-dashed border-card-border bg-card-bg p-10 text-center text-foreground/60">
               {tab === "pending"
                 ? "No time change requests are waiting for the academy."
                 : `No ${tab === "rejected" ? "declined" : tab} requests yet.`}

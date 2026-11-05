@@ -12,11 +12,11 @@ const variants: Record<NonNullable<ButtonProps["variant"]>, string> = {
   default:
     "bg-green-600 text-white hover:bg-green-700 focus-visible:ring-green-500",
   secondary:
-    "bg-slate-100 text-slate-900 hover:bg-slate-200 focus-visible:ring-slate-400",
+    "bg-foreground/10 text-foreground hover:bg-foreground/15 focus-visible:ring-slate-400",
   outline:
-    "border border-slate-300 bg-transparent text-slate-900 hover:bg-slate-100 focus-visible:ring-slate-400",
+    "border border-card-border bg-transparent text-foreground hover:bg-foreground/10 focus-visible:ring-slate-400",
   ghost:
-    "bg-transparent text-slate-900 hover:bg-slate-100 focus-visible:ring-slate-400",
+    "bg-transparent text-foreground hover:bg-foreground/10 focus-visible:ring-slate-400",
   destructive:
     "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500",
 };

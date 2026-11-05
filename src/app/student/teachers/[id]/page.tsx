@@ -130,7 +130,7 @@ export default function StudentTeacherBookingPage() {
       <div className="mx-auto max-w-5xl px-4 md:px-8 lg:px-16">
         <Link
           href="/student/availability"
-          className="mb-6 inline-block text-green-600 hover:text-green-700"
+          className="mb-6 inline-block text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-400"
         >
           ← Back to teachers
         </Link>
@@ -138,7 +138,7 @@ export default function StudentTeacherBookingPage() {
         {teacherQuery.error ? (
           <p
             role="alert"
-            className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            className="rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
           >
             {teacherQuery.error instanceof Error
               ? teacherQuery.error.message
@@ -183,7 +183,7 @@ export default function StudentTeacherBookingPage() {
                 </div>
               </div>
               <div className="text-sm text-foreground opacity-70">
-                <p className="font-semibold text-green-600">
+                <p className="font-semibold text-green-600 dark:text-green-400">
                   {teacher.slots.filter((slot) => slot.status === "available")
                     .length || 0}{" "}
                   weekly times open
@@ -195,7 +195,7 @@ export default function StudentTeacherBookingPage() {
             {!teacher.hasLessons && (
               <p
                 role="status"
-                className="mt-6 rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-800"
+                className="mt-6 rounded-xl border border-sky-200 dark:border-sky-500/30 bg-sky-50 dark:bg-sky-500/10 p-4 text-sm text-sky-800 dark:text-sky-300"
               >
                 <strong>Your first lesson is a trial.</strong> Your first booked
                 lesson is flagged automatically — no extra step.
@@ -205,7 +205,7 @@ export default function StudentTeacherBookingPage() {
             {notice && (
               <p
                 role="status"
-                className="mt-6 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800"
+                className="mt-6 rounded-xl border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 p-4 text-sm text-green-800 dark:text-green-300"
               >
                 {notice}
               </p>
@@ -213,7 +213,7 @@ export default function StudentTeacherBookingPage() {
             {formError && (
               <p
                 role="alert"
-                className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+                className="mt-6 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
               >
                 {formError}
               </p>
@@ -274,7 +274,7 @@ export default function StudentTeacherBookingPage() {
                   </p>
                 </div>
                 {selected.length > 0 && (
-                  <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
+                  <span className="rounded-full bg-green-100 dark:bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-800 dark:text-green-300">
                     {selected.length} selected
                   </span>
                 )}
@@ -335,12 +335,12 @@ export default function StudentTeacherBookingPage() {
                                 </span>
                               </span>
                               {yours && (
-                                <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold text-green-800">
+                                <span className="rounded-full bg-green-100 dark:bg-green-500/15 px-2 py-0.5 text-[11px] font-semibold text-green-800 dark:text-green-300">
                                   Yours
                                 </span>
                               )}
                               {!open && !yours && (
-                                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-700">
+                                <span className="rounded-full bg-gray-100 dark:bg-gray-500/15 px-2 py-0.5 text-[11px] font-semibold text-gray-700 dark:text-gray-300">
                                   Booked
                                 </span>
                               )}

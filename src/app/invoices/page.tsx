@@ -51,8 +51,8 @@ const InvoicesPage = () => {
               <div
                 className={`mt-4 inline-flex rounded-full px-3 py-1 text-sm font-semibold ${
                   invoice.status === "paid"
-                    ? "bg-green-100 text-green-700"
-                    : "bg-orange-100 text-orange-700"
+                    ? "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-300"
+                    : "bg-orange-100 dark:bg-orange-500/15 text-orange-700 dark:text-orange-300"
                 }`}
               >
                 {invoice.status}
@@ -64,7 +64,7 @@ const InvoicesPage = () => {
         <div className="mt-10">
           <Link
             href="/admin/dashboard"
-            className="text-green-500 hover:text-green-600"
+            className="text-green-500 dark:text-green-400 hover:text-green-600"
           >
             Back to Admin Dashboard
           </Link>

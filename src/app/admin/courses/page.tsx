@@ -7,7 +7,7 @@ const AdminCoursesPage = () => {
         <div className="mb-8">
           <Link
             href="/admin/dashboard"
-            className="text-green-500 hover:text-green-600 mb-4 inline-block"
+            className="text-green-500 dark:text-green-400 hover:text-green-600 mb-4 inline-block"
           >
             Back to Admin Dashboard
           </Link>
@@ -34,7 +34,7 @@ const AdminCoursesPage = () => {
                     Teacher assigned: Sheikh Ahmed
                   </p>
                 </div>
-                <span className="rounded-full bg-yellow-100 px-3 py-1 text-yellow-700 text-sm font-semibold">
+                <span className="rounded-full bg-yellow-100 dark:bg-yellow-500/15 px-3 py-1 text-yellow-700 dark:text-yellow-300 text-sm font-semibold">
                   Published
                 </span>
               </div>

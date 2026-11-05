@@ -148,7 +148,7 @@ export default function LessonCallPage() {
           <div>
             <Link
               href={backHref}
-              className="mb-3 inline-block text-green-600 hover:text-green-700"
+              className="mb-3 inline-block text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-400"
             >
               ← {backLabel}
             </Link>
@@ -203,7 +203,7 @@ export default function LessonCallPage() {
         ) : error ? (
           <p
             role="alert"
-            className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            className="mb-6 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
           >
             {error instanceof Error
               ? error.message
@@ -215,7 +215,10 @@ export default function LessonCallPage() {
           </div>
         ) : lesson && beforeStart ? (
           <section className="rounded-3xl border border-dashed border-card-border bg-card-bg p-10 text-center">
-            <Clock size={28} className="mx-auto text-green-600" />
+            <Clock
+              size={28}
+              className="mx-auto text-green-600 dark:text-green-400"
+            />
             <h2 className="mt-4 text-xl font-semibold">
               The room is not open yet
             </h2>
@@ -259,7 +262,10 @@ export default function LessonCallPage() {
             </section>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-foreground opacity-70">
               <p className="inline-flex items-center gap-2">
-                <MonitorPlay size={16} className="text-green-600" />
+                <MonitorPlay
+                  size={16}
+                  className="text-green-600 dark:text-green-400"
+                />
                 Use the microphone, camera, and screen-share buttons in the call
                 toolbar. If your browser blocks them, allow camera and
                 microphone for this site and refresh.

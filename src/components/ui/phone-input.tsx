@@ -91,7 +91,9 @@ export function PhoneInput({
       </div>
       <p
         className={`mt-2 text-xs ${
-          error ? "text-red-500" : "text-foreground opacity-70"
+          error
+            ? "text-red-500 dark:text-red-400"
+            : "text-foreground opacity-70"
         }`}
       >
         {hint}

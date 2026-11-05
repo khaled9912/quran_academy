@@ -40,7 +40,7 @@ const AssignmentsPage = () => {
                     Due date: {assignment.due}
                   </p>
                 </div>
-                <span className="rounded-full px-3 py-1 text-sm font-semibold bg-green-100 text-green-700">
+                <span className="rounded-full px-3 py-1 text-sm font-semibold bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400">
                   {assignment.status}
                 </span>
               </div>
@@ -51,7 +51,7 @@ const AssignmentsPage = () => {
         <div className="mt-10">
           <Link
             href="/student-dashboard"
-            className="text-green-500 hover:text-green-600"
+            className="text-green-500 dark:text-green-400 hover:text-green-600"
           >
             Back to Dashboard
           </Link>

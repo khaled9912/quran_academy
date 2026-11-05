@@ -285,7 +285,8 @@ function ReviewForm({
         </label>
         <label className="block">
           <span className="mb-1 block text-sm font-semibold">
-            Gaps to work on <span className="text-red-500">*</span>
+            Gaps to work on{" "}
+            <span className="text-red-500 dark:text-red-400">*</span>
           </span>
           <textarea
             value={gaps}
@@ -325,7 +326,7 @@ function ReviewForm({
       </div>
 
       {error ? (
-        <p className="mt-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-600">
+        <p className="mt-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400">
           {error}
         </p>
       ) : null}
@@ -387,7 +388,7 @@ export default function SupportLessonReviewPage() {
       <div className="mx-auto max-w-6xl px-4 md:px-8 lg:px-16">
         <Link
           href="/support/transcripts"
-          className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-green-600 hover:text-green-700"
+          className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-400"
         >
           <ArrowLeft size={16} /> Review queue
         </Link>
@@ -421,7 +422,7 @@ export default function SupportLessonReviewPage() {
                 {workspace.lesson.studentName}
               </h1>
               {workspace.metrics.flaggedSegments > 0 ? (
-                <p className="mt-3 inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-sm font-semibold text-amber-700 dark:text-amber-400">
+                <p className="mt-3 inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-sm font-semibold text-amber-700 dark:text-amber-300">
                   <AlertTriangle size={15} />
                   {workspace.metrics.flaggedSegments} flagged segment
                   {workspace.metrics.flaggedSegments === 1 ? "" : "s"}:
@@ -433,7 +434,7 @@ export default function SupportLessonReviewPage() {
             </header>
 
             {notice ? (
-              <p className="mb-5 rounded-xl border border-green-500/40 bg-green-500/10 px-4 py-3 text-sm text-green-700">
+              <p className="mb-5 rounded-xl border border-green-500/40 bg-green-500/10 px-4 py-3 text-sm text-green-700 dark:text-green-400">
                 {notice}
               </p>
             ) : null}
@@ -487,7 +488,7 @@ export default function SupportLessonReviewPage() {
                           {segment.flags.map((flag) => (
                             <span
                               key={flag}
-                              className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 font-semibold text-amber-700 dark:text-amber-400"
+                              className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 font-semibold text-amber-700 dark:text-amber-300"
                             >
                               {flagLabel[flag] ?? flag}
                             </span>

@@ -175,7 +175,7 @@ export default function AdminTeachersPage() {
         <div className="mb-8">
           <Link
             href="/admin/dashboard"
-            className="text-green-600 hover:text-green-700 mb-3 inline-block"
+            className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-400 mb-3 inline-block"
           >
             ← Back to admin dashboard
           </Link>
@@ -188,7 +188,7 @@ export default function AdminTeachersPage() {
 
         <section className="mb-10 rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
           <div className="mb-5 flex items-center gap-3">
-            <UserPlus className="text-green-600" />
+            <UserPlus className="text-green-600 dark:text-green-400" />
             <h2 className="text-2xl font-semibold">Create a teacher</h2>
           </div>
           <form
@@ -256,7 +256,7 @@ export default function AdminTeachersPage() {
           {error && (
             <p
               role="alert"
-              className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700"
+              className="mt-4 rounded-xl bg-red-50 dark:bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300"
             >
               {error}
             </p>
@@ -264,7 +264,7 @@ export default function AdminTeachersPage() {
           {notice && (
             <p
               role="status"
-              className="mt-4 rounded-xl bg-green-50 p-3 text-sm text-green-800"
+              className="mt-4 rounded-xl bg-green-50 dark:bg-green-500/10 p-3 text-sm text-green-800 dark:text-green-300"
             >
               {notice}
             </p>
@@ -278,7 +278,7 @@ export default function AdminTeachersPage() {
           ) : teachersQuery.error ? (
             <p
               role="alert"
-              className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+              className="rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
             >
               {teachersQuery.error instanceof Error
                 ? teachersQuery.error.message
@@ -381,7 +381,7 @@ export default function AdminTeachersPage() {
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
                           <span
-                            className={`rounded-full px-3 py-1 text-sm font-semibold ${active ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-800"}`}
+                            className={`rounded-full px-3 py-1 text-sm font-semibold ${active ? "bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300" : "bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300"}`}
                           >
                             {active ? "Active" : "Inactive"}
                           </span>
@@ -422,7 +422,7 @@ export default function AdminTeachersPage() {
                               }
                             }}
                             disabled={statusMutation.isPending}
-                            className={`rounded-xl px-4 py-2 text-sm font-semibold transition disabled:opacity-50 ${active ? "border border-red-300 text-red-600 hover:bg-red-500 hover:text-white" : "bg-green-500 text-white hover:bg-green-600"}`}
+                            className={`rounded-xl px-4 py-2 text-sm font-semibold transition disabled:opacity-50 ${active ? "border border-red-300 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white" : "bg-green-500 text-white hover:bg-green-600"}`}
                           >
                             {active ? "Deactivate" : "Reactivate"}
                           </button>

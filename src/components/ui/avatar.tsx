@@ -23,7 +23,7 @@ export function Avatar({
   name,
   src,
   className = "h-10 w-10 rounded-full text-sm",
-  fallbackClassName = "bg-green-500/15 text-green-700",
+  fallbackClassName = "bg-green-500/15 text-green-700 dark:text-green-400",
 }: AvatarProps) {
   const [failed, setFailed] = useState(false);
 

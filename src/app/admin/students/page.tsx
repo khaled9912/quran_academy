@@ -238,7 +238,7 @@ export default function AdminStudentsPage() {
         <div className="mb-8">
           <Link
             href="/admin/dashboard"
-            className="text-green-600 hover:text-green-700 mb-3 inline-block"
+            className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-400 mb-3 inline-block"
           >
             ← Back to admin dashboard
           </Link>
@@ -250,7 +250,7 @@ export default function AdminStudentsPage() {
 
         <section className="mb-10 rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
           <div className="mb-5 flex items-center gap-3">
-            <UserPlus className="text-green-600" />
+            <UserPlus className="text-green-600 dark:text-green-400" />
             <h2 className="text-2xl font-semibold">Create a student</h2>
           </div>
           <form
@@ -332,7 +332,7 @@ export default function AdminStudentsPage() {
           {error && (
             <p
               role="alert"
-              className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700"
+              className="mt-4 rounded-xl bg-red-50 dark:bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300"
             >
               {error}
             </p>
@@ -340,7 +340,7 @@ export default function AdminStudentsPage() {
           {notice && (
             <p
               role="status"
-              className="mt-4 rounded-xl bg-green-50 p-3 text-sm text-green-800"
+              className="mt-4 rounded-xl bg-green-50 dark:bg-green-500/10 p-3 text-sm text-green-800 dark:text-green-300"
             >
               {notice}
             </p>
@@ -354,7 +354,7 @@ export default function AdminStudentsPage() {
           ) : studentsQuery.error ? (
             <p
               role="alert"
-              className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+              className="rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
             >
               {studentsQuery.error instanceof Error
                 ? studentsQuery.error.message
@@ -498,13 +498,13 @@ export default function AdminStudentsPage() {
                               <span className="opacity-60">Saving…</span>
                             )}
                             {!active && (
-                              <span className="text-amber-800 opacity-80">
+                              <span className="text-amber-800 dark:text-amber-300 opacity-80">
                                 Reactivate to assign a teacher.
                               </span>
                             )}
                           </div>
                           {teachersQuery.error && (
-                            <p className="mt-2 text-sm text-red-700">
+                            <p className="mt-2 text-sm text-red-700 dark:text-red-300">
                               {teachersQuery.error instanceof Error
                                 ? teachersQuery.error.message
                                 : "Unable to load teachers."}
@@ -517,7 +517,7 @@ export default function AdminStudentsPage() {
                                 No teachers yet.{" "}
                                 <Link
                                   href="/admin/teachers"
-                                  className="text-green-600 underline"
+                                  className="text-green-600 dark:text-green-400 underline"
                                 >
                                   Create a teacher
                                 </Link>{" "}
@@ -527,7 +527,7 @@ export default function AdminStudentsPage() {
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
                           <span
-                            className={`rounded-full px-3 py-1 text-sm font-semibold ${active ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-800"}`}
+                            className={`rounded-full px-3 py-1 text-sm font-semibold ${active ? "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400" : "bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300"}`}
                           >
                             {active ? "Active" : "Inactive"}
                           </span>
@@ -556,7 +556,7 @@ export default function AdminStudentsPage() {
                               }
                             }}
                             disabled={statusMutation.isPending}
-                            className={`rounded-xl px-4 py-2 text-sm font-semibold transition disabled:opacity-50 ${active ? "border border-red-300 text-red-600 hover:bg-red-500 hover:text-white" : "bg-green-500 text-white hover:bg-green-600"}`}
+                            className={`rounded-xl px-4 py-2 text-sm font-semibold transition disabled:opacity-50 ${active ? "border border-red-300 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white" : "bg-green-500 text-white hover:bg-green-600"}`}
                           >
                             {active ? "Deactivate" : "Reactivate"}
                           </button>

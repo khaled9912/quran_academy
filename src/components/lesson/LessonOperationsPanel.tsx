@@ -123,7 +123,7 @@ function Section({
 
 function Notice({ children }: { children: React.ReactNode }) {
   return (
-    <p className="flex items-start gap-2 rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+    <p className="flex items-start gap-2 rounded-xl border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 p-3 text-sm text-green-800 dark:text-green-300">
       <CheckCircle2 size={17} className="mt-0.5 shrink-0" />
       {children}
     </p>
@@ -134,7 +134,7 @@ function ErrorNotice({ children }: { children: React.ReactNode }) {
   return (
     <p
       role="alert"
-      className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+      className="rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300"
     >
       {children}
     </p>
@@ -300,11 +300,11 @@ function CancellationSection({
     return (
       <Section
         title="Cancellation"
-        icon={<XCircle size={19} className="text-red-600" />}
+        icon={<XCircle size={19} className="text-red-600 dark:text-red-400" />}
         tone="danger"
       >
         <p className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+          <span className="rounded-full bg-red-100 dark:bg-red-500/15 px-3 py-1 text-xs font-semibold text-red-700 dark:text-red-300">
             {outcomeLabels[outcome ?? ""] ?? "Cancelled"}
           </span>
           {lesson.cancelledAt && (
@@ -376,13 +376,18 @@ function CancellationSection({
   return (
     <Section
       title={isAdmin ? "Cancel as academy" : "Cancel this lesson"}
-      icon={<AlertTriangle size={19} className="text-amber-600" />}
+      icon={
+        <AlertTriangle
+          size={19}
+          className="text-amber-600 dark:text-amber-400"
+        />
+      }
       tone="warning"
     >
       <p className="text-foreground opacity-80">{preview.explanation}</p>
       <CreditSummary preview={preview} />
       {preview.isLate && (
-        <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-amber-800 dark:text-amber-200">
+        <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-amber-800 dark:text-amber-300">
           This is a late cancellation.
           {preview.usedGrace
             ? " Your free grace cancellation for this month is being used."
@@ -400,7 +405,7 @@ function CancellationSection({
             setNotice("");
             setConfirming(true);
           }}
-          className="rounded-xl border border-red-300 px-5 py-2.5 font-semibold text-red-700 transition hover:bg-red-50 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500/10"
+          className="rounded-xl border border-red-300 dark:border-red-500/30 px-5 py-2.5 font-semibold text-red-700 transition hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-500/10"
         >
           {isAdmin ? "Cancel lesson as academy" : "Cancel lesson"}
         </button>
@@ -554,7 +559,12 @@ function RescheduleSection({
   return (
     <Section
       title="Reschedule"
-      icon={<CalendarClock size={19} className="text-green-600" />}
+      icon={
+        <CalendarClock
+          size={19}
+          className="text-green-600 dark:text-green-400"
+        />
+      }
     >
       <p className="text-foreground opacity-70">
         A reschedule is a request, not a cancellation. The lesson keeps its time
@@ -713,7 +723,9 @@ function MakeupSection({
     return (
       <Section
         title="Make-up lesson"
-        icon={<Video size={19} className="text-green-600" />}
+        icon={
+          <Video size={19} className="text-green-600 dark:text-green-400" />
+        }
       >
         <p className="text-foreground opacity-75">
           This is a make-up lesson.
@@ -724,7 +736,7 @@ function MakeupSection({
               {dateTime(operations.originalLesson.startsAt)}.{" "}
               <Link
                 href={`/lesson/${operations.originalLesson.id}`}
-                className="font-semibold text-green-600 hover:underline"
+                className="font-semibold text-green-600 dark:text-green-400 hover:underline"
               >
                 Open the original lesson
               </Link>
@@ -740,14 +752,16 @@ function MakeupSection({
     return (
       <Section
         title="Make-up lesson"
-        icon={<Video size={19} className="text-green-600" />}
+        icon={
+          <Video size={19} className="text-green-600 dark:text-green-400" />
+        }
       >
         <p className="text-foreground opacity-75">
           A make-up lesson is scheduled for{" "}
           {dateTime(operations.replacementLesson.startsAt)}.{" "}
           <Link
             href={`/lesson/${operations.replacementLesson.id}`}
-            className="font-semibold text-green-600 hover:underline"
+            className="font-semibold text-green-600 dark:text-green-400 hover:underline"
           >
             Open the make-up lesson
           </Link>
@@ -762,7 +776,12 @@ function MakeupSection({
   return (
     <Section
       title="Schedule a make-up lesson"
-      icon={<CalendarClock size={19} className="text-green-600" />}
+      icon={
+        <CalendarClock
+          size={19}
+          className="text-green-600 dark:text-green-400"
+        />
+      }
     >
       <p className="text-foreground opacity-70">
         The make-up keeps the original {Math.round(durationMs / 60000)}-minute
@@ -830,7 +849,12 @@ function AttendanceSection({ operations }: { operations: LessonOperations }) {
   return (
     <Section
       title="Attendance"
-      icon={<ClipboardCheck size={19} className="text-green-600" />}
+      icon={
+        <ClipboardCheck
+          size={19}
+          className="text-green-600 dark:text-green-400"
+        />
+      }
     >
       <p className="text-xs text-foreground opacity-60">
         Recorded by the lesson room itself, from real join and leave times.
@@ -848,7 +872,7 @@ function AttendanceSection({ operations }: { operations: LessonOperations }) {
                   ({participant.role})
                 </span>
               </p>
-              <span className="rounded-full bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-700 dark:text-green-300">
+              <span className="rounded-full bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-700 dark:text-green-400">
                 {minutesLabel(participant.totalSeconds)}
               </span>
             </div>
@@ -955,7 +979,12 @@ function ExcuseSection({
   return (
     <Section
       title="Excuse request"
-      icon={<AlertTriangle size={19} className="text-amber-600" />}
+      icon={
+        <AlertTriangle
+          size={19}
+          className="text-amber-600 dark:text-amber-400"
+        />
+      }
     >
       {existing ? (
         <div className="space-y-2">
@@ -973,7 +1002,7 @@ function ExcuseSection({
             </p>
           )}
           {existing.status === "approved" && (
-            <p className="text-green-700 dark:text-green-300">
+            <p className="text-green-700 dark:text-green-400">
               This late cancellation or no-show was excused.
             </p>
           )}
@@ -1176,7 +1205,7 @@ export function LessonOperationsPanel({
           <button
             type="button"
             onClick={() => void operationsQuery.refetch()}
-            className="ml-2 font-semibold text-green-600 hover:underline"
+            className="ml-2 font-semibold text-green-600 dark:text-green-400 hover:underline"
           >
             Retry
           </button>

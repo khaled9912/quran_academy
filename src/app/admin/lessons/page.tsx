@@ -140,7 +140,7 @@ export default function AdminLessonsPage() {
         <div className="mb-8">
           <Link
             href="/admin/dashboard"
-            className="text-green-600 hover:text-green-700 mb-3 inline-block"
+            className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-400 mb-3 inline-block"
           >
             ← Back to admin dashboard
           </Link>

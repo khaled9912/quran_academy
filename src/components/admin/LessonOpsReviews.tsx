@@ -55,7 +55,7 @@ function ErrorNotice({ children }: { children: React.ReactNode }) {
   return (
     <p
       role="alert"
-      className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+      className="rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300"
     >
       {children}
     </p>
@@ -64,7 +64,7 @@ function ErrorNotice({ children }: { children: React.ReactNode }) {
 
 function Notice({ children }: { children: React.ReactNode }) {
   return (
-    <p className="flex items-start gap-2 rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+    <p className="flex items-start gap-2 rounded-xl border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 p-3 text-sm text-green-800 dark:text-green-300">
       <CheckCircle2 size={16} className="mt-0.5 shrink-0" />
       {children}
     </p>
@@ -92,7 +92,7 @@ export function AttendanceList({
                 ({participant.role})
               </span>
             </p>
-            <span className="rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-semibold text-green-700 dark:text-green-300">
+            <span className="rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-semibold text-green-700 dark:text-green-400">
               {Math.round(participant.totalSeconds / 60)} min
             </span>
           </div>

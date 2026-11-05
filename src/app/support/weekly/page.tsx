@@ -81,11 +81,11 @@ function TeacherCard({ teacher }: { teacher: TeacherDigest }) {
           </p>
         </div>
         {teacher.unreviewed > 0 ? (
-          <span className="rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-700">
+          <span className="rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
             {teacher.unreviewed} awaiting review
           </span>
         ) : (
-          <span className="rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-700">
+          <span className="rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-700 dark:text-green-400">
             Week complete
           </span>
         )}
@@ -116,7 +116,7 @@ function TeacherCard({ teacher }: { teacher: TeacherDigest }) {
                 >
                   <Link
                     href={`/support/transcripts/${action.lessonId}`}
-                    className="font-semibold text-green-600 hover:text-green-700"
+                    className="font-semibold text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-400"
                   >
                     {display(action.startsAt)} · {action.studentName}
                   </Link>
@@ -165,7 +165,7 @@ function TeacherCard({ teacher }: { teacher: TeacherDigest }) {
                     </span>
                     <span className="flex items-center gap-2 text-xs opacity-70">
                       {lesson.flaggedSegments > 0 ? (
-                        <span className="inline-flex items-center gap-1 font-semibold text-amber-700">
+                        <span className="inline-flex items-center gap-1 font-semibold text-amber-700 dark:text-amber-300">
                           <AlertTriangle size={13} />
                           {lesson.flaggedSegments}
                         </span>

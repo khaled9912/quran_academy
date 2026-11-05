@@ -126,7 +126,7 @@ export default function TeacherDashboardPage() {
                 <p className="text-sm uppercase text-foreground opacity-70 mb-2">
                   {metric.title}
                 </p>
-                <p className="text-3xl font-semibold text-green-600">
+                <p className="text-3xl font-semibold text-green-600 dark:text-green-400">
                   {metric.loading ? (
                     <span className="inline-block h-8 w-10 animate-pulse rounded-lg bg-foreground/10 align-middle" />
                   ) : (
@@ -159,7 +159,7 @@ export default function TeacherDashboardPage() {
               <h2 className="text-xl font-semibold">Today&apos;s lessons</h2>
               <Link
                 href="/teacher/schedule"
-                className="text-sm font-semibold text-green-600 hover:underline"
+                className="text-sm font-semibold text-green-600 dark:text-green-400 hover:underline"
               >
                 Full schedule →
               </Link>
@@ -190,7 +190,7 @@ export default function TeacherDashboardPage() {
                           {dateTime(lesson.startsAt)}
                         </p>
                         {countdown ? (
-                          <p className="mt-1 text-sm font-semibold text-green-600">
+                          <p className="mt-1 text-sm font-semibold text-green-600 dark:text-green-400">
                             {countdown}
                           </p>
                         ) : null}
@@ -220,7 +220,7 @@ export default function TeacherDashboardPage() {
               <h2 className="text-xl font-semibold">Weekly times</h2>
               <Link
                 href="/teacher/availability"
-                className="text-sm font-semibold text-green-600 hover:underline"
+                className="text-sm font-semibold text-green-600 dark:text-green-400 hover:underline"
               >
                 Manage →
               </Link>
@@ -256,8 +256,8 @@ export default function TeacherDashboardPage() {
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-semibold ${
                         rule.status === "available"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-sky-100 text-sky-800"
+                          ? "bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300"
+                          : "bg-sky-100 dark:bg-sky-500/15 text-sky-800 dark:text-sky-300"
                       }`}
                     >
                       {rule.status === "available" ? "Open" : "Booked"}
@@ -270,7 +270,7 @@ export default function TeacherDashboardPage() {
                 No weekly times announced yet.{" "}
                 <Link
                   href="/teacher/availability"
-                  className="font-semibold text-green-600 hover:underline"
+                  className="font-semibold text-green-600 dark:text-green-400 hover:underline"
                 >
                   Announce your availability
                 </Link>{" "}
@@ -281,7 +281,7 @@ export default function TeacherDashboardPage() {
         </div>
 
         {reportsDue.length > 0 && (
-          <section className="mt-6 rounded-3xl border border-amber-200 bg-amber-50/70 p-6">
+          <section className="mt-6 rounded-3xl border border-amber-200 bg-amber-50/70 p-6 dark:border-amber-500/30 dark:bg-amber-500/10">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <div>
                 <h2 className="text-xl font-semibold">Class reports due</h2>
@@ -292,7 +292,7 @@ export default function TeacherDashboardPage() {
               </div>
               <Link
                 href="/teacher/schedule?filter=reports"
-                className="text-sm font-semibold text-green-700 hover:underline"
+                className="text-sm font-semibold text-green-700 hover:underline dark:text-green-400"
               >
                 Open schedule →
               </Link>
@@ -301,7 +301,7 @@ export default function TeacherDashboardPage() {
               {reportsDue.slice(0, 5).map((lesson) => (
                 <div
                   key={lesson.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-white/70 p-4"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 dark:border-amber-500/30 bg-white/70 p-4 dark:bg-white/5"
                 >
                   <div>
                     <p className="font-semibold">{dateTime(lesson.startsAt)}</p>

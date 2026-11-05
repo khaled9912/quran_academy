@@ -191,7 +191,7 @@ const CourseDetailPage = ({ params }: { params: { id: string } }) => {
         {/* Back Button */}
         <Link
           href="/courses"
-          className="inline-flex items-center gap-2 text-green-500 hover:text-green-600 mb-8"
+          className="inline-flex items-center gap-2 text-green-500 dark:text-green-400 hover:text-green-600 mb-8"
         >
           <FaArrowLeft />
           <span>Back to Courses</span>
@@ -218,7 +218,7 @@ const CourseDetailPage = ({ params }: { params: { id: string } }) => {
             {/* Instructor Info */}
             <div className="bg-card-bg border border-card-border rounded-lg p-6 mb-8">
               <div className="flex items-center gap-3 mb-4">
-                <FaUser className="text-green-500 text-xl" />
+                <FaUser className="text-green-500 dark:text-green-400 text-xl" />
                 <div>
                   <p className="text-sm text-foreground opacity-70">
                     Instructor
@@ -254,7 +254,7 @@ const CourseDetailPage = ({ params }: { params: { id: string } }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {course.learningPoints.map((point, index) => (
                   <div key={index} className="flex gap-3">
-                    <FaCheckCircle className="text-green-500 flex-shrink-0 mt-1" />
+                    <FaCheckCircle className="text-green-500 dark:text-green-400 flex-shrink-0 mt-1" />
                     <span className="text-foreground opacity-90">{point}</span>
                   </div>
                 ))}
@@ -268,18 +268,18 @@ const CourseDetailPage = ({ params }: { params: { id: string } }) => {
             <div className="bg-card-bg border border-card-border rounded-lg p-6 sticky top-24 space-y-4">
               <div>
                 <p className="text-sm text-foreground opacity-70 mb-1">Price</p>
-                <p className="text-2xl font-bold text-green-500">
+                <p className="text-2xl font-bold text-green-500 dark:text-green-400">
                   {course.price}
                 </p>
               </div>
 
               <div className="border-t border-card-border pt-4">
                 <div className="flex items-center gap-2 mb-3 text-foreground opacity-80">
-                  <FaClock className="text-green-500" />
+                  <FaClock className="text-green-500 dark:text-green-400" />
                   <span className="text-sm">{course.duration}</span>
                 </div>
                 <div className="flex items-center gap-2 text-foreground opacity-80">
-                  <FaBook className="text-green-500" />
+                  <FaBook className="text-green-500 dark:text-green-400" />
                   <span className="text-sm">
                     {course.enrolled} students enrolled
                   </span>
@@ -300,7 +300,7 @@ const CourseDetailPage = ({ params }: { params: { id: string } }) => {
                 Enroll Now
               </button>
 
-              <button className="w-full px-6 py-2 border border-green-500 text-green-500 hover:bg-green-500 hover:text-white rounded-lg font-semibold transition">
+              <button className="w-full px-6 py-2 border border-green-500 text-green-500 dark:text-green-400 hover:bg-green-500 hover:text-white rounded-lg font-semibold transition">
                 Add to Wishlist
               </button>
             </div>

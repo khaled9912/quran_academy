@@ -81,12 +81,12 @@ const ContactForm = () => {
   return (
     <div className="bg-background border border-card-border p-6 rounded-lg shadow-md w-full">
       {successMessage && (
-        <div className="mb-4 p-3 rounded bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+        <div className="mb-4 p-3 rounded bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300">
           {successMessage}
         </div>
       )}
       {errorMessage && (
-        <div className="mb-4 p-3 rounded bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+        <div className="mb-4 p-3 rounded bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300">
           {errorMessage}
         </div>
       )}

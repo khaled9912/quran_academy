@@ -31,7 +31,7 @@ export default function PublicTeacherProfilePage() {
       <div className="mx-auto max-w-4xl px-4 md:px-8 lg:px-16">
         <Link
           href="/teachers"
-          className="mb-6 inline-block text-green-600 hover:text-green-700"
+          className="mb-6 inline-block text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-400"
         >
           ← All teachers
         </Link>
@@ -39,7 +39,7 @@ export default function PublicTeacherProfilePage() {
         {teacherQuery.error ? (
           <p
             role="alert"
-            className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            className="rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
           >
             {teacherQuery.error instanceof Error
               ? teacherQuery.error.message
@@ -79,7 +79,10 @@ export default function PublicTeacherProfilePage() {
 
             <section className="mt-6 rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
               <h2 className="flex items-center gap-2 text-xl font-semibold">
-                <MessageSquareQuote size={20} className="text-green-600" />
+                <MessageSquareQuote
+                  size={20}
+                  className="text-green-600 dark:text-green-400"
+                />
                 Student reviews
                 <span className="text-sm font-normal text-foreground opacity-60">
                   ({teacher.reviewCount})

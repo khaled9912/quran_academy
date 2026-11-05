@@ -21,7 +21,7 @@ export default function PublicTeachersPage() {
       <div className="mx-auto max-w-6xl px-4 md:px-8 lg:px-16">
         <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[.18em] text-green-600">
+            <p className="text-sm font-bold uppercase tracking-[.18em] text-green-600 dark:text-green-400">
               Our teachers
             </p>
             <h1 className="mt-2 text-4xl font-bold">
@@ -43,7 +43,7 @@ export default function PublicTeachersPage() {
         {teachersQuery.error && (
           <p
             role="alert"
-            className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            className="mb-6 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
           >
             {teachersQuery.error instanceof Error
               ? teachersQuery.error.message
@@ -103,7 +103,7 @@ export default function PublicTeachersPage() {
                     )}
                   </div>
 
-                  <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-green-600">
+                  <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-green-600 dark:text-green-400">
                     <GraduationCap size={16} /> View profile & book weekly times
                   </span>
                 </Link>

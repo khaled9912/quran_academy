@@ -69,7 +69,7 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
     <section className="rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <CalendarDays className="text-green-600" />
+          <CalendarDays className="text-green-600 dark:text-green-400" />
           <div>
             <h2 className="text-2xl font-semibold">
               {compact ? "Choose your teacher" : "Teachers and weekly times"}
@@ -83,7 +83,7 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
         {compact && (
           <Link
             href="/student/availability"
-            className="shrink-0 text-sm font-semibold text-green-600 hover:underline"
+            className="shrink-0 text-sm font-semibold text-green-600 dark:text-green-400 hover:underline"
           >
             See all teachers →
           </Link>
@@ -93,7 +93,7 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
       {error && (
         <p
           role="alert"
-          className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+          className="mt-5 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
         >
           {error instanceof Error
             ? error.message
@@ -102,7 +102,7 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
       )}
 
       {pendingChange && (
-        <p className="mt-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-800">
+        <p className="mt-5 rounded-xl bg-amber-50 dark:bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-300">
           Your time change for{" "}
           <strong>
             {toViewerWeeklySlotLabel(
@@ -154,7 +154,7 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
                           {entry.teacher.fullName}
                         </Link>
                         {isAssigned && (
-                          <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-green-800">
+                          <span className="rounded-full bg-green-100 dark:bg-green-500/15 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-green-800 dark:text-green-300">
                             Your teacher
                           </span>
                         )}
@@ -200,7 +200,7 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
                         {days.map((day) => (
                           <span
                             key={day}
-                            className="rounded-full bg-green-500/10 px-2.5 py-1 text-[11px] font-semibold text-green-700"
+                            className="rounded-full bg-green-500/10 px-2.5 py-1 text-[11px] font-semibold text-green-700 dark:text-green-400"
                           >
                             {WEEKDAY_SHORT[day]}
                           </span>

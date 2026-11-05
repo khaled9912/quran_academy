@@ -104,7 +104,7 @@ export default function AdminDashboardPage() {
               <p className="text-sm text-foreground opacity-70 mb-2">
                 {metric.title}
               </p>
-              <p className="text-3xl font-semibold text-green-600">
+              <p className="text-3xl font-semibold text-green-600 dark:text-green-400">
                 {loading ? "…" : (metric.value ?? "—")}
               </p>
             </div>

@@ -29,7 +29,7 @@ const flagLabel: Record<TranscriptFlag, string> = {
 const flagBadge = (flag: TranscriptFlag) => (
   <span
     key={flag}
-    className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400"
+    className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300"
   >
     {flagLabel[flag] ?? flag}
   </span>
@@ -50,14 +50,14 @@ const reviewBadge = (
 ) => {
   if (!status)
     return (
-      <span className="rounded-full bg-slate-500/10 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
+      <span className="rounded-full bg-slate-500/10 px-2.5 py-0.5 text-xs font-semibold text-slate-600 dark:text-slate-400">
         Not reviewed
       </span>
     );
   const styles =
     status === "submitted"
       ? "bg-green-500/15 text-green-700"
-      : "bg-amber-500/15 text-amber-700";
+      : "bg-amber-500/15 text-amber-700 dark:text-amber-300";
   return (
     <span className="flex flex-wrap items-center gap-2">
       <span
@@ -213,7 +213,7 @@ export default function SupportReviewQueuePage() {
                     {lesson.segments} segments
                   </span>
                   {lesson.flaggedSegments > 0 ? (
-                    <span className="inline-flex items-center gap-1.5 font-semibold text-amber-700 dark:text-amber-400">
+                    <span className="inline-flex items-center gap-1.5 font-semibold text-amber-700 dark:text-amber-300">
                       <AlertTriangle size={14} />
                       {lesson.flaggedSegments} flagged
                     </span>

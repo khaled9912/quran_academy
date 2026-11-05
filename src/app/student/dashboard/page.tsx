@@ -43,16 +43,19 @@ const changeStatusLabels: Record<string, string> = {
 };
 
 const changeStatusStyles: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-800",
-  approved: "bg-green-100 text-green-800",
-  rejected: "bg-red-100 text-red-700",
+  pending:
+    "bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300",
+  approved:
+    "bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300",
+  rejected: "bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-300",
 };
 
 const statusStyles: Record<Lesson["status"], string> = {
-  scheduled: "bg-green-100 text-green-800",
-  in_progress: "bg-sky-100 text-sky-800",
-  completed: "bg-gray-100 text-gray-700",
-  cancelled: "bg-red-100 text-red-700",
+  scheduled:
+    "bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300",
+  in_progress: "bg-sky-100 dark:bg-sky-500/15 text-sky-800 dark:text-sky-300",
+  completed: "bg-gray-100 dark:bg-gray-500/15 text-gray-700 dark:text-gray-300",
+  cancelled: "bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-300",
 };
 
 const StudentDashboard = () => {
@@ -117,7 +120,7 @@ const StudentDashboard = () => {
         {queryError && (
           <p
             role="alert"
-            className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            className="mb-6 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
           >
             {queryError instanceof Error
               ? queryError.message
@@ -136,7 +139,7 @@ const StudentDashboard = () => {
               </Link>
               <Link
                 href="/schedule"
-                className="rounded-xl border border-green-500 px-4 py-3 text-center font-semibold text-green-600 transition hover:bg-green-500 hover:text-white"
+                className="rounded-xl border border-green-500 px-4 py-3 text-center font-semibold text-green-600 dark:text-green-400 transition hover:bg-green-500 hover:text-white"
               >
                 My schedule
               </Link>
@@ -146,7 +149,7 @@ const StudentDashboard = () => {
 
             <section className="bg-card-bg border border-card-border rounded-3xl p-6 md:p-8">
               <div className="flex items-center gap-3 mb-6">
-                <Repeat className="text-green-600" />
+                <Repeat className="text-green-600 dark:text-green-400" />
                 <h2 className="text-2xl font-semibold">Your weekly times</h2>
               </div>
               {series.length ? (
@@ -181,7 +184,7 @@ const StudentDashboard = () => {
                             {WEEKDAY_SHORT[local.dayOfWeek]}
                           </p>
                           {pending && (
-                            <p className="mt-1 text-xs font-semibold text-amber-700">
+                            <p className="mt-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
                               Time change awaiting the academy
                             </p>
                           )}
@@ -205,7 +208,7 @@ const StudentDashboard = () => {
                   No weekly time booked yet.{" "}
                   <Link
                     href="/student/availability"
-                    className="font-semibold text-green-600 hover:underline"
+                    className="font-semibold text-green-600 dark:text-green-400 hover:underline"
                   >
                     Choose weekly times
                   </Link>{" "}
@@ -216,7 +219,7 @@ const StudentDashboard = () => {
 
             <section className="bg-card-bg border border-card-border rounded-3xl p-6 md:p-8">
               <div className="flex items-center gap-3 mb-6">
-                <Hourglass className="text-green-600" />
+                <Hourglass className="text-green-600 dark:text-green-400" />
                 <h2 className="text-2xl font-semibold">Time change requests</h2>
               </div>
               {changes.length ? (
@@ -273,7 +276,7 @@ const StudentDashboard = () => {
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-semibold ${
                             changeStatusStyles[change.status] ??
-                            "bg-gray-100 text-gray-700"
+                            "bg-gray-100 text-gray-700 dark:bg-gray-500/15 dark:text-gray-300"
                           }`}
                         >
                           {changeStatusLabels[change.status] ?? change.status}
@@ -292,7 +295,7 @@ const StudentDashboard = () => {
 
             <section className="bg-card-bg border border-card-border rounded-3xl p-6 md:p-8">
               <div className="flex items-center gap-3 mb-6">
-                <CalendarDays className="text-green-600" />
+                <CalendarDays className="text-green-600 dark:text-green-400" />
                 <h2 className="text-2xl font-semibold">Upcoming lessons</h2>
               </div>
               {lessonsQuery.isLoading ? (
@@ -332,7 +335,7 @@ const StudentDashboard = () => {
                                 {live && <LiveNowBadge />}
                               </p>
                               {countdown ? (
-                                <p className="mt-1 text-sm font-semibold text-green-600">
+                                <p className="mt-1 text-sm font-semibold text-green-600 dark:text-green-400">
                                   {countdown}
                                 </p>
                               ) : null}
@@ -356,7 +359,7 @@ const StudentDashboard = () => {
                             <div className="flex flex-col items-end gap-2">
                               <span className="flex flex-wrap justify-end gap-2">
                                 {lesson.isTrial && (
-                                  <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
+                                  <span className="rounded-full bg-sky-100 dark:bg-sky-500/15 px-3 py-1 text-xs font-semibold text-sky-800 dark:text-sky-300">
                                     Trial
                                   </span>
                                 )}
@@ -397,7 +400,7 @@ const StudentDashboard = () => {
                   No upcoming lessons.{" "}
                   <Link
                     href="/student/availability"
-                    className="font-semibold text-green-600 hover:underline"
+                    className="font-semibold text-green-600 dark:text-green-400 hover:underline"
                   >
                     Book weekly times
                   </Link>{" "}
@@ -432,7 +435,7 @@ const StudentDashboard = () => {
                         </div>
                         <span className="flex flex-wrap gap-2">
                           {lesson.isTrial && (
-                            <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
+                            <span className="rounded-full bg-sky-100 dark:bg-sky-500/15 px-3 py-1 text-xs font-semibold text-sky-800 dark:text-sky-300">
                               Trial
                             </span>
                           )}
@@ -452,7 +455,10 @@ const StudentDashboard = () => {
           <aside className="space-y-6">
             <div className="bg-card-bg border border-card-border rounded-3xl p-6">
               <div className="flex items-center gap-2 mb-4">
-                <GraduationCap className="text-green-600" size={20} />
+                <GraduationCap
+                  className="text-green-600 dark:text-green-400"
+                  size={20}
+                />
                 <h3 className="text-lg font-semibold">Your teacher</h3>
               </div>
               {availabilityQuery.isLoading ? (
@@ -493,7 +499,7 @@ const StudentDashboard = () => {
                   <dt className="text-sm text-foreground opacity-70">
                     Upcoming lessons
                   </dt>
-                  <dd className="text-3xl font-bold text-green-600">
+                  <dd className="text-3xl font-bold text-green-600 dark:text-green-400">
                     {upcoming.length}
                   </dd>
                 </div>
@@ -501,7 +507,7 @@ const StudentDashboard = () => {
                   <dt className="text-sm text-foreground opacity-70">
                     Weekly times
                   </dt>
-                  <dd className="text-3xl font-bold text-green-600">
+                  <dd className="text-3xl font-bold text-green-600 dark:text-green-400">
                     {series.length}
                   </dd>
                 </div>
@@ -509,7 +515,7 @@ const StudentDashboard = () => {
                   <dt className="text-sm text-foreground opacity-70">
                     Changes waiting
                   </dt>
-                  <dd className="text-3xl font-bold text-green-600">
+                  <dd className="text-3xl font-bold text-green-600 dark:text-green-400">
                     {pendingChanges.length}
                   </dd>
                 </div>
@@ -517,7 +523,7 @@ const StudentDashboard = () => {
                   <dt className="text-sm text-foreground opacity-70">
                     Completed
                   </dt>
-                  <dd className="text-3xl font-bold text-green-600">
+                  <dd className="text-3xl font-bold text-green-600 dark:text-green-400">
                     {completed.length}
                   </dd>
                 </div>
@@ -531,7 +537,7 @@ const StudentDashboard = () => {
               </p>
               <Link
                 href="/contact"
-                className="block rounded-xl border border-green-500 px-4 py-2 text-center font-semibold text-green-600 transition hover:bg-green-500 hover:text-white"
+                className="block rounded-xl border border-green-500 px-4 py-2 text-center font-semibold text-green-600 dark:text-green-400 transition hover:bg-green-500 hover:text-white"
               >
                 Contact us
               </Link>

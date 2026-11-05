@@ -7,7 +7,7 @@ const TeacherCoursesPage = () => {
         <div className="mb-8">
           <Link
             href="/teacher/dashboard"
-            className="text-green-500 hover:text-green-600 mb-4 inline-block"
+            className="text-green-500 dark:text-green-400 hover:text-green-600 mb-4 inline-block"
           >
             Back to Teacher Dashboard
           </Link>

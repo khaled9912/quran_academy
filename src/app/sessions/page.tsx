@@ -39,7 +39,7 @@ const SessionsPage = () => {
                   <p className="text-xl font-semibold">{session.title}</p>
                   <p className="text-foreground opacity-75">{session.time}</p>
                 </div>
-                <p className="text-green-600 font-semibold">
+                <p className="text-green-600 dark:text-green-400 font-semibold">
                   Instructor: {session.teacher}
                 </p>
               </div>
@@ -50,7 +50,7 @@ const SessionsPage = () => {
         <div className="mt-10">
           <Link
             href="/schedule"
-            className="text-green-500 hover:text-green-600"
+            className="text-green-500 dark:text-green-400 hover:text-green-600"
           >
             View full schedule
           </Link>

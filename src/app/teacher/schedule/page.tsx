@@ -131,7 +131,7 @@ export default function TeacherSchedulePage() {
           <div>
             <Link
               href="/teacher/dashboard"
-              className="text-green-600 hover:text-green-700 mb-3 inline-block"
+              className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-400 mb-3 inline-block"
             >
               ← Back to dashboard
             </Link>
@@ -160,7 +160,7 @@ export default function TeacherSchedulePage() {
         {error && (
           <p
             role="alert"
-            className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            className="mb-6 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
           >
             {error}
           </p>
@@ -168,7 +168,7 @@ export default function TeacherSchedulePage() {
         {notice && (
           <p
             role="status"
-            className="mb-6 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800"
+            className="mb-6 rounded-xl border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 p-4 text-sm text-green-800 dark:text-green-300"
           >
             {notice}
           </p>
@@ -177,7 +177,7 @@ export default function TeacherSchedulePage() {
         {lessonsQuery.isError && (
           <p
             role="alert"
-            className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            className="mb-6 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
           >
             Your lessons could not be loaded.{" "}
             {lessonsQuery.error instanceof Error
@@ -208,7 +208,7 @@ export default function TeacherSchedulePage() {
                       active
                         ? "bg-green-500 text-white"
                         : needsAttention
-                          ? "border border-amber-300 bg-amber-50 text-amber-900 hover:border-amber-400"
+                          ? "border border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-amber-900 dark:text-amber-300 hover:border-amber-400"
                           : "border border-card-border bg-card-bg hover:border-green-500"
                     }`}
                   >
@@ -231,7 +231,10 @@ export default function TeacherSchedulePage() {
             {groups.map(([day, lessonsForDay]) => (
               <section key={day}>
                 <h2 className="mb-3 flex items-center gap-2 text-xl font-semibold">
-                  <CalendarDays size={18} className="text-green-600" />
+                  <CalendarDays
+                    size={18}
+                    className="text-green-600 dark:text-green-400"
+                  />
                   {dayLabel(lessonsForDay[0].startsAt)}
                 </h2>
                 <div className="space-y-3">
@@ -281,8 +284,8 @@ export default function TeacherSchedulePage() {
                               <p
                                 className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
                                   lesson.report
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-amber-100 text-amber-900"
+                                    ? "bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300"
+                                    : "bg-amber-100 dark:bg-amber-500/15 text-amber-900 dark:text-amber-300"
                                 }`}
                               >
                                 {lesson.report
@@ -339,7 +342,7 @@ export default function TeacherSchedulePage() {
                                 }
                               }}
                               disabled={cancelMutation.isPending}
-                              className="rounded-xl border border-red-300 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-500 hover:text-white disabled:opacity-50"
+                              className="rounded-xl border border-red-300 dark:border-red-500/30 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 transition hover:bg-red-500 hover:text-white disabled:opacity-50"
                             >
                               {cancelMutation.isPending
                                 ? "Cancelling…"

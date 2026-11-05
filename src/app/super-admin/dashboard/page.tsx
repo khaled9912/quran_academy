@@ -84,7 +84,7 @@ export default function SuperAdminDashboard() {
     <div className="min-h-screen bg-background text-foreground pt-24 pb-16">
       <div className="max-w-6xl mx-auto px-4 md:px-8 lg:px-16">
         <div className="mb-8">
-          <h1 className="text-4xl font-extrabold text-green-600 mb-2">
+          <h1 className="text-4xl font-extrabold text-green-600 dark:text-green-400 mb-2">
             Super Admin Dashboard
           </h1>
           <p className="text-lg opacity-75">
@@ -112,7 +112,7 @@ export default function SuperAdminDashboard() {
               <p className="text-sm text-foreground opacity-70 mb-2">
                 {metric.title}
               </p>
-              <p className="text-3xl font-semibold text-green-600">
+              <p className="text-3xl font-semibold text-green-600 dark:text-green-400">
                 {loading ? "…" : (metric.value ?? "—")}
               </p>
             </div>
@@ -125,7 +125,7 @@ export default function SuperAdminDashboard() {
               <h2 className="text-xl font-semibold">Time change requests</h2>
               <Link
                 href="/admin/change-requests"
-                className="text-sm font-semibold text-green-600 hover:underline"
+                className="text-sm font-semibold text-green-600 dark:text-green-400 hover:underline"
               >
                 Review →
               </Link>

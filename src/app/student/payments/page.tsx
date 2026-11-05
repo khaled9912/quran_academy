@@ -26,9 +26,11 @@ const lessonDate = (value: string) =>
   });
 
 const claimStyles: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-800",
-  confirmed: "bg-green-100 text-green-800",
-  rejected: "bg-red-100 text-red-700",
+  pending:
+    "bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300",
+  confirmed:
+    "bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300",
+  rejected: "bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-300",
 };
 
 const claimLabels: Record<string, string> = {
@@ -131,7 +133,7 @@ export default function StudentPaymentsPage() {
         {billingQuery.isLoading ? (
           <p className="text-foreground opacity-70">Loading your statement…</p>
         ) : billingQuery.isError ? (
-          <div className="rounded-2xl border border-red-300 bg-red-50 p-4 text-red-800">
+          <div className="rounded-2xl border border-red-300 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-red-800 dark:text-red-300">
             {billingQuery.error instanceof Error
               ? billingQuery.error.message
               : "Unable to load the monthly statement."}
@@ -165,7 +167,7 @@ export default function StudentPaymentsPage() {
                   </option>
                 ))}
               </select>
-              <span className="rounded-full bg-green-500/10 px-3 py-1 text-sm font-semibold text-green-700">
+              <span className="rounded-full bg-green-500/10 px-3 py-1 text-sm font-semibold text-green-700 dark:text-green-400">
                 {billing.lessons.length} lesson
                 {billing.lessons.length === 1 ? "" : "s"} ·{" "}
                 {usd(billing.totalUsd)} due
@@ -285,7 +287,10 @@ export default function StudentPaymentsPage() {
                               className="shrink-0 rounded-lg border border-card-border p-1.5 text-foreground opacity-70 transition hover:opacity-100"
                             >
                               {copied === field.label ? (
-                                <Check size={14} className="text-green-600" />
+                                <Check
+                                  size={14}
+                                  className="text-green-600 dark:text-green-400"
+                                />
                               ) : (
                                 <Copy size={14} />
                               )}
@@ -347,7 +352,7 @@ export default function StudentPaymentsPage() {
                       </p>
                     ) : null}
                     {claim.status === "rejected" && claim.adminNote ? (
-                      <p className="mt-1 text-sm text-red-700">
+                      <p className="mt-1 text-sm text-red-700 dark:text-red-300">
                         Academy note: {claim.adminNote}
                       </p>
                     ) : null}
@@ -402,12 +407,12 @@ export default function StudentPaymentsPage() {
                 </p>
               )}
               {notice ? (
-                <p className="mt-3 rounded-xl bg-green-500/10 px-3 py-2 text-sm text-green-700">
+                <p className="mt-3 rounded-xl bg-green-500/10 px-3 py-2 text-sm text-green-700 dark:text-green-400">
                   {notice}
                 </p>
               ) : null}
               {error ? (
-                <p className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">
+                <p className="mt-3 rounded-xl bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">
                   {error}
                 </p>
               ) : null}

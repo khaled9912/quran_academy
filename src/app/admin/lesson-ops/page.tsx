@@ -102,7 +102,7 @@ const outcomeLabels: Record<string, string> = {
 };
 
 const statusStyles: Record<LessonStatus, string> = {
-  scheduled: "bg-green-500/10 text-green-700 dark:text-green-300",
+  scheduled: "bg-green-500/10 text-green-700 dark:text-green-400",
   in_progress: "bg-sky-500/10 text-sky-700 dark:text-sky-300",
   completed: "bg-foreground/10 text-foreground opacity-70",
   cancelled: "bg-red-500/10 text-red-700 dark:text-red-300",
@@ -166,7 +166,7 @@ function DayLessonRow({
         </div>
         <div className="flex flex-wrap justify-end gap-1.5">
           {phase === "live" && (
-            <span className="rounded-full bg-green-500/15 px-2.5 py-0.5 text-xs font-semibold text-green-700 dark:text-green-300">
+            <span className="rounded-full bg-green-500/15 px-2.5 py-0.5 text-xs font-semibold text-green-700 dark:text-green-400">
               Live
             </span>
           )}
@@ -198,7 +198,7 @@ function DayLessonRow({
           </span>
         )}
         {row.incidents.some((incident) => incident.status === "open") && (
-          <span className="text-amber-600 dark:text-amber-300">
+          <span className="text-amber-600 dark:text-amber-400 ">
             Open incident
           </span>
         )}
@@ -356,7 +356,9 @@ function DetailPanel({
                     </span>
                     <span
                       className={
-                        credit.amount < 0 ? "text-red-600" : "text-green-600"
+                        credit.amount < 0
+                          ? "text-red-600 dark:text-red-400"
+                          : "text-green-600 dark:text-green-400"
                       }
                     >
                       {credit.amount > 0 ? "+" : ""}
@@ -482,14 +484,14 @@ function PolicyForm({ policy }: { policy: AcademyPolicy }) {
         immediately.
       </p>
       {notice && (
-        <p className="mt-3 rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+        <p className="mt-3 rounded-xl border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 p-3 text-sm text-green-800 dark:text-green-300">
           {notice}
         </p>
       )}
       {error && (
         <p
           role="alert"
-          className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+          className="mt-3 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300"
         >
           {error}
         </p>
@@ -656,7 +658,7 @@ export default function AdminLessonOpsPage() {
           <div>
             <Link
               href="/admin/dashboard"
-              className="mb-3 inline-block text-green-600 hover:text-green-700"
+              className="mb-3 inline-block text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-400"
             >
               ← Back to admin dashboard
             </Link>
@@ -791,7 +793,10 @@ export default function AdminLessonOpsPage() {
           <div className="space-y-8">
             <section>
               <h2 className="mb-3 flex items-center gap-2 text-2xl font-semibold">
-                <AlertTriangle size={20} className="text-amber-600" />
+                <AlertTriangle
+                  size={20}
+                  className="text-amber-600 dark:text-amber-400"
+                />
                 Excuse requests
               </h2>
               {excusesQuery.isLoading ? (
@@ -815,7 +820,10 @@ export default function AdminLessonOpsPage() {
 
             <section>
               <h2 className="mb-3 flex items-center gap-2 text-2xl font-semibold">
-                <AlertTriangle size={20} className="text-red-600" />
+                <AlertTriangle
+                  size={20}
+                  className="text-red-600 dark:text-red-400"
+                />
                 Attendance incidents
               </h2>
               {incidentsQuery.isLoading ? (
@@ -840,7 +848,10 @@ export default function AdminLessonOpsPage() {
             <section>
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h2 className="flex items-center gap-2 text-2xl font-semibold">
-                  <Scale size={20} className="text-green-600" />
+                  <Scale
+                    size={20}
+                    className="text-green-600 dark:text-green-400"
+                  />
                   Teacher hours
                 </h2>
                 <input
@@ -871,7 +882,10 @@ export default function AdminLessonOpsPage() {
 
             <section>
               <h2 className="mb-3 flex items-center gap-2 text-2xl font-semibold">
-                <Scale size={20} className="text-amber-600" />
+                <Scale
+                  size={20}
+                  className="text-amber-600 dark:text-amber-400"
+                />
                 Reliability events
               </h2>
               {reliabilityQuery.isLoading ? (
@@ -895,7 +909,10 @@ export default function AdminLessonOpsPage() {
 
             <section>
               <h2 className="mb-3 flex items-center gap-2 text-2xl font-semibold">
-                <AlertTriangle size={20} className="text-red-600" />
+                <AlertTriangle
+                  size={20}
+                  className="text-red-600 dark:text-red-400"
+                />
                 Proposed penalties
               </h2>
               {penaltiesQuery.isLoading ? (
@@ -988,7 +1005,7 @@ export default function AdminLessonOpsPage() {
                 <button
                   type="button"
                   onClick={() => void policyQuery.refetch()}
-                  className="ml-2 font-semibold text-green-600 hover:underline"
+                  className="ml-2 font-semibold text-green-600 dark:text-green-400 hover:underline"
                 >
                   Retry
                 </button>

@@ -34,7 +34,7 @@ export function StarRating({
       aria-label={`${value.toFixed(1)} out of 5 stars from ${count ?? 0} review${count === 1 ? "" : "s"}`}
     >
       <span
-        className="inline-flex items-center gap-0.5 text-amber-500"
+        className="inline-flex items-center gap-0.5 text-amber-500 dark:text-amber-400"
         aria-hidden
       >
         {STARS.map((star) => (
@@ -85,7 +85,7 @@ export function StarRatingInput({
           onFocus={() => setHover(star)}
           onBlur={() => setHover(0)}
           onClick={() => onChange(star)}
-          className="rounded-md p-0.5 text-amber-500 transition hover:scale-110 disabled:opacity-50"
+          className="rounded-md p-0.5 text-amber-500 dark:text-amber-400 transition hover:scale-110 disabled:opacity-50"
         >
           <Star
             size={32}

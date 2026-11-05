@@ -31,7 +31,7 @@ const flagLabel: Record<TranscriptFlag, string> = {
 };
 
 const FlagBadge = ({ flag }: { flag: TranscriptFlag }) => (
-  <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400">
+  <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300">
     {flagLabel[flag] ?? flag}
   </span>
 );
@@ -76,7 +76,7 @@ export default function AdminTranscriptsPage() {
         <div className="mb-8">
           <Link
             href="/admin/dashboard"
-            className="text-green-600 hover:text-green-700 mb-3 inline-block"
+            className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-400 mb-3 inline-block"
           >
             ← Back to admin dashboard
           </Link>
@@ -115,7 +115,7 @@ export default function AdminTranscriptsPage() {
             <button
               type="button"
               onClick={() => setSelectedLessonId(null)}
-              className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-green-600 hover:text-green-700"
+              className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-400"
             >
               <ArrowLeft size={16} /> All flagged lessons
             </button>
@@ -197,7 +197,10 @@ export default function AdminTranscriptsPage() {
               >
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <AlertTriangle className="text-amber-500" size={20} />
+                    <AlertTriangle
+                      className="text-amber-500 dark:text-amber-400"
+                      size={20}
+                    />
                     <div>
                       <p className="font-semibold">
                         {lesson.teacherName ?? "Teacher"} with{" "}

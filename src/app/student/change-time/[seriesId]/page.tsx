@@ -128,21 +128,21 @@ export default function ChangeWeeklyTimePage() {
   }
 
   return (
-    <main className="min-h-[75vh] bg-[#fbfaf6] px-5 py-12 text-[#173b35] md:px-8">
+    <main className="min-h-[75vh] bg-background px-5 py-12 text-foreground md:px-8">
       <div className="mx-auto max-w-4xl">
         <Link
           href="/student/availability"
-          className="text-sm font-semibold text-[#1c5145] hover:underline"
+          className="text-sm font-semibold text-green-700 hover:underline dark:text-green-400"
         >
           ← Back to your weekly times
         </Link>
         <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[.18em] text-[#a7773e]">
+            <p className="text-sm font-bold uppercase tracking-[.18em] text-amber-700 dark:text-amber-300">
               Weekly lessons
             </p>
             <h1 className="mt-2 text-3xl font-bold">Change your time</h1>
-            <p className="mt-2 max-w-xl text-[#6b7c73]">
+            <p className="mt-2 max-w-xl text-foreground/70">
               Pick a new weekly time. The academy will check it with your
               teacher, then move your lessons.
             </p>
@@ -152,7 +152,7 @@ export default function ChangeWeeklyTimePage() {
               void seriesQuery.refetch();
               void teacherQuery.refetch();
             }}
-            className="inline-flex items-center gap-2 rounded-xl border border-[#d8e2d4] bg-white px-4 py-2.5 text-sm font-semibold hover:bg-[#f2f6ef]"
+            className="inline-flex items-center gap-2 rounded-xl border border-card-border bg-card-bg px-4 py-2.5 text-sm font-semibold transition hover:border-green-500"
           >
             <RefreshCw size={16} /> Refresh
           </button>
@@ -161,7 +161,7 @@ export default function ChangeWeeklyTimePage() {
         {notice && (
           <p
             role="status"
-            className="mt-6 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800"
+            className="mt-6 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-sm text-green-800 dark:text-green-300"
           >
             {notice}
           </p>
@@ -169,7 +169,7 @@ export default function ChangeWeeklyTimePage() {
         {formError && (
           <p
             role="alert"
-            className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
           >
             {formError}
           </p>
@@ -177,7 +177,7 @@ export default function ChangeWeeklyTimePage() {
         {pending && (
           <p
             role="status"
-            className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800"
+            className="mt-6 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-300"
           >
             You already asked to move this weekly time to{" "}
             <strong>
@@ -196,22 +196,22 @@ export default function ChangeWeeklyTimePage() {
         )}
 
         {seriesQuery.isLoading ? (
-          <p className="mt-8 text-[#6b7c73]">Loading your weekly time…</p>
+          <p className="mt-8 text-foreground/70">Loading your weekly time…</p>
         ) : seriesQuery.error ? (
           <p
             role="alert"
-            className="mt-8 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            className="mt-8 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
           >
             {seriesQuery.error instanceof Error
               ? seriesQuery.error.message
               : "Unable to load your weekly time."}
           </p>
         ) : !series ? (
-          <div className="mt-8 rounded-2xl border border-dashed border-[#d9e3d5] bg-white p-10 text-center text-[#75847b]">
+          <div className="mt-8 rounded-2xl border border-dashed border-card-border bg-card-bg p-10 text-center text-foreground/60">
             This weekly time is no longer active.{" "}
             <Link
               href="/schedule"
-              className="font-semibold text-[#1c5145] hover:underline"
+              className="font-semibold text-green-700 hover:underline dark:text-green-400"
             >
               Open your schedule
             </Link>
@@ -219,7 +219,7 @@ export default function ChangeWeeklyTimePage() {
           </div>
         ) : (
           <>
-            <section className="mt-8 rounded-3xl border border-[#e5e9df] bg-white p-6 shadow-sm">
+            <section className="mt-8 rounded-3xl border border-card-border bg-card-bg p-6 shadow-sm">
               <h2 className="text-lg font-bold">Current weekly time</h2>
               <p className="mt-3 text-lg font-semibold">
                 {formatWeeklyTimeRange(
@@ -227,7 +227,7 @@ export default function ChangeWeeklyTimePage() {
                   seriesLocal?.endsAtTime ?? series.endsAtTime
                 )}
               </p>
-              <p className="mt-1 text-sm text-[#6b7c73]">
+              <p className="mt-1 text-sm text-foreground/70">
                 With {series.teacherName} · repeats every{" "}
                 {WEEKDAY_SHORT[seriesLocal?.dayOfWeek ?? series.dayOfWeek]}
               </p>
@@ -238,7 +238,7 @@ export default function ChangeWeeklyTimePage() {
               />
             </section>
 
-            <section className="mt-6 rounded-3xl border border-[#e5e9df] bg-white p-6 shadow-sm">
+            <section className="mt-6 rounded-3xl border border-card-border bg-card-bg p-6 shadow-sm">
               <h2 className="text-lg font-bold">Choose a new time</h2>
               {available.length > 0 && (
                 <TimeZoneNote
@@ -250,13 +250,13 @@ export default function ChangeWeeklyTimePage() {
                 />
               )}
               {teacherQuery.isLoading ? (
-                <p className="mt-4 text-sm text-[#6b7c73]">
+                <p className="mt-4 text-sm text-foreground/70">
                   Loading available times…
                 </p>
               ) : teacherQuery.error ? (
                 <p
                   role="alert"
-                  className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+                  className="mt-4 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
                 >
                   {teacherQuery.error instanceof Error
                     ? teacherQuery.error.message
@@ -267,7 +267,7 @@ export default function ChangeWeeklyTimePage() {
                   {DAY_ORDER.filter((day) => grouped[day]?.length).map(
                     (day) => (
                       <div key={day}>
-                        <p className="text-xs font-bold uppercase tracking-wide text-[#7b8981]">
+                        <p className="text-xs font-bold uppercase tracking-wide text-amber-700 dark:text-amber-300">
                           {WEEKDAY_LABELS[day]}
                         </p>
                         <div className="mt-2 grid gap-2 sm:grid-cols-2">
@@ -283,8 +283,8 @@ export default function ChangeWeeklyTimePage() {
                                 }
                                 className={`flex items-center justify-between gap-3 rounded-2xl border p-4 text-left transition ${
                                   chosen
-                                    ? "border-[#1c5145] bg-[#eef3e9]"
-                                    : "border-[#e0e7dc] hover:border-[#1c5145]"
+                                    ? "border-green-600 bg-green-500/15"
+                                    : "border-card-border hover:border-green-500"
                                 }`}
                               >
                                 <span className="min-w-0">
@@ -294,12 +294,12 @@ export default function ChangeWeeklyTimePage() {
                                       local.endsAtTime
                                     )}
                                   </span>
-                                  <span className="block text-xs text-[#74847b]">
+                                  <span className="block text-xs text-foreground/60">
                                     {chosen ? "Selected" : "Available"}
                                   </span>
                                 </span>
                                 {chosen && (
-                                  <span className="rounded-full bg-[#1c5145] px-3 py-1 text-xs font-semibold text-white">
+                                  <span className="rounded-full bg-[#1c5145] px-3 py-1 text-xs font-semibold text-white dark:bg-green-600">
                                     Selected
                                   </span>
                                 )}
@@ -312,7 +312,7 @@ export default function ChangeWeeklyTimePage() {
                   )}
                 </div>
               ) : (
-                <p className="mt-4 rounded-2xl border border-dashed border-[#d9e3d5] p-8 text-center text-sm text-[#75847b]">
+                <p className="mt-4 rounded-2xl border border-dashed border-card-border p-8 text-center text-sm text-foreground/60">
                   {series.teacherName} has not announced any other weekly times
                   right now.
                 </p>
@@ -320,7 +320,7 @@ export default function ChangeWeeklyTimePage() {
             </section>
 
             {available.length > 0 && (
-              <section className="mt-6 rounded-3xl border border-[#e5e9df] bg-white p-6 shadow-sm">
+              <section className="mt-6 rounded-3xl border border-card-border bg-card-bg p-6 shadow-sm">
                 <label className="block text-sm font-semibold">
                   Note for the academy (optional)
                   <textarea
@@ -328,7 +328,7 @@ export default function ChangeWeeklyTimePage() {
                     onChange={(event) => setNote(event.target.value)}
                     rows={3}
                     placeholder="Anything they should know about the new time?"
-                    className="mt-2 w-full rounded-xl border border-[#dce5d9] px-3 py-3 font-normal outline-none focus:border-[#6f8c69]"
+                    className="mt-2 w-full rounded-xl border border-card-border bg-background px-3 py-3 font-normal text-foreground outline-none placeholder:text-foreground/40 focus:border-green-500"
                   />
                 </label>
                 <button
@@ -339,11 +339,11 @@ export default function ChangeWeeklyTimePage() {
                     setNotice("");
                     if (selected) submit.mutate(selected);
                   }}
-                  className="mt-4 w-full rounded-xl bg-[#1c5145] px-4 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  className="mt-4 w-full rounded-xl bg-[#1c5145] px-4 py-3 font-semibold text-white transition hover:bg-[#163f36] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-green-600 dark:hover:bg-green-500"
                 >
                   {submit.isPending ? "Sending…" : "Request this time"}
                 </button>
-                <p className="mt-3 text-xs leading-5 text-[#7b8981]">
+                <p className="mt-3 text-xs leading-5 text-foreground/60">
                   Your current weekly time stays booked until the academy
                   approves the change.
                 </p>

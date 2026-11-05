@@ -42,7 +42,14 @@ const Navbar = () => {
             alt="Ana Quran logo"
             width={40}
             height={56}
-            className="navbar-brand-logo h-14 w-auto"
+            className="navbar-brand-logo h-14 w-auto dark:hidden"
+          />
+          <img
+            src="/logo-ana-quran-light.svg?v=2026-10-31-6"
+            alt="Ana Quran logo"
+            width={40}
+            height={56}
+            className="navbar-brand-logo hidden h-14 w-auto dark:block"
           />
         </Link>
         <div className="flex items-center gap-2">
@@ -64,7 +71,14 @@ const Navbar = () => {
               alt="Ana Quran logo"
               width={46}
               height={64}
-              className="navbar-brand-logo h-16 w-auto"
+              className="navbar-brand-logo h-16 w-auto dark:hidden"
+            />
+            <img
+              src="/logo-ana-quran-light.svg?v=2026-10-31-6"
+              alt="Ana Quran logo"
+              width={46}
+              height={64}
+              className="navbar-brand-logo hidden h-16 w-auto dark:block"
             />
           </Link>
 
@@ -99,7 +113,7 @@ const Navbar = () => {
           {!isAuthenticated ? (
             <>
               <Link href="/login">
-                <button className="rounded-xl border border-[#173d3f]/15 bg-[#eaf2ec] px-4 py-2 text-sm font-semibold text-[#173d3f] shadow-sm transition hover:bg-[#dfeee2]">
+                <button className="rounded-xl border border-[#173d3f]/15 bg-[#eaf2ec] px-4 py-2 text-sm font-semibold text-[#173d3f] shadow-sm transition hover:bg-[#dfeee2] dark:border-white/15 dark:bg-white/10 dark:text-[var(--navbar-text)] dark:hover:bg-white/15">
                   Login
                 </button>
               </Link>
@@ -113,7 +127,7 @@ const Navbar = () => {
             <>
               <Link
                 href="/profile"
-                className="mr-2 flex items-center gap-2 rounded-xl px-2 py-1.5 transition hover:bg-white/5"
+                className="mr-2 flex items-center gap-2 rounded-xl px-2 py-1.5 transition hover:bg-[var(--nav-hover-bg)]"
               >
                 <Avatar
                   name={displayName}
@@ -122,17 +136,17 @@ const Navbar = () => {
                   fallbackClassName="bg-[#f1d1a1] text-[#173d3f]"
                 />
                 <span className="text-sm">
-                  <span className="block text-[11px] uppercase tracking-wide text-white/60">
+                  <span className="block text-[11px] uppercase tracking-wide text-[var(--nav-text-muted)]">
                     {role?.replace("_", " ")}
                   </span>
-                  <strong className="block max-w-[14ch] truncate text-white">
+                  <strong className="block max-w-[14ch] truncate text-[var(--navbar-text)]">
                     {displayName}
                   </strong>
                 </span>
               </Link>
               <button
                 onClick={logout}
-                className="rounded-xl border border-[#f5c3c3] bg-[#f7dfe0] px-4 py-2 text-sm font-semibold text-[#b74343] transition hover:bg-[#f8d7d7]"
+                className="rounded-xl border border-[#f5c3c3] bg-[#f7dfe0] px-4 py-2 text-sm font-semibold text-[#b74343] transition hover:bg-[#f8d7d7] dark:border-red-500/30 dark:bg-red-500/15 dark:text-red-300 dark:hover:bg-red-500/20"
               >
                 Logout
               </button>

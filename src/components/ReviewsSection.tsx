@@ -24,24 +24,24 @@ export function ReviewsSection() {
   if (!reviews.length) return null;
 
   return (
-    <section className="bg-[#eef3e9] py-20 md:py-24">
+    <section className="bg-[#eef3e9] py-20 md:py-24 dark:bg-[#16324a]">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#a7773e]">
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#a7773e] dark:text-amber-300">
               Student reviews
             </p>
-            <h2 className="mt-4 text-3xl font-bold tracking-tight text-[#173b35] sm:text-4xl">
+            <h2 className="mt-4 text-3xl font-bold tracking-tight text-[#173b35] dark:text-foreground sm:text-4xl">
               Reviewed after every lesson.
             </h2>
-            <p className="mt-4 max-w-xl leading-7 text-[#687b70]">
+            <p className="mt-4 max-w-xl leading-7 text-[#687b70] dark:text-foreground/70">
               Ratings come only from students who completed a lesson, so every
               review reflects a real class.
             </p>
           </div>
           <Link
             href="/teachers"
-            className="inline-flex items-center gap-2 font-semibold text-[#1d5144] hover:gap-3"
+            className="inline-flex items-center gap-2 font-semibold text-[#1d5144] hover:gap-3 dark:text-green-400"
           >
             Browse all teachers <ArrowRight size={18} />
           </Link>
@@ -51,22 +51,22 @@ export function ReviewsSection() {
           {reviews.map((review) => (
             <article
               key={review.id}
-              className="flex flex-col rounded-2xl border border-[#dce6d8] bg-white p-6 shadow-sm"
+              className="flex flex-col rounded-2xl border border-[#dce6d8] bg-white p-6 shadow-sm dark:border-card-border dark:bg-card-bg"
             >
-              <Quote size={22} className="text-[#b47b3c]" />
-              <p className="mt-4 flex-1 leading-7 text-[#4f6459]">
+              <Quote size={22} className="text-[#b47b3c] dark:text-amber-300" />
+              <p className="mt-4 flex-1 leading-7 text-[#4f6459] dark:text-foreground/80">
                 {review.comment}
               </p>
-              <div className="mt-5 border-t border-[#e7eee3] pt-4">
+              <div className="mt-5 border-t border-[#e7eee3] pt-4 dark:border-card-border">
                 <StarRating value={review.rating} count={1} />
-                <p className="mt-2 text-sm font-semibold text-[#23483c]">
+                <p className="mt-2 text-sm font-semibold text-[#23483c] dark:text-foreground">
                   {review.studentName}
                 </p>
-                <p className="text-xs text-[#7b8a7f]">
+                <p className="text-xs text-[#7b8a7f] dark:text-foreground/60">
                   with{" "}
                   <Link
                     href={`/teachers/${review.teacherId}`}
-                    className="font-semibold text-[#1d5144] hover:underline"
+                    className="font-semibold text-[#1d5144] hover:underline dark:text-green-400"
                   >
                     {review.teacherName}
                   </Link>{" "}

@@ -42,7 +42,7 @@ export default function TeachPage() {
               key={step.title}
               className="rounded-2xl border border-card-border bg-card-bg p-5"
             >
-              <span className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-green-500/15 text-sm font-bold text-green-700">
+              <span className="mb-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-green-500/15 text-sm font-bold text-green-700 dark:text-green-400">
                 {index + 1}
               </span>
               <h2 className="font-semibold mb-1">{step.title}</h2>

@@ -27,9 +27,9 @@ import {
 } from "@/types/teacher-application";
 
 const statusStyles: Record<TeacherApplicationStatus, string> = {
-  pending: "bg-amber-500/15 text-amber-700",
-  approved: "bg-green-500/15 text-green-700",
-  rejected: "bg-red-500/15 text-red-600",
+  pending: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+  approved: "bg-green-500/15 text-green-700 dark:text-green-400",
+  rejected: "bg-red-500/15 text-red-600 dark:text-red-400",
 };
 
 const filters: Array<{
@@ -220,7 +220,7 @@ export default function AdminTeacherApplicationsPage() {
         {(actionError || applicationsQuery.isError) && (
           <p
             role="alert"
-            className="mb-6 rounded-xl border border-red-400/40 bg-red-500/10 p-4 text-sm text-red-600"
+            className="mb-6 rounded-xl border border-red-400/40 bg-red-500/10 p-4 text-sm text-red-600 dark:text-red-400"
           >
             {actionError ||
               (applicationsQuery.error instanceof Error
@@ -276,7 +276,7 @@ export default function AdminTeacherApplicationsPage() {
                     {application.subjects.map((subject) => (
                       <span
                         key={subject}
-                        className="rounded-full bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-700"
+                        className="rounded-full bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-700 dark:text-green-400"
                       >
                         {teacherSubjectLabel[subject] ?? subject}
                       </span>
@@ -310,7 +310,7 @@ export default function AdminTeacherApplicationsPage() {
                   </p>
                   {application.status === "rejected" &&
                     application.rejectionReason && (
-                      <p className="mt-2 text-sm text-red-600">
+                      <p className="mt-2 text-sm text-red-600 dark:text-red-400">
                         Reason: {application.rejectionReason}
                       </p>
                     )}
@@ -397,7 +397,7 @@ export default function AdminTeacherApplicationsPage() {
                             )
                           }
                           disabled={isReviewing}
-                          className="inline-flex items-center gap-2 rounded-xl border border-red-400/50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-500/10 disabled:opacity-60"
+                          className="inline-flex items-center gap-2 rounded-xl border border-red-400/50 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 transition hover:bg-red-500/10 disabled:opacity-60"
                         >
                           <XCircle size={16} /> Reject
                         </button>
@@ -407,7 +407,7 @@ export default function AdminTeacherApplicationsPage() {
 
                   {application.status === "approved" &&
                     application.teacherId && (
-                      <p className="mt-3 inline-flex items-center gap-2 text-xs text-green-700">
+                      <p className="mt-3 inline-flex items-center gap-2 text-xs text-green-700 dark:text-green-400">
                         <CheckCircle2 size={14} /> Teacher account linked
                       </p>
                     )}

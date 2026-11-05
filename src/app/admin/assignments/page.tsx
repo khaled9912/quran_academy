@@ -118,7 +118,7 @@ export default function AdminAssignmentsPage() {
         <div className="mb-8">
           <Link
             href="/admin/dashboard"
-            className="text-green-600 hover:text-green-700 mb-3 inline-block"
+            className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-400 mb-3 inline-block"
           >
             ← Back to admin dashboard
           </Link>
@@ -131,14 +131,14 @@ export default function AdminAssignmentsPage() {
 
         <section className="mb-10 rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
           <div className="mb-5 flex items-center gap-3">
-            <UserCheck className="text-green-600" />
+            <UserCheck className="text-green-600 dark:text-green-400" />
             <h2 className="text-2xl font-semibold">Assign a student</h2>
           </div>
 
           {listError && (
             <p
               role="alert"
-              className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+              className="mb-5 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
             >
               {queryError(
                 listError,
@@ -216,7 +216,7 @@ export default function AdminAssignmentsPage() {
               No teachers yet.{" "}
               <Link
                 href="/admin/teachers"
-                className="text-green-600 hover:text-green-700 underline"
+                className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-400 underline"
               >
                 Create a teacher first.
               </Link>
@@ -227,7 +227,7 @@ export default function AdminAssignmentsPage() {
               No students yet.{" "}
               <Link
                 href="/admin/students"
-                className="text-green-600 hover:text-green-700 underline"
+                className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-400 underline"
               >
                 Create a student first.
               </Link>
@@ -236,7 +236,7 @@ export default function AdminAssignmentsPage() {
           {error && (
             <p
               role="alert"
-              className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700"
+              className="mt-4 rounded-xl bg-red-50 dark:bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300"
             >
               {error}
             </p>
@@ -244,7 +244,7 @@ export default function AdminAssignmentsPage() {
           {notice && (
             <p
               role="status"
-              className="mt-4 rounded-xl bg-green-50 p-3 text-sm text-green-800"
+              className="mt-4 rounded-xl bg-green-50 dark:bg-green-500/10 p-3 text-sm text-green-800 dark:text-green-300"
             >
               {notice}
             </p>
@@ -258,7 +258,7 @@ export default function AdminAssignmentsPage() {
           ) : assignmentsQuery.error ? (
             <p
               role="alert"
-              className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+              className="rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
             >
               {queryError(
                 assignmentsQuery.error,
@@ -287,7 +287,7 @@ export default function AdminAssignmentsPage() {
                       removeMutation.mutate(assignment.id);
                     }}
                     disabled={removeMutation.isPending}
-                    className="inline-flex items-center gap-2 rounded-xl border border-red-300 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-500 hover:text-white disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-xl border border-red-300 dark:border-red-500/30 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 transition hover:bg-red-500 hover:text-white disabled:opacity-50"
                   >
                     <UserMinus size={15} /> Remove
                   </button>

@@ -348,7 +348,7 @@ const SignUpPage = () => {
                 Sent to {sentTo}.
               </p>
               {devCode && (
-                <p className="mt-2 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-700">
+                <p className="mt-2 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300">
                   Development code:{" "}
                   <span className="font-bold tracking-widest">{devCode}</span>
                 </p>
@@ -364,7 +364,7 @@ const SignUpPage = () => {
             <button
               type="button"
               onClick={resetPhoneFlow}
-              className="w-full text-center text-sm font-semibold text-green-600 hover:underline"
+              className="w-full text-center text-sm font-semibold text-green-600 dark:text-green-400 hover:underline"
             >
               Change my details
             </button>
@@ -372,7 +372,10 @@ const SignUpPage = () => {
         )}
 
         {message && (
-          <p role="alert" className="mt-4 text-center text-sm text-red-500">
+          <p
+            role="alert"
+            className="mt-4 text-center text-sm text-red-500 dark:text-red-400"
+          >
             {message}
           </p>
         )}
@@ -381,7 +384,7 @@ const SignUpPage = () => {
           Already have an account?{" "}
           <Link
             href="/login"
-            className="font-semibold text-green-500 hover:underline"
+            className="font-semibold text-green-500 dark:text-green-400 hover:underline"
           >
             Sign in
           </Link>
@@ -390,7 +393,7 @@ const SignUpPage = () => {
           Want to teach instead?{" "}
           <Link
             href="/teach"
-            className="font-semibold text-green-500 hover:underline"
+            className="font-semibold text-green-500 dark:text-green-400 hover:underline"
           >
             Apply as a teacher
           </Link>

@@ -181,17 +181,17 @@ export default function AdminTeacherAvailabilityPage() {
   }
 
   return (
-    <main className="min-h-[75vh] bg-[#fbfaf6] px-5 py-12 text-[#173b35] md:px-8">
+    <main className="min-h-[75vh] bg-background px-5 py-12 text-foreground md:px-8">
       <div className="mx-auto max-w-5xl">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <Link
               href="/admin/teachers"
-              className="text-[#6f8c69] hover:underline"
+              className="text-green-700 hover:underline dark:text-green-400"
             >
               ← Back to teachers
             </Link>
-            <p className="mt-3 text-sm font-bold uppercase tracking-[.18em] text-[#a7773e]">
+            <p className="mt-3 text-sm font-bold uppercase tracking-[.18em] text-amber-700 dark:text-amber-300">
               Admin portal
             </p>
             <h1 className="mt-2 text-3xl font-bold">
@@ -200,14 +200,14 @@ export default function AdminTeacherAvailabilityPage() {
                 ? ` · ${teacherQuery.data.fullName ?? teacherQuery.data.name}`
                 : ""}
             </h1>
-            <p className="mt-2 text-[#6b7c73]">
+            <p className="mt-2 text-foreground/70">
               Announce weekly times on behalf of this teacher. Students book
               them instantly.
             </p>
           </div>
           <button
             onClick={() => void rulesQuery.refetch()}
-            className="inline-flex items-center gap-2 rounded-xl border border-[#d8e2d4] bg-white px-4 py-2.5 text-sm font-semibold"
+            className="inline-flex items-center gap-2 rounded-xl border border-card-border bg-card-bg px-4 py-2.5 text-sm font-semibold transition hover:border-green-500"
           >
             <RefreshCw size={16} /> Refresh
           </button>
@@ -216,7 +216,7 @@ export default function AdminTeacherAvailabilityPage() {
         {error && (
           <p
             role="alert"
-            className="mt-6 rounded-xl bg-red-50 p-4 text-sm text-red-700"
+            className="mt-6 rounded-xl bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
           >
             {error instanceof Error
               ? error.message
@@ -226,7 +226,7 @@ export default function AdminTeacherAvailabilityPage() {
         {notice && (
           <p
             role="status"
-            className="mt-6 rounded-xl bg-green-50 p-4 text-sm text-green-800"
+            className="mt-6 rounded-xl bg-green-500/10 p-4 text-sm text-green-800 dark:text-green-300"
           >
             {notice}
           </p>
@@ -235,10 +235,10 @@ export default function AdminTeacherAvailabilityPage() {
         <div className="mt-8 grid gap-6 md:grid-cols-[.9fr_1.1fr]">
           <form
             onSubmit={submit}
-            className="h-fit rounded-3xl border border-[#e5e9df] bg-white p-6 shadow-sm"
+            className="h-fit rounded-3xl border border-card-border bg-card-bg p-6 shadow-sm"
           >
             <div className="flex items-center gap-3">
-              <CalendarPlus className="text-[#6f8c69]" />
+              <CalendarPlus className="text-green-700 dark:text-green-400" />
               <h2 className="text-xl font-bold">Announce weekly times</h2>
             </div>
 
@@ -255,8 +255,8 @@ export default function AdminTeacherAvailabilityPage() {
                       onClick={() => toggleDay(day)}
                       className={`rounded-xl border px-3 py-2 text-sm font-semibold transition ${
                         selected
-                          ? "border-[#1c5145] bg-[#eef3e9] text-[#1c5145]"
-                          : "border-[#dce5d9] bg-white text-[#7b8981] hover:border-[#6f8c69]"
+                          ? "border-green-700 bg-green-500/15 text-green-900 dark:text-green-300 dark:border-green-400"
+                          : "border-card-border bg-card-bg text-foreground/60 hover:border-green-500"
                       }`}
                     >
                       {WEEKDAY_SHORT[day]}
@@ -274,7 +274,7 @@ export default function AdminTeacherAvailabilityPage() {
                   type="time"
                   value={start}
                   onChange={(event) => setStart(event.target.value)}
-                  className="mt-2 w-full rounded-xl border border-[#dce5d9] px-3 py-3 font-normal outline-none focus:border-[#6f8c69]"
+                  className="mt-2 w-full rounded-xl border border-card-border bg-background px-3 py-3 font-normal text-foreground outline-none focus:border-green-500"
                 />
               </label>
               <label className="block text-sm font-semibold">
@@ -284,7 +284,7 @@ export default function AdminTeacherAvailabilityPage() {
                   type="time"
                   value={end}
                   onChange={(event) => setEnd(event.target.value)}
-                  className="mt-2 w-full rounded-xl border border-[#dce5d9] px-3 py-3 font-normal outline-none focus:border-[#6f8c69]"
+                  className="mt-2 w-full rounded-xl border border-card-border bg-background px-3 py-3 font-normal text-foreground outline-none focus:border-green-500"
                 />
               </label>
             </div>
@@ -297,24 +297,24 @@ export default function AdminTeacherAvailabilityPage() {
                 value={timeZoneId}
                 onChange={(event) => setTimeZoneOverride(event.target.value)}
                 placeholder="e.g. Africa/Cairo"
-                className="mt-2 w-full rounded-xl border border-[#dce5d9] px-3 py-3 font-normal outline-none focus:border-[#6f8c69]"
+                className="mt-2 w-full rounded-xl border border-card-border bg-background px-3 py-3 font-normal text-foreground outline-none focus:border-green-500"
               />
             </label>
-            <p className="mt-2 text-xs text-[#7b8981]">
+            <p className="mt-2 text-xs text-foreground/60">
               Use one of the teacher&apos;s existing zones unless you know it
               changed.
             </p>
 
-            <div className="mt-5 rounded-xl bg-[#f2f6ef] p-4 text-sm">
+            <div className="mt-5 rounded-xl bg-green-500/10 p-4 text-sm">
               <p className="font-semibold">{summary}</p>
-              <p className="mt-1 text-xs text-[#7b8981]">
+              <p className="mt-1 text-xs text-foreground/60">
                 Repeats every week · times are in {timeZoneId}
               </p>
             </div>
 
             <button
               disabled={publishMutation.isPending}
-              className="mt-6 w-full rounded-xl bg-[#1c5145] px-4 py-3 font-semibold text-white disabled:opacity-50"
+              className="mt-6 w-full rounded-xl bg-[#1c5145] px-4 py-3 font-semibold text-white disabled:opacity-50 dark:bg-green-600 dark:hover:bg-green-500"
             >
               {publishMutation.isPending
                 ? "Announcing…"
@@ -322,13 +322,15 @@ export default function AdminTeacherAvailabilityPage() {
             </button>
           </form>
 
-          <section className="rounded-3xl border border-[#e5e9df] bg-white p-6 shadow-sm">
+          <section className="rounded-3xl border border-card-border bg-card-bg p-6 shadow-sm">
             <h2 className="text-xl font-bold">
               Announced times ({rules.length})
             </h2>
             <div className="mt-5 space-y-4">
               {rulesQuery.isLoading ? (
-                <p className="text-sm text-[#7b8981]">Loading availability…</p>
+                <p className="text-sm text-foreground/60">
+                  Loading availability…
+                </p>
               ) : rules.length ? (
                 DAY_ORDER.map((day) => {
                   const dayRules = rules.filter(
@@ -337,7 +339,7 @@ export default function AdminTeacherAvailabilityPage() {
                   if (!dayRules.length) return null;
                   return (
                     <div key={day}>
-                      <p className="text-xs font-bold uppercase tracking-wide text-[#b58a52]">
+                      <p className="text-xs font-bold uppercase tracking-wide text-amber-700 dark:text-amber-300">
                         {WEEKDAY_LABELS[day]}
                       </p>
                       <div className="mt-2 space-y-2">
@@ -349,7 +351,7 @@ export default function AdminTeacherAvailabilityPage() {
                           return (
                             <div
                               key={rule.id}
-                              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#e6ebe2] p-4"
+                              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-card-border p-4"
                             >
                               <div>
                                 <p className="font-semibold">
@@ -358,14 +360,14 @@ export default function AdminTeacherAvailabilityPage() {
                                     rule.endsAtTime
                                   )}
                                 </p>
-                                <p className="mt-1 text-sm text-[#7b8981]">
+                                <p className="mt-1 text-sm text-foreground/60">
                                   {booked
                                     ? "Booked by a student · repeats weekly."
                                     : "Open for a student to book."}
                                 </p>
                               </div>
                               {booked ? (
-                                <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">
+                                <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800 dark:bg-sky-500/15 dark:text-sky-300">
                                   Booked
                                 </span>
                               ) : (
@@ -374,7 +376,7 @@ export default function AdminTeacherAvailabilityPage() {
                                   onClick={() => confirmRemove(rule)}
                                   disabled={removing}
                                   aria-label="Remove weekly time"
-                                  className="rounded-lg p-2 text-[#a65d54] hover:bg-red-50 disabled:opacity-50"
+                                  className="rounded-lg p-2 text-red-600 hover:bg-red-500/10 disabled:opacity-50 dark:text-red-400"
                                 >
                                   <Trash2 size={18} />
                                 </button>
@@ -387,7 +389,7 @@ export default function AdminTeacherAvailabilityPage() {
                   );
                 })
               ) : (
-                <p className="rounded-xl border border-dashed border-[#d9e3d5] p-8 text-center text-sm text-[#75847b]">
+                <p className="rounded-xl border border-dashed border-card-border p-8 text-center text-sm text-foreground/60">
                   This teacher has no weekly availability yet.
                 </p>
               )}

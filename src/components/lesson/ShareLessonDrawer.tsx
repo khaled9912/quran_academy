@@ -189,7 +189,7 @@ export function ShareLessonDrawer({ open, shareUrl, onClose }: Props) {
               onError={() => setPreviewFailed(true)}
             />
           ) : (
-            <span className="flex h-12 w-16 shrink-0 items-center justify-center rounded-lg bg-green-500/10 text-green-600">
+            <span className="flex h-12 w-16 shrink-0 items-center justify-center rounded-lg bg-green-500/10 text-green-600 dark:text-green-400">
               <MessageCircle size={20} />
             </span>
           )}

@@ -150,7 +150,7 @@ const CoursesPage = () => {
                   {/* Teacher Info */}
                   <div className="mb-3 pb-3 border-b border-card-border">
                     <div className="flex items-center gap-2 text-sm">
-                      <FaUser className="text-green-500" />
+                      <FaUser className="text-green-500 dark:text-green-400" />
                       <span className="text-foreground opacity-75">
                         {course.teacher}
                       </span>
@@ -160,7 +160,7 @@ const CoursesPage = () => {
                   {/* Schedule */}
                   <div className="mb-4">
                     <div className="flex items-start gap-2 text-sm">
-                      <FaClock className="text-green-500 mt-0.5" />
+                      <FaClock className="text-green-500 dark:text-green-400 mt-0.5" />
                       <span className="text-foreground opacity-75">
                         {course.schedule}
                       </span>
@@ -170,7 +170,7 @@ const CoursesPage = () => {
                   {/* Enrollment Info */}
                   <div className="flex items-center justify-between pt-3 border-t border-card-border">
                     <div className="flex items-center gap-1 text-sm text-foreground opacity-70">
-                      <FaBook className="text-green-500" />
+                      <FaBook className="text-green-500 dark:text-green-400" />
                       <span>{course.enrolled} enrolled</span>
                     </div>
                     <button className="px-3 py-1 text-sm bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white rounded font-semibold transition">
@@ -197,7 +197,7 @@ const CoursesPage = () => {
                   className="border border-card-border rounded-lg p-6 hover:border-green-500 transition text-center"
                 >
                   <h3 className="text-lg font-semibold mb-2">{category}</h3>
-                  <p className="text-3xl font-bold text-green-500">
+                  <p className="text-3xl font-bold text-green-500 dark:text-green-400">
                     {categoryCount}
                   </p>
                   <p className="text-foreground opacity-70 text-sm mt-2">
