@@ -57,6 +57,18 @@ const statusStyles: Record<Lesson["status"], string> = {
   cancelled: "bg-red-100 text-red-700",
 };
 
+const cancellationLabels: Record<string, string> = {
+  free_cancellation: "Free cancellation",
+  grace_cancellation: "Grace cancellation",
+  late_cancellation: "Late cancellation",
+  cancelled_by_teacher: "Teacher cancelled",
+  late_cancelled_by_teacher: "Teacher late cancel",
+  admin_cancelled: "Academy cancelled",
+  student_no_show: "No-show recorded",
+  teacher_no_show: "Teacher no-show",
+  both_absent: "Both absent",
+};
+
 export default function StudentSchedulePage() {
   const { role } = useAuth();
   const [filter, setFilter] = useState<Filter>("upcoming");
@@ -230,12 +242,26 @@ export default function StudentSchedulePage() {
                                 Trial
                               </span>
                             )}
-                            {!live && (
-                              <span
-                                className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[lesson.status]}`}
-                              >
-                                {lesson.status.replaceAll("_", " ")}
+                            {lesson.isMakeup && (
+                              <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-800">
+                                Make-up
                               </span>
+                            )}
+                            {lesson.status === "cancelled" &&
+                            lesson.cancellationOutcome ? (
+                              <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+                                {cancellationLabels[
+                                  lesson.cancellationOutcome
+                                ] ?? "Cancelled"}
+                              </span>
+                            ) : (
+                              !live && (
+                                <span
+                                  className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[lesson.status]}`}
+                                >
+                                  {lesson.status.replaceAll("_", " ")}
+                                </span>
+                              )
                             )}
                           </span>
                           {isLessonJoinable(

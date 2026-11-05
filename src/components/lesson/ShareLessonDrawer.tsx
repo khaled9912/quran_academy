@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, Copy, Link2, MessageCircle, Pencil, Share2, X } from "lucide-react";
+import {
+  Check,
+  Copy,
+  Link2,
+  MessageCircle,
+  Pencil,
+  Share2,
+  X,
+} from "lucide-react";
 
 const defaultMessage = (url: string) => `Join my Ana Quran lesson room: ${url}`;
 
@@ -41,13 +49,23 @@ export function ShareLessonDrawer({ open, shareUrl, onClose }: Props) {
   const [message, setMessage] = useState(() => defaultMessage(shareUrl));
   const [copied, setCopied] = useState(false);
   const [canNativeShare, setCanNativeShare] = useState(false);
+  const [previewFailed, setPreviewFailed] = useState(false);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
+
+  // The Jitsi host serves the same image its WhatsApp/link previews use.
+  let previewImage = "";
+  try {
+    previewImage = `${new URL(shareUrl).origin}/branding/ana-quran.png`;
+  } catch {
+    previewImage = "";
+  }
 
   useEffect(() => {
     if (!open) return;
     setMessage(defaultMessage(shareUrl));
     setCopied(false);
+    setPreviewFailed(false);
   }, [open, shareUrl]);
 
   useEffect(() => {
@@ -90,7 +108,10 @@ export function ShareLessonDrawer({ open, shareUrl, onClose }: Props) {
 
   const shareEverywhere = () => {
     void navigator
-      .share({ title: "Ana Quran lesson room", text: withLink(message, shareUrl) })
+      .share({
+        title: "Ana Quran lesson room",
+        text: withLink(message, shareUrl),
+      })
       .then(onClose)
       .catch(() => {});
   };
@@ -109,7 +130,7 @@ export function ShareLessonDrawer({ open, shareUrl, onClose }: Props) {
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-start gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500/10 text-green-600">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500 text-white">
             <Pencil size={18} />
           </span>
           <div className="flex-1">
@@ -156,6 +177,28 @@ export function ShareLessonDrawer({ open, shareUrl, onClose }: Props) {
             {copied ? <Check size={13} /> : <Copy size={13} />}
             {copied ? "Copied" : "Copy"}
           </button>
+        </div>
+
+        <div className="flex items-center gap-3 rounded-xl border border-card-border bg-card-bg p-2">
+          {previewImage && !previewFailed ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={previewImage}
+              alt=""
+              className="h-12 w-16 shrink-0 rounded-lg object-cover"
+              onError={() => setPreviewFailed(true)}
+            />
+          ) : (
+            <span className="flex h-12 w-16 shrink-0 items-center justify-center rounded-lg bg-green-500/10 text-green-600">
+              <MessageCircle size={20} />
+            </span>
+          )}
+          <div className="min-w-0">
+            <p className="text-xs font-semibold">Ana Quran lesson room</p>
+            <p className="truncate text-xs text-foreground opacity-70">
+              Join a live Quran lesson with your teacher on Ana Quran.
+            </p>
+          </div>
         </div>
 
         <div className="mt-2 flex flex-col gap-2">

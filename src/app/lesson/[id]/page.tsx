@@ -4,12 +4,19 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Clock, MonitorPlay, RefreshCw, Share2, ShieldCheck } from "lucide-react";
+import {
+  Clock,
+  MonitorPlay,
+  RefreshCw,
+  Share2,
+  ShieldCheck,
+} from "lucide-react";
 import { ApiError } from "@/lib/backend-client";
 import { getLessonById } from "@/services/lesson.service";
 import { useAuth } from "@/providers/auth-provider";
 import { useLessonCall } from "@/providers/lesson-call-provider";
 import { LessonFeedback } from "@/components/lesson/LessonFeedback";
+import { LessonOperationsPanel } from "@/components/lesson/LessonOperationsPanel";
 import { ShareLessonDrawer } from "@/components/lesson/ShareLessonDrawer";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 
@@ -115,8 +122,9 @@ export default function LessonCallPage() {
       domain: JITSI_DOMAIN,
       displayName: roomDisplayName,
       backHref,
+      trackAttendance: role === "teacher" || role === "student",
     });
-  }, [showingRoom, lesson, id, room, roomDisplayName, backHref, startCall]);
+  }, [showingRoom, lesson, id, room, roomDisplayName, backHref, role, startCall]);
 
   if (authLoading || !profile) return null;
 
@@ -231,6 +239,7 @@ export default function LessonCallPage() {
                     domain: JITSI_DOMAIN,
                     displayName,
                     backHref,
+                    trackAttendance: role === "teacher" || role === "student",
                   });
                   setMinimized(false);
                 }}
@@ -253,6 +262,12 @@ export default function LessonCallPage() {
               page URL.
             </p>
           </>
+        )}
+
+        {lesson && !forbidden && !error && lessonQuery.isSuccess && (
+          <div className="mt-8">
+            <LessonOperationsPanel lesson={lesson} role={role} />
+          </div>
         )}
       </div>
       <ShareLessonDrawer

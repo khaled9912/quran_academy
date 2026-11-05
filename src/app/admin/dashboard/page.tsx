@@ -161,6 +161,16 @@ export default function AdminDashboardPage() {
             </p>
           </Link>
           <Link
+            href="/admin/lesson-ops"
+            className="rounded-3xl border border-card-border bg-card-bg p-6 hover:border-green-500 transition"
+          >
+            <h2 className="text-xl font-semibold mb-2">Lesson operations</h2>
+            <p className="text-foreground opacity-75">
+              Monitor attendance, cancellations, reschedules, no-shows, teacher
+              hours, penalties, and monthly salary review.
+            </p>
+          </Link>
+          <Link
             href="/admin/lessons"
             className="rounded-3xl border border-card-border bg-card-bg p-6 hover:border-green-500 transition"
           >

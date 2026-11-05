@@ -331,7 +331,112 @@ These are backend responsibilities, not frontend checks:
 | PATCH  | `/api/lessons/{id}` | Authorized reschedule/status change                    |
 | DELETE | `/api/lessons/{id}` | Authorized cancellation                                |
 
-A lesson has `id`, `teacherId`, `studentId`, `startsAt`, `endsAt`, `status`, optional actual start/end timestamps, `seriesId` (the weekly booking it came from, `null` for legacy one-off lessons), `isTrial` (true for a student's first ever lesson), and embedded `report` and `review` objects when they exist.
+A lesson has `id`, `teacherId`, `studentId`, `startsAt`, `endsAt`, `status`, optional actual start/end timestamps, `seriesId` (the weekly booking it came from, `null` for legacy one-off lessons), `isTrial` (true for a student's first ever lesson), and embedded `report` and `review` objects when they exist. Lesson operations add `cancellationOutcome`, `cancelReason`, `cancelledAt`, `cancelledById`, `isMakeup`, and `originalLessonId`; `status` stays one of `scheduled`, `in_progress`, `completed`, `cancelled` so existing filters and reminder cleanup keep working.
+
+## Lesson operations (cancellation, reschedule, attendance, pay)
+
+This is one backend-authoritative system shared by web and mobile. The clients never decide an outcome: they call the preview, show it, and then call cancel. `POST /api/lessons/{id}/cancel` and the legacy `DELETE /api/lessons/{id}` both run `EvaluateCancellationAsync` server-side.
+
+### Policy
+
+One `AcademyPolicies` row (id `1`) drives every decision. Defaults: student/teacher free-cancel window 24 hours, no-show grace 10 minutes, reschedule reply deadline 12 hours, one student grace cancellation per Cairo month, student warning at 3 strikes, student admin review at 4, teacher admin review at 2, trial no-show threshold 2, and `payScheduledDurationWhenAttended = true`.
+
+| Method | Endpoint             | Role  | Purpose                                       |
+| ------ | -------------------- | ----- | --------------------------------------------- |
+| GET    | `/api/lesson-policy` | any   | Current policy (all fields plus `updatedAt`)  |
+| PUT    | `/api/lesson-policy` | admin | Partial update; validates non-negative limits |
+
+Month/day keys use the academy clock (`Africa/Cairo`); every instant is stored UTC.
+
+### Cancellation outcomes
+
+| Outcome                    | Actor   | Late | Credit                         | Teacher payable        | Reliability                      |
+| -------------------------- | ------- | ---- | ------------------------------ | ---------------------- | -------------------------------- |
+| `free_cancellation`        | student | no   | none                           | 0                      | none                             |
+| `grace_cancellation`       | student | yes  | none (one free late cancel/mo) | scheduled minutes      | `student_grace_cancellation`     |
+| `late_cancellation`        | student | yes  | −1 (trials excluded)           | scheduled minutes      | `student_late_cancellation`      |
+| `cancelled_by_teacher`     | teacher | no   | +1 (trials excluded)           | 0                      | `teacher_early_cancellation`     |
+| `late_cancelled_by_teacher`| teacher | yes  | +1 (trials excluded)           | 0                      | admin review required            |
+| `admin_cancelled`          | admin   | —    | +1 (trials excluded)           | scheduled minutes      | none                             |
+| `student_no_show` / `teacher_no_show` / `both_absent` | admin decision | — | follows incident resolution | incident value | strike + admin queue |
+
+Cancellation is blocked for support, for already cancelled/completed/ended lessons, and once the lesson has started (admins may still cancel). A successful cancellation also withdraws any pending reschedule request and closes any open attendance interval. The preview returns `allowed`, `blockedReason`, the outcome, `hoursBefore`, `scheduledMinutes`, `teacherPayableMinutes`, `creditEffect`, `requiresAdminReview`, a server-written `explanation`, and the policy snapshot.
+
+### Rescheduling and make-up lessons
+
+| Method | Endpoint                                              | Purpose                                              |
+| ------ | ----------------------------------------------------- | ---------------------------------------------------- |
+| GET    | `/api/lessons/{id}/reschedule-requests`               | Request history for the lesson                       |
+| POST   | `/api/lessons/{id}/reschedule-requests`               | `{ startsAt, endsAt, note? }` (teacher/student/admin) |
+| POST   | `/api/reschedule-requests/{requestId}/accept`         | Accept; moves the existing lesson only              |
+| POST   | `/api/reschedule-requests/{requestId}/decline`        | Keep the current time                                |
+| POST   | `/api/reschedule-requests/{requestId}/cancel`         | Withdraw a request                                   |
+| POST   | `/api/lessons/{id}/replacement`                       | Create one make-up lesson for a cancelled lesson     |
+
+Rules: one `pending` request per lesson; the default reply deadline is the policy's `rescheduleResponseHours`; pending requests expire in the background monitor. Accepting moves the original lesson's `startsAt`/`endsAt` — it never creates a duplicate — and is rejected if the lesson was cancelled or already ended. A reschedule does not cancel the lesson, so no cancellation outcome or credit movement is recorded.
+
+A make-up lesson has `isMakeup = true`, `originalLessonId`, the original duration, and exactly one active replacement per original. It adds no credit and no charge. The original and replacement link to each other through `/api/lessons/{id}/operations`.
+
+### Attendance (real participation)
+
+| Method | Endpoint                              | Purpose                                                        |
+| ------ | ------------------------------------- | -------------------------------------------------------------- |
+| GET    | `/api/lessons/{id}/attendance`        | Participant minutes, status, late/early, reconnections         |
+| POST   | `/api/lessons/{id}/attendance/events` | `{ action: "join" \| "leave", deviceId, eventId, clientAt? }`  |
+
+The web External API listens to `videoConferenceJoined` / `videoConferenceLeft`; the React Native SDK listens to `onConferenceJoined` / `onConferenceLeft`. A device sends a unique `eventId` per beacon so retries are idempotent. The server owns timestamps, clamps intervals to the lesson window, keeps one open interval per lesson/user/device, and closes open intervals at the lesson end. This is independent per participant and is not derived from page opens or `ActualStartedAt`.
+
+### Teacher hours, credits, reliability, salary
+
+| Method | Endpoint                                 | Role    | Purpose                                              |
+| ------ | ---------------------------------------- | ------- | ---------------------------------------------------- |
+| GET    | `/api/student/credits`                   | student | Balance plus append-only ledger                      |
+| GET    | `/api/student/reliability`               | student | Own reliability events                               |
+| GET    | `/api/teacher/reliability`               | teacher | Own reliability events                               |
+| GET    | `/api/teacher/hours?month=&status=`      | teacher | Per-lesson hours                                     |
+| GET    | `/api/teacher/salary-periods`            | teacher | Monthly salary periods                               |
+| POST   | `/api/devices/register`                  | any     | `{ token, platform }` Expo push token                |
+| POST   | `/api/devices/unregister`                | any     | `{ token, platform? }` — call on sign-out            |
+| GET    | `/api/lessons/{id}/excuse`               | student | Existing excuse request                              |
+| POST   | `/api/lessons/{id}/excuse`               | student | `{ category, explanation }` (late/no-show lessons)   |
+| POST   | `/api/lessons/{id}/incident`             | teacher/student | `{ type, detail }` attendance dispute or no-show |
+
+Three independent teacher-hour values are stored per lesson: `actualAttendanceMinutes` from intervals, `proposedPayableMinutes` (actual, or the full scheduled time when the policy pays scheduled duration and both sides attended), and admin `approvedPayableMinutes`. Approval status is `pending`, `approved`, `adjusted`, `rejected`, or `not_applicable`, with the auditor and adjustment reason recorded.
+
+The student credit ledger (`LessonCreditTransactions`) is append-only and idempotent per lesson/outcome; it is an audit trail, not a second wallet. Monthly USD/EGP billing remains the existing claims/rates system. Reliability events feed warning/review thresholds and an admin queue. Salary periods aggregate minutes, penalties, cancellations, and no-shows per teacher and month; the final EGP amount stays manual (no automatic transfer), and `status` moves `open` → `reviewed` → `paid`.
+
+### Admin operations
+
+| Method | Endpoint                                      | Purpose                                                        |
+| ------ | --------------------------------------------- | -------------------------------------------------------------- |
+| GET    | `/api/admin/lesson-ops?date=YYYY-MM-DD`       | Day monitor: summary counters plus every lesson and its state  |
+| GET    | `/api/admin/lesson-ops/{lessonId}`            | Full detail with intervals, cancellations, requests, hours     |
+| GET    | `/api/admin/excuse-requests?status=`          | Excuse queue                                                   |
+| POST   | `/api/admin/excuse-requests/{id}/approve`     | Approve (restores the lesson credit)                           |
+| POST   | `/api/admin/excuse-requests/{id}/reject`      | Reject                                                         |
+| GET    | `/api/admin/lesson-incidents?status=`         | Incident queue                                                 |
+| POST   | `/api/admin/lesson-incidents/{id}/resolve`    | `{ action, note?, teacherPayableMinutes? }`                    |
+| GET    | `/api/admin/teacher-hours?month=&status=`     | Hours approval queue                                           |
+| POST   | `/api/admin/teacher-hours/{id}/approve`       | `{ approvedMinutes?, note? }`                                  |
+| POST   | `/api/admin/teacher-hours/{id}/reject`        | Reject                                                         |
+| GET    | `/api/admin/teacher-penalties?status=`        | Penalty list                                                   |
+| POST   | `/api/admin/teacher-penalties`                | Create penalty                                                 |
+| POST   | `/api/admin/teacher-penalties/{id}/review`    | Approve/reject/void                                            |
+| GET    | `/api/admin/reliability?role=&userId=&type=`  | Reliability queue                                              |
+| POST   | `/api/admin/reliability/{id}/resolve`         | Resolve with note                                              |
+| GET    | `/api/admin/students/{id}/credits`            | Student ledger and balance                                     |
+| POST   | `/api/admin/students/{id}/credits/adjust`     | Manual adjustment with reason                                  |
+| GET    | `/api/admin/salary-periods?month=`            | Salary periods                                                 |
+| POST   | `/api/admin/salary-periods/generate`          | Materialize a month from approved hours                        |
+| PATCH  | `/api/admin/salary-periods/{id}`              | Adjustment, final amount, notes, or status                     |
+
+`LessonOpsMonitor` runs every minute: it expires reschedule requests, closes attendance and finalizes hours, opens/dismisses no-show incidents after the grace period, sends reminders and report-due notices, and notifies admins. `AcademyPushSender` delivers through the Expo Push API using the device tokens above; notifications are also written to the in-app feed and email where configured.
+
+### Schema and client routes
+
+New Postgres tables: `AcademyPolicies`, `LessonCancellations`, `LessonRescheduleRequests`, `LessonScheduleChanges`, `LessonAttendances`, `LessonAttendanceEvents`, `LessonAttendanceIntervals`, `LessonCreditTransactions`, `TeacherHours`, `TeacherPenalties`, `ReliabilityEvents`, `SalaryPeriods`, `AuditLogs`, `LessonExcuseRequests`, `LessonIncidents`, `DeviceTokens`. New lesson columns: `CancellationOutcome`, `CancelReason`, `CancelledById`, `CancelledAt`, `IsMakeup`, `OriginalLessonId`. The API creates these idempotently at boot (`Database:EnsureCreated`).
+
+Web lesson pages render `LessonOperationsPanel` (cancel, reschedule, make-up, attendance, excuse, incident). Admins use `/admin/lesson-ops` (day monitor, review queues, salary review, policy). The mobile app mirrors the lesson panel on the lesson screen and provides `/admin/lesson-ops` under the admin dashboard; support reviewers see neither the panel actions nor the admin screen. Mobile push registration requires an EAS `projectId` in `app.config.ts`; without it the app silently relies on local reminders.
 
 ## Class reports and teacher reviews
 
@@ -355,7 +460,7 @@ The mobile app embeds the same room with the same External API options in a WebV
 
 After `endsAt` the page closes the room and switches to the lesson recap: teachers submit or edit the class report, students read the report and rate the lesson, and admins see both.
 
-Either participant can open the room; there is no presence check or heartbeat. The page registers the room on load and the "Show lesson room" button re-opens it after navigation, so nobody waits for the other side to arrive.
+Either participant can open the room; there is no presence check that blocks the other side. Web and mobile send attendance beacons (`join`/`leave`) from real Jitsi conference events, so participation is recorded without gating the room. The page registers the room on load and the "Show lesson room" button re-opens it after navigation, so nobody waits for the other side to arrive.
 
 Admins and super admins can open any confirmed lesson room as academy support: `/admin/lessons` lists live, upcoming, and past lessons with a link to `/lesson/{id}`. The API already authorizes admins on the lesson, report, and review reads; the room adds "(Academy support)" to the admin's Jitsi display name so the teacher and student know why a third person joined. The start-time gate still applies to admins, and the room allows three participants (there is no participant cap on the Jitsi deployment).
 
@@ -440,7 +545,7 @@ Prefer RFC 7807 Problem Details. Common status codes: `400` validation, `401` un
 - `/profile` — student/teacher/admin profile: name, email, mobile, photo, and class-report history
 - `/student/dashboard`, `/student/availability`, `/student/teachers/{id}`, `/student/change-time/{seriesId}`, `/student/payments`, `/schedule`, `/lesson/{id}` — student overview, teacher directory with unlimited weekly multi-select, time-change request, monthly payment statement, recurring schedule, and post-lesson recap/review
 - `/teacher/dashboard`, `/teacher/availability`, `/teacher/schedule`, `/teacher/payments` — teacher tools: announce weekly rules, see the weekly bookings, submit reports, and review monthly EGP earnings with payout details. Teachers have no lesson-request or approval screens.
-- `/admin/dashboard`, `/admin/change-requests`, `/admin/students`, `/admin/teachers`, `/admin/teachers/{id}/availability`, `/admin/teacher-applications`, `/admin/assignments`, `/admin/lessons`, `/admin/payments`, `/admin/transcripts`, `/admin/support` — admin tools; `/admin/change-requests` is the only place student time-change requests surface, and `/admin/payments` holds the USD account, per-teacher rates, and student claim reviews
+- `/admin/dashboard`, `/admin/change-requests`, `/admin/students`, `/admin/teachers`, `/admin/teachers/{id}/availability`, `/admin/teacher-applications`, `/admin/assignments`, `/admin/lessons`, `/admin/lesson-ops`, `/admin/payments`, `/admin/transcripts`, `/admin/support` — admin tools; `/admin/change-requests` is the only place student time-change requests surface, `/admin/lesson-ops` is the live day monitor plus review queues, salary review, and the lesson policy, and `/admin/payments` holds the USD account, per-teacher rates, and student claim reviews
 - `/support/transcripts`, `/support/transcripts/{id}`, `/support/weekly` — support reviewers (also reachable by admins): queue, transcript plus rubric review, and the weekly per-teacher digest
 
 The landing page is implemented in `src/app/page.tsx`. Feature screens are App Router `page.tsx` files; do not add a `pages/` directory.

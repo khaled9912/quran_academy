@@ -7,7 +7,12 @@ import { getMyAvailabilityRules } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
 import { isReportDue } from "@/lib/lesson-feedback";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
-import { weekdayLabel, formatWeeklyTimeRange, isToday, startsInLabel } from "@/lib/utils";
+import {
+  weekdayLabel,
+  formatWeeklyTimeRange,
+  isToday,
+  startsInLabel,
+} from "@/lib/utils";
 
 const dateTime = (value: string) =>
   new Date(value).toLocaleString(undefined, {
@@ -57,9 +62,22 @@ export default function TeacherDashboardPage() {
     .filter(isReportDue)
     .sort((a, b) => b.startsAt.localeCompare(a.startsAt));
 
-  const metrics: { title: string; value: number; loading: boolean; href?: string }[] = [
-    { title: "Today's lessons", value: todayLessons.length, loading: lessonsQuery.isLoading },
-    { title: "Weekly slots", value: rules.length, loading: rulesQuery.isLoading },
+  const metrics: {
+    title: string;
+    value: number;
+    loading: boolean;
+    href?: string;
+  }[] = [
+    {
+      title: "Today's lessons",
+      value: todayLessons.length,
+      loading: lessonsQuery.isLoading,
+    },
+    {
+      title: "Weekly slots",
+      value: rules.length,
+      loading: rulesQuery.isLoading,
+    },
     {
       title: "Reports due",
       value: reportsDue.length,

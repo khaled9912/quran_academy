@@ -59,6 +59,7 @@ interface JitsiRoomProps {
   displayName: string;
   onClose: () => void;
   onJoined?: () => void;
+  onLeft?: () => void;
   onApiReady?: (api: JitsiExternalApi | null) => void;
 }
 
@@ -68,11 +69,13 @@ export function JitsiRoom({
   displayName,
   onClose,
   onJoined,
+  onLeft,
   onApiReady,
 }: JitsiRoomProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
   const onJoinedRef = useRef(onJoined);
+  const onLeftRef = useRef(onLeft);
   const onApiReadyRef = useRef(onApiReady);
   // Re-creating the Jitsi instance drops the participant out of the call, so
   // the effect below must not depend on values that can change mid-call.
@@ -86,6 +89,7 @@ export function JitsiRoom({
 
   onCloseRef.current = onClose;
   onJoinedRef.current = onJoined;
+  onLeftRef.current = onLeft;
   onApiReadyRef.current = onApiReady;
   displayNameRef.current = displayName;
 
@@ -186,12 +190,12 @@ export function JitsiRoom({
               "microphone",
               "camera",
               "desktop",
+              "whiteboard",
               "chat",
               "hangup",
             ],
             disableReactions: true,
             disablePolls: true,
-            disableWhiteboard: true,
             disableVirtualBackground: true,
             hideConferenceSubject: true,
             hideConferenceTimer: true,
@@ -216,6 +220,9 @@ export function JitsiRoom({
         api.addListener("videoConferenceJoined", () => {
           setJoined(true);
           onJoinedRef.current?.();
+        });
+        api.addListener("videoConferenceLeft", () => {
+          onLeftRef.current?.();
         });
         api.addListener("readyToClose", () => onCloseRef.current());
       })

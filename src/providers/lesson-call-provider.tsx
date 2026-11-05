@@ -13,6 +13,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Minimize2, PhoneOff, PictureInPicture2 } from "lucide-react";
 import { JitsiRoom } from "@/components/JitsiRoom";
+import { sendAttendanceEvent } from "@/services/lesson.service";
 import type { JitsiExternalApi } from "@/types/jitsi";
 
 export interface ActiveLessonCall {
@@ -21,6 +22,8 @@ export interface ActiveLessonCall {
   domain: string;
   displayName: string;
   backHref: string;
+  /** Admins join as support and must not affect participant attendance. */
+  trackAttendance?: boolean;
 }
 
 interface LessonCallContextValue {
@@ -32,6 +35,23 @@ interface LessonCallContextValue {
 }
 
 const LessonCallContext = createContext<LessonCallContextValue | null>(null);
+
+const DEVICE_KEY = "ana-quran-device-id";
+
+const getDeviceId = () => {
+  let value = window.localStorage.getItem(DEVICE_KEY);
+  if (!value) {
+    value =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `dev-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    window.localStorage.setItem(DEVICE_KEY, value);
+  }
+  return value;
+};
+
+const newEventId = (action: string) =>
+  `${action}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
 export function useLessonCall() {
   const context = useContext(LessonCallContext);
@@ -56,6 +76,45 @@ export function LessonCallProvider({
   const [minimized, setMinimized] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  // One join/leave pair per conference; the server owns the timestamps.
+  const cycleRef = useRef<{
+    lessonId: string;
+    room: string;
+    deviceId: string;
+  } | null>(null);
+
+  const sendBeat = useCallback(
+    (
+      lessonId: string,
+      action: "join" | "leave",
+      deviceId: string,
+      keepalive = false
+    ) => {
+      void sendAttendanceEvent(
+        lessonId,
+        {
+          action,
+          deviceId,
+          eventId: newEventId(action),
+          clientAt: new Date().toISOString(),
+        },
+        { keepalive }
+      ).catch(() => {
+        // Attendance tracking is best-effort; it must never break the call.
+      });
+    },
+    []
+  );
+
+  const leaveCycle = useCallback(
+    (keepalive = false) => {
+      const cycle = cycleRef.current;
+      if (!cycle) return;
+      cycleRef.current = null;
+      sendBeat(cycle.lessonId, "leave", cycle.deviceId, keepalive);
+    },
+    [sendBeat]
+  );
 
   const startCall = useCallback((next: ActiveLessonCall) => {
     // Same room: keep the existing conference (and its identity) untouched.
@@ -71,17 +130,42 @@ export function LessonCallProvider({
   const activeRoom = call?.room ?? null;
   useEffect(() => {
     if (!activeRoom) return;
+    // Switching rooms disposes the previous conference without a leave event.
+    if (cycleRef.current && cycleRef.current.room !== activeRoom) {
+      leaveCycle();
+    }
     setMinimized(false);
     setJoined(false);
-  }, [activeRoom]);
+  }, [activeRoom, leaveCycle]);
+
+  const handleJoined = useCallback(() => {
+    setJoined(true);
+    if (!call?.trackAttendance) return;
+    const deviceId = getDeviceId();
+    cycleRef.current = {
+      lessonId: call.lessonId,
+      room: call.room,
+      deviceId,
+    };
+    sendBeat(call.lessonId, "join", deviceId);
+  }, [call, sendBeat]);
+
+  // A closed tab never emits videoConferenceLeft; keepalive still records it.
+  useEffect(() => {
+    if (!call?.trackAttendance) return;
+    const onHide = () => leaveCycle(true);
+    window.addEventListener("pagehide", onHide);
+    return () => window.removeEventListener("pagehide", onHide);
+  }, [call, leaveCycle]);
 
   const endAndReturn = useCallback(() => {
     if (!call) return;
     const { lessonId: endedLessonId, backHref } = call;
     const shouldReturn = pathname === `/lesson/${endedLessonId}`;
+    leaveCycle();
     endCall();
     if (shouldReturn) router.push(backHref);
-  }, [call, endCall, pathname, router]);
+  }, [call, endCall, leaveCycle, pathname, router]);
 
   const value = useMemo(
     () => ({ call, startCall, endCall, minimized, setMinimized }),
@@ -98,7 +182,8 @@ export function LessonCallProvider({
           minimized={minimized}
           onMinimize={() => setMinimized(true)}
           onExpand={() => setMinimized(false)}
-          onJoined={() => setJoined(true)}
+          onJoined={handleJoined}
+          onLeft={() => leaveCycle()}
           onHangup={endAndReturn}
         />
       )}
@@ -113,6 +198,7 @@ function LessonCallHost({
   onMinimize,
   onExpand,
   onJoined,
+  onLeft,
   onHangup,
 }: {
   call: ActiveLessonCall;
@@ -121,6 +207,7 @@ function LessonCallHost({
   onMinimize: () => void;
   onExpand: () => void;
   onJoined: () => void;
+  onLeft: () => void;
   onHangup: () => void;
 }) {
   const pathname = usePathname();
@@ -265,6 +352,7 @@ function LessonCallHost({
           displayName={call.displayName}
           onClose={onHangup}
           onJoined={onJoined}
+          onLeft={onLeft}
           onApiReady={handleApiReady}
         />
         <img

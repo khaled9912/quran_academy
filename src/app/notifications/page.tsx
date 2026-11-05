@@ -130,7 +130,9 @@ const NotificationsPage = () => {
                       className={className}
                       onClick={() => {
                         if (!item.readAt)
-                          void markNotificationRead(item.id).then(() => void refresh());
+                          void markNotificationRead(item.id).then(
+                            () => void refresh()
+                          );
                       }}
                     >
                       {body}
@@ -140,7 +142,9 @@ const NotificationsPage = () => {
                       type="button"
                       onClick={() => {
                         if (!item.readAt)
-                          void markNotificationRead(item.id).then(() => void refresh());
+                          void markNotificationRead(item.id).then(
+                            () => void refresh()
+                          );
                       }}
                       className={`w-full text-left ${className}`}
                     >

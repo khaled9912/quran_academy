@@ -33,6 +33,18 @@ const timeLabel = (value: string) =>
     hour12: true,
   });
 
+const cancellationLabels: Record<string, string> = {
+  free_cancellation: "Student free cancellation",
+  grace_cancellation: "Student grace cancellation",
+  late_cancellation: "Student late cancellation",
+  cancelled_by_teacher: "You cancelled",
+  late_cancelled_by_teacher: "You cancelled late",
+  admin_cancelled: "Academy cancelled",
+  student_no_show: "Student no-show",
+  teacher_no_show: "Teacher no-show",
+  both_absent: "Both absent",
+};
+
 export default function TeacherSchedulePage() {
   const { role } = useAuth();
   const queryClient = useQueryClient();
@@ -56,9 +68,12 @@ export default function TeacherSchedulePage() {
 
   const cancelMutation = useMutation({
     mutationFn: (id: string) => cancelLesson(id),
-    onSuccess: async () => {
+    onSuccess: async (result) => {
+      const outcome = result?.preview?.outcome;
       setNotice(
-        "Lesson cancelled. The student has been removed from this time."
+        outcome === "late_cancelled_by_teacher"
+          ? "Lesson cancelled. The academy was notified for review and the student's credit was restored."
+          : "Lesson cancelled. The student was notified and their lesson credit was restored."
       );
       await queryClient.invalidateQueries({ queryKey: ["lessons"] });
     },
@@ -242,11 +257,21 @@ export default function TeacherSchedulePage() {
                           </p>
                           <p className="mt-1 text-sm text-foreground opacity-70">
                             Student: {lesson.studentName ?? "Assigned student"}
+                            {lesson.isMakeup && " · make-up lesson"}
                           </p>
-                          {!live && (
-                            <p className="mt-1 text-xs capitalize text-foreground opacity-60">
-                              {lesson.status.replaceAll("_", " ")}
+                          {lesson.status === "cancelled" &&
+                          lesson.cancellationOutcome ? (
+                            <p className="mt-1 text-xs font-semibold text-red-700 dark:text-red-300">
+                              {cancellationLabels[
+                                lesson.cancellationOutcome
+                              ] ?? "Cancelled"}
                             </p>
+                          ) : (
+                            !live && (
+                              <p className="mt-1 text-xs capitalize text-foreground opacity-60">
+                                {lesson.status.replaceAll("_", " ")}
+                              </p>
+                            )
                           )}
                           {lesson.status !== "cancelled" &&
                             !isLessonJoinable(
@@ -308,7 +333,7 @@ export default function TeacherSchedulePage() {
                                 setNotice("");
                                 if (
                                   window.confirm(
-                                    "Cancel this lesson? This cannot be undone."
+                                    "Cancel this lesson? The academy cancellation policy applies and the student is notified. Late cancellations are reviewed and restore one lesson credit."
                                   )
                                 ) {
                                   cancelMutation.mutate(lesson.id);
