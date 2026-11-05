@@ -278,7 +278,7 @@ It creates one rule per weekday and returns `201` with the created `WeeklyRuleDt
 | ------ | ------------------------------------------------ | ------------------------------------------------------- |
 | GET    | `/api/student/change-requests`                   | The student's own change requests                       |
 | POST   | `/api/student/series/{seriesId}/change-requests` | Request `{ "requestedRuleId": "uuid", "note"?: "..." }` |
-| DELETE | `/api/student/series/{seriesId}`                 | End a weekly series (`204`); future lessons cancelled    |
+| DELETE | `/api/student/series/{seriesId}`                 | End a weekly series (`204`); future lessons cancelled   |
 | GET    | `/api/admin/change-requests?status=pending`      | Admin queue (`pending`, `approved`, `rejected`)         |
 | POST   | `/api/admin/change-requests/{id}/approve`        | Move the series to the requested rule                   |
 | POST   | `/api/admin/change-requests/{id}/reject`         | Decline with `{ "note"?: "..." }`                       |
@@ -473,13 +473,13 @@ The room is unlisted, not access-controlled. The Jitsi room itself is unlisted r
 
 Jitsi cannot annotate a live screen share, so marks travel over the existing realtime hub as a lesson-scoped ink layer. Clients draw on a transparent canvas/SVG over the Jitsi view; points are normalized to that overlay (`0..1`) and the REST layer is not involved.
 
-| Hub method                                             | Purpose                                                                                                  |
-| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| `JoinLessonPen(lessonId)`                              | Participant-only. Adds the connection to `lesson-pen:{lessonId}` and returns `{ strokes: [{ id, color, width, points }] }` |
-| `StartPenStroke(lessonId, strokeId, color, width, x, y)` | Drawer-only. Broadcasts `PenStrokeStarted { id, color, width, x, y }` to the other participants         |
-| `AppendPenStroke(lessonId, strokeId, points)`          | Drawer-only. `points` is `[x, y, ...]` (at most 256 doubles per call); broadcasts `PenStrokeAppended`     |
-| `EndPenStroke(lessonId, strokeId)`                     | Drawer-only. Broadcasts `PenStrokeEnded`                                                                 |
-| `ClearLessonPen(lessonId)`                             | Drawer-only. Broadcasts `PenCleared`                                                                     |
+| Hub method                                               | Purpose                                                                                                                    |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `JoinLessonPen(lessonId)`                                | Participant-only. Adds the connection to `lesson-pen:{lessonId}` and returns `{ strokes: [{ id, color, width, points }] }` |
+| `StartPenStroke(lessonId, strokeId, color, width, x, y)` | Drawer-only. Broadcasts `PenStrokeStarted { id, color, width, x, y }` to the other participants                            |
+| `AppendPenStroke(lessonId, strokeId, points)`            | Drawer-only. `points` is `[x, y, ...]` (at most 256 doubles per call); broadcasts `PenStrokeAppended`                      |
+| `EndPenStroke(lessonId, strokeId)`                       | Drawer-only. Broadcasts `PenStrokeEnded`                                                                                   |
+| `ClearLessonPen(lessonId)`                               | Drawer-only. Broadcasts `PenCleared`                                                                                       |
 
 Only the lesson's teacher, an admin, or a super admin may draw; support staff and students receive the marks read-only. Ink is ephemeral in-memory state (newest 400 strokes, dropped after 6 idle hours) and is never persisted. Points are normalized to each viewer's own stage, so a share that is letterboxed or cropped differently — especially a portrait phone — can drift from the shared picture.
 

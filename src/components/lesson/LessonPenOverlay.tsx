@@ -107,7 +107,8 @@ export function LessonPenOverlay({
 
   useEffect(
     () => () => {
-      if (frameRef.current !== null) window.cancelAnimationFrame(frameRef.current);
+      if (frameRef.current !== null)
+        window.cancelAnimationFrame(frameRef.current);
     },
     []
   );
@@ -268,7 +269,9 @@ export function LessonPenOverlay({
         )
         .catch(() => {});
     }
-    void connection.invoke("EndPenStroke", lessonId, current.id).catch(() => {});
+    void connection
+      .invoke("EndPenStroke", lessonId, current.id)
+      .catch(() => {});
   };
 
   const clear = () => {

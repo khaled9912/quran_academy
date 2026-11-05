@@ -102,7 +102,8 @@ const RealtimeConnectionContext = createContext<RealtimeConnectionValue>({
  * Query invalidation still belongs to the provider; nothing else should join
  * groups or listen to hub events from UI code without a reason.
  */
-export const useRealtimeConnection = () => useContext(RealtimeConnectionContext);
+export const useRealtimeConnection = () =>
+  useContext(RealtimeConnectionContext);
 
 const resolveHubUrl = (ticket: RealtimeTicket) => {
   const override = (process.env.NEXT_PUBLIC_REALTIME_URL ?? "")
@@ -118,7 +119,9 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const ticketRef = useRef<RealtimeTicket | null>(null);
-  const [liveConnection, setLiveConnection] = useState<HubConnection | null>(null);
+  const [liveConnection, setLiveConnection] = useState<HubConnection | null>(
+    null
+  );
   const [revision, setRevision] = useState(0);
 
   useEffect(() => {
