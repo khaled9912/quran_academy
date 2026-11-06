@@ -10,6 +10,7 @@ import {
   ClipboardCheck,
   Clock3,
   Loader2,
+  PhoneCall,
   UserX,
   Video,
   XCircle,
@@ -17,6 +18,7 @@ import {
 import { ApiError } from "@/lib/backend-client";
 import { useAuth } from "@/providers/auth-provider";
 import {
+  callLesson,
   cancelLesson,
   cancelRescheduleRequest,
   createReplacementLesson,
@@ -27,8 +29,10 @@ import {
   respondToRescheduleRequest,
 } from "@/services/lesson.service";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
+import { useNow } from "@/hooks/use-now";
 import { SelectField } from "@/components/ui/select-field";
 import type {
+  AttendanceParticipant,
   CancellationPreview,
   Lesson,
   LessonOperations,
@@ -90,6 +94,11 @@ const incidentTypes = [
   { value: "potential_student_no_show", label: "Student did not attend" },
   { value: "potential_teacher_no_show", label: "Teacher did not attend" },
 ];
+
+/** Mirrors the backend guard so the button explains itself instead of failing. */
+const CALL_COOLDOWN_MS = 30_000;
+const CALLS_PER_LESSON = 3;
+const CALL_LEAD_MS = 15 * 60_000;
 
 const errorMessage = (error: unknown, fallback: string) =>
   error instanceof ApiError ? error.message : fallback;
@@ -844,9 +853,58 @@ function MakeupSection({
   );
 }
 
-function AttendanceSection({ operations }: { operations: LessonOperations }) {
+/**
+ * Attendance doubles as the doorbell: whoever is not in the room yet can be
+ * rung from here. The backend decides who gets called for a participant and
+ * only staff name a side, so a mistapped button can never ring the wrong person.
+ */
+function AttendanceSection({
+  lesson,
+  operations,
+  viewerId,
+  role,
+}: {
+  lesson: Lesson;
+  operations: LessonOperations;
+  viewerId?: string;
+  role: string | null;
+}) {
+  const queryClient = useQueryClient();
+  const now = useNow(5_000);
+  const [callError, setCallError] = useState("");
   const summary = operations.attendance;
   const hours = operations.hours;
+  const calls = operations.calls ?? [];
+  const mine = calls.filter((entry) => entry.callerId === viewerId);
+  const lastMine = mine[0];
+  const coolingForMs = lastMine
+    ? CALL_COOLDOWN_MS - (now - Date.parse(lastMine.createdAt))
+    : 0;
+  const isParticipant =
+    viewerId === lesson.teacherId || viewerId === lesson.studentId;
+  const isStaff = role === "admin" || role === "super_admin" || role === "support";
+  const inCallWindow =
+    lesson.status !== "cancelled" &&
+    lesson.status !== "completed" &&
+    now >= Date.parse(lesson.startsAt) - CALL_LEAD_MS &&
+    now < Date.parse(lesson.endsAt);
+
+  const call = useMutation({
+    mutationFn: (targetRole?: string) =>
+      callLesson(lesson.id, isParticipant ? undefined : targetRole),
+    onSuccess: () => {
+      setCallError("");
+      void queryClient.invalidateQueries({ queryKey: ["lesson-ops", lesson.id] });
+      void queryClient.invalidateQueries({ queryKey: ["lesson-calls"] });
+    },
+    onError: (failure) =>
+      setCallError(errorMessage(failure, "The call could not be sent.")),
+  });
+
+  const ringable = (participant: AttendanceParticipant) =>
+    inCallWindow &&
+    participant.status !== "joined" &&
+    (isStaff || (isParticipant && participant.userId !== viewerId));
   return (
     <Section
       title="Attendance"
@@ -900,6 +958,34 @@ function AttendanceSection({ operations }: { operations: LessonOperations }) {
                   : ""}
               </p>
             )}
+            {ringable(participant) && (
+              <button
+                type="button"
+                disabled={coolingForMs > 0 || mine.length >= CALLS_PER_LESSON || call.isPending}
+                onClick={() => call.mutate(participant.role)}
+                title={
+                  coolingForMs > 0
+                    ? "Wait a moment before calling again"
+                    : mine.length >= CALLS_PER_LESSON
+                      ? "You have used the three calls allowed for this lesson"
+                      : `Sends a loud call to ${participant.name}`
+                }
+                className="mt-2 inline-flex items-center gap-2 rounded-xl border border-card-border px-3 py-1.5 text-xs font-semibold hover:border-green-500 disabled:opacity-50"
+              >
+                {call.isPending && call.variables === participant.role ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <PhoneCall size={14} />
+                )}
+                {coolingForMs > 0
+                  ? `Wait ${Math.ceil(coolingForMs / 1000)} s`
+                  : mine.length >= CALLS_PER_LESSON
+                    ? "Call limit reached"
+                    : participant.role === "teacher"
+                      ? "Call the teacher"
+                      : "Call the student"}
+              </button>
+            )}
           </div>
         ))}
       </div>
@@ -935,6 +1021,21 @@ function AttendanceSection({ operations }: { operations: LessonOperations }) {
             </dd>
           </div>
         </dl>
+      )}
+      {calls.length > 0 && (
+        <div className="rounded-2xl border border-card-border bg-background p-4 text-xs text-foreground opacity-70">
+          {calls.slice(0, 3).map((entry) => (
+            <p key={entry.id}>
+              {entry.callerName} called {entry.calleeName} ·{" "}
+              {dateTime(entry.createdAt)}
+            </p>
+          ))}
+        </div>
+      )}
+      {callError && (
+        <p role="status" className="text-xs font-semibold text-red-600 dark:text-red-400">
+          {callError}
+        </p>
       )}
     </Section>
   );
@@ -1234,7 +1335,12 @@ export function LessonOperationsPanel({
         />
       )}
       <MakeupSection lesson={lesson} operations={stable} role={role ?? null} />
-      <AttendanceSection operations={stable} />
+      <AttendanceSection
+        lesson={lesson}
+        operations={stable}
+        viewerId={profile?.id}
+        role={role ?? null}
+      />
       <ExcuseSection lesson={lesson} operations={stable} role={role ?? null} />
       <IncidentSection
         lesson={lesson}

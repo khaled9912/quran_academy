@@ -1,5 +1,6 @@
 import { backendFetch } from "@/lib/backend-client";
 import type {
+  LessonCall,
   AcademyPolicy,
   AdminLessonOps,
   AdminLessonOpsDetail,
@@ -85,6 +86,17 @@ export const getLessonOperations = (id: string) =>
   backendFetch<LessonOperations>(`${lessonPath(id)}/operations`);
 export const getCancellationPreview = (id: string) =>
   backendFetch<CancellationPreview>(`${lessonPath(id)}/cancellation-preview`);
+
+/** Rings the other side of a live lesson; staff name which side. */
+export const callLesson = (id: string, targetRole?: string) =>
+  backendFetch<LessonCall>(`${lessonPath(id)}/call`, {
+    method: "POST",
+    body: JSON.stringify({ targetRole: targetRole ?? "" }),
+  });
+
+/** Rings still worth acting on for the signed-in user. */
+export const getRecentCalls = () =>
+  backendFetch<LessonCall[]>("/api/calls/recent");
 
 export const getRescheduleRequests = (id: string) =>
   backendFetch<RescheduleRequest[]>(`${lessonPath(id)}/reschedule-requests`);

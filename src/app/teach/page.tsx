@@ -1,11 +1,19 @@
 import type { Metadata } from "next";
 import { TeacherApplicationForm } from "@/components/teacher/TeacherApplicationForm";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Teach with Ana Quran | Teacher applications",
+export const metadata: Metadata = pageMetadata({
+  title: "Teach with Ana Quran",
   description:
-    "Apply to teach Quran, Tajweed, Islamic studies, or Arabic with Ana Quran. Submit your details and CV and our team will review your application.",
-};
+    "Apply to teach Quran, Tajweed, Islamic studies, or Arabic online with Ana Quran Academy. Submit your details and CV and our team will review your application.",
+  path: "/teach",
+  keywords: [
+    "online Quran teacher jobs",
+    "teach Quran online",
+    "Quran teacher application",
+    "online Tajweed teacher",
+  ],
+});
 
 export default function TeachPage() {
   return (

@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { CalendarDays, Mail, Phone } from "lucide-react";
 import {
   getAssignedWeeklyAvailability,
-  getMyChangeRequests,
   getTeacherDirectory,
 } from "@/services/scheduling.service";
 import { Avatar } from "@/components/ui/avatar";
@@ -14,11 +13,7 @@ import { useAuth } from "@/providers/auth-provider";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 import { WEEKDAY_SHORT } from "@/lib/utils";
 import { TimeZoneNote } from "@/components/student/TimeZoneNote";
-import {
-  getViewerTimeZone,
-  toViewerWeeklySlotLabel,
-  viewerWeekdays,
-} from "@/lib/weekly-time";
+import { getViewerTimeZone, viewerWeekdays } from "@/lib/weekly-time";
 
 interface TeacherDirectoryProps {
   compact?: boolean;
@@ -41,29 +36,15 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
     enabled,
     refetchInterval: LIVE_SYNC_INTERVAL,
   });
-  const changesQuery = useQuery({
-    queryKey: ["change-requests", "student"],
-    queryFn: getMyChangeRequests,
-    enabled,
-    refetchInterval: LIVE_SYNC_INTERVAL,
-  });
-
   const teachers = [...(directoryQuery.data ?? [])].sort(
     (a, b) =>
       Number(b.slots.some((slot) => slot.status === "available")) -
       Number(a.slots.some((slot) => slot.status === "available"))
   );
   const assignedTeacherId = assignedQuery.data?.teacher?.id;
-  const pendingChange = (changesQuery.data ?? []).find(
-    (change) => change.status === "pending"
-  );
   const visibleTeachers = compact ? teachers.slice(0, 3) : teachers;
-  const error =
-    directoryQuery.error ?? assignedQuery.error ?? changesQuery.error;
-  const loading =
-    directoryQuery.isLoading ||
-    assignedQuery.isLoading ||
-    changesQuery.isLoading;
+  const error = directoryQuery.error ?? assignedQuery.error;
+  const loading = directoryQuery.isLoading || assignedQuery.isLoading;
 
   return (
     <section className="rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
@@ -98,25 +79,6 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
           {error instanceof Error
             ? error.message
             : "Unable to load the teacher list."}
-        </p>
-      )}
-
-      {pendingChange && (
-        <p className="mt-5 rounded-xl bg-amber-50 dark:bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-300">
-          Your time change for{" "}
-          <strong>
-            {toViewerWeeklySlotLabel(
-              {
-                dayOfWeek: pendingChange.currentDayOfWeek,
-                startsAtTime: pendingChange.currentStartsAtTime,
-                endsAtTime: pendingChange.currentEndsAtTime,
-                timeZoneId: pendingChange.timeZoneId,
-              },
-              viewerTimeZone
-            )}
-          </strong>{" "}
-          is with the academy. Your current weekly time stays booked until they
-          respond.
         </p>
       )}
 

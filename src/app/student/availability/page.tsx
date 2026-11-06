@@ -3,10 +3,7 @@
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
-import {
-  getAssignedWeeklyAvailability,
-  getMyChangeRequests,
-} from "@/services/scheduling.service";
+import { getAssignedWeeklyAvailability } from "@/services/scheduling.service";
 import { TeacherDirectory } from "@/components/student/TeacherDirectory";
 import { OpenOfferPanel } from "@/components/student/OpenOfferPanel";
 import { TimeZoneNote } from "@/components/student/TimeZoneNote";
@@ -29,18 +26,8 @@ export default function StudentAvailabilityPage() {
     enabled: role === "student",
     refetchInterval: LIVE_SYNC_INTERVAL,
   });
-  const changesQuery = useQuery({
-    queryKey: ["change-requests", "student"],
-    queryFn: getMyChangeRequests,
-    enabled: role === "student",
-    refetchInterval: LIVE_SYNC_INTERVAL,
-  });
-
   const series = assignedQuery.data?.series ?? [];
-  const pending = (changesQuery.data ?? []).filter(
-    (change) => change.status === "pending"
-  );
-  const error = assignedQuery.error ?? changesQuery.error;
+  const error = assignedQuery.error;
 
   if (role !== "student")
     return (
@@ -68,7 +55,6 @@ export default function StudentAvailabilityPage() {
           <button
             onClick={() => {
               void assignedQuery.refetch();
-              void changesQuery.refetch();
               void queryClient.invalidateQueries({
                 queryKey: ["teachers", "directory"],
               });
@@ -120,9 +106,6 @@ export default function StudentAvailabilityPage() {
                 </p>
               ) : series.length ? (
                 series.map((item) => {
-                  const pendingChange = pending.some(
-                    (change) => change.seriesId === item.id
-                  );
                   const local = toViewerWeeklyTime(item, viewerTimeZone);
                   return (
                     <div
@@ -134,15 +117,10 @@ export default function StudentAvailabilityPage() {
                       </p>
                       <p className="mt-1 text-xs text-foreground/60">
                         Repeats every {WEEKDAY_SHORT[local.dayOfWeek]}
-                        {pendingChange ? " · change with the academy" : ""}
                       </p>
                       <Link
                         href={`/student/change-time/${item.id}`}
-                        className={`mt-3 inline-block text-xs font-semibold ${
-                          pendingChange
-                            ? "pointer-events-none text-foreground/40"
-                            : "text-green-700 hover:underline dark:text-green-400"
-                        }`}
+                        className="mt-3 inline-block text-xs font-semibold text-green-700 hover:underline dark:text-green-400"
                       >
                         Change weekly time →
                       </Link>

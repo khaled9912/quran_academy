@@ -34,7 +34,12 @@ export interface LessonSeries {
   createdAt: string;
 }
 
-export type ChangeRequestStatus = "pending" | "approved" | "rejected";
+/** `pending`/`approved`/`rejected` only appear on rows the old approval queue left behind. */
+export type ChangeRequestStatus =
+  | "applied"
+  | "pending"
+  | "approved"
+  | "rejected";
 
 export interface LessonChangeRequest {
   id: string;

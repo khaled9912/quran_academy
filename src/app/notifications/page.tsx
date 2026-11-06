@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getNotifications,
   markAllNotificationsRead,
   markNotificationRead,
+  notificationCta,
+  resolveNotificationHref,
 } from "@/services/notification.service";
 import { useAuth } from "@/providers/auth-provider";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
@@ -28,7 +31,7 @@ const timeAgo = (value: string) => {
 };
 
 const NotificationsPage = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, role } = useAuth();
   const queryClient = useQueryClient();
   const query = useQuery({
     queryKey: ["notifications"],
@@ -115,6 +118,12 @@ const NotificationsPage = () => {
                     <p className="mt-1 text-foreground opacity-70">
                       {item.body}
                     </p>
+                    {item.link ? (
+                      <p className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-green-700 dark:text-green-400">
+                        {notificationCta(item.link)}
+                        <ChevronRight size={15} />
+                      </p>
+                    ) : null}
                   </div>
                   <span className="shrink-0 text-sm text-foreground opacity-60">
                     {timeAgo(item.createdAt)}
@@ -130,7 +139,7 @@ const NotificationsPage = () => {
                 <li key={item.id}>
                   {item.link ? (
                     <Link
-                      href={item.link}
+                      href={resolveNotificationHref(item.link, role)}
                       className={className}
                       onClick={() => {
                         if (!item.readAt)

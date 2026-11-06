@@ -41,6 +41,32 @@ export const countryByCode = (code: CountryCode) => byCode.get(code);
 
 export const DEFAULT_COUNTRY: CountryCode = "LB";
 
+/** The 22 Arab League members, used where the academy hires from the region. */
+export const ARAB_COUNTRY_CODES: CountryCode[] = [
+  "DZ", // Algeria
+  "BH", // Bahrain
+  "KM", // Comoros
+  "DJ", // Djibouti
+  "EG", // Egypt
+  "IQ", // Iraq
+  "JO", // Jordan
+  "KW", // Kuwait
+  "LB", // Lebanon
+  "LY", // Libya
+  "MR", // Mauritania
+  "MA", // Morocco
+  "OM", // Oman
+  "PS", // Palestine
+  "QA", // Qatar
+  "SA", // Saudi Arabia
+  "SD", // Sudan
+  "SO", // Somalia
+  "SY", // Syria
+  "TN", // Tunisia
+  "AE", // United Arab Emirates
+  "YE", // Yemen
+];
+
 export const normalizeNational = (value: string) =>
   value.replace(/[^\d\s()-]/g, "");
 

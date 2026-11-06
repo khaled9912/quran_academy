@@ -69,6 +69,7 @@ const SCOPE_QUERY_KEYS: Record<string, string[][]> = {
   ],
   policy: [["lesson-policy"]],
   notifications: [["notifications"]],
+  calls: [["lesson-calls"], ["lesson-ops"]],
   support: [
     ["review-queue"],
     ["review-workspace"],

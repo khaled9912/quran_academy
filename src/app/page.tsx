@@ -1,5 +1,5 @@
+import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import {
   ArrowRight,
   BookOpen,
@@ -16,6 +16,30 @@ import {
 } from "lucide-react";
 
 import { ReviewsSection } from "@/components/ReviewsSection";
+import { BlogCard } from "@/components/blog/BlogCard";
+import { sortedBlogPosts } from "@/lib/blog";
+import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_TITLE } from "@/lib/seo";
+
+const latestGuides = sortedBlogPosts().slice(0, 3);
+
+export const metadata: Metadata = {
+  title: { absolute: SITE_TITLE },
+  description: SITE_DESCRIPTION,
+  keywords: SITE_KEYWORDS,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: "/",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    siteName: "Ana Quran Academy",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+};
 
 const steps = [
   {
@@ -85,8 +109,9 @@ export default function HomePage() {
               <span className="block">and Arabic.</span>
             </h1>
             <p className="mt-4 max-w-xl text-base leading-7 text-[#5d726a] dark:text-foreground/70 sm:mt-6 sm:text-lg sm:leading-8">
-              Learn with dedicated teachers through personal online lessons,
-              flexible scheduling, and a learning experience built around you.
+              Learn Quran, Tajweed, Arabic, and Islamic studies with dedicated
+              teachers through personal online lessons — from anywhere in the
+              world.
             </p>
             <div className="mt-8 flex w-full flex-col gap-3 sm:mt-9 sm:flex-row">
               <Link
@@ -122,7 +147,7 @@ export default function HomePage() {
                   size={17}
                   className="text-[#6b936c] dark:text-green-400"
                 />{" "}
-                Online learning
+                Learn from anywhere
               </span>
             </div>
           </div>
@@ -285,6 +310,34 @@ export default function HomePage() {
 
       <ReviewsSection />
 
+      <section className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-20">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#a7773e] dark:text-amber-300">
+              Quran learning guides
+            </p>
+            <h2 className="mt-4 text-3xl font-bold tracking-tight text-[#173b35] dark:text-foreground sm:text-4xl">
+              Practical answers before you start.
+            </h2>
+            <p className="mt-4 max-w-xl leading-7 text-[#687b70] dark:text-foreground/70">
+              Clear guides on learning Quran online, Tajweed, memorization, and
+              choosing the right teacher — for students and parents worldwide.
+            </p>
+          </div>
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-2 font-semibold text-[#1d5144] hover:gap-3 dark:text-green-400"
+          >
+            Visit the blog <ArrowRight size={18} />
+          </Link>
+        </div>
+        <div className="mt-8 grid gap-5 md:grid-cols-3">
+          {latestGuides.map((post) => (
+            <BlogCard key={post.slug} post={post} />
+          ))}
+        </div>
+      </section>
+
       <section className="mx-auto max-w-7xl px-5 py-20 md:px-8 md:py-24">
         <div className="overflow-hidden rounded-[2rem] bg-[#1c5145] px-7 py-12 text-center text-white shadow-xl shadow-[#1c5145]/15 md:px-16 md:py-16">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10">
@@ -338,8 +391,23 @@ export default function HomePage() {
               className="hidden h-20 w-auto dark:block md:h-24"
             />
           </div>
-          <p>Personal online learning in Quran, Arabic, and Islamic studies.</p>
+          <p>
+            One-to-one online Quran, Arabic, and Islamic studies for
+            English-speaking students worldwide.
+          </p>
           <div className="flex gap-5">
+            <Link
+              href="/about"
+              className="hover:text-[#1c5145] dark:hover:text-green-400"
+            >
+              About
+            </Link>
+            <Link
+              href="/blog"
+              className="hover:text-[#1c5145] dark:hover:text-green-400"
+            >
+              Blog
+            </Link>
             <Link
               href="/contact"
               className="hover:text-[#1c5145] dark:hover:text-green-400"

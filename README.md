@@ -1,6 +1,8 @@
-# Rayan Academy Frontend
+# Ana Quran Academy Frontend
 
-Rayan Academy's frontend is built with **Next.js App Router**, React, TypeScript, and Tailwind CSS. It is prepared to integrate with an ASP.NET Core Web API; the backend is responsible for authentication, authorization, validation, scheduling, and persistence.
+Ana Quran Academy's frontend is built with **Next.js App Router**, React, TypeScript, and Tailwind CSS. It is the web client for the ASP.NET Core API; the backend owns authentication, authorization, validation, scheduling, lesson operations, payments, and persistence.
+
+**Product and business rules:** [`../docs/business-requirements/`](../docs/business-requirements/README.md). Read it before changing a flow; several pages that look like features are hardcoded mockups (listed there).
 
 ## Run locally
 
@@ -15,26 +17,63 @@ Open `http://localhost:3000`.
 
 ## Main routes
 
-- `/` — public academy landing page
-- `/contact`, `/login`, `/signup` — public pages
-- `/student/dashboard` — student overview
-- `/student/availability` — student selects one available teacher slot and requests a lesson
-- `/teacher/availability` — teacher publishes available time slots
-- `/teacher/lesson-requests` — teacher confirms or rejects student requests
-- `/admin/lesson-approvals` — admin final approval queue
+Public:
+
+- `/` — landing page with reviews and teacher highlights
+- `/about` — global positioning, subjects, fees, and FAQ
+- `/blog`, `/blog/{slug}` — Quran learning guides with RSS at `/blog/rss.xml`
+- `/contact`, `/login`, `/signup`, `/forgot-password` — contact and authentication (email/password or phone OTP)
+- `/teach` — teacher application with CV and recording uploads
+
+Student:
+
+- `/student/dashboard` — overview
+- `/student/availability` — teacher directory and instant weekly multi-select booking
+- `/student/teachers/{id}` — teacher profile and weekly times
+- `/student/change-time/{seriesId}` — request a different weekly time (admin handles it)
+- `/student/payments` — monthly USD statement and claim
+- `/schedule`, `/lesson/{id}` — recurring schedule, live room, recap/report/review, lesson operations
+
+Teacher:
+
+- `/teacher/dashboard`, `/teacher/availability`, `/teacher/schedule`, `/teacher/payments`
+- Teachers publish weekly rules, see bookings, write reports, and review EGP earnings. There is no teacher request/approval screen.
+
+Admin:
+
+- `/admin/dashboard`, `/admin/students`, `/admin/teachers`, `/admin/assignments`, `/admin/change-requests`, `/admin/teacher-applications`
+- `/admin/lessons`, `/admin/lesson-ops`, `/admin/payments`, `/admin/transcripts`, `/admin/support`
+- `/support/transcripts`, `/support/transcripts/{id}`, `/support/weekly` — review queue and digest (also reachable by admins)
+
+Support role:
+
+- `/support/transcripts`, `/support/transcripts/{id}`, `/support/weekly`, `/profile`
+
+`/admin/courses`, `/admin/reports`, `/courses`, `/sessions`, `/assignments`, `/invoices`, `/parent/dashboard`, and `/teacher/courses` are **mock screens** with hardcoded data and no API. Do not build on them.
 
 ## Scheduling model
 
-Each lesson is booked individually. Teacher publishes availability → student chooses one slot → teacher confirms → admin approves → confirmed lesson is created. The student can repeat the process for their next lesson. Recurring series are intentionally deferred.
+A teacher publishes **weekly rules** (weekday + window + IANA time zone; 30, 45, or 60 minutes). Announcing a rule is the teacher's consent, so a student books **any number** of that teacher's open rules instantly — no teacher confirmation and no admin approval. Each booking becomes a permanent series; the API materializes 8 weeks of lessons and rolls the window forward. A student's first-ever lesson is the free trial.
+
+To move a weekly time, the student submits a change request that only the **admin** handles; the teacher is notified that a review is happening but does not see the requested time until approval. Students can end a series themselves.
 
 The frontend's expected .NET endpoints, request/response examples, and server-side consistency rules are documented in [`docs/dotnet-integration.md`](docs/dotnet-integration.md).
 
 ## Important
 
-- Public signup creates students only. Admin/teacher account provisioning must be protected by the backend.
+- Public signup creates students only. Admin/teacher/support accounts are provisioned by an admin or by approving a teacher application.
 - The `user-role` cookie is only a client navigation hint, never an authorization mechanism.
-- The scheduling UI depends on the API contract in `docs/dotnet-integration.md`; it will show API errors until those endpoints are implemented.
-- LiveKit voice and screen-sharing integration is intentionally deferred until the account and lesson booking workflow is working.
+- Live lessons use self-hosted Jitsi (not LiveKit). The room is unlisted but not authenticated; see the business-requirements live-lesson doc for the exact limits.
+- Authenticated pages render from a cached identity and revalidate in the background; do not block first paint on `/api/auth/me`.
+- Web has no contact-inbox page; the API and mobile admin screen exist.
+
+## SEO and crawlers
+
+Set `NEXT_PUBLIC_SITE_URL` to the canonical public origin in production (for example `https://www.your-domain.com`). It drives canonical URLs, Open Graph URLs, `sitemap.xml`, `robots.txt`, `llms.txt`, and `llms-full.txt`. On Vercel, the build falls back to `VERCEL_PROJECT_PRODUCTION_URL`; other hosts must set the variable.
+
+The public site is English-only and targets English-speaking students worldwide, so there are no regional versions and no `hreflang` tags. Only `/`, `/about`, `/blog`, `/blog/{slug}`, `/contact`, and `/teach` are indexable. Mock and authenticated routes are excluded, and `/courses` is explicitly `noindex` while it remains hardcoded.
+
+Blog posts live in `src/lib/blog.ts` and render through `/blog` and `/blog/[slug]`. The sitemap, RSS feed (`/blog/rss.xml`), per-article Open Graph images, `llms.txt`, and `llms-full.txt` are generated from that list, so adding a post only requires a new entry there.
 
 ## Deploy and connect to the API
 

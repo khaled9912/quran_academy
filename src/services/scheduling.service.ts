@@ -101,23 +101,10 @@ export const deleteWeeklyAvailability = (ruleId: string) =>
     { method: "DELETE" }
   );
 
-// Admin queue for student time-change requests
+// Read-only history of weekly times students moved themselves
 export const getAdminChangeRequests = (status?: ChangeRequestStatus) =>
   backendFetch<LessonChangeRequest[]>(
     `/api/admin/change-requests${status ? `?status=${status}` : ""}`
-  );
-export const approveChangeRequest = (requestId: string) =>
-  backendFetch<LessonChangeRequest>(
-    `/api/admin/change-requests/${encodeURIComponent(requestId)}/approve`,
-    { method: "POST" }
-  );
-export const rejectChangeRequest = (requestId: string, note?: string) =>
-  backendFetch<LessonChangeRequest>(
-    `/api/admin/change-requests/${encodeURIComponent(requestId)}/reject`,
-    {
-      method: "POST",
-      body: JSON.stringify(note?.trim() ? { note: note.trim() } : {}),
-    }
   );
 
 // Admin weekly availability on behalf of a teacher

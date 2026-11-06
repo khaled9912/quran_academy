@@ -7,7 +7,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarCheck, Check, Mail, Phone } from "lucide-react";
 import {
   bookWeeklySlots,
-  getMyChangeRequests,
   getTeacherWeeklyAvailability,
 } from "@/services/scheduling.service";
 import { Avatar } from "@/components/ui/avatar";
@@ -41,17 +40,7 @@ export default function StudentTeacherBookingPage() {
     enabled: role === "student" && Boolean(teacherId),
     refetchInterval: LIVE_SYNC_INTERVAL,
   });
-  const changesQuery = useQuery({
-    queryKey: ["change-requests", "student"],
-    queryFn: getMyChangeRequests,
-    enabled: role === "student",
-    refetchInterval: LIVE_SYNC_INTERVAL,
-  });
-
   const teacher = teacherQuery.data;
-  const pendingChanges = (changesQuery.data ?? []).filter(
-    (change) => change.status === "pending"
-  );
 
   const grouped = useMemo(() => {
     const rules = teacher?.slots ?? [];
@@ -89,7 +78,6 @@ export default function StudentTeacherBookingPage() {
         queryClient.invalidateQueries({ queryKey: ["teachers"] }),
         queryClient.invalidateQueries({ queryKey: ["teacher-profile"] }),
         queryClient.invalidateQueries({ queryKey: ["series"] }),
-        queryClient.invalidateQueries({ queryKey: ["change-requests"] }),
       ]);
     },
     onError: (error) => {
@@ -228,38 +216,27 @@ export default function StudentTeacherBookingPage() {
                   className="mt-2"
                 />
                 <div className="mt-4 space-y-3">
-                  {teacher.series.map((series) => {
-                    const pending = pendingChanges.some(
-                      (change) => change.seriesId === series.id
-                    );
-                    return (
-                      <div
-                        key={series.id}
-                        className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-card-border p-4"
-                      >
-                        <div>
-                          <p className="font-semibold">
-                            {toViewerWeeklySlotLabel(series, viewerTimeZone)}
-                          </p>
-                          <p className="mt-1 text-sm text-foreground opacity-70">
-                            {pending
-                              ? "Time change with the academy"
-                              : "Repeats every week"}
-                          </p>
-                        </div>
-                        <Link
-                          href={`/student/change-time/${series.id}`}
-                          className={`rounded-xl border border-card-border px-4 py-2 text-sm font-semibold transition ${
-                            pending
-                              ? "pointer-events-none opacity-50"
-                              : "hover:border-green-500"
-                          }`}
-                        >
-                          Change time
-                        </Link>
+                  {teacher.series.map((series) => (
+                    <div
+                      key={series.id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-card-border p-4"
+                    >
+                      <div>
+                        <p className="font-semibold">
+                          {toViewerWeeklySlotLabel(series, viewerTimeZone)}
+                        </p>
+                        <p className="mt-1 text-sm text-foreground opacity-70">
+                          Repeats every week
+                        </p>
                       </div>
-                    );
-                  })}
+                      <Link
+                        href={`/student/change-time/${series.id}`}
+                        className="rounded-xl border border-card-border px-4 py-2 text-sm font-semibold transition hover:border-green-500"
+                      >
+                        Change time
+                      </Link>
+                    </div>
+                  ))}
                 </div>
               </section>
             )}

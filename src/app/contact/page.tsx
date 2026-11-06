@@ -1,12 +1,19 @@
 import ContactForm from "@/components/ContactForm";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Contact Us | Ana Quran",
+export const metadata: Metadata = pageMetadata({
+  title: "Contact Us",
   description:
-    "Have a question about Quran, Arabic, or Islamic studies classes? Send us a message and our team will get back to you.",
-};
+    "Have a question about online Quran, Tajweed, Arabic, or Islamic studies classes? Contact Ana Quran Academy from anywhere in the world and our team will reply.",
+  path: "/contact",
+  keywords: [
+    "contact online Quran academy",
+    "online Quran classes enquiry",
+    "English Quran teachers",
+  ],
+});
 
 const ContactPage = () => {
   return (
@@ -17,8 +24,9 @@ const ContactPage = () => {
             Contact Us
           </h1>
           <p className="text-lg text-foreground opacity-75">
-            Ready to start your Quran journey? Send us a message and we will
-            help you every step of the way.
+            Ready to start your Quran journey? Send us a message from anywhere
+            in the world and we will help you every step of the way. Lessons are
+            scheduled in your local time zone.
           </p>
         </div>
         <ContactForm />

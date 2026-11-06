@@ -19,6 +19,8 @@ interface PhoneInputProps {
   error?: string;
   /** Locks the country: shows the dial code instead of a select. */
   locked?: boolean;
+  /** Restricts the country select to these codes instead of the full list. */
+  only?: CountryCode[];
   /** Overrides the default helper text under the field. */
   hintText?: string;
 }
@@ -32,11 +34,16 @@ export function PhoneInput({
   disabled = false,
   error,
   locked = false,
+  only,
   hintText,
 }: PhoneInputProps) {
   const selected = countryByCode(country);
   const e164 = toE164(value, country);
-  const options = countries.map((option) => ({
+  const options = (
+    only
+      ? countries.filter((option) => (only as string[]).includes(option.code))
+      : countries
+  ).map((option) => ({
     value: option.code,
     label: `${option.flag}  ${option.name} (${option.dial})`,
   }));

@@ -7,7 +7,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import {
   endWeeklySeries,
-  getMyChangeRequests,
   getMySeries,
   getTeacherWeeklyAvailability,
   requestTimeChange,
@@ -15,11 +14,7 @@ import {
 import { useAuth } from "@/providers/auth-provider";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 import { TimeZoneNote } from "@/components/student/TimeZoneNote";
-import {
-  getViewerTimeZone,
-  toViewerWeeklySlotLabel,
-  toViewerWeeklyTime,
-} from "@/lib/weekly-time";
+import { getViewerTimeZone, toViewerWeeklyTime } from "@/lib/weekly-time";
 import {
   WEEKDAY_LABELS,
   WEEKDAY_SHORT,
@@ -58,17 +53,6 @@ export default function ChangeWeeklyTimePage() {
     enabled: role === "student" && Boolean(teacherId),
     refetchInterval: LIVE_SYNC_INTERVAL,
   });
-  const changesQuery = useQuery({
-    queryKey: ["change-requests", "student"],
-    queryFn: getMyChangeRequests,
-    enabled: role === "student",
-    refetchInterval: LIVE_SYNC_INTERVAL,
-  });
-
-  const pending = (changesQuery.data ?? []).find(
-    (change) => change.status === "pending" && change.seriesId === seriesId
-  );
-
   const available = useMemo(() => {
     const rules = teacherQuery.data?.slots ?? [];
     return rules
@@ -100,7 +84,7 @@ export default function ChangeWeeklyTimePage() {
     onSuccess: async () => {
       setFormError("");
       setNotice(
-        "Request sent. The academy will confirm the new time with your teacher and update your weekly lessons."
+        "Your weekly time is changed. Your upcoming lessons are on the new time now."
       );
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["change-requests"] }),
@@ -182,8 +166,8 @@ export default function ChangeWeeklyTimePage() {
             </p>
             <h1 className="mt-2 text-3xl font-bold">Change your time</h1>
             <p className="mt-2 max-w-xl text-foreground/70">
-              Pick a new weekly time. The academy will check it with your
-              teacher, then move your lessons.
+              Pick any open weekly time your teacher publishes. Your lessons
+              move as soon as you choose it.
             </p>
           </div>
           <button
@@ -211,26 +195,6 @@ export default function ChangeWeeklyTimePage() {
             className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
           >
             {formError}
-          </p>
-        )}
-        {pending && (
-          <p
-            role="status"
-            className="mt-6 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-300"
-          >
-            You already asked to move this weekly time to{" "}
-            <strong>
-              {toViewerWeeklySlotLabel(
-                {
-                  dayOfWeek: pending.requestedDayOfWeek,
-                  startsAtTime: pending.requestedStartsAtTime,
-                  endsAtTime: pending.requestedEndsAtTime,
-                  timeZoneId: pending.timeZoneId,
-                },
-                viewerTimeZone
-              )}
-            </strong>
-            . Wait for the academy to respond first.
           </p>
         )}
 
@@ -392,7 +356,7 @@ export default function ChangeWeeklyTimePage() {
                 </label>
                 <button
                   type="button"
-                  disabled={!selected || Boolean(pending) || submit.isPending}
+                  disabled={!selected || submit.isPending}
                   onClick={() => {
                     setFormError("");
                     setNotice("");
@@ -400,11 +364,11 @@ export default function ChangeWeeklyTimePage() {
                   }}
                   className="mt-4 w-full rounded-xl bg-[#1c5145] px-4 py-3 font-semibold text-white transition hover:bg-[#163f36] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-green-600 dark:hover:bg-green-500"
                 >
-                  {submit.isPending ? "Sending…" : "Request this time"}
+                  {submit.isPending ? "Moving…" : "Move to this time"}
                 </button>
                 <p className="mt-3 text-xs leading-5 text-foreground/60">
-                  Your current weekly time stays booked until the academy
-                  approves the change.
+                  Your lessons move to the new time right away. Your teacher and
+                  the academy are told about it.
                 </p>
               </section>
             )}

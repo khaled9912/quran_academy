@@ -87,6 +87,10 @@ export default function TeacherSchedulePage() {
     },
   });
 
+  // One mutation instance serves every card, so the busy state is read from the
+  // lesson id it was started with instead of isPending alone.
+  const cancellingId = cancelMutation.variables ?? null;
+
   const lessons = lessonsQuery.data ?? [];
   const now = useNow();
   const dueCount = lessons.filter(isReportDue).length;
@@ -347,10 +351,10 @@ export default function TeacherSchedulePage() {
                                   cancelMutation.mutate(lesson.id);
                                 }
                               }}
-                              disabled={cancelMutation.isPending}
+                              disabled={cancellingId === lesson.id}
                               className="rounded-xl border border-red-300 dark:border-red-500/30 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 transition hover:bg-red-500 hover:text-white disabled:opacity-50"
                             >
-                              {cancelMutation.isPending
+                              {cancellingId === lesson.id
                                 ? "Cancelling…"
                                 : "Cancel lesson"}
                             </button>

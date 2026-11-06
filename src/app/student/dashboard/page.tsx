@@ -37,12 +37,15 @@ const dateTime = (value: string) =>
   });
 
 const changeStatusLabels: Record<string, string> = {
+  applied: "Applied",
   pending: "Awaiting academy",
   approved: "Approved",
   rejected: "Declined",
 };
 
 const changeStatusStyles: Record<string, string> = {
+  applied:
+    "bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300",
   pending:
     "bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300",
   approved:
@@ -87,9 +90,6 @@ const StudentDashboard = () => {
   const teacher = availabilityQuery.data?.teacher;
   const series = availabilityQuery.data?.series ?? [];
   const changes = changesQuery.data ?? [];
-  const pendingChanges = changes.filter(
-    (change) => change.status === "pending"
-  );
   const queryError =
     lessonsQuery.error ?? availabilityQuery.error ?? changesQuery.error;
 
@@ -166,9 +166,6 @@ const StudentDashboard = () => {
               ) : series.length ? (
                 <div className="space-y-3">
                   {series.map((item) => {
-                    const pending = pendingChanges.some(
-                      (change) => change.seriesId === item.id
-                    );
                     const local = toViewerWeeklyTime(item, viewerTimeZone);
                     return (
                       <div
@@ -183,19 +180,10 @@ const StudentDashboard = () => {
                             With {item.teacherName} · repeats every{" "}
                             {WEEKDAY_SHORT[local.dayOfWeek]}
                           </p>
-                          {pending && (
-                            <p className="mt-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
-                              Time change awaiting the academy
-                            </p>
-                          )}
                         </div>
                         <Link
                           href={`/student/change-time/${item.id}`}
-                          className={`rounded-xl border border-card-border px-4 py-2 text-sm font-semibold transition ${
-                            pending
-                              ? "pointer-events-none opacity-50"
-                              : "hover:border-green-500"
-                          }`}
+                          className="rounded-xl border border-card-border px-4 py-2 text-sm font-semibold transition hover:border-green-500"
                         >
                           Change time
                         </Link>
@@ -220,7 +208,7 @@ const StudentDashboard = () => {
             <section className="bg-card-bg border border-card-border rounded-3xl p-6 md:p-8">
               <div className="flex items-center gap-3 mb-6">
                 <Hourglass className="text-green-600 dark:text-green-400" />
-                <h2 className="text-2xl font-semibold">Time change requests</h2>
+                <h2 className="text-2xl font-semibold">Your time changes</h2>
               </div>
               {changes.length ? (
                 <TimeZoneNote
@@ -231,7 +219,7 @@ const StudentDashboard = () => {
               ) : null}
               {changesQuery.isLoading ? (
                 <p className="text-foreground opacity-70">
-                  Loading your requests…
+                  Loading your time changes…
                 </p>
               ) : changes.length ? (
                 <div className="space-y-3">
@@ -287,8 +275,8 @@ const StudentDashboard = () => {
                 </div>
               ) : (
                 <p className="text-foreground opacity-70">
-                  You have not asked to change a weekly time. Your booked times
-                  repeat every week.
+                  You have not changed a weekly time. Your booked times repeat
+                  every week.
                 </p>
               )}
             </section>
@@ -513,10 +501,10 @@ const StudentDashboard = () => {
                 </div>
                 <div>
                   <dt className="text-sm text-foreground opacity-70">
-                    Changes waiting
+                    Time changes
                   </dt>
                   <dd className="text-3xl font-bold text-green-600 dark:text-green-400">
-                    {pendingChanges.length}
+                    {changes.length}
                   </dd>
                 </div>
                 <div>

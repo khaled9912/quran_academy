@@ -47,8 +47,8 @@ export default function SuperAdminDashboard() {
     refetchInterval: LIVE_SYNC_INTERVAL,
   });
   const changesQuery = useQuery({
-    queryKey: ["change-requests", "admin", "pending"],
-    queryFn: () => getAdminChangeRequests("pending"),
+    queryKey: ["change-requests", "admin", "recent"],
+    queryFn: () => getAdminChangeRequests(),
     enabled: isSuperAdmin,
     refetchInterval: LIVE_SYNC_INTERVAL,
   });
@@ -77,7 +77,6 @@ export default function SuperAdminDashboard() {
     { title: "Teachers", value: teachersQuery.data?.length },
     { title: "Assignments", value: assignmentsQuery.data?.length },
     { title: "Lessons", value: lessonsQuery.data?.length },
-    { title: "Time changes waiting", value: changes.length },
   ];
 
   return (
@@ -122,17 +121,17 @@ export default function SuperAdminDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <section className="rounded-3xl border border-card-border bg-card-bg p-6">
             <div className="flex items-center justify-between gap-3 mb-4">
-              <h2 className="text-xl font-semibold">Time change requests</h2>
+              <h2 className="text-xl font-semibold">Recent time changes</h2>
               <Link
                 href="/admin/change-requests"
                 className="text-sm font-semibold text-green-600 dark:text-green-400 hover:underline"
               >
-                Review →
+                View all →
               </Link>
             </div>
             {loading ? (
               <p className="text-foreground opacity-70">
-                Loading change requests…
+                Loading time changes…
               </p>
             ) : changes.length ? (
               <div className="space-y-3">
@@ -158,14 +157,14 @@ export default function SuperAdminDashboard() {
                       {request.studentName} with {request.teacherName}
                     </p>
                     <p className="mt-1 text-xs text-foreground opacity-60">
-                      Requested {dateTime(request.createdAt)}
+                      Moved {dateTime(request.createdAt)}
                     </p>
                   </div>
                 ))}
               </div>
             ) : (
               <p className="text-foreground opacity-70">
-                No student is waiting for a time change.
+                No weekly time has been moved yet.
               </p>
             )}
           </section>
@@ -195,9 +194,9 @@ export default function SuperAdminDashboard() {
                 href="/admin/change-requests"
                 className="block rounded-2xl border border-card-border p-4 hover:border-green-500 transition"
               >
-                <p className="font-semibold">Time change requests</p>
+                <p className="font-semibold">Time changes</p>
                 <p className="text-sm text-foreground opacity-70">
-                  Confirm new weekly times with teachers.
+                  See the weekly times students moved themselves.
                 </p>
               </Link>
               <Link

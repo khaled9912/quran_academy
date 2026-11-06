@@ -3,13 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bell } from "lucide-react";
+import { Bell, ChevronRight } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/providers/auth-provider";
 import {
   getNotifications,
   markAllNotificationsRead,
   markNotificationRead,
+  notificationCta,
+  resolveNotificationHref,
   type AppNotification,
 } from "@/services/notification.service";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
@@ -44,7 +46,7 @@ const useNotificationsFeed = () => {
 export const NOTIFICATIONS_QUERY_KEY = ["notifications"] as const;
 
 export const NotificationsBell = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, role } = useAuth();
   const queryClient = useQueryClient();
   const query = useNotificationsFeed();
   const [open, setOpen] = useState(false);
@@ -81,7 +83,7 @@ export const NotificationsBell = () => {
     if (!item.readAt) markRead(item.id);
     setOpen(false);
     if (item.link?.startsWith("/") && !item.link.startsWith("//")) {
-      router.push(item.link);
+      router.push(resolveNotificationHref(item.link, role));
     }
   };
 
@@ -167,6 +169,12 @@ export const NotificationsBell = () => {
                       <p className="mt-1 text-sm text-foreground opacity-70">
                         {item.body}
                       </p>
+                      {item.link ? (
+                        <p className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-green-700 dark:text-green-400">
+                          {notificationCta(item.link)}
+                          <ChevronRight size={13} />
+                        </p>
+                      ) : null}
                     </>
                   );
                   const className = `block px-5 py-4 text-left transition hover:bg-foreground/5 ${
@@ -176,7 +184,7 @@ export const NotificationsBell = () => {
                     <li key={item.id}>
                       {item.link ? (
                         <Link
-                          href={item.link}
+                          href={resolveNotificationHref(item.link, role)}
                           className={className}
                           onClick={(event) => {
                             event.preventDefault();

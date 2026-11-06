@@ -1,6 +1,8 @@
-# Rayan Academy — ASP.NET Core integration contract
+# Ana Quran Academy — ASP.NET Core integration contract
 
 This frontend uses **Next.js App Router** (`src/app`). There is no Pages Router. The ASP.NET Core API owns authentication, authorization, validation, scheduling rules, and persistence. The frontend does not use Supabase.
+
+**Business rules and product intent:** [`../../docs/business-requirements/`](../../docs/business-requirements/README.md). This file is the endpoint contract; the business docs explain _why_ the rules exist, which surfaces are live, and which pages are mocks.
 
 ## How this fits for students
 
@@ -288,16 +290,14 @@ A student **without an active teacher** can offer one-off times instead of booki
 
 Accepting checks the teacher is active, the student still has no teacher, and neither side has an overlapping scheduled lesson. The claim uses a conditional update (`status = open`) so only one teacher can win; the winner gets an active assignment and a one-off lesson (flagged `isTrial` for the student's first-ever lesson), while the student's other open offers are withdrawn. The student is notified that the teacher accepted, and every other notified teacher's bell entry is rewritten to "Time offer taken — _student_ chose _teacher_" and marked unread. The claiming teacher's entry becomes "You booked this time".
 
-### Time-change requests
+### Weekly time changes
 
-| Method | Endpoint                                         | Purpose                                                 |
-| ------ | ------------------------------------------------ | ------------------------------------------------------- |
-| GET    | `/api/student/change-requests`                   | The student's own change requests                       |
-| POST   | `/api/student/series/{seriesId}/change-requests` | Request `{ "requestedRuleId": "uuid", "note"?: "..." }` |
-| DELETE | `/api/student/series/{seriesId}`                 | End a weekly series (`204`); future lessons cancelled   |
-| GET    | `/api/admin/change-requests?status=pending`      | Admin queue (`pending`, `approved`, `rejected`)         |
-| POST   | `/api/admin/change-requests/{id}/approve`        | Move the series to the requested rule                   |
-| POST   | `/api/admin/change-requests/{id}/reject`         | Decline with `{ "note"?: "..." }`                       |
+| Method | Endpoint                                         | Purpose                                                                   |
+| ------ | ------------------------------------------------ | ------------------------------------------------------------------------- |
+| GET    | `/api/student/change-requests`                   | The student's own change requests                                         |
+| POST   | `/api/student/series/{seriesId}/change-requests` | Move to another open rule `{ "requestedRuleId": "uuid", "note"?: "..." }` |
+| DELETE | `/api/student/series/{seriesId}`                 | End a weekly series (`204`); future lessons cancelled                     |
+| GET    | `/api/admin/change-requests?status=applied`      | Read-only history (`applied`, plus legacy rows)                           |
 
 A change request returns:
 
@@ -316,7 +316,7 @@ A change request returns:
   "requestedStartsAtTime": "17:00:00",
   "requestedEndsAtTime": "18:00:00",
   "timeZoneId": "Africa/Cairo",
-  "status": "pending",
+  "status": "applied",
   "studentNote": "I started a new class on Saturdays.",
   "adminNote": null,
   "createdAt": "2026-11-01T12:00:00Z",
@@ -324,9 +324,9 @@ A change request returns:
 }
 ```
 
-The student may have only one pending request per series (`409`). The requested rule must belong to the same teacher (`404`), must differ from the current rule, must still be open, and must not overlap another of the student's series (`409`). Creating a request adds a notification for the teacher ("Time change requested", without the requested time) so they know the academy will contact them. Approving retargets the series to the requested rule in a serializable transaction, replaces that series' future lessons, and returns `409` if the slot was taken in the meantime. Rejecting keeps the original schedule and stores the optional `adminNote` for the student to read.
+The change applies as it is requested — there is no approval call. The target rule must belong to the same teacher (`404`), differ from the current rule, still be open, and not overlap another of the student's series or an existing lesson in the materialized window; a clash returns `409` and the student picks again, including when another student took the slot first. The series is retargeted and its future lessons are rebuilt in the same serializable transaction, then the student and teacher get a `Time changed` notification naming the new time and every admin gets an informational one. Rows already stored with status `pending`, `approved` or `rejected` come from the removed approval queue and stay readable so old records keep rendering; `adminNote` is only set on those legacy rows.
 
-`DELETE /api/student/series/{seriesId}` ends the student's own weekly series. It deactivates the series, cancels its future scheduled lessons with `cancellationOutcome = "series_ended"`, declines any pending change request for that series, and deactivates the teacher assignment when no other active series with that teacher remains. The teacher receives a notification; the response is `204`. The slot becomes bookable again immediately.
+`DELETE /api/student/series/{seriesId}` ends the student's own weekly series. It deactivates the series, cancels its future scheduled lessons with `cancellationOutcome = "series_ended"`, and deactivates the teacher assignment when no other active series with that teacher remains. The teacher receives a notification; the response is `204`. The slot becomes bookable again immediately.
 
 ### Booking consistency requirements
 
@@ -405,6 +405,17 @@ A make-up lesson has `isMakeup = true`, `originalLessonId`, the original duratio
 
 The web External API listens to `videoConferenceJoined` / `videoConferenceLeft`; the React Native SDK listens to `onConferenceJoined` / `onConferenceLeft`. A device sends a unique `eventId` per beacon so retries are idempotent. The server owns timestamps, clamps intervals to the lesson window, keeps one open interval per lesson/user/device, and closes open intervals at the lesson end. This is independent per participant and is not derived from page opens or `ActualStartedAt`.
 
+### Calling a participant who has not joined
+
+| Method | Endpoint                 | Role               | Purpose                                                   |
+| ------ | ------------------------ | ------------------ | --------------------------------------------------------- |
+| POST   | `/api/lessons/{id}/call` | participant, staff | `{ targetRole? }` — rings the other side, or a named side |
+| GET    | `/api/calls/recent`      | any                | Calls addressed to the caller in the last 30 minutes      |
+
+A participant always rings the other side; `targetRole` is only read from staff. An accepted call returns the new row and appears in `LessonOperations.calls` (also `AdminLessonOpsDetail.calls`), newest first, at most 20. Rejections are `409` with a plain sentence the client shows as-is: outside the window, the target is already in the room, one call per 30 seconds, three calls per lesson per caller.
+
+`src/lib/lesson-ringer.ts` synthesises the ring with WebAudio because the web app ships no audio file, `LessonRingProvider` (mounted in `components/providers.tsx`) watches the `["lesson-calls"]` query, and `IncomingCallAlert` stays on screen until it is answered. A browser can never ring a closed tab: there is no service worker and no Web Push subscription, autoplay stays blocked until the user has interacted with the tab, and the flashing document title plus an optional `Notification` (only when permission was already granted) are the fallback.
+
 ### Teacher hours, credits, reliability, salary
 
 | Method | Endpoint                            | Role            | Purpose                                            |
@@ -451,11 +462,15 @@ The student credit ledger (`LessonCreditTransactions`) is append-only and idempo
 
 `LessonOpsMonitor` runs every minute: it expires reschedule requests, closes attendance and finalizes hours, opens/dismisses no-show incidents after the grace period, sends reminders and report-due notices, and notifies admins. `AcademyPushSender` delivers through the Expo Push API using the device tokens above; notifications are also written to the in-app feed and email where configured.
 
+Every lesson-related notice — no-show incidents, excuse requests, late-cancellation reviews, reminders, and report-due notices — carries `link = /lesson/{id}` and a body naming both participants, the lesson date and time, and what happened. `/lesson/{id}` exists on both clients and is admin-readable, so an admin tapping a notice lands directly on that lesson's room and operations panel. Push payloads repeat the same value in `data.link`, which the mobile app routes on tap; local reminders still route through `data.lessonId`.
+
+A notification row is stored once and read by both clients, so `link` always uses the mobile app's flat routes (`/schedule`, `/book`, `/people`, `/payments`, `/earnings`, `/lesson/{id}`, `/admin/lesson-ops`) — never a role-prefixed web path. The web app nests the same screens per role and translates the flat paths in `resolveNotificationHref` (`src/services/notification.service.ts`); add an entry there whenever a notice starts pointing at a new screen. Teachers have no lesson-request screen on either client, so request notices send them to `/schedule`.
+
 ### Schema and client routes
 
 New Postgres tables: `AcademyPolicies`, `LessonCancellations`, `LessonRescheduleRequests`, `LessonScheduleChanges`, `LessonAttendances`, `LessonAttendanceEvents`, `LessonAttendanceIntervals`, `LessonCreditTransactions`, `TeacherHours`, `TeacherPenalties`, `ReliabilityEvents`, `SalaryPeriods`, `AuditLogs`, `LessonExcuseRequests`, `LessonIncidents`, `DeviceTokens`. New lesson columns: `CancellationOutcome`, `CancelReason`, `CancelledById`, `CancelledAt`, `IsMakeup`, `OriginalLessonId`. The API creates these idempotently at boot (`Database:EnsureCreated`).
 
-Web lesson pages render `LessonOperationsPanel` (cancel, reschedule, make-up, attendance, excuse, incident). Admins use `/admin/lesson-ops` (day monitor, review queues, salary review, policy). The mobile app mirrors the lesson panel on the lesson screen and provides `/admin/lesson-ops` under the admin dashboard; support reviewers see neither the panel actions nor the admin screen. Mobile push registration requires an EAS `projectId` in `app.config.ts`; without it the app silently relies on local reminders.
+Web lesson pages render `LessonOperationsPanel` (cancel, reschedule, make-up, attendance with the call buttons, excuse, incident). Admins use `/admin/lesson-ops` (day monitor, review queues, salary review, policy). The mobile app mirrors the lesson panel on the lesson screen and provides `/admin/lesson-ops` under the admin dashboard; support reviewers see neither the panel actions nor the admin screen. Mobile push registration requires an EAS `projectId` in `app.config.ts`; without it the app silently relies on local reminders.
 
 ## Class reports and teacher reviews
 
@@ -475,7 +490,7 @@ Rules enforced by the API: one report and one review per lesson; both are reject
 
 `/lesson/{id}` loads the lesson through `GET /api/lessons/{id}` (which already enforces ownership) and embeds Jitsi Meet through the official External API (`https://{domain}/external_api.js`) inside our own page. The room name is derived from the lesson id and the Jitsi domain is configurable with `NEXT_PUBLIC_JITSI_DOMAIN` (defaults to `meet.jit.si`). Before joining, the page asks for camera/microphone access and offers three modes: camera + mic, mic only, or watch/listen only. Devices are enumerated first; when none are present (or permission is blocked) the page explains why and keeps a working "Join without camera & mic" path instead of dead-ending. Screen sharing is part of the standard Jitsi toolbar.
 
-The mobile app embeds the same room with the same External API options in a WebView and must point at the same self-hosted Jitsi host as the web build (the domain is baked into the app bundle). The room header exposes a native share sheet with the room URL so a participant can invite someone they trust; the room stays unlisted.
+The mobile app embeds the same room with the native `@jitsi/react-native-sdk` (not a WebView) and must point at the same self-hosted Jitsi host as the web build (the domain is baked into the app bundle). The room header exposes a native share sheet with the room URL so a participant can invite someone they trust; the room stays unlisted.
 
 After `endsAt` the page closes the room and switches to the lesson recap: teachers submit or edit the class report, students read the report and rate the lesson, and admins see both.
 
@@ -576,9 +591,10 @@ Prefer RFC 7807 Problem Details. Common status codes: `400` validation, `401` un
 - `/teach` — public teacher application form (details plus CV and recording uploads)
 - `/teachers`, `/teachers/{id}` — authenticated students only; anonymous visitors are redirected to `/login`, other roles to their dashboard
 - `/profile` — student/teacher/admin profile: name, email, mobile, photo, and class-report history
-- `/student/dashboard`, `/student/availability`, `/student/teachers/{id}`, `/student/change-time/{seriesId}`, `/student/payments`, `/schedule`, `/lesson/{id}` — student overview, teacher directory with unlimited weekly multi-select, time-change request, monthly payment statement, recurring schedule, and post-lesson recap/review
+- `/notifications` — in-app notification feed (bookings, reminders, requests, payments, system)
+- `/student/dashboard`, `/student/availability`, `/student/teachers/{id}`, `/student/change-time/{seriesId}`, `/student/payments`, `/schedule`, `/lesson/{id}` — student overview, teacher directory with unlimited weekly multi-select, self-service weekly time change, monthly payment statement, recurring schedule, and post-lesson recap/review
 - `/teacher/dashboard`, `/teacher/availability`, `/teacher/schedule`, `/teacher/payments` — teacher tools: announce weekly rules, see the weekly bookings, submit reports, and review monthly EGP earnings with payout details. Teachers have no lesson-request or approval screens.
-- `/admin/dashboard`, `/admin/change-requests`, `/admin/students`, `/admin/teachers`, `/admin/teachers/{id}/availability`, `/admin/teacher-applications`, `/admin/assignments`, `/admin/lessons`, `/admin/lesson-ops`, `/admin/payments`, `/admin/transcripts`, `/admin/support` — admin tools; `/admin/change-requests` is the only place student time-change requests surface, `/admin/lesson-ops` is the live day monitor plus review queues, salary review, and the lesson policy, and `/admin/payments` holds the USD account, per-teacher rates, and student claim reviews
+- `/admin/dashboard`, `/admin/change-requests`, `/admin/students`, `/admin/teachers`, `/admin/teachers/{id}/availability`, `/admin/teacher-applications`, `/admin/assignments`, `/admin/lessons`, `/admin/lesson-ops`, `/admin/payments`, `/admin/transcripts`, `/admin/support` — admin tools; `/admin/change-requests` is the read-only history of the weekly times students moved, `/admin/lesson-ops` is the live day monitor plus review queues, salary review, and the lesson policy, and `/admin/payments` holds the USD account, per-teacher rates, and student claim reviews
 - `/support/transcripts`, `/support/transcripts/{id}`, `/support/weekly` — support reviewers (also reachable by admins): queue, transcript plus rubric review, and the weekly per-teacher digest
 
 The landing page is implemented in `src/app/page.tsx`. Feature screens are App Router `page.tsx` files; do not add a `pages/` directory.
