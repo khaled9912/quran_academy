@@ -389,13 +389,13 @@ Cancellation is blocked for support, for already cancelled/completed/ended lesso
 
 ### Rescheduling and make-up lessons
 
-| Method | Endpoint                                       | Purpose                                               |
-| ------ | ---------------------------------------------- | ----------------------------------------------------- |
-| GET    | `/api/lessons/{id}/reschedule-requests`        | Request history for the lesson                        |
-| POST   | `/api/lessons/{id}/reschedule-requests`        | `{ startsAt, endsAt, note? }` (teacher/student/admin) |
-| POST   | `/api/reschedule-requests/{requestId}/accept`  | Accept; moves the lesson or books the make-up         |
-| POST   | `/api/reschedule-requests/{requestId}/decline` | Keep the current time, or book nothing                |
-| POST   | `/api/reschedule-requests/{requestId}/cancel`  | Withdraw a request                                    |
+| Method | Endpoint                                       | Purpose                                                       |
+| ------ | ---------------------------------------------- | ------------------------------------------------------------- |
+| GET    | `/api/lessons/{id}/reschedule-requests`        | Request history for the lesson                                |
+| POST   | `/api/lessons/{id}/reschedule-requests`        | `{ startsAt, endsAt, note? }` (teacher/student/admin)         |
+| POST   | `/api/reschedule-requests/{requestId}/accept`  | Accept; moves the lesson or books the make-up                 |
+| POST   | `/api/reschedule-requests/{requestId}/decline` | Keep the current time, or book nothing                        |
+| POST   | `/api/reschedule-requests/{requestId}/cancel`  | Withdraw a request                                            |
 | POST   | `/api/lessons/{id}/replacement`                | Admin-only direct make-up booking; the web app never calls it |
 
 Rules: one `pending` request per lesson; the default reply deadline is the policy's `rescheduleResponseHours`; pending requests expire in the background monitor. A request only stores a proposed time — nothing moves until the other side replies. Accepting on a scheduled lesson moves its `startsAt`/`endsAt` and never creates a duplicate. A reschedule does not cancel the lesson, so no cancellation outcome or credit movement is recorded.

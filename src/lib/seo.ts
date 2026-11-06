@@ -49,6 +49,8 @@ export function absoluteUrl(path = "/") {
 
 const OG_IMAGE = {
   url: absoluteUrl("/opengraph-image"),
+  secureUrl: absoluteUrl("/opengraph-image"),
+  type: "image/png",
   width: 1200,
   height: 630,
   alt: `${SITE_NAME} — Learn Quran Online Worldwide`,
@@ -74,6 +76,8 @@ export function pageMetadata({
   const imageUrl = image ? absoluteUrl(image) : OG_IMAGE.url;
   const imageMeta = {
     url: imageUrl,
+    secureUrl: imageUrl,
+    type: "image/png",
     width: 1200,
     height: 630,
     alt: imageAlt ?? OG_IMAGE.alt,
