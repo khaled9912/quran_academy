@@ -45,6 +45,12 @@ For production, prefer a same-origin reverse proxy so the API's HttpOnly session
 
 `POST /api/auth/change-password` takes `{ "currentPassword": "...", "newPassword": "..." }`, returns `204`, rotates the caller's cookie, and signs other devices out. It returns `409` for phone-only accounts and `400` with `currentPassword`/`newPassword` errors. Admins can still reset a teacher or student password through `PATCH /api/admin/users/{id}`.
 
+### Registration eligibility
+
+Public self-service registration is limited to `US`, `GB`, `CA`, `AU`, `NZ`, and `IE`. `POST /api/auth/register` takes `{ "fullName", "email", "password", "country"? }` and returns `403` with the eligibility message for other countries. `POST /api/auth/otp/verify` accepts the same optional `country`; the check only applies when it would create a new account, so existing students can sign in from anywhere.
+
+The API prefers the `x-registration-country` header over the request body. Middleware sets that header from the hosting provider's geo data and mirrors the value to the `academy-country` cookie, which the browser reads before submitting. Web CTAs carry `registration-cta` and are hidden by a pre-paint script, and `/signup` redirects to `/registration-unavailable` outside the allowlist. Mobile has no IP geolocation, so it passes the device locale's region and treats it as a UX hint only.
+
 Password reset is anonymous and email-based. `POST /api/auth/password/request` takes `{ "email" }` and always answers `202` with a generic message (no account enumeration); the code expires after 15 minutes and resend is throttled to one per minute. In Development it returns `devCode` (`8888` by default). `POST /api/auth/password/reset` takes `{ "email", "code", "newPassword" }`, returns `204`, and invalidates existing sessions; an invalid or expired code returns `401`. Both return `503` when SMTP is not configured, so production needs `Email__Enabled=true`, `Email__SmtpHost`, `Email__SmtpPort`, `Email__Username`, `Email__Password`, and `Email__From`.
 
 ### Phone OTP

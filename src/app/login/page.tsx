@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { signIn, requestOtp, verifyOtp } from "@/services/auth.service";
 import { ApiError } from "@/lib/backend-client";
+import { registrationCountryFromDocument } from "@/lib/registration";
 import { reportUnexpectedError } from "@/lib/sentry";
 import { useAuth } from "@/providers/auth-provider";
 import { PhoneInput } from "@/components/ui/phone-input";
@@ -144,7 +145,8 @@ const LoginPage = () => {
       const result = await verifyOtp(
         sentTo,
         code.trim(),
-        needsName ? phoneName.trim() : undefined
+        needsName ? phoneName.trim() : undefined,
+        registrationCountryFromDocument() ?? undefined
       );
       if (result.requiresProfile) {
         setNeedsName(true);

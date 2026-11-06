@@ -17,10 +17,7 @@ const PUBLIC_PATHS = [
 ];
 const AUTH_PATHS = ["/login", "/signup", "/register", "/forgot-password"];
 const REGISTRATION_PATHS = ["/signup", "/register"];
-const REGISTRATION_API_PATHS = [
-  "/api/auth/register",
-  "/api/auth/otp/verify",
-];
+const REGISTRATION_API_PATHS = ["/api/auth/register", "/api/auth/otp/verify"];
 
 const ROLE_DASHBOARDS: Record<string, string> = {
   super_admin: "/super-admin/dashboard",

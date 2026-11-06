@@ -109,7 +109,11 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/logo-ana-quran-mark.svg?v=1", type: "image/svg+xml" },
-      { url: "/icon-192.png?v=2026-11-06-2", sizes: "192x192", type: "image/png" },
+      {
+        url: "/icon-192.png?v=2026-11-06-2",
+        sizes: "192x192",
+        type: "image/png",
+      },
     ],
     shortcut: "/logo-ana-quran-mark.svg?v=1",
     apple: "/apple-icon.png?v=2026-11-06-2",

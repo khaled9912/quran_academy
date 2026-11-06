@@ -17,7 +17,8 @@ const links = [
   {
     href: "/blog",
     label: "Quran learning guides",
-    description: "Practical articles on Tajweed, memorization, and online study.",
+    description:
+      "Practical articles on Tajweed, memorization, and online study.",
     icon: BookOpen,
   },
   {

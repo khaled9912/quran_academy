@@ -1,9 +1,5 @@
 import type { MetadataRoute } from "next";
-import {
-  SITE_DESCRIPTION,
-  SITE_NAME,
-  SITE_SHORT_NAME,
-} from "@/lib/seo";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_SHORT_NAME } from "@/lib/seo";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
