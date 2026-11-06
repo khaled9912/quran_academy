@@ -77,6 +77,8 @@ Blog posts live in `src/lib/blog.ts` and render through `/blog` and `/blog/[slug
 
 Optional search-engine verification meta tags are read from `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` and `NEXT_PUBLIC_BING_SITE_VERIFICATION`. Vercel preview deployments automatically send `X-Robots-Tag: noindex, nofollow` and serve a disallow-all `robots.txt`; production and self-hosted builds are unaffected. The web manifest and 180/192/512 PNG icons live alongside the app routes.
 
+Bing/Yandex/Seznam/Naver are notified through IndexNow. The key file is `public/86895a67c74f1ba77dcc62177d618bab.txt` (served at `/<key>.txt`). Once a production deploy is live, run `npm run indexnow` to submit every URL in the live sitemap, or `npm run indexnow -- <url>` to submit specific pages such as a new article; `--dry-run` prints the payload without sending. Rotating the key only requires replacing that file — the script reads the filename and contents from `public/`.
+
 ## Deploy and connect to the API
 
 The API is a separate .NET host (for example `https://your-site.runasp.net`). Netlify and Vercel cannot run it. Both settings below are read at build time, so every change requires a redeploy.
