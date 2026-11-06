@@ -49,6 +49,8 @@ For production, prefer a same-origin reverse proxy so the API's HttpOnly session
 
 Public self-service registration is limited to `US`, `GB`, `CA`, `AU`, `NZ`, and `IE`. `POST /api/auth/register` takes `{ "fullName", "email", "password", "country"? }` and returns `403` with the eligibility message for other countries. `POST /api/auth/otp/verify` accepts the same optional `country`; the check only applies when it would create a new account, so existing students can sign in from anywhere.
 
+`fullName` must be a person's name: anywhere a name is accepted from a non-staff caller (register, OTP signup, `PATCH /api/profile`, `POST /api/teacher-applications`) it is rejected with a `fullName` validation error when it contains `@`, so an email address cannot end up as the name every other participant sees.
+
 The API prefers the `x-registration-country` header over the request body. Middleware sets that header from the hosting provider's geo data and mirrors the value to the `academy-country` cookie, which the browser reads before submitting. Web CTAs carry `registration-cta` and are hidden by a pre-paint script, and `/signup` redirects to `/registration-unavailable` outside the allowlist. Mobile has no IP geolocation, so it passes the device locale's region and treats it as a UX hint only.
 
 Password reset is anonymous and email-based. `POST /api/auth/password/request` takes `{ "email" }` and always answers `202` with a generic message (no account enumeration); the code expires after 15 minutes and resend is throttled to one per minute. In Development it returns `devCode` (`8888` by default). `POST /api/auth/password/reset` takes `{ "email", "code", "newPassword" }`, returns `204`, and invalidates existing sessions; an invalid or expired code returns `401`. Both return `503` when SMTP is not configured, so production needs `Email__Enabled=true`, `Email__SmtpHost`, `Email__SmtpPort`, `Email__Username`, `Email__Password`, and `Email__From`.
@@ -117,7 +119,7 @@ A teacher announces **weekly availability rules** once — for example “Saturd
 | GET    | `/api/student/teacher/weekly-availability` | Same shape, restricted to the student's currently assigned teacher         |
 | POST   | `/api/student/bookings`                    | Book one or more weekly rules instantly                                    |
 
-Each directory item is `{ "teacher": { ...UserDto }, "slots": [ ...WeeklyRuleDto ], "averageRating": 4.8, "reviewCount": 12 }`. A `WeeklyRuleDto` is:
+Each directory item is `{ "teacher": { ...UserDto }, "slots": [ ...WeeklyRuleDto ], "averageRating": 4.8, "reviewCount": 12 }`. On every student-facing teacher endpoint (`/teachers/directory`, `/teachers/weekly-directory`, `/teachers/{id}/weekly-availability`, `/teachers/{id}/profile`, `/student/teacher/availability`) the `UserDto` is name-only: `email` is `""` and `phoneNumber` is `null`, because students see who teaches them, not how to reach them. Contact details appear only in staff responses and in each user's own `/api/profile`. The same rule runs the other way: `/api/students` and `/api/students/{id}` return contact fields to admins and to the student themself, but a teacher receives names only. A `WeeklyRuleDto` is:
 
 ```json
 {

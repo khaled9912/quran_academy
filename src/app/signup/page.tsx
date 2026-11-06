@@ -13,7 +13,11 @@ import { PhoneInput } from "@/components/ui/phone-input";
 import { DEFAULT_COUNTRY, countryByCode, toE164 } from "@/lib/countries";
 
 const signupSchema = z.object({
-  fullName: z.string().trim().min(2, "Please enter your full name."),
+  fullName: z
+    .string()
+    .trim()
+    .min(2, "Please enter your full name.")
+    .refine((value) => !value.includes("@"), "Enter your name, not an email address."),
   email: z.string().trim().email("Please enter a valid email address."),
   password: z
     .string()
@@ -100,6 +104,10 @@ const SignUpPage = () => {
     setMessage("");
     if (!fullName.trim()) {
       setMessage("Please enter your full name.");
+      return;
+    }
+    if (fullName.includes("@")) {
+      setMessage("Enter your name, not an email address.");
       return;
     }
     const e164 = toE164(phone, country);

@@ -48,8 +48,9 @@ export default function LessonCallPage() {
 
   const lesson = lessonQuery.data;
   const isSupport = role === "admin" || role === "super_admin";
+  // The room shows this to the other participant, so it is never an email address.
   const displayName =
-    profile?.fullName ?? profile?.full_name ?? profile?.email ?? "Guest";
+    profile?.fullName?.trim() || profile?.full_name?.trim() || "Guest";
   const roomDisplayName = isSupport
     ? `${displayName} (Academy support)`
     : displayName;

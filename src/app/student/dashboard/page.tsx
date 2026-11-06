@@ -454,11 +454,6 @@ const StudentDashboard = () => {
               ) : teacher ? (
                 <>
                   <p className="text-lg font-semibold">{teacher.fullName}</p>
-                  {teacher.email && (
-                    <p className="mt-1 text-sm text-foreground opacity-70">
-                      {teacher.email}
-                    </p>
-                  )}
                   <p className="mt-2 text-sm text-foreground opacity-70">
                     {series.length
                       ? `${series.length} weekly time${

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarDays, Mail, Phone } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import {
   getAssignedWeeklyAvailability,
   getTeacherDirectory,
@@ -130,20 +130,6 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
                       ) : (
                         <p className="mt-1 text-xs text-foreground opacity-60">
                           New teacher
-                        </p>
-                      )}
-                      {entry.teacher.email && (
-                        <p className="mt-1 flex items-center gap-1.5 truncate text-xs text-foreground opacity-70">
-                          <Mail size={13} className="shrink-0" />
-                          <span className="truncate">
-                            {entry.teacher.email}
-                          </span>
-                        </p>
-                      )}
-                      {entry.teacher.phoneNumber && (
-                        <p className="mt-1 flex items-center gap-1.5 text-xs text-foreground opacity-70">
-                          <Phone size={13} className="shrink-0" />
-                          {entry.teacher.phoneNumber}
                         </p>
                       )}
                     </div>

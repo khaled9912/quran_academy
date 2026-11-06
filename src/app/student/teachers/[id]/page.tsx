@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarCheck, Check, Mail, Phone } from "lucide-react";
+import { CalendarCheck, Check } from "lucide-react";
 import {
   bookWeeklySlots,
   getTeacherWeeklyAvailability,
@@ -157,16 +157,6 @@ export default function StudentTeacherBookingPage() {
                   ) : (
                     <p className="mt-2 text-sm text-foreground opacity-70">
                       New teacher at Ana Quran
-                    </p>
-                  )}
-                  {teacher.teacher.email && (
-                    <p className="mt-2 flex items-center gap-1.5 text-sm text-foreground opacity-70">
-                      <Mail size={14} /> {teacher.teacher.email}
-                    </p>
-                  )}
-                  {teacher.teacher.phoneNumber && (
-                    <p className="mt-1 flex items-center gap-1.5 text-sm text-foreground opacity-70">
-                      <Phone size={14} /> {teacher.teacher.phoneNumber}
                     </p>
                   )}
                 </div>

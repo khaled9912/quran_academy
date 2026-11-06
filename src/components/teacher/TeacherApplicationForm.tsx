@@ -130,6 +130,8 @@ export function TeacherApplicationForm() {
     const next: Record<string, string> = {};
     if (fullName.trim().length < 2 || fullName.trim().length > 160)
       next.fullName = "Enter your full name (2 to 160 characters).";
+    else if (fullName.includes("@"))
+      next.fullName = "Enter your name, not an email address.";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
       next.email = "Enter a valid email address.";
     if (!toE164(phone, phoneCountry))
