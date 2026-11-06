@@ -38,14 +38,14 @@ const Navbar = () => {
           className="flex items-center"
         >
           <img
-            src="/logo-ana-quran.svg?v=2026-10-31-5"
+            src="/logo-ana-quran.svg?v=2026-11-06-1"
             alt="Ana Quran logo"
             width={40}
             height={56}
             className="navbar-brand-logo h-16 w-auto dark:hidden"
           />
           <img
-            src="/logo-ana-quran-light.svg?v=2026-10-31-6"
+            src="/logo-ana-quran-light.svg?v=2026-11-06-1"
             alt="Ana Quran logo"
             width={40}
             height={56}
@@ -67,14 +67,14 @@ const Navbar = () => {
             className="flex items-center"
           >
             <img
-              src="/logo-ana-quran.svg?v=2026-10-31-5"
+              src="/logo-ana-quran.svg?v=2026-11-06-1"
               alt="Ana Quran logo"
               width={46}
               height={64}
               className="navbar-brand-logo h-[4.5rem] w-auto dark:hidden"
             />
             <img
-              src="/logo-ana-quran-light.svg?v=2026-10-31-6"
+              src="/logo-ana-quran-light.svg?v=2026-11-06-1"
               alt="Ana Quran logo"
               width={46}
               height={64}
@@ -117,7 +117,7 @@ const Navbar = () => {
                   Login
                 </button>
               </Link>
-              <Link href="/signup">
+              <Link href="/signup" className="registration-cta">
                 <button className="rounded-xl bg-[#f1d1a1] px-4 py-2 text-sm font-semibold text-[#173d3f] transition hover:bg-[#f6d9a8]">
                   Register
                 </button>

@@ -146,8 +146,7 @@ export const blogPosts: BlogPost[] = [
           "Recent revision: recite what you memorized in the last few days or weeks.",
           "Older revision: cycle through previously completed portions so they stay fresh.",
         ],
-        note:
-          "If revision starts to slip, reduce the new portion before you reduce revision. New memorization built on weak revision rarely lasts.",
+        note: "If revision starts to slip, reduce the new portion before you reduce revision. New memorization built on weak revision rarely lasts.",
       },
       {
         heading: "Memorize with a teacher listening",
@@ -237,8 +236,7 @@ export const blogPosts: BlogPost[] = [
           "Most beginners start with a small set of high-impact rules. These often include madd (the length of vowel sounds), the rules of noon sakinah and tanween, and qalqalah (the echoing sound on certain letters).",
           "You do not need to learn every rule at once. One rule at a time, applied to your recitation, holds better than a long list reviewed without practice.",
         ],
-        note:
-          "Tajweed is transmitted through a teacher. Use online guides to review, not to replace correction from someone who can hear your recitation.",
+        note: "Tajweed is transmitted through a teacher. Use online guides to review, not to replace correction from someone who can hear your recitation.",
       },
       {
         heading: "Listen, repeat, and record",
@@ -435,7 +433,7 @@ export function getBlogPost(slug: string) {
 
 export function sortedBlogPosts() {
   return [...blogPosts].sort((a, b) =>
-    b.publishedAt.localeCompare(a.publishedAt),
+    b.publishedAt.localeCompare(a.publishedAt)
   );
 }
 
@@ -444,12 +442,12 @@ export function relatedBlogPosts(slug: string, limit = 2) {
   if (!current) return sortedBlogPosts().slice(0, limit);
 
   const sameCategory = blogPosts.filter(
-    (post) => post.slug !== slug && post.category === current.category,
+    (post) => post.slug !== slug && post.category === current.category
   );
   const others = sortedBlogPosts().filter(
     (post) =>
       post.slug !== slug &&
-      !sameCategory.some((candidate) => candidate.slug === post.slug),
+      !sameCategory.some((candidate) => candidate.slug === post.slug)
   );
 
   return [...sameCategory, ...others].slice(0, limit);

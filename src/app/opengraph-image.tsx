@@ -15,7 +15,8 @@ export default function OpengraphImage() {
           display: "flex",
           position: "relative",
           overflow: "hidden",
-          background: "linear-gradient(135deg, #123c35 0%, #1d4e47 60%, #2a6355 100%)",
+          background:
+            "linear-gradient(135deg, #123c35 0%, #1d4e47 60%, #2a6355 100%)",
           color: "#f3efe8",
           padding: "64px 72px",
         }}
@@ -146,6 +147,6 @@ export default function OpengraphImage() {
         </div>
       </div>
     ),
-    size,
+    size
   );
 }

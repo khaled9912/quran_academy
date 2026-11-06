@@ -21,7 +21,6 @@ import {
   callLesson,
   cancelLesson,
   cancelRescheduleRequest,
-  createReplacementLesson,
   createRescheduleRequest,
   getLessonOperations,
   reportLessonIncident,
@@ -179,6 +178,7 @@ function CreditSummary({ preview }: { preview: CancellationPreview }) {
 function RescheduleCard({
   request,
   viewerId,
+  makeup,
   canRespond,
   busy,
   onRespond,
@@ -186,6 +186,7 @@ function RescheduleCard({
 }: {
   request: RescheduleRequest;
   viewerId?: string;
+  makeup: boolean;
   canRespond: boolean;
   busy: boolean;
   onRespond: (action: "accept" | "decline", note: string) => void;
@@ -249,7 +250,7 @@ function RescheduleCard({
                   className="inline-flex items-center gap-2 rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white hover:bg-green-600 disabled:opacity-50"
                 >
                   {busy && <Loader2 size={15} className="animate-spin" />}
-                  Accept new time
+                  {makeup ? "Accept make-up time" : "Accept new time"}
                 </button>
                 <button
                   type="button"
@@ -257,7 +258,7 @@ function RescheduleCard({
                   onClick={() => onRespond("decline", note)}
                   className="rounded-xl border border-card-border px-4 py-2 text-sm font-semibold hover:border-green-500 disabled:opacity-50"
                 >
-                  Keep current time
+                  {makeup ? "Decline make-up" : "Keep current time"}
                 </button>
               </div>
             </>
@@ -484,17 +485,30 @@ function RescheduleSection({
 }) {
   const queryClient = useQueryClient();
   const [startsAt, setStartsAt] = useState(() =>
-    toLocalInput(new Date(new Date(lesson.startsAt).getTime() + 24 * 3600_000))
+    toLocalInput(
+      lesson.status === "cancelled"
+        ? new Date(Date.now() + 24 * 3600_000)
+        : new Date(new Date(lesson.startsAt).getTime() + 24 * 3600_000)
+    )
   );
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const pending = operations.pendingReschedule;
   const isAdmin = role === "admin" || role === "super_admin";
+  // A cancelled lesson is not moved, it is rebooked: the same request/accept
+  // machinery carries the proposal and the student's reply decides the slot.
+  const isMakeup = lesson.status === "cancelled";
   const canRequest =
+    !isMakeup &&
     (role === "teacher" || role === "student" || isAdmin) &&
     lesson.status === "scheduled" &&
     new Date(lesson.endsAt).getTime() > Date.now();
+  const canPropose =
+    isMakeup &&
+    (role === "teacher" || isAdmin) &&
+    !lesson.isMakeup &&
+    !operations.replacementLesson;
 
   const durationMs =
     new Date(lesson.endsAt).getTime() - new Date(lesson.startsAt).getTime();
@@ -519,7 +533,9 @@ function RescheduleSection({
     onSuccess: () => {
       setError("");
       setNotice(
-        "Your reschedule request was sent. The lesson stays as scheduled until it is accepted."
+        isMakeup
+          ? "Your make-up proposal was sent. The slot is booked only when the student accepts."
+          : "Your reschedule request was sent. The lesson stays as scheduled until it is accepted."
       );
       refresh();
     },
@@ -539,8 +555,12 @@ function RescheduleSection({
       setError("");
       setNotice(
         variables.action === "accept"
-          ? "The lesson was moved to the new time."
-          : "The lesson stays at its current time."
+          ? isMakeup
+            ? "The make-up lesson is booked."
+            : "The lesson was moved to the new time."
+          : isMakeup
+            ? "The make-up proposal was declined. Nothing was booked."
+            : "The lesson stays at its current time."
       );
       refresh();
     },
@@ -564,11 +584,11 @@ function RescheduleSection({
     respondMutation.isPending ||
     withdrawMutation.isPending;
 
-  if (!pending && !canRequest) return null;
+  if (!pending && !canRequest && !canPropose) return null;
 
   return (
     <Section
-      title="Reschedule"
+      title={isMakeup ? "Make-up lesson" : "Reschedule"}
       icon={
         <CalendarClock
           size={19}
@@ -577,8 +597,9 @@ function RescheduleSection({
       }
     >
       <p className="text-foreground opacity-70">
-        A reschedule is a request, not a cancellation. The lesson keeps its time
-        until the other side accepts.
+        {isMakeup
+          ? "A make-up time is a proposal. Nothing is booked until the student accepts."
+          : "A reschedule is a request, not a cancellation. The lesson keeps its time until the other side accepts."}
       </p>
       {notice && <Notice>{notice}</Notice>}
       {error && <ErrorNotice>{error}</ErrorNotice>}
@@ -587,7 +608,12 @@ function RescheduleSection({
         <RescheduleCard
           request={pending}
           viewerId={viewerId}
-          canRespond={canRequest || isAdmin}
+          makeup={isMakeup}
+          canRespond={
+            isAdmin ||
+            ((viewerId === lesson.teacherId || viewerId === lesson.studentId) &&
+              pending.requestedById !== viewerId)
+          }
           busy={busy}
           onRespond={(action, reply) =>
             respondMutation.mutate({ action, note: reply })
@@ -596,7 +622,7 @@ function RescheduleSection({
         />
       )}
 
-      {!pending && canRequest && (
+      {!pending && (canRequest || canPropose) && (
         <form
           onSubmit={(event) => {
             event.preventDefault();
@@ -615,7 +641,9 @@ function RescheduleSection({
           className="space-y-3"
         >
           <label className="block">
-            <span className="mb-1 block font-semibold">New date and time</span>
+            <span className="mb-1 block font-semibold">
+              {isMakeup ? "Make-up date and time" : "New date and time"}
+            </span>
             <input
               type="datetime-local"
               value={startsAt}
@@ -634,7 +662,11 @@ function RescheduleSection({
             value={note}
             onChange={(event) => setNote(event.target.value)}
             maxLength={1000}
-            placeholder="Optional note for the other side"
+            placeholder={
+              isMakeup
+                ? "Optional note for the student"
+                : "Optional note for the other side"
+            }
             className={inputClass}
             disabled={busy}
           />
@@ -646,7 +678,7 @@ function RescheduleSection({
             {createMutation.isPending && (
               <Loader2 size={16} className="animate-spin" />
             )}
-            Send reschedule request
+            {isMakeup ? "Propose make-up time" : "Send reschedule request"}
           </button>
         </form>
       )}
@@ -681,54 +713,17 @@ function RescheduleSection({
   );
 }
 
+/**
+ * Bookings are made by the reschedule request above, so this section only
+ * reports where a make-up lesson came from and where a cancelled one went.
+ */
 function MakeupSection({
   lesson,
   operations,
-  role,
 }: {
   lesson: Lesson;
   operations: LessonOperations;
-  role: string | null;
 }) {
-  const queryClient = useQueryClient();
-  const isAdmin = role === "admin" || role === "super_admin";
-  const canCreate =
-    lesson.status === "cancelled" &&
-    !lesson.isMakeup &&
-    !operations.replacementLesson &&
-    (role === "teacher" || isAdmin);
-  const [startsAt, setStartsAt] = useState(() => toLocalInput(new Date()));
-  const [note, setNote] = useState("");
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
-
-  const durationMs =
-    new Date(lesson.endsAt).getTime() - new Date(lesson.startsAt).getTime();
-  const proposedStart = startsAt ? new Date(startsAt) : null;
-  const proposedEnd =
-    proposedStart && !Number.isNaN(proposedStart.getTime())
-      ? new Date(proposedStart.getTime() + durationMs)
-      : null;
-
-  const mutation = useMutation({
-    mutationFn: () =>
-      createReplacementLesson(lesson.id, {
-        startsAt: proposedStart!.toISOString(),
-        endsAt: proposedEnd!.toISOString(),
-        note,
-      }),
-    onSuccess: () => {
-      setError("");
-      setNotice("A make-up lesson was scheduled and the student was notified.");
-      void queryClient.invalidateQueries({
-        queryKey: ["lesson-ops", lesson.id],
-      });
-      void queryClient.invalidateQueries({ queryKey: ["lessons"] });
-    },
-    onError: (failure) =>
-      setError(errorMessage(failure, "Unable to schedule the make-up lesson.")),
-  });
-
   if (lesson.isMakeup || operations.originalLesson) {
     return (
       <Section
@@ -781,76 +776,7 @@ function MakeupSection({
     );
   }
 
-  if (!canCreate) return null;
-
-  return (
-    <Section
-      title="Schedule a make-up lesson"
-      icon={
-        <CalendarClock
-          size={19}
-          className="text-green-600 dark:text-green-400"
-        />
-      }
-    >
-      <p className="text-foreground opacity-70">
-        The make-up keeps the original {Math.round(durationMs / 60000)}-minute
-        length and adds no extra charge or credit.
-      </p>
-      {notice && <Notice>{notice}</Notice>}
-      {error && <ErrorNotice>{error}</ErrorNotice>}
-      <form
-        onSubmit={(event) => {
-          event.preventDefault();
-          setError("");
-          setNotice("");
-          if (!proposedStart || !proposedEnd) {
-            setError("Choose a date and time.");
-            return;
-          }
-          if (proposedStart.getTime() <= Date.now()) {
-            setError("Choose a future time.");
-            return;
-          }
-          mutation.mutate();
-        }}
-        className="space-y-3"
-      >
-        <label className="block">
-          <span className="mb-1 block font-semibold">
-            Make-up date and time
-          </span>
-          <input
-            type="datetime-local"
-            value={startsAt}
-            onChange={(event) => setStartsAt(event.target.value)}
-            className={inputClass}
-            disabled={mutation.isPending}
-          />
-        </label>
-        {proposedEnd && (
-          <p className="text-xs text-foreground opacity-60">
-            Ends {dateTime(proposedEnd.toISOString())}.
-          </p>
-        )}
-        <input
-          value={note}
-          onChange={(event) => setNote(event.target.value)}
-          placeholder="Optional note for the student"
-          className={inputClass}
-          disabled={mutation.isPending}
-        />
-        <button
-          type="submit"
-          disabled={mutation.isPending}
-          className="inline-flex items-center gap-2 rounded-xl bg-green-500 px-5 py-2.5 font-semibold text-white transition hover:bg-green-600 disabled:opacity-50"
-        >
-          {mutation.isPending && <Loader2 size={16} className="animate-spin" />}
-          Schedule make-up lesson
-        </button>
-      </form>
-    </Section>
-  );
+  return null;
 }
 
 /**
@@ -882,7 +808,8 @@ function AttendanceSection({
     : 0;
   const isParticipant =
     viewerId === lesson.teacherId || viewerId === lesson.studentId;
-  const isStaff = role === "admin" || role === "super_admin" || role === "support";
+  const isStaff =
+    role === "admin" || role === "super_admin" || role === "support";
   const inCallWindow =
     lesson.status !== "cancelled" &&
     lesson.status !== "completed" &&
@@ -894,7 +821,9 @@ function AttendanceSection({
       callLesson(lesson.id, isParticipant ? undefined : targetRole),
     onSuccess: () => {
       setCallError("");
-      void queryClient.invalidateQueries({ queryKey: ["lesson-ops", lesson.id] });
+      void queryClient.invalidateQueries({
+        queryKey: ["lesson-ops", lesson.id],
+      });
       void queryClient.invalidateQueries({ queryKey: ["lesson-calls"] });
     },
     onError: (failure) =>
@@ -961,7 +890,11 @@ function AttendanceSection({
             {ringable(participant) && (
               <button
                 type="button"
-                disabled={coolingForMs > 0 || mine.length >= CALLS_PER_LESSON || call.isPending}
+                disabled={
+                  coolingForMs > 0 ||
+                  mine.length >= CALLS_PER_LESSON ||
+                  call.isPending
+                }
                 onClick={() => call.mutate(participant.role)}
                 title={
                   coolingForMs > 0
@@ -1033,7 +966,10 @@ function AttendanceSection({
         </div>
       )}
       {callError && (
-        <p role="status" className="text-xs font-semibold text-red-600 dark:text-red-400">
+        <p
+          role="status"
+          className="text-xs font-semibold text-red-600 dark:text-red-400"
+        >
           {callError}
         </p>
       )}
@@ -1334,7 +1270,7 @@ export function LessonOperationsPanel({
           viewerId={profile?.id}
         />
       )}
-      <MakeupSection lesson={lesson} operations={stable} role={role ?? null} />
+      <MakeupSection lesson={lesson} operations={stable} />
       <AttendanceSection
         lesson={lesson}
         operations={stable}

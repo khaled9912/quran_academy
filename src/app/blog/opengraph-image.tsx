@@ -120,12 +120,12 @@ export default function BlogIndexOpengraphImage() {
                 >
                   {topic}
                 </div>
-              ),
+              )
             )}
           </div>
         </div>
       </div>
     ),
-    size,
+    size
   );
 }

@@ -42,7 +42,10 @@ export async function generateMetadata({
     title: post.seoTitle,
     description: post.description,
     keywords: post.keywords,
-    alternates: { canonical: `/blog/${post.slug}` },
+    alternates: {
+      canonical: `/blog/${post.slug}`,
+      types: { "application/rss+xml": "/blog/rss.xml" },
+    },
     openGraph: {
       type: "article",
       url,
@@ -150,21 +153,33 @@ export default async function BlogPostPage({ params }: PageProps) {
       <JsonLd data={breadcrumbSchema} />
 
       <div className="mx-auto max-w-4xl px-5 pt-28 md:px-8 md:pt-36">
-        <nav aria-label="Breadcrumb" className="text-sm text-[#7a8a80] dark:text-foreground/50">
+        <nav
+          aria-label="Breadcrumb"
+          className="text-sm text-[#7a8a80] dark:text-foreground/50"
+        >
           <ol className="flex flex-wrap items-center gap-2">
             <li>
-              <Link href="/" className="hover:text-[#1d5145] dark:hover:text-green-400">
+              <Link
+                href="/"
+                className="hover:text-[#1d5145] dark:hover:text-green-400"
+              >
                 Home
               </Link>
             </li>
             <li aria-hidden>/</li>
             <li>
-              <Link href="/blog" className="hover:text-[#1d5145] dark:hover:text-green-400">
+              <Link
+                href="/blog"
+                className="hover:text-[#1d5145] dark:hover:text-green-400"
+              >
                 Blog
               </Link>
             </li>
             <li aria-hidden>/</li>
-            <li aria-current="page" className="text-[#4f675c] dark:text-foreground/70">
+            <li
+              aria-current="page"
+              className="text-[#4f675c] dark:text-foreground/70"
+            >
               {post.category}
             </li>
           </ol>
@@ -258,7 +273,7 @@ export default async function BlogPostPage({ params }: PageProps) {
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 <Link
                   href="/signup"
-                  className="rounded-xl bg-[#e4c18e] px-5 py-3 text-center text-sm font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"
+                  className="registration-cta rounded-xl bg-[#e4c18e] px-5 py-3 text-center text-sm font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"
                 >
                   Start with a free trial
                 </Link>

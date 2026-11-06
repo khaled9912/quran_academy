@@ -1,10 +1,13 @@
 import type { MetadataRoute } from "next";
 import { sortedBlogPosts } from "@/lib/blog";
-import { SITE_URL } from "@/lib/seo";
+import { CONTENT_LAST_UPDATED, SITE_URL } from "@/lib/seo";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date();
+  const lastModified = new Date(`${CONTENT_LAST_UPDATED}T00:00:00Z`);
   const posts = sortedBlogPosts();
+  const blogLastModified = posts[0]
+    ? new Date(`${posts[0].updatedAt}T00:00:00Z`)
+    : lastModified;
 
   return [
     {
@@ -21,7 +24,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${SITE_URL}/blog`,
-      lastModified,
+      lastModified: blogLastModified,
       changeFrequency: "weekly",
       priority: 0.7,
     },

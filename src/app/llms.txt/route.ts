@@ -6,7 +6,10 @@ export const dynamic = "force-static";
 export function GET() {
   const posts = sortedBlogPosts();
   const blogLines = posts
-    .map((post) => `- [${post.title}](${SITE_URL}/blog/${post.slug}): ${post.excerpt}`)
+    .map(
+      (post) =>
+        `- [${post.title}](${SITE_URL}/blog/${post.slug}): ${post.excerpt}`
+    )
     .join("\n");
 
   const body = `# Ana Quran Academy

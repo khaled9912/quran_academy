@@ -71,7 +71,11 @@ export const stopRinger = () => {
  * it is only used when permission was already given, because asking out of
  * nowhere is worse than a banner.
  */
-export const showBrowserNotice = (title: string, body: string, link: string) => {
+export const showBrowserNotice = (
+  title: string,
+  body: string,
+  link: string
+) => {
   if (typeof window === "undefined" || !("Notification" in window)) return;
   if (Notification.permission !== "granted") return;
   try {

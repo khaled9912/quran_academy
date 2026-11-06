@@ -73,7 +73,9 @@ Set `NEXT_PUBLIC_SITE_URL` to the canonical public origin in production (for exa
 
 The public site is English-only and targets English-speaking students worldwide, so there are no regional versions and no `hreflang` tags. Only `/`, `/about`, `/blog`, `/blog/{slug}`, `/contact`, and `/teach` are indexable. Mock and authenticated routes are excluded, and `/courses` is explicitly `noindex` while it remains hardcoded.
 
-Blog posts live in `src/lib/blog.ts` and render through `/blog` and `/blog/[slug]`. The sitemap, RSS feed (`/blog/rss.xml`), per-article Open Graph images, `llms.txt`, and `llms-full.txt` are generated from that list, so adding a post only requires a new entry there.
+Blog posts live in `src/lib/blog.ts` and render through `/blog` and `/blog/[slug]`. The sitemap, RSS feed (`/blog/rss.xml`), per-article Open Graph images, `llms.txt`, and `llms-full.txt` are generated from that list, so adding a post only requires a new entry there. Bump `CONTENT_LAST_UPDATED` in `src/lib/seo.ts` when the marketing pages change so sitemap `lastmod` stays meaningful.
+
+Optional search-engine verification meta tags are read from `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` and `NEXT_PUBLIC_BING_SITE_VERIFICATION`. Vercel preview deployments automatically send `X-Robots-Tag: noindex, nofollow` and serve a disallow-all `robots.txt`; production and self-hosted builds are unaffected. The web manifest and 180/192/512 PNG icons live alongside the app routes.
 
 ## Deploy and connect to the API
 

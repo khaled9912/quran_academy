@@ -4,10 +4,25 @@ import { withSentryConfig } from "@sentry/nextjs/config";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Keep Vercel preview/branch deployments out of search indexes. Production and
+// self-hosted builds (no VERCEL_ENV) are unaffected.
+const isPreviewDeployment =
+  process.env.VERCEL_ENV !== undefined &&
+  process.env.VERCEL_ENV !== "production";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   turbopack: {
     root: __dirname,
+  },
+  async headers() {
+    if (!isPreviewDeployment) return [];
+    return [
+      {
+        source: "/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+    ];
   },
   async rewrites() {
     // Same-origin proxy to the .NET API: keeps the auth cookie on this domain,

@@ -8,7 +8,7 @@ export function GET() {
   const blogLines = posts
     .map(
       (post) =>
-        `- [${post.title}](${SITE_URL}/blog/${post.slug}) (${post.category}, ${post.publishedAt}): ${post.description}`,
+        `- [${post.title}](${SITE_URL}/blog/${post.slug}) (${post.category}, ${post.publishedAt}): ${post.description}`
     )
     .join("\n");
 

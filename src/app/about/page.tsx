@@ -93,8 +93,7 @@ const faqs = [
   },
   {
     question: "Are lessons taught in English?",
-    answer:
-      "Yes. Lessons and communication with the academy are in English.",
+    answer: "Yes. Lessons and communication with the academy are in English.",
   },
   {
     question: "Can children and adults learn?",
@@ -155,7 +154,7 @@ export default function AboutPage() {
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Link
               href="/signup"
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
+              className="registration-cta inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
             >
               Start with a free trial <ArrowRight size={18} />
             </Link>
@@ -211,8 +210,9 @@ export default function AboutPage() {
               Programs built around each student.
             </h2>
             <p className="mt-4 leading-7 text-[#6b7c73] dark:text-foreground/70">
-              Every program is one-to-one and adapted to the student&apos;s level,
-              goals, and pace. Availability varies by teacher and subject.
+              Every program is one-to-one and adapted to the student&apos;s
+              level, goals, and pace. Availability varies by teacher and
+              subject.
             </p>
           </div>
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -246,8 +246,8 @@ export default function AboutPage() {
               A simple weekly rhythm.
             </h2>
             <p className="mt-5 leading-7 text-[#687b70] dark:text-foreground/70">
-              From your first trial lesson to your weekly schedule, everything is
-              kept in one place.
+              From your first trial lesson to your weekly schedule, everything
+              is kept in one place.
             </p>
           </div>
           <div className="space-y-4">
@@ -326,8 +326,8 @@ export default function AboutPage() {
                   Currency
                 </dt>
                 <dd className="mt-1 leading-7">
-                  Lesson fees are shown and billed monthly in US dollars (USD) by
-                  bank transfer. Your bank may apply its own conversion or
+                  Lesson fees are shown and billed monthly in US dollars (USD)
+                  by bank transfer. Your bank may apply its own conversion or
                   transfer fees.
                 </dd>
               </div>
@@ -392,7 +392,7 @@ export default function AboutPage() {
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Link
               href="/signup"
-              className="rounded-xl bg-[#e4c18e] px-6 py-3.5 font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"
+              className="registration-cta rounded-xl bg-[#e4c18e] px-6 py-3.5 font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"
             >
               Get started
             </Link>
@@ -413,7 +413,10 @@ export default function AboutPage() {
             English-speaking students worldwide.
           </p>
           <div className="flex gap-5">
-            <Link href="/" className="hover:text-[#1c5145] dark:hover:text-green-400">
+            <Link
+              href="/"
+              className="hover:text-[#1c5145] dark:hover:text-green-400"
+            >
               Home
             </Link>
             <Link

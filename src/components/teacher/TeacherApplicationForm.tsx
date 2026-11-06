@@ -38,8 +38,9 @@ export function TeacherApplicationForm() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [phoneCountry, setPhoneCountry] =
-    useState<CountryCode>(DEFAULT_APPLICANT_COUNTRY);
+  const [phoneCountry, setPhoneCountry] = useState<CountryCode>(
+    DEFAULT_APPLICANT_COUNTRY
+  );
   const [subjects, setSubjects] = useState<TeacherSubject[]>([]);
   const [englishLevel, setEnglishLevel] = useState<EnglishLevel | "">("");
   const [experienceYears, setExperienceYears] = useState("");

@@ -116,7 +116,7 @@ export default function HomePage() {
             <div className="mt-8 flex w-full flex-col gap-3 sm:mt-9 sm:flex-row">
               <Link
                 href="/signup"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500 sm:w-auto"
+                className="registration-cta inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500 sm:w-auto"
               >
                 Start learning <ArrowRight size={18} />
               </Link>
@@ -166,7 +166,7 @@ export default function HomePage() {
                 </div>
 
                 <img
-                  src="/logo-ana-quran-light.svg?v=2026-10-31-6"
+                  src="/logo-ana-quran-light.svg?v=2026-11-06-1"
                   alt="Ana Quran"
                   width={140}
                   height={197}
@@ -175,7 +175,7 @@ export default function HomePage() {
 
                 <div className="absolute bottom-5 left-5 right-5 text-white">
                   <img
-                    src="/logo-ana-quran-light.svg?v=2026-10-31-6"
+                    src="/logo-ana-quran-light.svg?v=2026-11-06-1"
                     alt="Ana Quran"
                     width={96}
                     height={135}
@@ -279,7 +279,7 @@ export default function HomePage() {
               </p>
               <Link
                 href="/signup"
-                className="mt-7 inline-flex items-center gap-2 font-semibold text-[#1d5144] hover:gap-3 dark:text-green-400"
+                className="registration-cta mt-7 inline-flex items-center gap-2 font-semibold text-[#1d5144] hover:gap-3 dark:text-green-400"
               >
                 Create your student account <ArrowRight size={18} />
               </Link>
@@ -356,7 +356,7 @@ export default function HomePage() {
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Link
               href="/signup"
-              className="rounded-xl bg-[#e4c18e] px-6 py-3.5 font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"
+              className="registration-cta rounded-xl bg-[#e4c18e] px-6 py-3.5 font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"
             >
               Get started
             </Link>
@@ -377,14 +377,14 @@ export default function HomePage() {
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 text-sm text-[#718078] dark:text-foreground/60 md:flex-row md:items-center md:justify-between md:px-8">
           <div className="flex items-center">
             <img
-              src="/logo-ana-quran.svg?v=2026-10-31-5"
+              src="/logo-ana-quran.svg?v=2026-11-06-1"
               alt="Ana Quran"
               width={57}
               height={80}
               className="h-20 w-auto dark:hidden md:h-24"
             />
             <img
-              src="/logo-ana-quran-light.svg?v=2026-10-31-6"
+              src="/logo-ana-quran-light.svg?v=2026-11-06-1"
               alt="Ana Quran"
               width={57}
               height={80}

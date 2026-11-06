@@ -227,3 +227,7 @@ body {
   color: var(--foreground);
   border-bottom: 2px solid #10b981;
 }
+
+:root[data-registration="blocked"] .registration-cta {
+  display: none !important;
+}

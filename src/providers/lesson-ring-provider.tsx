@@ -6,7 +6,11 @@ import { getRecentCalls } from "@/services/lesson.service";
 import type { LessonCall } from "@/types/lesson";
 import { useAuth } from "@/providers/auth-provider";
 import { IncomingCallAlert } from "@/components/lesson/IncomingCallAlert";
-import { showBrowserNotice, startRinger, stopRinger } from "@/lib/lesson-ringer";
+import {
+  showBrowserNotice,
+  startRinger,
+  stopRinger,
+} from "@/lib/lesson-ringer";
 
 /** A ring stops on its own; nobody should be chased by a call for an hour. */
 const RING_TIMEOUT_MS = 45_000;

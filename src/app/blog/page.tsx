@@ -4,11 +4,7 @@ import { ArrowRight, BookOpen, Clock3 } from "lucide-react";
 
 import { BlogCard } from "@/components/blog/BlogCard";
 import { JsonLd } from "@/components/JsonLd";
-import {
-  formatBlogDate,
-  sortedBlogPosts,
-  type BlogPost,
-} from "@/lib/blog";
+import { formatBlogDate, sortedBlogPosts, type BlogPost } from "@/lib/blog";
 import { absoluteUrl, pageMetadata, SITE_URL } from "@/lib/seo";
 
 const posts = sortedBlogPosts();
@@ -86,7 +82,9 @@ function FeaturedPost({ post }: { post: BlogPost }) {
       </div>
       <div className="flex flex-col p-8 md:p-10">
         <div className="flex flex-wrap items-center gap-3 text-xs font-medium text-[#7a8a80] dark:text-foreground/50">
-          <time dateTime={post.publishedAt}>{formatBlogDate(post.publishedAt)}</time>
+          <time dateTime={post.publishedAt}>
+            {formatBlogDate(post.publishedAt)}
+          </time>
           <span aria-hidden>•</span>
           <span className="inline-flex items-center gap-1.5">
             <Clock3 size={14} aria-hidden />
@@ -153,7 +151,7 @@ export default function BlogPage() {
           <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
             <Link
               href="/signup"
-              className="rounded-xl bg-[#1d4e47] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
+              className="registration-cta rounded-xl bg-[#1d4e47] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
             >
               Start with a free trial
             </Link>

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { z } from "zod";
 import { requestOtp, signUp, verifyOtp } from "@/services/auth.service";
+import { registrationCountryFromDocument } from "@/lib/registration";
 import { ApiError } from "@/lib/backend-client";
 import { reportUnexpectedError } from "@/lib/sentry";
 import { useAuth } from "@/providers/auth-provider";
@@ -70,7 +71,12 @@ const SignUpPage = () => {
 
     setLoading(true);
     try {
-      const { user } = await signUp(trimmedName, trimmedEmail, trimmedPassword);
+      const { user } = await signUp(
+        trimmedName,
+        trimmedEmail,
+        trimmedPassword,
+        registrationCountryFromDocument() ?? undefined
+      );
       if (!user?.role) {
         setMessage("Unable to determine your role. Contact support.");
         return;
@@ -145,7 +151,12 @@ const SignUpPage = () => {
     }
     setPhoneLoading(true);
     try {
-      const result = await verifyOtp(sentTo, code.trim(), fullName.trim());
+      const result = await verifyOtp(
+        sentTo,
+        code.trim(),
+        fullName.trim(),
+        registrationCountryFromDocument() ?? undefined
+      );
       if (!result.user) {
         setMessage("We could not create your account. Please try again.");
         return;

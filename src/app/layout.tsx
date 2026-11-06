@@ -19,6 +19,8 @@ const inter = Inter({ subsets: ["latin"] });
 
 const themeScript = `(function(){try{var t=localStorage.getItem("theme");if(t!=="dark"&&t!=="light"){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}var r=document.documentElement;r.dataset.theme=t;r.style.colorScheme=t;}catch(e){}})();`;
 
+const registrationScript = `(function(){try{var m=document.cookie.match(/(?:^|;\\s*)academy-country=([A-Za-z]{2})/);var a=["US","GB","CA","AU","NZ","IE"];if(m&&a.indexOf(m[1].toUpperCase())===-1){document.documentElement.dataset.registration="blocked";}}catch(e){}})();`;
+
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "EducationalOrganization",
@@ -26,7 +28,13 @@ const organizationSchema = {
   name: SITE_NAME,
   alternateName: SITE_SHORT_NAME,
   url: SITE_URL,
-  logo: absoluteUrl("/logo-ana-quran-mark.svg"),
+  logo: {
+    "@type": "ImageObject",
+    url: absoluteUrl("/icon-512.png"),
+    width: 512,
+    height: 512,
+  },
+  image: absoluteUrl("/opengraph-image"),
   description:
     "A global online Quran academy teaching Quran, Tajweed, memorization, Arabic, and Islamic studies to English-speaking students through one-to-one lessons.",
   areaServed: {
@@ -86,10 +94,25 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
+  verification: {
+    ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+      ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+      : {}),
+    ...(process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+      ? {
+          other: {
+            "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION,
+          },
+        }
+      : {}),
+  },
   icons: {
-    icon: "/logo-ana-quran-mark.svg?v=1",
+    icon: [
+      { url: "/logo-ana-quran-mark.svg?v=1", type: "image/svg+xml" },
+      { url: "/icon-192.png?v=2026-11-06-2", sizes: "192x192", type: "image/png" },
+    ],
     shortcut: "/logo-ana-quran-mark.svg?v=1",
-    apple: "/logo-ana-quran-mark.svg?v=1",
+    apple: "/apple-icon.png?v=2026-11-06-2",
   },
 };
 
@@ -102,6 +125,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: registrationScript }} />
       </head>
       <body className={inter.className}>
         <JsonLd data={organizationSchema} />

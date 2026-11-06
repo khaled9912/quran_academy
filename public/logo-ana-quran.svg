@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="18 22 242 340" width="242" height="340" role="img" aria-labelledby="title desc">
-  <title id="title">Anaa Quran logo</title>
-  <desc id="desc">An open Quran inside a green mihrab arch, with the words Anaa Quran.</desc>
+  <title id="title">Ana Quran logo</title>
+  <desc id="desc">An open Quran inside a green mihrab arch, with the words Ana Quran.</desc>
   <defs>
     <style>
       .arch { fill: none; stroke: #217a34; stroke-width: 4.2; stroke-linejoin: round; stroke-linecap: round; }
@@ -31,6 +31,6 @@
 
   <text class="ar" x="104" y="229" text-anchor="middle" direction="rtl" lang="ar">قرآن</text>
   <text class="ar" x="183" y="229" text-anchor="middle" direction="rtl" lang="ar">أنا</text>
-  <text class="en" x="99" y="259" text-anchor="middle">Anaa</text>
+  <text class="en" x="99" y="259" text-anchor="middle">Ana</text>
   <text class="en" x="184" y="259" text-anchor="middle">Quran</text>
 </svg>

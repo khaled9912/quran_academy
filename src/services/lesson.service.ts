@@ -125,15 +125,6 @@ export const cancelRescheduleRequest = (requestId: string) =>
     }
   );
 
-export const createReplacementLesson = (
-  id: string,
-  input: { startsAt: string; endsAt: string; note?: string }
-) =>
-  backendFetch<Lesson>(`${lessonPath(id)}/replacement`, {
-    method: "POST",
-    body: JSON.stringify(input),
-  });
-
 export const getAttendance = (id: string) =>
   backendFetch<AttendanceSummary>(`${lessonPath(id)}/attendance`);
 export const sendAttendanceEvent = (

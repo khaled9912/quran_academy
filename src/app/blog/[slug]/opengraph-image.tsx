@@ -137,6 +137,6 @@ export default async function BlogOpengraphImage({
         </div>
       </div>
     ),
-    size,
+    size
   );
 }

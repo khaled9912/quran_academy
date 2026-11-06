@@ -32,7 +32,10 @@ export function BlogCard({ post }: { post: BlogPost }) {
           {post.excerpt}
         </p>
         <div className="mt-5 flex items-center justify-between border-t border-[#e7eee3] pt-4 text-sm dark:border-card-border">
-          <time dateTime={post.publishedAt} className="text-[#7a8a80] dark:text-foreground/50">
+          <time
+            dateTime={post.publishedAt}
+            className="text-[#7a8a80] dark:text-foreground/50"
+          >
             {formatBlogDate(post.publishedAt)}
           </time>
           <span className="inline-flex items-center gap-1 font-semibold text-[#1d5145] dark:text-green-400">

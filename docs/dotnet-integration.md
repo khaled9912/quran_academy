@@ -387,14 +387,14 @@ Cancellation is blocked for support, for already cancelled/completed/ended lesso
 | ------ | ---------------------------------------------- | ----------------------------------------------------- |
 | GET    | `/api/lessons/{id}/reschedule-requests`        | Request history for the lesson                        |
 | POST   | `/api/lessons/{id}/reschedule-requests`        | `{ startsAt, endsAt, note? }` (teacher/student/admin) |
-| POST   | `/api/reschedule-requests/{requestId}/accept`  | Accept; moves the existing lesson only                |
-| POST   | `/api/reschedule-requests/{requestId}/decline` | Keep the current time                                 |
+| POST   | `/api/reschedule-requests/{requestId}/accept`  | Accept; moves the lesson or books the make-up         |
+| POST   | `/api/reschedule-requests/{requestId}/decline` | Keep the current time, or book nothing                |
 | POST   | `/api/reschedule-requests/{requestId}/cancel`  | Withdraw a request                                    |
-| POST   | `/api/lessons/{id}/replacement`                | Create one make-up lesson for a cancelled lesson      |
+| POST   | `/api/lessons/{id}/replacement`                | Admin-only direct make-up booking; the web app never calls it |
 
-Rules: one `pending` request per lesson; the default reply deadline is the policy's `rescheduleResponseHours`; pending requests expire in the background monitor. Accepting moves the original lesson's `startsAt`/`endsAt` — it never creates a duplicate — and is rejected if the lesson was cancelled or already ended. A reschedule does not cancel the lesson, so no cancellation outcome or credit movement is recorded.
+Rules: one `pending` request per lesson; the default reply deadline is the policy's `rescheduleResponseHours`; pending requests expire in the background monitor. A request only stores a proposed time — nothing moves until the other side replies. Accepting on a scheduled lesson moves its `startsAt`/`endsAt` and never creates a duplicate. A reschedule does not cancel the lesson, so no cancellation outcome or credit movement is recorded.
 
-A make-up lesson has `isMakeup = true`, `originalLessonId`, the original duration, and exactly one active replacement per original. It adds no credit and no charge. The original and replacement link to each other through `/api/lessons/{id}/operations`.
+A cancelled lesson is rebooked through the same routes: the teacher (or an admin) posts a reschedule request against it and the student's accept creates the make-up row. A make-up lesson has `isMakeup = true`, `originalLessonId`, the original duration, and exactly one active replacement per original; it adds no credit and no charge. The original and replacement link to each other through `/api/lessons/{id}/operations`. `POST /api/lessons/{id}/replacement` stays as the staff override for times agreed outside the app.
 
 ### Attendance (real participation)
 

@@ -14,7 +14,8 @@ function escapeXml(value: string) {
 
 export function GET() {
   const posts = sortedBlogPosts();
-  const latestUpdate = posts[0]?.updatedAt ?? new Date().toISOString().slice(0, 10);
+  const latestUpdate =
+    posts[0]?.updatedAt ?? new Date().toISOString().slice(0, 10);
 
   const items = posts
     .map((post) => {

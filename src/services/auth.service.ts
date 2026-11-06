@@ -12,10 +12,20 @@ export const signIn = (email: string, password: string) =>
   });
 
 /** Public registration intentionally creates Students only. */
-export const signUp = (fullName: string, email: string, password: string) =>
+export const signUp = (
+  fullName: string,
+  email: string,
+  password: string,
+  country?: string
+) =>
   backendFetch<AuthResponse>("/api/auth/register", {
     method: "POST",
-    body: JSON.stringify({ fullName, email, password }),
+    body: JSON.stringify({
+      fullName,
+      email,
+      password,
+      ...(country ? { country } : {}),
+    }),
   });
 
 export interface PasswordResetRequestResponse {
@@ -56,10 +66,20 @@ export const requestOtp = (phone: string) =>
     body: JSON.stringify({ phone }),
   });
 
-export const verifyOtp = (phone: string, code: string, fullName?: string) =>
+export const verifyOtp = (
+  phone: string,
+  code: string,
+  fullName?: string,
+  country?: string
+) =>
   backendFetch<OtpVerifyResponse>("/api/auth/otp/verify", {
     method: "POST",
-    body: JSON.stringify({ phone, code, ...(fullName ? { fullName } : {}) }),
+    body: JSON.stringify({
+      phone,
+      code,
+      ...(fullName ? { fullName } : {}),
+      ...(country ? { country } : {}),
+    }),
   });
 
 let currentUserRequest: Promise<UserProfile | null> | null = null;
