@@ -246,6 +246,11 @@ export default function TeacherSchedulePage() {
                       lesson.status,
                       now
                     );
+                    // The API refuses cancellations once the lesson starts, so
+                    // a past lesson must not offer the action at all.
+                    const cancellable =
+                      lesson.status === "scheduled" &&
+                      new Date(lesson.startsAt).getTime() > now;
                     return (
                       <article
                         key={lesson.id}
@@ -329,7 +334,7 @@ export default function TeacherSchedulePage() {
                                 Write report
                               </Link>
                             ))}
-                          {lesson.status === "scheduled" && (
+                          {cancellable && (
                             <button
                               onClick={() => {
                                 setError("");

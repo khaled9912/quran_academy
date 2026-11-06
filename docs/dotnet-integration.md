@@ -204,7 +204,7 @@ A student has at most one active teacher at a time; the API enforces this and re
 | POST   | `/api/admin/teachers/{teacherId}/availability-rules`          | Publish weekly rules on the teacher's behalf |
 | DELETE | `/api/admin/teachers/{teacherId}/availability-rules/{ruleId}` | Delete an unbooked weekly rule               |
 
-The admin body is the same as the teacher's own publish call: `{ "daysOfWeek": [6, 0, 1], "startsAtTime": "15:00:00", "endsAtTime": "16:00:00", "timeZoneId": "Africa/Cairo" }`. Every rule must be 4 hours or shorter; rules that overlap the teacher's existing rules or lessons are rejected with `400`. A rule that already backs an active series cannot be deleted — the response is `409` — because deleting it would silently cancel a booked weekly time.
+The admin body is the same as the teacher's own publish call: `{ "daysOfWeek": [6, 0, 1], "startsAtTime": "15:00:00", "endsAtTime": "16:00:00", "timeZoneId": "Africa/Cairo" }`. Every rule must be 30, 45, or 60 minutes long; rules that overlap the teacher's existing rules or lessons are rejected with `400`. A rule that already backs an active series cannot be deleted — the response is `409` — because deleting it would silently cancel a booked weekly time.
 
 The older one-off endpoints (`/api/admin/teachers/{teacherId}/availability`, `/api/teacher/availability`, `/api/student/teacher/availability`, `/api/teachers/directory`, `/api/lesson-requests`) are still mounted for backwards compatibility but the web and mobile apps no longer call them.
 
@@ -241,7 +241,7 @@ Approving an application creates an active `teacher` account (with a random inte
 ## Weekly scheduling workflow
 
 - Lessons are **individual**: one teacher and one student.
-- A teacher announces **weekly rules** — a weekday, a wall-clock range of at most 4 hours, and an IANA time zone. Announcing a rule is the teacher's consent to be booked.
+- A teacher announces **weekly rules** — a weekday, one of the three lesson lengths (30, 45, or 60 minutes), and an IANA time zone. Announcing a rule is the teacher's consent to be booked.
 - A student selects **any number** of the teacher's open rules in one action and is booked instantly. There is no teacher confirmation and no admin approval.
 - Every booking creates a permanent `LessonSeries`, and the API materializes the next 8 weeks of lessons from it, rolling forward on every schedule read.
 - A rule can back only one active series, so a booked rule is no longer offered to other students.
@@ -268,9 +268,25 @@ Approving an application creates an active `teacher` account (with a random inte
 }
 ```
 
-It creates one rule per weekday and returns `201` with the created `WeeklyRuleDto` list. It returns `400 { "message": "..." }` when no weekday is given, the end time is not after the start time, the range exceeds 4 hours, the time zone is unknown, or the hours overlap an existing rule. Deleting an unbooked rule returns `204`; a rule referenced by a series or a pending change request returns `409`.
+It creates one rule per weekday and returns `201` with the created `WeeklyRuleDto` list. It returns `400 { "message": "..." }` when no weekday is given, the end time is not after the start time, the window is not 30, 45, or 60 minutes, the time zone is unknown, or the hours overlap an existing rule. Deleting an unbooked rule returns `204`; a rule referenced by a series or a pending change request returns `409`.
 
 `GET /api/teacher/availability-rules` returns the same `WeeklyRuleDto` list, with `status` reflecting whether a student has booked each rule.
+
+### Open student offers (first teacher books)
+
+A student **without an active teacher** can offer one-off times instead of booking a weekly rule. Every active teacher receives a notification; the first teacher who accepts books a one-off `Lesson` on their schedule instantly, and the offer closes for everyone else.
+
+| Method | Endpoint                                    | Purpose                                                |
+| ------ | ------------------------------------------- | ------------------------------------------------------ |
+| GET    | `/api/student/open-offers`                  | The student's own offered times (last day and forward) |
+| POST   | `/api/student/open-offers`                  | Offer `{ "startsAt": "...", "endsAt": "..." }`         |
+| DELETE | `/api/student/open-offers/{offerId}`        | Withdraw an open offer (`204`)                         |
+| GET    | `/api/teacher/open-offers`                  | Open offers plus offers claimed in the last 24 hours   |
+| POST   | `/api/teacher/open-offers/{offerId}/accept` | Book the offer (`200 { lessonId, offer }`)             |
+
+`POST /api/student/open-offers` rejects students who already have an active assignment (`409`), a window that starts in the past or is not 30, 45, or 60 minutes (`400`), more than 4 open offers (`409`), and overlaps with an open offer or a scheduled lesson (`409`). Each offer returns `OpenStudentOfferDto` (`id`, `studentId`, `studentName`, `startsAt`, `endsAt`, `status`, `claimedByTeacherId`, `claimedByTeacherName`, `lessonId`, `createdAt`, `claimedAt`), where `status` is `open`, `claimed`, or `withdrawn`.
+
+Accepting checks the teacher is active, the student still has no teacher, and neither side has an overlapping scheduled lesson. The claim uses a conditional update (`status = open`) so only one teacher can win; the winner gets an active assignment and a one-off lesson (flagged `isTrial` for the student's first-ever lesson), while the student's other open offers are withdrawn. The student is notified that the teacher accepted, and every other notified teacher's bell entry is rewritten to "Time offer taken — _student_ chose _teacher_" and marked unread. The claiming teacher's entry becomes "You booked this time".
 
 ### Time-change requests
 

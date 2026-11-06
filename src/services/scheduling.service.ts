@@ -4,6 +4,7 @@ import type {
   ChangeRequestStatus,
   LessonChangeRequest,
   LessonSeries,
+  OpenStudentOffer,
   PublicTeacher,
   WeeklyAvailability,
   WeeklyRule,
@@ -56,6 +57,29 @@ export const requestTimeChange = (
           : { requestedRuleId }
       ),
     }
+  );
+
+// Open student offers claimed by the first accepting teacher
+export const getMyOpenOffers = () =>
+  backendFetch<OpenStudentOffer[]>("/api/student/open-offers");
+export const publishOpenOffer = (startsAt: string, endsAt: string) =>
+  backendFetch<OpenStudentOffer>("/api/student/open-offers", {
+    method: "POST",
+    body: JSON.stringify({ startsAt, endsAt }),
+  });
+export const withdrawOpenOffer = (offerId: string) =>
+  backendFetch<null>(
+    `/api/student/open-offers/${encodeURIComponent(offerId)}`,
+    {
+      method: "DELETE",
+    }
+  );
+export const getTeacherOpenOffers = () =>
+  backendFetch<OpenStudentOffer[]>("/api/teacher/open-offers");
+export const acceptOpenOffer = (offerId: string) =>
+  backendFetch<{ lessonId: string; offer: OpenStudentOffer }>(
+    `/api/teacher/open-offers/${encodeURIComponent(offerId)}/accept`,
+    { method: "POST" }
   );
 
 // Teacher weekly availability

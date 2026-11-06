@@ -23,13 +23,25 @@ import type { WeeklyRule } from "@/types/scheduling";
 
 const DAY_ORDER = [6, 0, 1, 2, 3, 4, 5];
 const DEFAULT_DAYS = [6, 0, 1, 2, 3, 4];
-const MAX_SLOT_MINUTES = 240;
+const DURATIONS = [30, 45, 60] as const;
+type DurationMinutes = (typeof DURATIONS)[number];
 
 const minutesOf = (value: string) => {
   const [hours, minutes] = value.split(":").map(Number);
   if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return NaN;
   return hours * 60 + minutes;
 };
+
+const addMinutes = (value: string, minutes: number) => {
+  const total = minutesOf(value) + minutes;
+  if (!Number.isFinite(total)) return "";
+  const hours = `${Math.floor(total / 60) % 24}`.padStart(2, "0");
+  const rest = `${total % 60}`.padStart(2, "0");
+  return `${hours}:${rest}`;
+};
+
+const durationLabel = (minutes: number) =>
+  minutes === 60 ? "1 hour" : `${minutes} min`;
 
 export default function AdminTeacherAvailabilityPage() {
   const params = useParams<{ id: string }>();
@@ -40,10 +52,11 @@ export default function AdminTeacherAvailabilityPage() {
 
   const [days, setDays] = useState<number[]>(DEFAULT_DAYS);
   const [start, setStart] = useState("17:00");
-  const [end, setEnd] = useState("18:00");
+  const [duration, setDuration] = useState<DurationMinutes>(60);
   const [timeZoneOverride, setTimeZoneOverride] = useState("");
   const [formError, setFormError] = useState("");
   const [notice, setNotice] = useState("");
+  const end = addMinutes(start, duration);
 
   const localTimeZone = useMemo(
     () => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
@@ -131,13 +144,8 @@ export default function AdminTeacherAvailabilityPage() {
       setFormError("Choose at least one weekday.");
       return;
     }
-    const duration = minutesOf(end) - minutesOf(start);
-    if (!(duration > 0)) {
-      setFormError("The end time must be after the start time.");
-      return;
-    }
-    if (duration > MAX_SLOT_MINUTES) {
-      setFormError("A weekly slot can last up to 4 hours.");
+    if (!Number.isFinite(minutesOf(start))) {
+      setFormError("Choose a valid start time.");
       return;
     }
     publishMutation.mutate();
@@ -277,16 +285,29 @@ export default function AdminTeacherAvailabilityPage() {
                   className="mt-2 w-full rounded-xl border border-card-border bg-background px-3 py-3 font-normal text-foreground outline-none focus:border-green-500"
                 />
               </label>
-              <label className="block text-sm font-semibold">
-                Ends at
-                <input
-                  required
-                  type="time"
-                  value={end}
-                  onChange={(event) => setEnd(event.target.value)}
-                  className="mt-2 w-full rounded-xl border border-card-border bg-background px-3 py-3 font-normal text-foreground outline-none focus:border-green-500"
-                />
-              </label>
+              <fieldset>
+                <legend className="text-sm font-semibold">Length</legend>
+                <div className="mt-2 flex gap-2">
+                  {DURATIONS.map((minutes) => {
+                    const selected = duration === minutes;
+                    return (
+                      <button
+                        key={minutes}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => setDuration(minutes)}
+                        className={`flex-1 rounded-xl border px-3 py-3 text-sm font-semibold transition ${
+                          selected
+                            ? "border-green-700 bg-green-500/15 text-green-900 dark:border-green-400 dark:text-green-300"
+                            : "border-card-border bg-card-bg text-foreground/60 hover:border-green-500"
+                        }`}
+                      >
+                        {durationLabel(minutes)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
             </div>
 
             <label className="mt-4 block text-sm font-semibold">

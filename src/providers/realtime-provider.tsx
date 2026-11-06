@@ -60,6 +60,7 @@ const SCOPE_QUERY_KEYS: Record<string, string[][]> = {
     ["series"],
     ["support-users"],
   ],
+  offers: [["open-offers"], ["availability"], ["teachers"]],
   billing: [
     ["billing"],
     ["admin-salary"],

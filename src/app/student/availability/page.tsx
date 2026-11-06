@@ -8,6 +8,7 @@ import {
   getMyChangeRequests,
 } from "@/services/scheduling.service";
 import { TeacherDirectory } from "@/components/student/TeacherDirectory";
+import { OpenOfferPanel } from "@/components/student/OpenOfferPanel";
 import { TimeZoneNote } from "@/components/student/TimeZoneNote";
 import { useAuth } from "@/providers/auth-provider";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
@@ -88,6 +89,10 @@ export default function StudentAvailabilityPage() {
               : "Unable to load your weekly times."}
           </p>
         )}
+
+        {!assignedQuery.isLoading && !assignedQuery.data?.teacher ? (
+          <OpenOfferPanel />
+        ) : null}
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_.6fr]">
           <TeacherDirectory />
