@@ -189,6 +189,7 @@ export function JitsiRoom({
             toolbarButtons: [
               "microphone",
               "camera",
+              "select-background",
               "desktop",
               "whiteboard",
               "chat",
@@ -196,7 +197,6 @@ export function JitsiRoom({
             ],
             disableReactions: true,
             disablePolls: true,
-            disableVirtualBackground: true,
             hideConferenceSubject: true,
             hideConferenceTimer: true,
             // The embedded API opens and owns the floating window, so the lesson
