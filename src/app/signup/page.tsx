@@ -8,6 +8,7 @@ import { registrationCountryFromDocument } from "@/lib/registration";
 import { ApiError } from "@/lib/backend-client";
 import { reportUnexpectedError } from "@/lib/sentry";
 import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { DEFAULT_COUNTRY, countryByCode, toE164 } from "@/lib/countries";
 
@@ -24,6 +25,7 @@ type Mode = "email" | "phone";
 
 const SignUpPage = () => {
   const { applySession } = useAuth();
+  const { showToast } = useToast();
   const [mode, setMode] = useState<Mode>("email");
 
   const [fullName, setFullName] = useState("");
@@ -84,11 +86,8 @@ const SignUpPage = () => {
       // The AuthProvider redirects to the student dashboard once the session is applied.
       applySession(user);
     } catch (error) {
-      setMessage(
-        error instanceof ApiError
-          ? error.message
-          : "Unable to create your account. Please try again."
-      );
+      if (!(error instanceof ApiError))
+        showToast("Unable to create your account. Please try again.");
       reportUnexpectedError(error);
     } finally {
       setLoading(false);
@@ -126,11 +125,8 @@ const SignUpPage = () => {
           : result.message
       );
     } catch (error) {
-      setMessage(
-        error instanceof ApiError
-          ? error.message
-          : "Unable to send the code. Please try again."
-      );
+      if (!(error instanceof ApiError))
+        showToast("Unable to send the code. Please try again.");
       reportUnexpectedError(error);
     } finally {
       setPhoneLoading(false);
@@ -164,11 +160,8 @@ const SignUpPage = () => {
       // The AuthProvider redirects to the student dashboard once the session is applied.
       applySession(result.user);
     } catch (error) {
-      setMessage(
-        error instanceof ApiError
-          ? error.message
-          : "Unable to verify the code. Please try again."
-      );
+      if (!(error instanceof ApiError))
+        showToast("Unable to verify the code. Please try again.");
       reportUnexpectedError(error);
     } finally {
       setPhoneLoading(false);

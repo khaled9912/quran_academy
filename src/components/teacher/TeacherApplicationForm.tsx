@@ -198,12 +198,8 @@ export function TeacherApplicationForm() {
         });
         setErrors(mapped);
         setSubmitError("Please fix the highlighted fields and try again.");
-      } else {
-        setSubmitError(
-          error instanceof Error
-            ? error.message
-            : "Unable to submit your application. Please try again."
-        );
+      } else if (!(error instanceof ApiError)) {
+        setSubmitError("Unable to submit your application. Please try again.");
       }
     }
   };
@@ -605,7 +601,7 @@ export function TeacherApplicationForm() {
               <BookOpen size={20} className="opacity-60" />
               <span className="font-semibold">Upload a Quran recitation</span>
               <span className="opacity-60">
-                Recite 1–2 minutes from any surah · MP3, M4A, WAV, OGG, WebM,
+                Recite first page from surat Mariam· MP3, M4A, WAV, OGG, WebM,
                 MP4, or MOV · up to 20 MB
               </span>
               <input

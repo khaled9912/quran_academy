@@ -46,7 +46,7 @@ export default function ForgotPasswordPage() {
     } catch (error) {
       setError(
         error instanceof ApiError
-          ? error.message
+          ? ""
           : "Unable to send the reset code. Please try again."
       );
       reportUnexpectedError(error);
@@ -83,7 +83,7 @@ export default function ForgotPasswordPage() {
     } catch (error) {
       setError(
         error instanceof ApiError
-          ? error.message
+          ? ""
           : "Unable to reset your password. Please try again."
       );
       reportUnexpectedError(error);

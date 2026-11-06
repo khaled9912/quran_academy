@@ -9,6 +9,7 @@ import {
   bookWeeklySlots,
   getTeacherWeeklyAvailability,
 } from "@/services/scheduling.service";
+import { ApiError } from "@/lib/backend-client";
 import { Avatar } from "@/components/ui/avatar";
 import { StarRating } from "@/components/ui/star-rating";
 import { TimeZoneNote } from "@/components/student/TimeZoneNote";
@@ -83,8 +84,8 @@ export default function StudentTeacherBookingPage() {
     onError: (error) => {
       setNotice("");
       setFormError(
-        error instanceof Error
-          ? error.message
+        error instanceof ApiError
+          ? ""
           : "Unable to book these times. Please try again."
       );
     },

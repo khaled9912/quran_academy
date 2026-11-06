@@ -15,6 +15,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
+import { ApiError } from "@/lib/backend-client";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 import {
   generateSalaryPeriods,
@@ -470,11 +471,7 @@ function PolicyForm({ policy }: { policy: AcademyPolicy }) {
       queryClient.setQueryData(["lesson-policy"], saved);
     },
     onError: (failure) =>
-      setError(
-        failure instanceof Error
-          ? failure.message
-          : "Unable to save the policy."
-      ),
+      setError(failure instanceof ApiError ? "" : "Unable to save the policy."),
   });
 
   return (

@@ -66,11 +66,8 @@ const ContactForm = () => {
       }
       if (fieldErrors.length) setErrorMessage("");
       else {
-        setErrorMessage(
-          error instanceof ApiError
-            ? error.message
-            : "We could not send your message. Please try again."
-        );
+        if (!(error instanceof ApiError))
+          setErrorMessage("We could not send your message. Please try again.");
         reportUnexpectedError(error);
       }
     } finally {

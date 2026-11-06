@@ -9,6 +9,7 @@ import {
   getTeacherOpenOffers,
 } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
+import { ApiError } from "@/lib/backend-client";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 import type { OpenStudentOffer } from "@/types/scheduling";
 
@@ -77,9 +78,7 @@ export function OpenOfferInbox() {
     },
     onError: async (error) => {
       setAcceptError(
-        error instanceof Error
-          ? error.message
-          : "This time is no longer available."
+        error instanceof ApiError ? "" : "This time is no longer available."
       );
       await invalidate();
     },

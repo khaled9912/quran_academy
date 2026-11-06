@@ -94,7 +94,7 @@ export default function ProfilePage() {
       setNotice("");
       setFormError(
         error instanceof ApiError
-          ? error.message
+          ? ""
           : "Unable to save your profile. Please try again."
       );
     },
@@ -113,7 +113,7 @@ export default function ProfilePage() {
       setNotice("");
       setAvatarError(
         error instanceof ApiError
-          ? error.message
+          ? ""
           : "Unable to upload the image. Please try again."
       );
     },
@@ -131,7 +131,7 @@ export default function ProfilePage() {
       setNotice("");
       setAvatarError(
         error instanceof ApiError
-          ? error.message
+          ? ""
           : "Unable to remove the image. Please try again."
       );
     },
@@ -158,7 +158,7 @@ export default function ProfilePage() {
       setPasswordNotice("");
       setPasswordError(
         error instanceof ApiError
-          ? error.message
+          ? ""
           : "Unable to change your password. Please try again."
       );
     },

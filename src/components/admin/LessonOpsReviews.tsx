@@ -48,8 +48,9 @@ const time = (value: string) =>
     hour12: true,
   });
 
+// API failures already surface as a toast; keep inline text for local failures.
 const errorMessage = (error: unknown, fallback: string) =>
-  error instanceof ApiError ? error.message : fallback;
+  error instanceof ApiError ? "" : fallback;
 
 function ErrorNotice({ children }: { children: React.ReactNode }) {
   return (

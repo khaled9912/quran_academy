@@ -12,6 +12,7 @@ import {
   requestTimeChange,
 } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
+import { ApiError } from "@/lib/backend-client";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 import { TimeZoneNote } from "@/components/student/TimeZoneNote";
 import { getViewerTimeZone, toViewerWeeklyTime } from "@/lib/weekly-time";
@@ -98,8 +99,8 @@ export default function ChangeWeeklyTimePage() {
     onError: (error) => {
       setNotice("");
       setFormError(
-        error instanceof Error
-          ? error.message
+        error instanceof ApiError
+          ? ""
           : "Unable to send the request. Please try again."
       );
     },
@@ -122,9 +123,11 @@ export default function ChangeWeeklyTimePage() {
     onError: (error) => {
       setNotice("");
       setFormError(
-        error instanceof Error
-          ? error.message
-          : "Unable to end the weekly time. Please try again."
+        error instanceof ApiError
+          ? ""
+          : error instanceof Error
+            ? error.message
+            : "Unable to end the weekly time. Please try again."
       );
     },
   });

@@ -12,6 +12,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
+import { ApiError } from "@/lib/backend-client";
 import { teacherSubjectLabel } from "@/lib/teacher-subjects";
 import {
   downloadTeacherApplicationCv,
@@ -103,9 +104,7 @@ export default function AdminTeacherApplicationsPage() {
     onError: (error) => {
       setNotice("");
       setActionError(
-        error instanceof Error
-          ? error.message
-          : "Unable to update the application."
+        error instanceof ApiError ? "" : "Unable to update the application."
       );
     },
   });

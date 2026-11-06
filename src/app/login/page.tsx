@@ -7,6 +7,7 @@ import { ApiError } from "@/lib/backend-client";
 import { registrationCountryFromDocument } from "@/lib/registration";
 import { reportUnexpectedError } from "@/lib/sentry";
 import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { DEFAULT_COUNTRY, countryByCode, toE164 } from "@/lib/countries";
 
@@ -16,6 +17,7 @@ type Mode = "email" | "phone";
 
 const LoginPage = () => {
   const { applySession } = useAuth();
+  const { showToast } = useToast();
   const [mode, setMode] = useState<Mode>("email");
 
   const [email, setEmail] = useState("");
@@ -74,11 +76,8 @@ const LoginPage = () => {
       }
       applySession(user);
     } catch (error) {
-      setMessage(
-        error instanceof ApiError
-          ? error.message
-          : "Something went wrong. Please try again."
-      );
+      if (!(error instanceof ApiError))
+        showToast("Unable to sign in. Please try again.");
       reportUnexpectedError(error);
     } finally {
       setLoading(false);
@@ -113,11 +112,8 @@ const LoginPage = () => {
           : result.message
       );
     } catch (error) {
-      setMessage(
-        error instanceof ApiError
-          ? error.message
-          : "Unable to send the code. Please try again."
-      );
+      if (!(error instanceof ApiError))
+        showToast("Unable to send the code. Please try again.");
       reportUnexpectedError(error);
     } finally {
       setPhoneLoading(false);
@@ -161,11 +157,8 @@ const LoginPage = () => {
       }
       applySession(result.user);
     } catch (error) {
-      setMessage(
-        error instanceof ApiError
-          ? error.message
-          : "Unable to verify the code. Please try again."
-      );
+      if (!(error instanceof ApiError))
+        showToast("Unable to verify the code. Please try again.");
       reportUnexpectedError(error);
     } finally {
       setPhoneLoading(false);

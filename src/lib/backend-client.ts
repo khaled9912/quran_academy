@@ -1,3 +1,5 @@
+import { dispatchToast } from "@/lib/toast";
+
 const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL ?? "").replace(
   /\/$/,
   ""
@@ -44,9 +46,10 @@ const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
 // Non-JSON bodies (IIS/offline/proxy pages) must never reach the UI as raw HTML.
+// Infrastructure statuses never show the API's own wording either.
 const statusMessage = (status: number): string => {
   if (status === 401) return "Your session has expired. Please sign in again.";
-  if (status === 403) return "You do not have permission to do that.";
+  if (status === 403) return "Something went wrong. Please try again.";
   if (status === 404) return "The requested resource was not found.";
   if (status === 408)
     return "The server took too long to respond. Please try again.";
@@ -55,8 +58,12 @@ const statusMessage = (status: number): string => {
   if (status === 500) return "The server reported an error. Please try again.";
   if (status === 502 || status === 503 || status === 504)
     return "The service is temporarily unavailable. Please try again in a moment.";
-  return `API request failed (${status}).`;
+  return "Something went wrong. Please try again.";
 };
+
+// `title` is infrastructure wording ("Origin is not allowed."); only explicit
+// message/detail fields are treated as product copy.
+const showsServerDetail = (status: number) => status < 500;
 
 // ASP.NET ValidationProblemDetails puts the useful messages in `errors` and a generic title on top.
 function readValidationErrors(payload: unknown): ValidationErrors | undefined {
@@ -101,10 +108,10 @@ export async function backendFetch<T = unknown>(
     });
   } catch (error) {
     if (timeoutController.signal.aborted && !options.signal?.aborted) {
-      throw new ApiError(
-        "The server took too long to respond. Please try again.",
-        408
-      );
+      const timeoutMessage = statusMessage(408);
+      if ((options.method ?? "GET").toUpperCase() !== "GET")
+        dispatchToast(timeoutMessage);
+      throw new ApiError(timeoutMessage, 408);
     }
     throw error;
   } finally {
@@ -128,14 +135,20 @@ export async function backendFetch<T = unknown>(
       window.dispatchEvent(new Event("academy:unauthorized"));
     }
     const validationErrors = readValidationErrors(payload);
-    const serverMessage = isObject(payload)
-      ? (payload.message ?? payload.detail ?? payload.title ?? payload.error)
-      : undefined;
+    // Only 4xx product messages reach the user. Proxy/CORS/server payloads
+    // (titles such as "Origin is not allowed.") fall back to a generic line.
+    const serverMessage =
+      isObject(payload) && showsServerDetail(response.status)
+        ? (payload.message ?? payload.detail)
+        : undefined;
     const message = validationErrors
       ? Object.values(validationErrors).flat().join(" ")
       : typeof serverMessage === "string" && serverMessage.trim()
         ? serverMessage
         : statusMessage(response.status);
+    // Actions surface failures as a toast; page loads keep their inline state.
+    if ((options.method ?? "GET").toUpperCase() !== "GET")
+      dispatchToast(message);
     throw new ApiError(message, response.status, payload, validationErrors);
   }
   return payload as T;
