@@ -116,7 +116,7 @@ export default function HomePage() {
             <div className="mt-8 flex w-full flex-col gap-3 sm:mt-9 sm:flex-row">
               <Link
                 href="/signup"
-                className="registration-cta inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500 sm:w-auto"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500 sm:w-auto"
               >
                 Start learning <ArrowRight size={18} />
               </Link>
