@@ -325,48 +325,6 @@ export default function StudentTeacherBookingPage() {
                   back soon or choose another teacher.
                 </p>
               )}
-
-              {teacher.slots.some((rule) => rule.status === "available") && (
-                <div className="mt-6 rounded-2xl bg-background p-4">
-                  {selectedSlots.length > 0 ? (
-                    <p className="text-sm text-foreground opacity-75">
-                      Selected:{" "}
-                      {selectedSlots
-                        .map((rule) =>
-                          toViewerWeeklySlotLabel(rule, viewerTimeZone)
-                        )
-                        .join(" · ")}
-                    </p>
-                  ) : (
-                    <p className="text-sm text-foreground opacity-70">
-                      Pick one or more weekly times above.
-                    </p>
-                  )}
-                  <button
-                    type="button"
-                    disabled={!selected.length || book.isPending}
-                    onClick={() => {
-                      setFormError("");
-                      setNotice("");
-                      book.mutate(selected);
-                    }}
-                    className="mt-3 inline-flex items-center gap-2 rounded-xl bg-green-500 px-5 py-3 font-semibold text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <CalendarCheck size={18} />
-                    {book.isPending
-                      ? "Booking…"
-                      : selected.length
-                        ? `Book ${selected.length} weekly ${
-                            selected.length === 1 ? "time" : "times"
-                          }`
-                        : "Select weekly times"}
-                  </button>
-                  <p className="mt-2 text-xs text-foreground opacity-60">
-                    Your selection locks instantly and repeats every week. Your
-                    first lesson is a trial.
-                  </p>
-                </div>
-              )}
             </section>
 
             <section className="mt-8 rounded-3xl border border-card-border bg-card-bg p-6">
@@ -408,6 +366,50 @@ export default function StudentTeacherBookingPage() {
                 </p>
               )}
             </section>
+
+            {teacher.slots.some((rule) => rule.status === "available") && (
+              <div className="sticky bottom-4 z-40 mt-8 rounded-3xl border border-card-border bg-card-bg p-4 shadow-lg md:p-5">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <p className="min-w-0 flex-1 text-sm text-foreground opacity-75">
+                    {selectedSlots.length > 0 ? (
+                      <>
+                        Selected:{" "}
+                        {selectedSlots
+                          .map((rule) =>
+                            toViewerWeeklySlotLabel(rule, viewerTimeZone)
+                          )
+                          .join(" · ")}
+                      </>
+                    ) : (
+                      "Pick one or more weekly times above."
+                    )}
+                  </p>
+                  <button
+                    type="button"
+                    disabled={!selected.length || book.isPending}
+                    onClick={() => {
+                      setFormError("");
+                      setNotice("");
+                      book.mutate(selected);
+                    }}
+                    className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-green-500 px-5 py-3 font-semibold text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <CalendarCheck size={18} />
+                    {book.isPending
+                      ? "Booking…"
+                      : selected.length
+                        ? `Book ${selected.length} weekly ${
+                            selected.length === 1 ? "time" : "times"
+                          }`
+                        : "Select weekly times"}
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-foreground opacity-60">
+                  Your selection locks instantly and repeats every week. Your
+                  first lesson is a trial.
+                </p>
+              </div>
+            )}
           </>
         ) : (
           <p className="text-foreground opacity-70">Teacher not found.</p>

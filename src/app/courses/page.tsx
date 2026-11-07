@@ -176,10 +176,10 @@ export default function CoursesPage() {
             Online Quran courses, taught one-to-one.
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-[#5d726a] dark:text-foreground/70">
-            Every programme at {SITE_NAME} is built around a single student and a
-            single teacher. Lessons run in English, last 30, 45, or 60 minutes,
-            and follow the weekly times you choose. New students start with a
-            free trial lesson.
+            Every programme at {SITE_NAME} is built around a single student and
+            a single teacher. Lessons run in English, last 30, 45, or 60
+            minutes, and follow the weekly times you choose. New students start
+            with a free trial lesson.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Link

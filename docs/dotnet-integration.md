@@ -51,6 +51,13 @@ Public self-service registration is limited to `US`, `GB`, `CA`, `AU`, `NZ`, and
 
 `fullName` must be a person's name: anywhere a name is accepted from a non-staff caller (register, OTP signup, `PATCH /api/profile`, `POST /api/teacher-applications`) it is rejected with a `fullName` validation error when it contains `@`, so an email address cannot end up as the name every other participant sees.
 
+That guard only covers writes, so accounts created before it can still hold an address in the name column. Reads answer for them in two ways, by who is looking:
+
+- **To staff and to the person themselves** (`/api/auth/me`, `/api/admin/*` listings): `fullName`, `full_name`, and `name` are `null`, so the existing `?? email` fallbacks identify the account.
+- **To the other side of a lesson** (teacher directory and profile entries, `/api/teachers/public*`, lesson, series, request, report, review, and attendance payloads): the name is the role word instead — `"Teacher"` or `"Student"`, because that caller has no address to fall back to.
+
+Treat a name as absent, never as a string to re-check: no client should test for `@`, and `??` (not `||`) is the right operator, since `null` is what arrives.
+
 The API prefers the `x-registration-country` header over the request body. Middleware sets that header from the hosting provider's geo data and mirrors the value to the `academy-country` cookie, which the browser reads before submitting. Web CTAs carry `registration-cta` and are hidden by a pre-paint script, and `/signup` redirects to `/registration-unavailable` outside the allowlist. Mobile has no IP geolocation, so it passes the device locale's region and treats it as a UX hint only.
 
 Password reset is anonymous and email-based. `POST /api/auth/password/request` takes `{ "email" }` and always answers `202` with a generic message (no account enumeration); the code expires after 15 minutes and resend is throttled to one per minute. In Development it returns `devCode` (`8888` by default). `POST /api/auth/password/reset` takes `{ "email", "code", "newPassword" }`, returns `204`, and invalidates existing sessions; an invalid or expired code returns `401`. Both return `503` when SMTP is not configured, so production needs `Email__Enabled=true`, `Email__SmtpHost`, `Email__SmtpPort`, `Email__Username`, `Email__Password`, and `Email__From`.
@@ -596,10 +603,10 @@ Sign-in failures put the sentence in `detail`, never in `title` — `backend-cli
 
 Two different `429`s exist and neither client has to guess which one it got:
 
-| Cause | Body | Header |
-| --- | --- | --- |
-| Five wrong passwords on one account | `{"title":"Sign in locked","status":429,"detail":"Too many failed attempts. Sign in is locked for about 3 minutes."}` | `Retry-After: <seconds left>` |
-| Too many requests from one connection | `{"title":"Too Many Requests","status":429,"detail":"Too many attempts from your connection. Please wait a few minutes and try again."}` | none |
+| Cause                                 | Body                                                                                                                                     | Header                        |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| Five wrong passwords on one account   | `{"title":"Sign in locked","status":429,"detail":"Too many failed attempts. Sign in is locked for about 3 minutes."}`                    | `Retry-After: <seconds left>` |
+| Too many requests from one connection | `{"title":"Too Many Requests","status":429,"detail":"Too many attempts from your connection. Please wait a few minutes and try again."}` | none                          |
 
 The account lock lasts three minutes and lifts by itself; a correct password during the window is still refused with the same body, and the failed-attempt count resets on the next successful sign-in. No client change is needed to show either message: `/login` on web and the mobile login screen already surface the incoming `ApiError` message.
 

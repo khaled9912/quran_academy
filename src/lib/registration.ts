@@ -10,7 +10,6 @@ export const REGISTRATION_COUNTRIES = [
 export const REGISTRATION_COUNTRY_LABEL =
   "United States, United Kingdom, Canada, Australia, New Zealand, and Ireland";
 
-
 export const REGISTRATION_COOKIE = "academy-country";
 
 export function normalizeRegistrationCountry(

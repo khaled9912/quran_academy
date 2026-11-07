@@ -281,8 +281,8 @@ export default function QuranForKidsPage() {
             What children work on at each stage.
           </h2>
           <p className="mt-4 leading-7 text-[#6b7c73] dark:text-foreground/70">
-            Ages are a guide, not a rule. The teacher starts from what your child
-            can already do and adjusts the pace from there.
+            Ages are a guide, not a rule. The teacher starts from what your
+            child can already do and adjusts the pace from there.
           </p>
         </div>
         <div className="mt-12 grid gap-5 sm:grid-cols-2">
@@ -368,8 +368,8 @@ export default function QuranForKidsPage() {
             <p className="mt-3 leading-7 text-[#6b7c73] dark:text-foreground/70">
               Teachers apply with their experience and CV, and every application
               is reviewed before onboarding. The teacher who meets your child in
-              the trial lesson stays with them week to week, so progress does not
-              restart with a new face.
+              the trial lesson stays with them week to week, so progress does
+              not restart with a new face.
             </p>
             <p className="mt-3 leading-7 text-[#6b7c73] dark:text-foreground/70">
               When you browse teachers, you can read ratings and reviews from
@@ -414,8 +414,8 @@ export default function QuranForKidsPage() {
               Simple, and clear before you start.
             </h2>
             <p className="mt-5 leading-7 text-[#6b7c73] dark:text-foreground/70">
-              The first lesson is free for a new student. After that, lessons are
-              billed monthly in US dollars by bank transfer, and the amount
+              The first lesson is free for a new student. After that, lessons
+              are billed monthly in US dollars by bank transfer, and the amount
               depends on the teacher&apos;s rate and the lesson length you
               choose. Your bank may apply its own conversion or transfer fees.
             </p>
