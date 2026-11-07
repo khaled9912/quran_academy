@@ -420,6 +420,12 @@ export default function AboutPage() {
               Home
             </Link>
             <Link
+              href="/courses"
+              className="hover:text-[#1c5145] dark:hover:text-green-400"
+            >
+              Courses
+            </Link>
+            <Link
               href="/blog"
               className="hover:text-[#1c5145] dark:hover:text-green-400"
             >

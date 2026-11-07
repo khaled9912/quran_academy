@@ -1,4 +1,4 @@
-import { formatWeeklySlot, formatWeeklyTimeRange } from "./utils";
+import { formatWeeklySlot } from "./utils";
 
 export const WEEK_DAY_ORDER = [6, 0, 1, 2, 3, 4, 5] as const;
 
@@ -249,15 +249,6 @@ export const toViewerWeeklySlotLabel = (
     local.startsAtTime,
     local.endsAtTime
   );
-};
-
-export const toViewerWeeklyTimeRangeLabel = (
-  slot: WeeklyTimeSource,
-  viewerTimeZone: string = getViewerTimeZone(),
-  now: Date = new Date()
-) => {
-  const local = toViewerWeeklyTime(slot, viewerTimeZone, now);
-  return formatWeeklyTimeRange(local.startsAtTime, local.endsAtTime);
 };
 
 export const viewerWeekdays = (

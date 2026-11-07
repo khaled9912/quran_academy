@@ -10,7 +10,7 @@ export const SITE_NAME = "Ana Quran Academy";
 
 // Bump this when the public marketing pages change so sitemap lastmod stays
 // meaningful instead of changing on every deploy.
-export const CONTENT_LAST_UPDATED = "2026-11-06";
+export const CONTENT_LAST_UPDATED = "2026-11-07";
 
 export const IS_PREVIEW_DEPLOYMENT =
   process.env.VERCEL_ENV !== undefined &&

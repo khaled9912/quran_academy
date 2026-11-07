@@ -288,7 +288,7 @@ export const blogPosts: BlogPost[] = [
     ],
     intro: [
       "Online Quran classes can work very well for children, but they are not simply the family class moved to a screen. Children need shorter lessons, predictable routines, and an adult nearby for the early years.",
-      "This guide covers the decisions that make the biggest difference for parents, from lesson length to online safety.",
+      "This guide covers the decisions that make the biggest difference for parents, from lesson length to online safety. If you are ready to compare format and enrolment, see [online Quran classes for kids](/courses/quran-for-kids).",
     ],
     sections: [
       {

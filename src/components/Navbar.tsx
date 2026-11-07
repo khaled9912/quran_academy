@@ -64,22 +64,30 @@ const Navbar = () => {
           <Link
             href="/"
             aria-label="Ana Quran home"
-            className="flex items-center"
+            className="flex items-center gap-6"
           >
             <img
-              src="/logo-ana-quran.svg?v=2026-11-06-1"
-              alt="Ana Quran logo"
-              width={46}
-              height={64}
-              className="navbar-brand-logo h-[4.5rem] w-auto dark:hidden"
+              src="/logo-ana-quran-mark.svg?v=2026-11-07-1"
+              alt=""
+              width={34}
+              height={48}
+              className="navbar-brand-logo h-12 w-auto dark:hidden"
             />
             <img
-              src="/logo-ana-quran-light.svg?v=2026-11-06-1"
-              alt="Ana Quran logo"
-              width={46}
-              height={64}
-              className="navbar-brand-logo hidden h-[4.5rem] w-auto dark:block"
+              src="/logo-ana-quran-mark-light.svg?v=2026-11-07-1"
+              alt=""
+              width={34}
+              height={48}
+              className="navbar-brand-logo hidden h-12 w-auto dark:block"
             />
+            <span className="hidden flex-col leading-none lg:flex">
+              <span className="text-[1.05rem] font-extrabold tracking-[-0.02em]">
+                Ana Quran
+              </span>
+              <span className="mt-1 text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-[var(--nav-text-muted)]">
+                Academy
+              </span>
+            </span>
           </Link>
 
           <div className="hidden items-center gap-2 text-sm font-medium md:flex">

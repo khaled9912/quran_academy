@@ -15,7 +15,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { UserProfile, UserRole } from "@/types/user";
 import { getCurrentUser, signOut } from "@/services/auth.service";
 import { reportUnexpectedError } from "@/lib/sentry";
-import { hasPermission } from "@/lib/permissions";
 import { ROLE_DASHBOARDS } from "@/constants/role-routes";
 import { useAuthStore } from "@/stores/useAuthStore";
 import {
@@ -303,8 +302,4 @@ function AuthLoadingScreen() {
 
 export function useAuth() {
   return useContext(AuthContext);
-}
-export function usePermission(permission: string) {
-  const { role } = useAuth();
-  return hasPermission(role, permission);
 }

@@ -17,7 +17,10 @@ const signupSchema = z.object({
     .string()
     .trim()
     .min(2, "Please enter your full name.")
-    .refine((value) => !value.includes("@"), "Enter your name, not an email address."),
+    .refine(
+      (value) => !value.includes("@"),
+      "Enter your name, not an email address."
+    ),
   email: z.string().trim().email("Please enter a valid email address."),
   password: z
     .string()

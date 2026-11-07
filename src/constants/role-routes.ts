@@ -12,5 +12,3 @@ export const ROLE_DASHBOARDS: Record<UserRole, string> = {
   student: "/student/dashboard",
   support: "/support/transcripts",
 };
-
-export const DEFAULT_DASHBOARD = ROLE_DASHBOARDS.student;

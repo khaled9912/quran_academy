@@ -590,7 +590,18 @@ The web pages are `/student/payments`, `/teacher/payments`, and `/admin/payments
 
 ## Error contract
 
-Prefer RFC 7807 Problem Details. Common status codes: `400` validation, `401` unauthenticated, `403` forbidden, `404` missing resource, `409` slot/assignment/scheduling conflict. The frontend displays `title`, `detail`, or `message` when available.
+Prefer RFC 7807 Problem Details. Common status codes: `400` validation, `401` unauthenticated, `403` forbidden, `404` missing resource, `409` slot/assignment/scheduling conflict, `429` rate limit or sign-in lockout. The frontend displays `title`, `detail`, or `message` when available.
+
+Sign-in failures put the sentence in `detail`, never in `title` — `backend-client.ts` and the mobile `api/client.ts` both treat `detail`/`message` as product copy and treat `title` as infrastructure wording, so a message that belongs in `title` is silently replaced by the client's generic line.
+
+Two different `429`s exist and neither client has to guess which one it got:
+
+| Cause | Body | Header |
+| --- | --- | --- |
+| Five wrong passwords on one account | `{"title":"Sign in locked","status":429,"detail":"Too many failed attempts. Sign in is locked for about 3 minutes."}` | `Retry-After: <seconds left>` |
+| Too many requests from one connection | `{"title":"Too Many Requests","status":429,"detail":"Too many attempts from your connection. Please wait a few minutes and try again."}` | none |
+
+The account lock lasts three minutes and lifts by itself; a correct password during the window is still refused with the same body, and the failed-attempt count resets on the next successful sign-in. No client change is needed to show either message: `/login` on web and the mobile login screen already surface the incoming `ApiError` message.
 
 ## App Router route map
 

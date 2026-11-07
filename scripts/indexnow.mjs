@@ -11,18 +11,27 @@ import path from "node:path";
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
 const extraUrls = args.filter((a) => !a.startsWith("--"));
-const base = (process.env.SITE_URL ?? "https://anaquran.com").replace(/\/$/, "");
+const base = (process.env.SITE_URL ?? "https://anaquran.com").replace(
+  /\/$/,
+  ""
+);
 const publicDir = path.join(process.cwd(), "public");
 const endpoint = "https://api.indexnow.org/indexnow";
 
-const keyFile = (await readdir(publicDir)).find((f) => /^[a-f0-9]{32}\.txt$/.test(f));
+const keyFile = (await readdir(publicDir)).find((f) =>
+  /^[a-f0-9]{32}\.txt$/.test(f)
+);
 if (!keyFile) {
-  console.error("No IndexNow key file found in public/ (expected <32 hex chars>.txt).");
+  console.error(
+    "No IndexNow key file found in public/ (expected <32 hex chars>.txt)."
+  );
   process.exit(1);
 }
 const key = (await readFile(path.join(publicDir, keyFile), "utf8")).trim();
 if (key !== keyFile.slice(0, -4)) {
-  console.error(`${keyFile} must contain its own filename without the extension.`);
+  console.error(
+    `${keyFile} must contain its own filename without the extension.`
+  );
   process.exit(1);
 }
 
@@ -45,7 +54,9 @@ if (urls.length === 0) {
 const site = new URL(urls[0]).origin;
 const foreign = urls.filter((u) => new URL(u).origin !== site);
 if (foreign.length > 0) {
-  console.error(`All URLs must share the sitemap host ${site}. Offending:\n${foreign.join("\n")}`);
+  console.error(
+    `All URLs must share the sitemap host ${site}. Offending:\n${foreign.join("\n")}`
+  );
   process.exit(1);
 }
 
@@ -71,7 +82,9 @@ const res = await fetch(endpoint, {
 });
 
 const detail = await res.text();
-console.log(`Response: ${res.status} ${res.statusText}${detail ? ` — ${detail.slice(0, 300)}` : ""}`);
+console.log(
+  `Response: ${res.status} ${res.statusText}${detail ? ` — ${detail.slice(0, 300)}` : ""}`
+);
 
 if (res.status === 200 || res.status === 202) {
   console.log("Accepted. Bing will re-crawl these URLs shortly.");

@@ -5,7 +5,6 @@ import type {
   AdminLessonOps,
   AdminLessonOpsDetail,
   AttendanceBeatResult,
-  AttendanceSummary,
   CancellationPreview,
   ExcuseRequest,
   Lesson,
@@ -17,7 +16,6 @@ import type {
   ReliabilityEvent,
   RescheduleRequest,
   SalaryPeriod,
-  StudentCredit,
   TeacherHours,
   TeacherPenalty,
   TeacherReview,
@@ -29,14 +27,6 @@ export const getLessons = (query = "") =>
   backendFetch<Lesson[]>(`/api/lessons${query ? `?${query}` : ""}`);
 export const getLessonById = (id: string) =>
   backendFetch<Lesson>(lessonPath(id));
-export const updateLesson = (
-  id: string,
-  input: Partial<Pick<Lesson, "startsAt" | "endsAt" | "status">>
-) =>
-  backendFetch<Lesson>(lessonPath(id), {
-    method: "PATCH",
-    body: JSON.stringify(input),
-  });
 export const cancelLesson = (id: string, reason?: string) =>
   backendFetch<{ preview: CancellationPreview; lesson: Lesson }>(
     `${lessonPath(id)}/cancel`,
@@ -46,8 +36,6 @@ export const cancelLesson = (id: string, reason?: string) =>
     }
   );
 
-export const getLessonReport = (id: string) =>
-  backendFetch<LessonReport>(`${lessonPath(id)}/report`);
 export const saveLessonReport = (
   id: string,
   input: {
@@ -61,8 +49,6 @@ export const saveLessonReport = (
     body: JSON.stringify(input),
   });
 
-export const getLessonReview = (id: string) =>
-  backendFetch<TeacherReview>(`${lessonPath(id)}/review`);
 export const saveLessonReview = (
   id: string,
   input: { rating: number; comment?: string }
@@ -84,10 +70,6 @@ export const updateLessonPolicy = (input: Partial<AcademyPolicy>) =>
 
 export const getLessonOperations = (id: string) =>
   backendFetch<LessonOperations>(`${lessonPath(id)}/operations`);
-export const getCancellationPreview = (id: string) =>
-  backendFetch<CancellationPreview>(`${lessonPath(id)}/cancellation-preview`);
-
-/** Rings the other side of a live lesson; staff name which side. */
 export const callLesson = (id: string, targetRole?: string) =>
   backendFetch<LessonCall>(`${lessonPath(id)}/call`, {
     method: "POST",
@@ -98,8 +80,6 @@ export const callLesson = (id: string, targetRole?: string) =>
 export const getRecentCalls = () =>
   backendFetch<LessonCall[]>("/api/calls/recent");
 
-export const getRescheduleRequests = (id: string) =>
-  backendFetch<RescheduleRequest[]>(`${lessonPath(id)}/reschedule-requests`);
 export const createRescheduleRequest = (
   id: string,
   input: { startsAt: string; endsAt: string; note?: string }
@@ -125,8 +105,6 @@ export const cancelRescheduleRequest = (requestId: string) =>
     }
   );
 
-export const getAttendance = (id: string) =>
-  backendFetch<AttendanceSummary>(`${lessonPath(id)}/attendance`);
 export const sendAttendanceEvent = (
   id: string,
   input: {
@@ -144,8 +122,6 @@ export const sendAttendanceEvent = (
     keepalive: options.keepalive,
   });
 
-export const getLessonExcuse = (id: string) =>
-  backendFetch<ExcuseRequest>(`${lessonPath(id)}/excuse`);
 export const requestExcuse = (
   id: string,
   input: { category: string; explanation: string }
@@ -160,34 +136,6 @@ export const reportLessonIncident = (
   input: { type: string; detail: string }
 ) =>
   backendFetch<LessonIncident>(`${lessonPath(id)}/incident`, {
-    method: "POST",
-    body: JSON.stringify(input),
-  });
-
-export const getStudentCredits = () =>
-  backendFetch<StudentCredit>("/api/student/credits");
-export const getStudentReliability = () =>
-  backendFetch<ReliabilityEvent[]>("/api/student/reliability");
-export const getTeacherReliability = () =>
-  backendFetch<ReliabilityEvent[]>("/api/teacher/reliability");
-export const getTeacherHours = (query = "") =>
-  backendFetch<TeacherHours[]>(`/api/teacher/hours${query ? `?${query}` : ""}`);
-export const getTeacherSalaryPeriods = () =>
-  backendFetch<SalaryPeriod[]>("/api/teacher/salary-periods");
-
-export const registerDeviceToken = (input: {
-  token: string;
-  platform: string;
-}) =>
-  backendFetch<null>("/api/devices/register", {
-    method: "POST",
-    body: JSON.stringify(input),
-  });
-export const unregisterDeviceToken = (input: {
-  token: string;
-  platform?: string;
-}) =>
-  backendFetch<null>("/api/devices/unregister", {
     method: "POST",
     body: JSON.stringify(input),
   });
@@ -293,10 +241,6 @@ export const resolveReliabilityEvent = (
     { method: "POST", body: JSON.stringify(input) }
   );
 
-export const getStudentCreditsForAdmin = (studentId: string) =>
-  backendFetch<StudentCredit>(
-    `/api/admin/students/${encodeURIComponent(studentId)}/credits`
-  );
 export const adjustStudentCredits = (
   studentId: string,
   input: { amount: number; reason: string }

@@ -7,8 +7,8 @@ export const navigationConfig: Record<string, NavLink[]> = {
   anonymous: [
     { label: "Home", href: "/" },
     { label: "About", href: "/about" },
+    { label: "Courses", href: "/courses" },
     { label: "Blog", href: "/blog" },
-    { label: "Our approach", href: "/#approach" },
     { label: "How it works", href: "/#how-it-works" },
     { label: "Contact", href: "/contact" },
   ],

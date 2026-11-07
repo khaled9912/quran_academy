@@ -94,6 +94,13 @@ Each teacher publishes weekly availability. Students choose the times that fit t
 
 No. Ana Quran Academy is an online academy. We do not operate local branches and do not claim a local presence in students' countries.
 
+## Courses
+
+Programmes are one-to-one and taught in English. Availability varies by teacher and subject.
+
+- All programmes: ${SITE_URL}/courses
+- Online Quran classes for kids: ${SITE_URL}/courses/quran-for-kids
+
 ## Blog
 
 The Ana Quran Academy blog publishes practical, globally relevant guides for English-speaking students and parents. Articles cover learning Quran online, Tajweed, memorization, children's lessons, and choosing an academy. They are written for readers in any country and do not assume a UK, US, or single-country audience.

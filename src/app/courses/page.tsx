@@ -1,216 +1,411 @@
-"use client";
-
-import { useState } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
-import { FaClock, FaUser, FaBook } from "react-icons/fa";
+import {
+  ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  GraduationCap,
+  Languages,
+  Mic2,
+  Sparkles,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 
-interface Course {
-  id: number;
+import { JsonLd } from "@/components/JsonLd";
+import { absoluteUrl, pageMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Online Quran Courses and Programmes",
+  description:
+    "Explore Ana Quran Academy's online programmes: Quran reading, Tajweed, memorization, Arabic, and Islamic studies. One-to-one lessons in English, scheduled in your time zone.",
+  path: "/courses",
+  keywords: [
+    "online Quran courses",
+    "online Quran programmes",
+    "learn Quran online",
+    "Quran classes online",
+    "online Tajweed course",
+    "online Quran memorization programme",
+  ],
+});
+
+type Pathway = {
+  icon: LucideIcon;
   title: string;
   description: string;
-  teacher: string;
-  schedule: string;
-  thumbnail: string;
-  category: string;
-  level: string;
-  enrolled: number;
-}
-
-const CoursesPage = () => {
-  const [courses] = useState<Course[]>([
-    {
-      id: 1,
-      title: "Quran Tajweed Essentials",
-      description:
-        "Learn the fundamentals of Tajweed rules to recite the Quran correctly. Master pronunciation, articulation points, and recitation techniques from experienced teachers.",
-      teacher: "Sheikh Ahmed Al-Mansouri",
-      schedule: "Monday & Wednesday - 6:00 PM - 7:30 PM",
-      thumbnail:
-        "https://images.pexels.com/photos/16066399/pexels-photo-16066399/free-photo-of-man-reading-koran.jpeg",
-      category: "Quran",
-      level: "Beginner",
-      enrolled: 234,
-    },
-    {
-      id: 2,
-      title: "Arabic Language Basics",
-      description:
-        "Start your journey in learning Modern Standard Arabic. Learn alphabet, basic vocabulary, grammar foundations, and simple conversational phrases.",
-      teacher: "Sister Fatima Al-Rashid",
-      schedule: "Tuesday & Thursday - 4:00 PM - 5:30 PM",
-      thumbnail:
-        "https://images.pexels.com/photos/8522576/pexels-photo-8522576.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-      category: "Arabic",
-      level: "Beginner",
-      enrolled: 189,
-    },
-    {
-      id: 3,
-      title: "Islamic Studies Fundamentals",
-      description:
-        "Explore the core principles of Islam including the Five Pillars, Islamic history, and Islamic jurisprudence basics. Perfect for newcomers and those seeking deeper knowledge.",
-      teacher: "Sheikh Mohammad Al-Aziz",
-      schedule: "Saturday & Sunday - 5:00 PM - 6:30 PM",
-      thumbnail:
-        "https://images.pexels.com/photos/2608353/pexels-photo-2608353.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-      category: "Islamic Studies",
-      level: "Beginner",
-      enrolled: 312,
-    },
-    {
-      id: 4,
-      title: "Quranic Arabic for Beginners",
-      description:
-        "Understand the Arabic used in the Quran. Learn vocabulary, grammatical structures, and translation techniques specific to Quranic texts.",
-      teacher: "Dr. Layla Hassan",
-      schedule: "Monday & Friday - 7:00 PM - 8:30 PM",
-      thumbnail:
-        "https://images.pexels.com/photos/3807517/pexels-photo-3807517.jpeg",
-      category: "Arabic",
-      level: "Intermediate",
-      enrolled: 156,
-    },
-    {
-      id: 5,
-      title: "Advanced Tajweed Techniques",
-      description:
-        "Master advanced Tajweed rules including rare characteristics and complex recitation rules. For those who have completed the basics.",
-      teacher: "Sheikh Ahmed Al-Mansouri",
-      schedule: "Wednesday - 8:00 PM - 9:30 PM",
-      thumbnail:
-        "https://images.pexels.com/photos/16066399/pexels-photo-16066399/free-photo-of-man-reading-koran.jpeg",
-      category: "Quran",
-      level: "Advanced",
-      enrolled: 87,
-    },
-    {
-      id: 6,
-      title: "Islamic History & Civilization",
-      description:
-        "Journey through Islamic history from the Prophet Muhammad to modern times. Understand the rich heritage and contributions of Islamic civilization.",
-      teacher: "Professor Ibrahim Ali",
-      schedule: "Tuesday & Saturday - 3:00 PM - 4:30 PM",
-      thumbnail:
-        "https://images.pexels.com/photos/2608353/pexels-photo-2608353.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
-      category: "Islamic Studies",
-      level: "Intermediate",
-      enrolled: 203,
-    },
-  ]);
-
-  const categories = courses
-    .map((c) => c.category)
-    .filter((category, index, arr) => arr.indexOf(category) === index);
-
-  return (
-    <div className="min-h-screen bg-background text-foreground pt-24 pb-16">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 lg:px-16">
-        {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-4">Our Courses</h1>
-          <p className="text-lg text-foreground opacity-75">
-            Explore our comprehensive selection of Islamic and Arabic courses,
-            designed for all levels.
-          </p>
-        </div>
-
-        {/* Courses Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {courses.map((course) => (
-            <Link key={course.id} href={`/courses/${course.id}`}>
-              <div className="bg-card-bg border border-card-border rounded-lg overflow-hidden hover:border-green-500 transition cursor-pointer h-full flex flex-col group">
-                {/* Course Thumbnail */}
-                <div className="relative h-48 bg-gradient-to-br from-green-400 to-green-600 overflow-hidden">
-                  <Image
-                    src={course.thumbnail}
-                    alt={course.title}
-                    fill
-                    className="object-cover group-hover:scale-110 transition duration-300"
-                  />
-                  <div className="absolute top-3 right-3 flex gap-2">
-                    <span className="px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">
-                      {course.category}
-                    </span>
-                    <span className="px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded-full">
-                      {course.level}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Course Content */}
-                <div className="p-5 flex-1 flex flex-col">
-                  <h3 className="text-xl font-semibold mb-2 line-clamp-2 group-hover:text-green-500 transition">
-                    {course.title}
-                  </h3>
-                  <p className="text-foreground opacity-70 text-sm mb-4 line-clamp-3 flex-1">
-                    {course.description}
-                  </p>
-
-                  {/* Teacher Info */}
-                  <div className="mb-3 pb-3 border-b border-card-border">
-                    <div className="flex items-center gap-2 text-sm">
-                      <FaUser className="text-green-500 dark:text-green-400" />
-                      <span className="text-foreground opacity-75">
-                        {course.teacher}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Schedule */}
-                  <div className="mb-4">
-                    <div className="flex items-start gap-2 text-sm">
-                      <FaClock className="text-green-500 dark:text-green-400 mt-0.5" />
-                      <span className="text-foreground opacity-75">
-                        {course.schedule}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Enrollment Info */}
-                  <div className="flex items-center justify-between pt-3 border-t border-card-border">
-                    <div className="flex items-center gap-1 text-sm text-foreground opacity-70">
-                      <FaBook className="text-green-500 dark:text-green-400" />
-                      <span>{course.enrolled} enrolled</span>
-                    </div>
-                    <button className="px-3 py-1 text-sm bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 text-white rounded font-semibold transition">
-                      Enroll Now
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {/* Category Summary */}
-        <div className="mt-16 bg-card-bg border border-card-border rounded-lg p-8">
-          <h2 className="text-2xl font-semibold mb-6">Course Categories</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {categories.map((category) => {
-              const categoryCount = courses.filter(
-                (c) => c.category === category
-              ).length;
-              return (
-                <div
-                  key={category}
-                  className="border border-card-border rounded-lg p-6 hover:border-green-500 transition text-center"
-                >
-                  <h3 className="text-lg font-semibold mb-2">{category}</h3>
-                  <p className="text-3xl font-bold text-green-500 dark:text-green-400">
-                    {categoryCount}
-                  </p>
-                  <p className="text-foreground opacity-70 text-sm mt-2">
-                    courses available
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  guide?: { label: string; href: string };
 };
 
-export default CoursesPage;
+const pathways: Pathway[] = [
+  {
+    icon: BookOpen,
+    title: "Quran reading and recitation",
+    description:
+      "Start with Arabic letters and sounds, then move to reading with vowels and reciting full passages with confidence.",
+    guide: {
+      label: "Read the beginner's guide",
+      href: "/blog/how-to-learn-quran-online",
+    },
+  },
+  {
+    icon: Mic2,
+    title: "Tajweed",
+    description:
+      "Learn articulation points, pronunciation, and recitation rules, with correction in every lesson rather than theory alone.",
+    guide: {
+      label: "What Tajweed lessons cover",
+      href: "/blog/learn-quran-with-tajweed",
+    },
+  },
+  {
+    icon: Sparkles,
+    title: "Quran memorization (Hifz)",
+    description:
+      "Follow a structured memorization plan with new portions, regular review, and a pace matched to the student's ability.",
+    guide: {
+      label: "How memorization plans work",
+      href: "/blog/quran-memorization-online",
+    },
+  },
+  {
+    icon: Languages,
+    title: "Arabic",
+    description:
+      "Study reading, vocabulary, and grammar foundations, including Arabic for understanding the Quran.",
+  },
+  {
+    icon: GraduationCap,
+    title: "Islamic studies",
+    description:
+      "Explore core beliefs, worship, and history in clear English, adapted to the student's level.",
+  },
+];
+
+const steps = [
+  {
+    title: "Create your account",
+    description:
+      "Tell us who is learning and what they would like to study. New students begin with a free trial lesson.",
+  },
+  {
+    title: "Choose a teacher and weekly times",
+    description:
+      "Review teachers and their published availability, then pick weekly times that fit your routine. Times appear in your local time zone.",
+  },
+  {
+    title: "Meet in the live classroom",
+    description:
+      "Join each lesson online from a browser or the mobile app. Every lesson is one teacher and one student.",
+  },
+  {
+    title: "Keep a steady weekly rhythm",
+    description:
+      "Your weekly plan stays in place, with lesson reports and progress visible in your account.",
+  },
+];
+
+export default function CoursesPage() {
+  const url = absoluteUrl("/courses");
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: absoluteUrl("/"),
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Courses",
+        item: url,
+      },
+    ],
+  };
+
+  const pageSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${url}#webpage`,
+    url,
+    name: "Online Quran Courses and Programmes",
+    description:
+      "Ana Quran Academy's online programmes: Quran reading, Tajweed, memorization, Arabic, and Islamic studies, taught one-to-one in English.",
+    inLanguage: "en",
+    isPartOf: { "@id": `${SITE_URL}/#website` },
+    about: { "@id": `${SITE_URL}/#organization` },
+    publisher: { "@id": `${SITE_URL}/#organization` },
+  };
+
+  return (
+    <main className="overflow-hidden bg-[#f3efe8] text-[#173b35] dark:bg-background dark:text-foreground">
+      <JsonLd data={breadcrumbSchema} />
+      <JsonLd data={pageSchema} />
+
+      <section className="relative isolate border-b border-[#e2e8dc] dark:border-card-border">
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_85%_10%,rgba(206,224,197,0.42),transparent_32%),linear-gradient(135deg,#f3efe8_0%,#eef3e9_100%)] dark:bg-[radial-gradient(circle_at_85%_10%,rgba(124,167,130,0.18),transparent_32%),linear-gradient(135deg,#162f45_0%,#1a3a52_100%)]" />
+        <div className="mx-auto max-w-5xl px-5 pb-16 pt-28 md:px-8 md:pb-20 md:pt-36">
+          <nav
+            aria-label="Breadcrumb"
+            className="text-sm text-[#7a8a80] dark:text-foreground/50"
+          >
+            <ol className="flex flex-wrap items-center gap-2">
+              <li>
+                <Link
+                  href="/"
+                  className="hover:text-[#1d5145] dark:hover:text-green-400"
+                >
+                  Home
+                </Link>
+              </li>
+              <li aria-hidden>/</li>
+              <li
+                aria-current="page"
+                className="text-[#4f675c] dark:text-foreground/70"
+              >
+                Courses
+              </li>
+            </ol>
+          </nav>
+
+          <h1 className="mt-6 max-w-3xl text-4xl font-black leading-[1.05] tracking-[-0.04em] text-[#123c35] dark:text-white sm:text-5xl md:text-6xl">
+            Online Quran courses, taught one-to-one.
+          </h1>
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-[#5d726a] dark:text-foreground/70">
+            Every programme at {SITE_NAME} is built around a single student and a
+            single teacher. Lessons run in English, last 30, 45, or 60 minutes,
+            and follow the weekly times you choose. New students start with a
+            free trial lesson.
+          </p>
+          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/signup"
+              className="registration-cta inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
+            >
+              Start with a free trial <ArrowRight size={18} />
+            </Link>
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center rounded-2xl border border-[#cedacd] bg-white/70 px-6 py-3.5 text-base font-semibold text-[#244c40] transition hover:bg-white dark:border-[#3a5a7a] dark:bg-white/10 dark:text-foreground dark:hover:bg-white/15"
+            >
+              Ask about a programme
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
+        <div className="flex flex-wrap items-end justify-between gap-5">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#a7773e] dark:text-amber-300">
+              Featured programme
+            </p>
+            <h2 className="mt-4 text-3xl font-bold tracking-tight text-[#173b35] dark:text-foreground sm:text-4xl">
+              Online Quran classes for kids
+            </h2>
+          </div>
+          <Link
+            href="/courses/quran-for-kids"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[#1d5145] hover:gap-3 dark:text-green-400"
+          >
+            View the kids programme <ArrowRight size={16} aria-hidden />
+          </Link>
+        </div>
+
+        <article className="mt-8 overflow-hidden rounded-[2rem] border border-[#dfe7d9] bg-white shadow-sm dark:border-card-border dark:bg-card-bg">
+          <div className="grid gap-0 md:grid-cols-[1.15fr_0.85fr]">
+            <div className="p-7 md:p-10">
+              <span className="inline-flex rounded-full bg-[#edf3e9] px-3 py-1 text-xs font-semibold text-[#4d7058] dark:bg-green-500/15 dark:text-green-300">
+                Children and teenagers
+              </span>
+              <h3 className="mt-4 text-2xl font-bold text-[#173b35] dark:text-foreground sm:text-3xl">
+                Short, focused lessons with one teacher
+              </h3>
+              <p className="mt-4 leading-8 text-[#5d726a] dark:text-foreground/70">
+                Children learn letters, reading, Tajweed, and memorization with
+                the same teacher each week. Lessons are adapted to the
+                child&apos;s age and attention span, and a parent or guardian is
+                welcome to stay in the room.
+              </p>
+              <ul className="mt-6 space-y-3 text-[#4f675c] dark:text-foreground/70">
+                {[
+                  "One teacher and one child in every lesson",
+                  "30, 45, or 60 minute lessons",
+                  "Taught in English",
+                  "Weekly times chosen from the teacher's availability",
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-3">
+                    <CheckCircle2
+                      size={18}
+                      className="mt-1 shrink-0 text-[#6b936c] dark:text-green-400"
+                    />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex flex-col justify-between gap-6 bg-[#eef3e9] p-7 dark:bg-[#16324a] md:p-10">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#a7773e] dark:text-amber-300">
+                  Good to know
+                </p>
+                <dl className="mt-5 space-y-4 text-[#5d726a] dark:text-foreground/70">
+                  <div>
+                    <dt className="font-semibold text-[#23483c] dark:text-foreground">
+                      Free trial
+                    </dt>
+                    <dd className="mt-1 leading-7">
+                      The first lesson is free for a new student.
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="font-semibold text-[#23483c] dark:text-foreground">
+                      Fees
+                    </dt>
+                    <dd className="mt-1 leading-7">
+                      Billed monthly in US dollars by bank transfer; the amount
+                      depends on the teacher&apos;s rate and lesson length.
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="font-semibold text-[#23483c] dark:text-foreground">
+                      Time zones
+                    </dt>
+                    <dd className="mt-1 leading-7">
+                      Your schedule is shown in your local time zone.
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+              <Link
+                href="/courses/quran-for-kids"
+                className="registration-cta inline-flex items-center justify-center gap-2 rounded-xl bg-[#1d4e47] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
+              >
+                Explore the kids programme <ArrowRight size={16} />
+              </Link>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section className="bg-[#eef3e9] py-16 dark:bg-[#16324a] md:py-20">
+        <div className="mx-auto max-w-6xl px-5 md:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#a7773e] dark:text-amber-300">
+              Subjects
+            </p>
+            <h2 className="mt-4 text-3xl font-bold tracking-tight text-[#173b35] dark:text-foreground sm:text-4xl">
+              What students can study.
+            </h2>
+            <p className="mt-4 leading-7 text-[#6b7c73] dark:text-foreground/70">
+              Programmes are one-to-one and adapted to the student&apos;s level.
+              Availability varies by teacher and subject.
+            </p>
+          </div>
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {pathways.map(({ icon: Icon, title, description, guide }) => (
+              <article
+                key={title}
+                className="flex flex-col rounded-3xl border border-[#e5e9df] bg-white p-7 shadow-sm dark:border-card-border dark:bg-card-bg"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf3e9] text-[#547a5d] dark:bg-green-500/15 dark:text-green-300">
+                  <Icon size={23} />
+                </div>
+                <h3 className="mt-5 text-xl font-bold text-[#23483c] dark:text-foreground">
+                  {title}
+                </h3>
+                <p className="mt-3 flex-1 leading-7 text-[#6b7c73] dark:text-foreground/70">
+                  {description}
+                </p>
+                {guide && (
+                  <Link
+                    href={guide.href}
+                    className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#1d5145] hover:gap-3 dark:text-green-400"
+                  >
+                    {guide.label} <ArrowRight size={15} aria-hidden />
+                  </Link>
+                )}
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
+        <div className="grid gap-12 md:grid-cols-[0.8fr_1.2fr] md:items-start">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#a7773e] dark:text-amber-300">
+              How it works
+            </p>
+            <h2 className="mt-4 text-3xl font-bold tracking-tight text-[#173b35] dark:text-foreground sm:text-4xl">
+              From trial lesson to weekly rhythm.
+            </h2>
+            <p className="mt-5 leading-7 text-[#687b70] dark:text-foreground/70">
+              Not sure which programme fits? Read how to{" "}
+              <Link
+                href="/blog/choose-online-quran-academy"
+                className="font-semibold text-[#1d5145] underline decoration-[#b9cfc2] underline-offset-4 dark:text-green-400 dark:decoration-green-400/40"
+              >
+                choose an online Quran academy
+              </Link>{" "}
+              or ask the team directly.
+            </p>
+          </div>
+          <div className="space-y-4">
+            {steps.map((step, index) => (
+              <article
+                key={step.title}
+                className="flex gap-5 rounded-2xl border border-[#dce6d8] bg-white p-6 shadow-sm dark:border-card-border dark:bg-card-bg"
+              >
+                <span className="text-2xl font-bold text-[#b47b3c] dark:text-amber-300">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <div>
+                  <h3 className="text-lg font-bold text-[#23483c] dark:text-foreground">
+                    {step.title}
+                  </h3>
+                  <p className="mt-2 leading-7 text-[#6b7c73] dark:text-foreground/70">
+                    {step.description}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-5 pb-20 md:px-8 md:pb-24">
+        <div className="overflow-hidden rounded-[2rem] bg-[#1c5145] px-7 py-12 text-center text-white shadow-xl shadow-[#1c5145]/15 md:px-16 md:py-16">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10">
+            <Users size={27} />
+          </div>
+          <h2 className="mx-auto mt-5 max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">
+            Choose a programme and meet your teacher.
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl leading-7 text-white/75">
+            Create your account, pick a subject, and begin with a free trial
+            lesson.
+          </p>
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <Link
+              href="/signup"
+              className="registration-cta rounded-xl bg-[#e4c18e] px-6 py-3.5 font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"
+            >
+              Get started
+            </Link>
+            <Link
+              href="/contact"
+              className="rounded-xl border border-white/30 px-6 py-3.5 font-semibold text-white transition hover:bg-white/10"
+            >
+              Contact us
+            </Link>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}

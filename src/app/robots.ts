@@ -12,7 +12,14 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/about", "/blog", "/contact", "/teach"],
+        allow: [
+          "/",
+          "/about",
+          "/blog",
+          "/contact",
+          "/courses",
+          "/teach",
+        ],
         disallow: [
           "/api/",
           "/monitoring",
@@ -23,7 +30,6 @@ export default function robots(): MetadataRoute.Robots {
           "/student-dashboard/",
           "/support/",
           "/parent/",
-          "/courses",
           "/teachers",
           "/schedule",
           "/lesson/",

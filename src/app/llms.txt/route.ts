@@ -42,6 +42,11 @@ English-speaking children and adults, including beginners and families, living i
 - After the trial, lessons are billed monthly in US dollars (USD) by bank transfer
 - The monthly amount depends on the teacher's rate and the lesson length
 
+## Courses
+
+- [Courses](${SITE_URL}/courses): all programmes at a glance
+- [Online Quran classes for kids](${SITE_URL}/courses/quran-for-kids): one-to-one lessons for children and teenagers, taught in English
+
 ## Key pages
 
 - [Home](${SITE_URL}/): overview of the academy and how lessons work

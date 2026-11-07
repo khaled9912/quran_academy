@@ -6,8 +6,6 @@ interface ProfileResponse {
   user: UserProfile;
 }
 
-export const getProfile = () => backendFetch<ProfileResponse>("/api/profile");
-
 export interface ReportPage {
   items: LessonReport[];
   hasMore: boolean;
