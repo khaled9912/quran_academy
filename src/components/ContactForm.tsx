@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldErrors } from "react-hook-form";
 import { ApiError, backendFetch } from "@/lib/backend-client";
+import { useToast } from "@/providers/toast-provider";
 import { reportUnexpectedError } from "@/lib/sentry";
 
 interface ContactFormValues {
@@ -25,49 +26,40 @@ const inputClass =
   "p-2 border border-card-border rounded bg-card-bg text-foreground focus:outline-none focus:border-green-500";
 
 const ContactForm = () => {
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setError,
-    clearErrors,
-    formState: { errors },
-  } = useForm<ContactFormValues>();
+  const { register, handleSubmit, reset } = useForm<ContactFormValues>();
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
 
   const onSubmit = async (data: ContactFormValues) => {
     setLoading(true);
-    setSuccessMessage("");
-    setErrorMessage("");
-    clearErrors();
     try {
       await backendFetch("/api/contact", {
         method: "POST",
         body: JSON.stringify(data),
       });
       reset();
-      setSuccessMessage("Thank you! Your message has been sent successfully.");
-      setTimeout(() => setSuccessMessage(""), 4000);
+      showToast(
+        "Thank you! Your message has been sent successfully.",
+        "success"
+      );
     } catch (error) {
       const validationErrors =
         error instanceof ApiError ? error.validationErrors : undefined;
       const fieldErrors = Object.entries(validationErrors ?? {}).filter(
         ([field]) => isContactField(field)
       );
-      for (const [field, messages] of fieldErrors) {
-        if (messages[0])
-          setError(field as keyof ContactFormValues, {
-            type: "server",
-            message: messages[0],
-          });
-      }
-      if (fieldErrors.length) setErrorMessage("");
-      else {
+      const firstMessage = fieldErrors
+        .map(([, messages]) => messages[0])
+        .find(Boolean);
+      if (firstMessage) {
+        showToast(firstMessage, "error");
+      } else {
         if (!(error instanceof ApiError))
-          setErrorMessage("We could not send your message. Please try again.");
+          showToast(
+            "We could not send your message. Please try again.",
+            "error"
+          );
         reportUnexpectedError(error);
       }
     } finally {
@@ -75,21 +67,17 @@ const ContactForm = () => {
     }
   };
 
+  const onInvalid = (invalidErrors: FieldErrors<ContactFormValues>) => {
+    const first = Object.values(invalidErrors).find(
+      (entry) => entry?.message
+    );
+    if (first?.message) showToast(String(first.message), "error");
+  };
+
   return (
     <div className="bg-background border border-card-border p-6 rounded-lg shadow-md w-full">
-      {successMessage && (
-        <div className="mb-4 p-3 rounded bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300">
-          {successMessage}
-        </div>
-      )}
-      {errorMessage && (
-        <div className="mb-4 p-3 rounded bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300">
-          {errorMessage}
-        </div>
-      )}
-
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit(onSubmit, onInvalid)}
         className="flex flex-col gap-4 mt-2"
         noValidate
       >
@@ -108,11 +96,6 @@ const ContactForm = () => {
             })}
             className={inputClass}
           />
-          {errors.name && (
-            <span className="text-red-500 dark:text-red-400">
-              {errors.name.message}
-            </span>
-          )}
         </div>
 
         <div className="flex flex-col">
@@ -131,11 +114,6 @@ const ContactForm = () => {
             })}
             className={inputClass}
           />
-          {errors.email && (
-            <span className="text-red-500 dark:text-red-400">
-              {errors.email.message}
-            </span>
-          )}
         </div>
 
         <div className="flex flex-col">
@@ -158,11 +136,6 @@ const ContactForm = () => {
             })}
             className={inputClass}
           />
-          {errors.message && (
-            <span className="text-red-500 dark:text-red-400">
-              {errors.message.message}
-            </span>
-          )}
         </div>
 
         <button

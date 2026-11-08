@@ -9,6 +9,7 @@ import { reportUnexpectedError } from "@/lib/sentry";
 import { useAuth } from "@/providers/auth-provider";
 import { useToast } from "@/providers/toast-provider";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { PasswordField } from "@/components/ui/password-field";
 import { DEFAULT_COUNTRY, countryByCode, toE164 } from "@/lib/countries";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -35,31 +36,27 @@ const LoginPage = () => {
   const [devCode, setDevCode] = useState<string | null>(null);
   const [phoneLoading, setPhoneLoading] = useState(false);
 
-  const [message, setMessage] = useState("");
-
   const switchMode = (next: Mode) => {
     setMode(next);
-    setMessage("");
   };
 
   const handleEmailSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (loading) return;
-    setMessage("");
 
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
 
     if (!trimmedEmail) {
-      setMessage("Please enter your email address.");
+      showToast("Please enter your email address.", "error");
       return;
     }
     if (!emailRegex.test(trimmedEmail)) {
-      setMessage("Please enter a valid email address.");
+      showToast("Please enter a valid email address.", "error");
       return;
     }
     if (!trimmedPassword) {
-      setMessage("Please enter your password.");
+      showToast("Please enter your password.", "error");
       return;
     }
 
@@ -67,17 +64,20 @@ const LoginPage = () => {
     try {
       const { user } = await signIn(trimmedEmail, trimmedPassword);
       if (!user?.role) {
-        setMessage("Unable to determine your role. Contact support.");
+        showToast("Unable to determine your role. Contact support.", "error");
         return;
       }
       if (user.is_active === false) {
-        setMessage("Your account is deactivated. Contact an administrator.");
+        showToast(
+          "Your account is deactivated. Contact an administrator.",
+          "error"
+        );
         return;
       }
       applySession(user);
     } catch (error) {
       if (!(error instanceof ApiError))
-        showToast("Unable to sign in. Please try again.");
+        showToast("Unable to sign in. Please try again.", "error");
       reportUnexpectedError(error);
     } finally {
       setLoading(false);
@@ -87,15 +87,14 @@ const LoginPage = () => {
   const handleSendCode = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (phoneLoading) return;
-    setMessage("");
     const e164 = toE164(phone, country);
     if (!e164) {
       const selected = countryByCode(country);
-      setPhoneError(
-        `Enter a valid mobile number for ${selected?.name ?? "the selected country"}${
-          selected ? ` (${selected.dial})` : ""
-        }.`
-      );
+      const invalidMessage = `Enter a valid mobile number for ${
+        selected?.name ?? "the selected country"
+      }${selected ? ` (${selected.dial})` : ""}.`;
+      setPhoneError(invalidMessage);
+      showToast(invalidMessage, "error");
       return;
     }
     setPhoneError("");
@@ -106,14 +105,15 @@ const LoginPage = () => {
       setCodeSent(true);
       setNeedsName(false);
       setDevCode(result.devCode ?? null);
-      setMessage(
+      showToast(
         result.devCode
           ? "Development mode: use the code shown below."
-          : result.message
+          : result.message,
+        "info"
       );
     } catch (error) {
       if (!(error instanceof ApiError))
-        showToast("Unable to send the code. Please try again.");
+        showToast("Unable to send the code. Please try again.", "error");
       reportUnexpectedError(error);
     } finally {
       setPhoneLoading(false);
@@ -123,17 +123,19 @@ const LoginPage = () => {
   const handleVerifyCode = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (phoneLoading) return;
-    setMessage("");
     if (!/^\d{4,8}$/.test(code.trim())) {
-      setMessage("Enter the numeric code you received.");
+      showToast("Enter the numeric code you received.", "error");
       return;
     }
     if (needsName && !phoneName.trim()) {
-      setMessage("Enter your full name to finish creating your account.");
+      showToast(
+        "Enter your full name to finish creating your account.",
+        "error"
+      );
       return;
     }
     if (!sentTo) {
-      setMessage("Request a new code to continue.");
+      showToast("Request a new code to continue.", "error");
       return;
     }
     setPhoneLoading(true);
@@ -146,19 +148,20 @@ const LoginPage = () => {
       );
       if (result.requiresProfile) {
         setNeedsName(true);
-        setMessage(
-          "No account uses this number yet. Enter your full name to create a student account."
+        showToast(
+          "No account uses this number yet. Enter your full name to create a student account.",
+          "info"
         );
         return;
       }
       if (!result.user?.role) {
-        setMessage("Unable to determine your role. Contact support.");
+        showToast("Unable to determine your role. Contact support.", "error");
         return;
       }
       applySession(result.user);
     } catch (error) {
       if (!(error instanceof ApiError))
-        showToast("Unable to verify the code. Please try again.");
+        showToast("Unable to verify the code. Please try again.", "error");
       reportUnexpectedError(error);
     } finally {
       setPhoneLoading(false);
@@ -173,7 +176,6 @@ const LoginPage = () => {
     setDevCode(null);
     setSentTo("");
     setPhoneError("");
-    setMessage("");
   };
 
   const inputClass =
@@ -239,9 +241,8 @@ const LoginPage = () => {
                   Forgot password?
                 </Link>
               </div>
-              <input
+              <PasswordField
                 id="password"
-                type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 required
@@ -369,15 +370,6 @@ const LoginPage = () => {
               Use a different number
             </button>
           </form>
-        )}
-
-        {message && (
-          <p
-            role="alert"
-            className="mt-4 text-center text-sm text-red-500 dark:text-red-400"
-          >
-            {message}
-          </p>
         )}
 
         <div className="registration-cta mt-8 text-center text-sm text-foreground opacity-75">

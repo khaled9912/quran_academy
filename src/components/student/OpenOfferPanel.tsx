@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { CalendarClock, RefreshCw, Trash2 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -10,6 +10,7 @@ import {
   withdrawOpenOffer,
 } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 import type { OpenStudentOffer } from "@/types/scheduling";
 
@@ -54,6 +55,7 @@ const statusCopy = (offer: OpenStudentOffer) => {
 
 export function OpenOfferPanel() {
   const { role } = useAuth();
+  const { showToast } = useToast();
   const queryClient = useQueryClient();
   const [date, setDate] = useState(() => {
     const tomorrow = new Date();
@@ -62,7 +64,6 @@ export function OpenOfferPanel() {
   });
   const [start, setStart] = useState("17:00");
   const [duration, setDuration] = useState<DurationMinutes>(60);
-  const [formError, setFormError] = useState("");
 
   const offersQuery = useQuery({
     queryKey: ["open-offers", "student"],
@@ -87,7 +88,6 @@ export function OpenOfferPanel() {
     mutationFn: ({ startsAt, endsAt }: { startsAt: string; endsAt: string }) =>
       publishOpenOffer(startsAt, endsAt),
     onSuccess: async () => {
-      setFormError("");
       await invalidate();
     },
   });
@@ -95,25 +95,23 @@ export function OpenOfferPanel() {
   const withdrawMutation = useMutation({
     mutationFn: (offerId: string) => withdrawOpenOffer(offerId),
     onSuccess: async () => {
-      setFormError("");
       await invalidate();
     },
   });
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    setFormError("");
     if (!date) {
-      setFormError("Choose a date.");
+      showToast("Choose a date.", "error");
       return;
     }
     const startsAt = new Date(`${date}T${start}`);
     if (Number.isNaN(startsAt.getTime())) {
-      setFormError("Choose a valid start time.");
+      showToast("Choose a valid start time.", "error");
       return;
     }
     if (startsAt.getTime() <= Date.now()) {
-      setFormError("Choose a time in the future.");
+      showToast("Choose a time in the future.", "error");
       return;
     }
     const openCount = offers.filter(
@@ -122,8 +120,9 @@ export function OpenOfferPanel() {
         new Date(offer.startsAt).getTime() > Date.now()
     ).length;
     if (openCount >= OPEN_OFFER_LIMIT) {
-      setFormError(
-        `You already have ${OPEN_OFFER_LIMIT} open offers. Withdraw one to add another.`
+      showToast(
+        `You already have ${OPEN_OFFER_LIMIT} open offers. Withdraw one to add another.`,
+        "error"
       );
       return;
     }
@@ -134,9 +133,16 @@ export function OpenOfferPanel() {
     });
   };
 
-  const error =
-    formError ||
-    (offersQuery.error ?? publishMutation.error ?? withdrawMutation.error);
+  useEffect(() => {
+    if (offersQuery.error) {
+      showToast(
+        offersQuery.error instanceof Error
+          ? offersQuery.error.message
+          : "Unable to update your offered times.",
+        "error"
+      );
+    }
+  }, [offersQuery.error, showToast]);
 
   return (
     <section className="mt-8 rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
@@ -160,17 +166,6 @@ export function OpenOfferPanel() {
           <RefreshCw size={15} /> Refresh
         </button>
       </div>
-
-      {error && (
-        <p
-          role="alert"
-          className="mt-5 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
-        >
-          {error instanceof Error
-            ? error.message
-            : error || "Unable to update your offered times."}
-        </p>
-      )}
 
       <form
         onSubmit={submit}

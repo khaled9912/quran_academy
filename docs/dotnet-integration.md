@@ -236,7 +236,7 @@ The older one-off endpoints (`/api/admin/teachers/{teacherId}/availability`, `/a
 }
 ```
 
-`grade` is optional. The API must ignore any role in the body and always create `student`. Return the created student as `{ "id": "uuid", "name": "Amina Hassan", "fullName": "Amina Hassan", "email": "...", "grade": "Grade 4" }`.
+`grade` is optional and must be one of the fixed dropdown values (`Kindergarten`, `Grade 1` … `Grade 12`, see `src/lib/grades.ts`). The API persists it and returns it on every student `UserDto`. The API must ignore any role in the body and always create `student`. Return the created student as `{ "id": "uuid", "name": "Amina Hassan", "fullName": "Amina Hassan", "email": "...", "grade": "Grade 4" }`.
 
 The student scheduling endpoints derive the student identity from the authenticated session. Students must not be able to submit another student's ID.
 

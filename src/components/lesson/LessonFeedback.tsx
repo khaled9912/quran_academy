@@ -3,13 +3,13 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  CheckCircle2,
   ClipboardList,
   Loader2,
   MessageSquareQuote,
   PencilLine,
 } from "lucide-react";
 import { ApiError } from "@/lib/backend-client";
+import { useToast } from "@/providers/toast-provider";
 import {
   lessonDateTime,
   progressClasses,
@@ -33,7 +33,8 @@ const progressOptions: LessonProgress[] = [
   "needs_attention",
 ];
 
-// API failures already surface as a toast; keep inline text for local failures.
+// API failures already surface as a toast; only fire one for local failures
+// (an empty message is ignored by the toast provider).
 const errorMessage = (error: unknown, fallback: string) =>
   error instanceof ApiError ? "" : fallback;
 
@@ -94,6 +95,7 @@ function TeacherReportSection({
   onSaved: (report: LessonReport) => void;
 }) {
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
   const [editing, setEditing] = useState(!report);
   const [classSummary, setClassSummary] = useState(report?.classSummary ?? "");
   const [studentFeedback, setStudentFeedback] = useState(
@@ -102,8 +104,6 @@ function TeacherReportSection({
   const [progress, setProgress] = useState<LessonProgress>(
     report?.progress ?? "good"
   );
-  const [formError, setFormError] = useState("");
-  const [notice, setNotice] = useState("");
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -111,31 +111,30 @@ function TeacherReportSection({
     onSuccess: (saved) => {
       onSaved(saved);
       setEditing(false);
-      setFormError("");
-      setNotice("Your class report has been saved.");
+      showToast("Your class report has been saved.", "success");
       void queryClient.invalidateQueries({ queryKey: ["lessons"] });
       void queryClient.invalidateQueries({ queryKey: ["profile", "reports"] });
     },
     onError: (error) =>
-      setFormError(
+      showToast(
         errorMessage(
           error,
           "Unable to save the class report. Please try again."
-        )
+        ),
+        "error"
       ),
   });
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setNotice("");
-    setFormError("");
     if (classSummary.trim().length < 10) {
-      setFormError("Summarize the class in at least 10 characters.");
+      showToast("Summarize the class in at least 10 characters.", "error");
       return;
     }
     if (studentFeedback.trim().length < 10) {
-      setFormError(
-        "Give feedback about the student in at least 10 characters."
+      showToast(
+        "Give feedback about the student in at least 10 characters.",
+        "error"
       );
       return;
     }
@@ -164,15 +163,6 @@ function TeacherReportSection({
         <div className="mt-5">
           <ReportContent report={report} />
         </div>
-        {notice && (
-          <p
-            role="status"
-            className="mt-5 flex items-start gap-2 rounded-xl border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 p-4 text-sm text-green-800 dark:text-green-300"
-          >
-            <CheckCircle2 size={18} className="mt-0.5 shrink-0" />
-            {notice}
-          </p>
-        )}
       </section>
     );
   }
@@ -258,15 +248,6 @@ function TeacherReportSection({
           </div>
         </div>
 
-        {formError && (
-          <p
-            role="alert"
-            className="rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
-          >
-            {formError}
-          </p>
-        )}
-
         <div className="flex flex-wrap gap-3">
           <button
             type="submit"
@@ -343,34 +324,31 @@ function StudentReviewSection({
   onSaved: (review: TeacherReview) => void;
 }) {
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
   const [editing, setEditing] = useState(!review);
   const [rating, setRating] = useState(review?.rating ?? 0);
   const [comment, setComment] = useState(review?.comment ?? "");
-  const [formError, setFormError] = useState("");
-  const [notice, setNotice] = useState("");
 
   const mutation = useMutation({
     mutationFn: () => saveLessonReview(lesson.id, { rating, comment }),
     onSuccess: (saved) => {
       onSaved(saved);
       setEditing(false);
-      setFormError("");
-      setNotice("Thank you — your review has been saved.");
+      showToast("Thank you — your review has been saved.", "success");
       void queryClient.invalidateQueries({ queryKey: ["lessons"] });
       void queryClient.invalidateQueries({ queryKey: ["teachers"] });
     },
     onError: (error) =>
-      setFormError(
-        errorMessage(error, "Unable to save your review. Please try again.")
+      showToast(
+        errorMessage(error, "Unable to save your review. Please try again."),
+        "error"
       ),
   });
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setNotice("");
-    setFormError("");
     if (rating < 1) {
-      setFormError("Choose a rating from 1 to 5 stars.");
+      showToast("Choose a rating from 1 to 5 stars.", "error");
       return;
     }
     mutation.mutate();
@@ -398,15 +376,6 @@ function StudentReviewSection({
         <div className="mt-4">
           <ReviewContent review={review} />
         </div>
-        {notice && (
-          <p
-            role="status"
-            className="mt-5 flex items-start gap-2 rounded-xl border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 p-4 text-sm text-green-800 dark:text-green-300"
-          >
-            <CheckCircle2 size={18} className="mt-0.5 shrink-0" />
-            {notice}
-          </p>
-        )}
       </section>
     );
   }
@@ -455,15 +424,6 @@ function StudentReviewSection({
             {comment.trim().length} / 2000 characters
           </p>
         </div>
-
-        {formError && (
-          <p
-            role="alert"
-            className="rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
-          >
-            {formError}
-          </p>
-        )}
 
         <div className="flex flex-wrap gap-3">
           <button

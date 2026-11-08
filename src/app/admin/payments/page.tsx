@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Landmark, Save, X } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
+import { ApiError } from "@/lib/backend-client";
 import {
   confirmPaymentClaim,
   getAdminBilling,
@@ -100,14 +102,13 @@ const toRateForm = (rates: TeacherBillingRate[]): Record<string, RateForm> =>
 
 export default function AdminPaymentsPage() {
   const { role } = useAuth();
+  const { showToast } = useToast();
   const canManage = role === "admin" || role === "super_admin";
   const queryClient = useQueryClient();
   const [month, setMonth] = useState<string | undefined>(undefined);
   const [account, setAccount] = useState<AccountForm>(emptyAccount);
   const [rates, setRates] = useState<Record<string, RateForm>>({});
   const [rejectNotes, setRejectNotes] = useState<Record<string, string>>({});
-  const [accountNotice, setAccountNotice] = useState("");
-  const [error, setError] = useState("");
 
   const months = useMemo(recentMonths, []);
 
@@ -146,17 +147,21 @@ export default function AdminPaymentsPage() {
   const accountMutation = useMutation({
     mutationFn: () => saveAcademyAccount(account),
     onSuccess: async () => {
-      setError("");
-      setAccountNotice("Dollar account saved. Students now see these details.");
+      showToast(
+        "Dollar account saved. Students now see these details.",
+        "success"
+      );
       await refresh();
     },
     onError: (mutationError) => {
-      setAccountNotice("");
-      setError(
-        mutationError instanceof Error
-          ? mutationError.message
-          : "Unable to save the academy account."
-      );
+      if (!(mutationError instanceof ApiError)) {
+        showToast(
+          mutationError instanceof Error
+            ? mutationError.message
+            : "Unable to save the academy account.",
+          "error"
+        );
+      }
     },
   });
 
@@ -171,30 +176,34 @@ export default function AdminPaymentsPage() {
         payoutEgp: input.payoutEgp,
       }),
     onSuccess: async () => {
-      setError("");
       await refresh();
     },
     onError: (mutationError) => {
-      setError(
-        mutationError instanceof Error
-          ? mutationError.message
-          : "Unable to save the rate."
-      );
+      if (!(mutationError instanceof ApiError)) {
+        showToast(
+          mutationError instanceof Error
+            ? mutationError.message
+            : "Unable to save the rate.",
+          "error"
+        );
+      }
     },
   });
 
   const confirmMutation = useMutation({
     mutationFn: (id: string) => confirmPaymentClaim(id),
     onSuccess: async () => {
-      setError("");
       await refresh();
     },
     onError: (mutationError) => {
-      setError(
-        mutationError instanceof Error
-          ? mutationError.message
-          : "Unable to confirm the payment."
-      );
+      if (!(mutationError instanceof ApiError)) {
+        showToast(
+          mutationError instanceof Error
+            ? mutationError.message
+            : "Unable to confirm the payment.",
+          "error"
+        );
+      }
     },
   });
 
@@ -202,15 +211,17 @@ export default function AdminPaymentsPage() {
     mutationFn: (input: { id: string; note: string }) =>
       rejectPaymentClaim(input.id, input.note),
     onSuccess: async () => {
-      setError("");
       await refresh();
     },
     onError: (mutationError) => {
-      setError(
-        mutationError instanceof Error
-          ? mutationError.message
-          : "Unable to reject the payment."
-      );
+      if (!(mutationError instanceof ApiError)) {
+        showToast(
+          mutationError instanceof Error
+            ? mutationError.message
+            : "Unable to reject the payment.",
+          "error"
+        );
+      }
     },
   });
 
@@ -314,11 +325,6 @@ export default function AdminPaymentsPage() {
                   <Save size={16} />
                   {accountMutation.isPending ? "Saving…" : "Save account"}
                 </button>
-                {accountNotice ? (
-                  <p className="mt-3 rounded-xl bg-green-500/10 px-3 py-2 text-sm text-green-700 dark:text-green-400">
-                    {accountNotice}
-                  </p>
-                ) : null}
               </section>
 
               <section className="rounded-3xl border border-card-border bg-card-bg p-6">
@@ -660,12 +666,6 @@ export default function AdminPaymentsPage() {
                 </div>
               )}
             </section>
-
-            {error ? (
-              <p className="mt-4 rounded-xl bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">
-                {error}
-              </p>
-            ) : null}
           </>
         ) : null}
       </div>

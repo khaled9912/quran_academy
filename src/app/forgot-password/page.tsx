@@ -5,12 +5,15 @@ import Link from "next/link";
 import { requestPasswordReset, resetPassword } from "@/services/auth.service";
 import { ApiError } from "@/lib/backend-client";
 import { reportUnexpectedError } from "@/lib/sentry";
+import { useToast } from "@/providers/toast-provider";
+import { PasswordField } from "@/components/ui/password-field";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type Step = "request" | "reset" | "done";
 
 export default function ForgotPasswordPage() {
+  const { showToast } = useToast();
   const [step, setStep] = useState<Step>("request");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -18,8 +21,6 @@ export default function ForgotPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [devCode, setDevCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
 
   const inputClass =
     "w-full rounded-xl border border-card-border bg-background px-4 py-3 text-foreground focus:outline-none focus:border-green-500";
@@ -27,12 +28,10 @@ export default function ForgotPasswordPage() {
   const handleRequest = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (loading) return;
-    setError("");
-    setMessage("");
 
     const address = email.trim();
     if (!emailRegex.test(address)) {
-      setError("Please enter a valid email address.");
+      showToast("Please enter a valid email address.", "error");
       return;
     }
 
@@ -41,14 +40,11 @@ export default function ForgotPasswordPage() {
       const result = await requestPasswordReset(address);
       setEmail(address);
       setDevCode(result.devCode ?? null);
-      setMessage(result.message);
+      showToast(result.message, "info");
       setStep("reset");
     } catch (error) {
-      setError(
-        error instanceof ApiError
-          ? ""
-          : "Unable to send the reset code. Please try again."
-      );
+      if (!(error instanceof ApiError))
+        showToast("Unable to send the reset code. Please try again.", "error");
       reportUnexpectedError(error);
     } finally {
       setLoading(false);
@@ -58,34 +54,28 @@ export default function ForgotPasswordPage() {
   const handleReset = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (loading) return;
-    setError("");
 
     const trimmedCode = code.trim();
     if (!/^\d{4,8}$/.test(trimmedCode)) {
-      setError("Enter the numeric code from the email.");
+      showToast("Enter the numeric code from the email.", "error");
       return;
     }
     if (newPassword.length < 8) {
-      setError("Choose a new password of at least 8 characters.");
+      showToast("Choose a new password of at least 8 characters.", "error");
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError("The new passwords do not match.");
+      showToast("The new passwords do not match.", "error");
       return;
     }
 
     setLoading(true);
     try {
       await resetPassword(email, trimmedCode, newPassword);
-      setMessage("");
-      setError("");
       setStep("done");
     } catch (error) {
-      setError(
-        error instanceof ApiError
-          ? ""
-          : "Unable to reset your password. Please try again."
-      );
+      if (!(error instanceof ApiError))
+        showToast("Unable to reset your password. Please try again.", "error");
       reportUnexpectedError(error);
     } finally {
       setLoading(false);
@@ -137,7 +127,7 @@ export default function ForgotPasswordPage() {
         {step === "reset" && (
           <>
             <p className="text-center text-foreground opacity-75 mb-6">
-              {message || "Enter the code we sent to your email."}
+              Enter the code we sent to your email.
             </p>
             <form onSubmit={handleReset} className="space-y-5">
               <div>
@@ -177,9 +167,8 @@ export default function ForgotPasswordPage() {
                 >
                   New password
                 </label>
-                <input
+                <PasswordField
                   id="new-password"
-                  type="password"
                   value={newPassword}
                   onChange={(event) => setNewPassword(event.target.value)}
                   autoComplete="new-password"
@@ -195,9 +184,8 @@ export default function ForgotPasswordPage() {
                 >
                   Confirm new password
                 </label>
-                <input
+                <PasswordField
                   id="confirm-password"
-                  type="password"
                   value={confirmPassword}
                   onChange={(event) => setConfirmPassword(event.target.value)}
                   autoComplete="new-password"
@@ -221,8 +209,6 @@ export default function ForgotPasswordPage() {
                   setNewPassword("");
                   setConfirmPassword("");
                   setDevCode(null);
-                  setError("");
-                  setMessage("");
                 }}
                 className="w-full text-center text-sm font-semibold text-green-600 dark:text-green-400 hover:underline"
               >
@@ -244,15 +230,6 @@ export default function ForgotPasswordPage() {
               Back to sign in
             </Link>
           </div>
-        )}
-
-        {error && (
-          <p
-            role="alert"
-            className="mt-4 text-center text-sm text-red-500 dark:text-red-400"
-          >
-            {error}
-          </p>
         )}
 
         {step !== "done" && (

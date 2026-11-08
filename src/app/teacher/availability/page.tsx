@@ -1,9 +1,10 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { CalendarPlus, RefreshCw, Trash2 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
 import { OpenOfferInbox } from "@/components/teacher/OpenOfferInbox";
 import {
   deleteWeeklyAvailability,
@@ -43,12 +44,11 @@ const durationLabel = (minutes: number) =>
 
 export default function TeacherAvailabilityPage() {
   const { role } = useAuth();
+  const { showToast } = useToast();
   const queryClient = useQueryClient();
   const [days, setDays] = useState<number[]>(DEFAULT_DAYS);
   const [start, setStart] = useState("17:00");
   const [duration, setDuration] = useState<DurationMinutes>(60);
-  const [formError, setFormError] = useState("");
-  const [notice, setNotice] = useState("");
   const end = addMinutes(start, duration);
 
   const timeZoneId = useMemo(
@@ -81,11 +81,11 @@ export default function TeacherAvailabilityPage() {
         timeZoneId,
       }),
     onSuccess: async (created) => {
-      setFormError("");
-      setNotice(
+      showToast(
         `Announced ${created.length} weekly ${
           created.length === 1 ? "time" : "times"
-        }. Students can book them now.`
+        }. Students can book them now.`,
+        "success"
       );
       await invalidate();
     },
@@ -94,8 +94,7 @@ export default function TeacherAvailabilityPage() {
   const deleteMutation = useMutation({
     mutationFn: (ruleId: string) => deleteWeeklyAvailability(ruleId),
     onSuccess: async () => {
-      setFormError("");
-      setNotice("Weekly time removed.");
+      showToast("Weekly time removed.", "success");
       await invalidate();
     },
   });
@@ -111,7 +110,6 @@ export default function TeacherAvailabilityPage() {
   );
 
   const toggleDay = (day: number) => {
-    setNotice("");
     setDays((current) =>
       current.includes(day)
         ? current.filter((value) => value !== day)
@@ -121,14 +119,12 @@ export default function TeacherAvailabilityPage() {
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    setNotice("");
-    setFormError("");
     if (!days.length) {
-      setFormError("Choose at least one weekday.");
+      showToast("Choose at least one weekday.", "error");
       return;
     }
     if (!Number.isFinite(minutesOf(start))) {
-      setFormError("Choose a valid start time.");
+      showToast("Choose a valid start time.", "error");
       return;
     }
     publishMutation.mutate();
@@ -143,7 +139,6 @@ export default function TeacherAvailabilityPage() {
         )}? Students will no longer see this time.`
       )
     ) {
-      setNotice("");
       deleteMutation.mutate(rule.id);
     }
   };
@@ -156,9 +151,16 @@ export default function TeacherAvailabilityPage() {
         .join(", ")} · ${start} – ${end}`
     : "Choose the days you teach.";
 
-  const error =
-    formError ||
-    (rulesQuery.error ?? publishMutation.error ?? deleteMutation.error);
+  const error = rulesQuery.error;
+
+  useEffect(() => {
+    if (error) {
+      showToast(
+        error instanceof Error ? error.message : "Unable to update availability.",
+        "error"
+      );
+    }
+  }, [error, showToast]);
 
   if (role !== "teacher")
     return (
@@ -188,25 +190,6 @@ export default function TeacherAvailabilityPage() {
             <RefreshCw size={16} /> Refresh
           </button>
         </div>
-
-        {error && (
-          <p
-            role="alert"
-            className="mt-6 rounded-xl bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
-          >
-            {error instanceof Error
-              ? error.message
-              : error || "Unable to update availability."}
-          </p>
-        )}
-        {notice && (
-          <p
-            role="status"
-            className="mt-6 rounded-xl bg-green-500/10 p-4 text-sm text-green-800 dark:text-green-300"
-          >
-            {notice}
-          </p>
-        )}
 
         <OpenOfferInbox />
 

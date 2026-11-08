@@ -47,14 +47,13 @@ export function PhoneInput({
     value: option.code,
     label: `${option.flag}  ${option.name} (${option.dial})`,
   }));
-  const hint = error
-    ? error
-    : (hintText ??
-      (e164
-        ? `Code will be sent to ${e164}.`
-        : locked
-          ? "Enter the number without the country code."
-          : "Pick your country, then enter the number without the country code."));
+  const hint =
+    hintText ??
+    (e164
+      ? `Code will be sent to ${e164}.`
+      : locked
+        ? "Enter the number without the country code."
+        : "Pick your country, then enter the number without the country code.");
 
   return (
     <div>
@@ -96,15 +95,7 @@ export function PhoneInput({
           }`}
         />
       </div>
-      <p
-        className={`mt-2 text-xs ${
-          error
-            ? "text-red-500 dark:text-red-400"
-            : "text-foreground opacity-70"
-        }`}
-      >
-        {hint}
-      </p>
+      <p className="mt-2 text-xs text-foreground opacity-70">{hint}</p>
     </div>
   );
 }

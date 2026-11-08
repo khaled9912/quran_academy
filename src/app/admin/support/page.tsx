@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { UserPlus, UserX } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
+import { PasswordField } from "@/components/ui/password-field";
+import { ApiError } from "@/lib/backend-client";
 import {
   createSupportUser,
   deactivateManagedUser,
@@ -17,6 +20,7 @@ const inputClass =
 
 export default function AdminSupportPage() {
   const { role } = useAuth();
+  const { showToast } = useToast();
   const canManage = role === "admin" || role === "super_admin";
   const queryClient = useQueryClient();
 
@@ -29,26 +33,28 @@ export default function AdminSupportPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
 
   const createMutation = useMutation({
     mutationFn: createSupportUser,
     onSuccess: async (user) => {
-      setError("");
-      setNotice(`${user.fullName ?? user.email} can now review lessons.`);
+      showToast(
+        `${user.fullName ?? user.email} can now review lessons.`,
+        "success"
+      );
       setFullName("");
       setEmail("");
       setPassword("");
       await queryClient.invalidateQueries({ queryKey: ["support-users"] });
     },
     onError: (mutationError) => {
-      setNotice("");
-      setError(
-        mutationError instanceof Error
-          ? mutationError.message
-          : "Unable to create the support account."
-      );
+      if (!(mutationError instanceof ApiError)) {
+        showToast(
+          mutationError instanceof Error
+            ? mutationError.message
+            : "Unable to create the support account.",
+          "error"
+        );
+      }
     },
   });
 
@@ -58,32 +64,33 @@ export default function AdminSupportPage() {
         ? deactivateManagedUser(id)
         : updateManagedUser(id, { isActive: true }),
     onSuccess: async (_, variables) => {
-      setError("");
-      setNotice(
+      showToast(
         variables.isActive
           ? "Support account deactivated. Existing reviews are kept."
-          : "Support account reactivated."
+          : "Support account reactivated.",
+        "success"
       );
       await queryClient.invalidateQueries({ queryKey: ["support-users"] });
     },
     onError: (mutationError) => {
-      setNotice("");
-      setError(
-        mutationError instanceof Error
-          ? mutationError.message
-          : "Unable to change the support account."
-      );
+      if (!(mutationError instanceof ApiError)) {
+        showToast(
+          mutationError instanceof Error
+            ? mutationError.message
+            : "Unable to change the support account.",
+          "error"
+        );
+      }
     },
   });
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (createMutation.isPending) return;
-    setError("");
-    setNotice("");
     if (!fullName.trim() || !email.trim() || password.length < 8) {
-      setError(
-        "Enter a name, an email and a password of at least 8 characters."
+      showToast(
+        "Enter a name, an email and a password of at least 8 characters.",
+        "error"
       );
       return;
     }
@@ -136,10 +143,9 @@ export default function AdminSupportPage() {
               onChange={(event) => setEmail(event.target.value)}
               autoComplete="email"
             />
-            <input
+            <PasswordField
               className={inputClass}
               placeholder="Temporary password (min 8)"
-              type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               autoComplete="new-password"
@@ -153,16 +159,6 @@ export default function AdminSupportPage() {
             <UserPlus size={16} />
             {createMutation.isPending ? "Creating…" : "Create support account"}
           </button>
-          {error ? (
-            <p className="mt-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400">
-              {error}
-            </p>
-          ) : null}
-          {notice ? (
-            <p className="mt-4 rounded-xl border border-green-500/40 bg-green-500/10 px-4 py-3 text-sm text-green-700 dark:text-green-400">
-              {notice}
-            </p>
-          ) : null}
         </form>
 
         <section className="rounded-3xl border border-card-border bg-card-bg p-6">

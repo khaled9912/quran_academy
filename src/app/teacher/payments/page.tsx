@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Save, Wallet } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
+import { ApiError } from "@/lib/backend-client";
 import {
   getTeacherBilling,
   savePayoutDetails,
@@ -256,9 +258,8 @@ export default function TeacherPaymentsPage() {
 
 function PayoutForm({ billing }: { billing: TeacherBilling }) {
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
   const [form, setForm] = useState<TeacherPayoutInput>(() => toForm(billing));
-  const [notice, setNotice] = useState("");
-  const [error, setError] = useState("");
 
   const saved = toForm(billing);
   const dirty = fields.some((field) => saved[field.key] !== form[field.key]);
@@ -269,19 +270,21 @@ function PayoutForm({ billing }: { billing: TeacherBilling }) {
   const saveMutation = useMutation({
     mutationFn: () => savePayoutDetails(form),
     onSuccess: async () => {
-      setError("");
-      setNotice(
-        "Payout details saved. The academy will use them for your transfers."
+      showToast(
+        "Payout details saved. The academy will use them for your transfers.",
+        "success"
       );
       await queryClient.invalidateQueries({ queryKey: ["billing"] });
     },
     onError: (mutationError) => {
-      setNotice("");
-      setError(
-        mutationError instanceof Error
-          ? mutationError.message
-          : "Unable to save your payout details."
-      );
+      if (!(mutationError instanceof ApiError)) {
+        showToast(
+          mutationError instanceof Error
+            ? mutationError.message
+            : "Unable to save your payout details.",
+          "error"
+        );
+      }
     },
   });
 
@@ -301,7 +304,6 @@ function PayoutForm({ billing }: { billing: TeacherBilling }) {
             <input
               value={form[field.key]}
               onChange={(event) => {
-                setNotice("");
                 setForm((current) => ({
                   ...current,
                   [field.key]: event.target.value,
@@ -336,17 +338,6 @@ function PayoutForm({ billing }: { billing: TeacherBilling }) {
       {!hasAnyMethod ? (
         <p className="mt-2 text-xs text-foreground opacity-60">
           Add at least one method before saving.
-        </p>
-      ) : null}
-
-      {notice ? (
-        <p className="mt-3 rounded-xl bg-green-500/10 px-3 py-2 text-sm text-green-700 dark:text-green-400">
-          {notice}
-        </p>
-      ) : null}
-      {error ? (
-        <p className="mt-3 rounded-xl bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">
-          {error}
         </p>
       ) : null}
     </>

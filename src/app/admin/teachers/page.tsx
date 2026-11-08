@@ -10,12 +10,16 @@ import {
   updateManagedUser,
 } from "@/services/admin-user.service";
 import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
+import { PasswordField } from "@/components/ui/password-field";
+import { ApiError } from "@/lib/backend-client";
 
 const inputClass =
   "w-full rounded-xl border border-card-border bg-background px-4 py-3 text-foreground focus:outline-none focus:border-green-500";
 
 export default function AdminTeachersPage() {
   const { role } = useAuth();
+  const { showToast } = useToast();
   const canManage = role === "admin" || role === "super_admin";
   const queryClient = useQueryClient();
   const teachersQuery = useQuery({
@@ -27,8 +31,6 @@ export default function AdminTeachersPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
@@ -38,8 +40,9 @@ export default function AdminTeachersPage() {
   const createMutation = useMutation({
     mutationFn: createTeacher,
     onSuccess: async (teacher) => {
-      setNotice(
-        `${teacher.fullName ?? teacher.name ?? teacher.email} was created.`
+      showToast(
+        `${teacher.fullName ?? teacher.name ?? teacher.email} was created.`,
+        "success"
       );
       setFullName("");
       setEmail("");
@@ -47,11 +50,9 @@ export default function AdminTeachersPage() {
       await queryClient.invalidateQueries({ queryKey: ["teachers"] });
     },
     onError: (mutationError) => {
-      setError(
-        mutationError instanceof Error
-          ? mutationError.message
-          : "Unable to create the teacher."
-      );
+      if (!(mutationError instanceof ApiError)) {
+        showToast("Unable to create the teacher.", "error");
+      }
     },
   });
 
@@ -73,16 +74,14 @@ export default function AdminTeachersPage() {
         ...(password ? { password } : {}),
       }),
     onSuccess: async () => {
-      setNotice("Teacher updated.");
+      showToast("Teacher updated.", "success");
       setEditingId(null);
       await queryClient.invalidateQueries({ queryKey: ["teachers"] });
     },
     onError: (mutationError) => {
-      setError(
-        mutationError instanceof Error
-          ? mutationError.message
-          : "Unable to update the teacher."
-      );
+      if (!(mutationError instanceof ApiError)) {
+        showToast("Unable to update the teacher.", "error");
+      }
     },
   });
 
@@ -92,10 +91,11 @@ export default function AdminTeachersPage() {
         ? deactivateManagedUser(id)
         : updateManagedUser(id, { isActive: true }),
     onSuccess: async (_, variables) => {
-      setNotice(
+      showToast(
         variables.isActive
           ? "Teacher deactivated. Their assignments were removed."
-          : "Teacher reactivated."
+          : "Teacher reactivated.",
+        "success"
       );
       await queryClient.invalidateQueries({ queryKey: ["teachers"] });
       await queryClient.invalidateQueries({
@@ -103,25 +103,24 @@ export default function AdminTeachersPage() {
       });
     },
     onError: (mutationError) => {
-      setError(
-        mutationError instanceof Error
-          ? mutationError.message
-          : "Unable to change the teacher status."
-      );
+      if (!(mutationError instanceof ApiError)) {
+        showToast("Unable to change the teacher status.", "error");
+      }
     },
   });
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (createMutation.isPending) return;
-    setError("");
-    setNotice("");
     if (!fullName.trim() || !email.trim()) {
-      setError("Full name and email are required.");
+      showToast("Full name and email are required.", "error");
       return;
     }
     if (password.length < 8) {
-      setError("The temporary password must be at least 8 characters.");
+      showToast(
+        "The temporary password must be at least 8 characters.",
+        "error"
+      );
       return;
     }
     createMutation.mutate({
@@ -132,8 +131,6 @@ export default function AdminTeachersPage() {
   };
 
   const startEdit = (id: string, name: string, teacherEmail: string) => {
-    setError("");
-    setNotice("");
     setEditingId(id);
     setEditName(name);
     setEditEmail(teacherEmail);
@@ -143,14 +140,12 @@ export default function AdminTeachersPage() {
   const saveEdit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!editingId || updateMutation.isPending) return;
-    setError("");
-    setNotice("");
     if (!editName.trim() || !editEmail.trim()) {
-      setError("Full name and email are required.");
+      showToast("Full name and email are required.", "error");
       return;
     }
     if (editPassword && editPassword.length < 8) {
-      setError("A new password must be at least 8 characters.");
+      showToast("A new password must be at least 8 characters.", "error");
       return;
     }
     updateMutation.mutate({
@@ -233,9 +228,8 @@ export default function AdminTeachersPage() {
               >
                 Temporary password
               </label>
-              <input
+              <PasswordField
                 id="teacher-password"
-                type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 required
@@ -253,22 +247,6 @@ export default function AdminTeachersPage() {
               </button>
             </div>
           </form>
-          {error && (
-            <p
-              role="alert"
-              className="mt-4 rounded-xl bg-red-50 dark:bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300"
-            >
-              {error}
-            </p>
-          )}
-          {notice && (
-            <p
-              role="status"
-              className="mt-4 rounded-xl bg-green-50 dark:bg-green-500/10 p-3 text-sm text-green-800 dark:text-green-300"
-            >
-              {notice}
-            </p>
-          )}
         </section>
 
         <section>
@@ -340,9 +318,8 @@ export default function AdminTeachersPage() {
                           >
                             New password (optional)
                           </label>
-                          <input
+                          <PasswordField
                             id={`edit-password-${teacher.id}`}
-                            type="password"
                             value={editPassword}
                             onChange={(event) =>
                               setEditPassword(event.target.value)
@@ -413,8 +390,6 @@ export default function AdminTeachersPage() {
                                   "Deactivate this teacher? Their assignments and weekly times will be removed."
                                 )
                               ) {
-                                setError("");
-                                setNotice("");
                                 statusMutation.mutate({
                                   id: teacher.id,
                                   isActive: active,

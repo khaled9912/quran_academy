@@ -6,7 +6,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
   CalendarClock,
-  CheckCircle2,
   ClipboardCheck,
   Clock3,
   Loader2,
@@ -17,6 +16,7 @@ import {
 } from "lucide-react";
 import { ApiError } from "@/lib/backend-client";
 import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
 import {
   callLesson,
   cancelLesson,
@@ -99,7 +99,8 @@ const CALL_COOLDOWN_MS = 30_000;
 const CALLS_PER_LESSON = 3;
 const CALL_LEAD_MS = 15 * 60_000;
 
-// API failures already surface as a toast; keep inline text for local failures.
+// API failures already surface as a toast; only fire one for local failures
+// (an empty message is ignored by the toast provider).
 const errorMessage = (error: unknown, fallback: string) =>
   error instanceof ApiError ? "" : fallback;
 
@@ -128,26 +129,6 @@ function Section({
       </h2>
       <div className="mt-4 space-y-4 text-sm">{children}</div>
     </section>
-  );
-}
-
-function Notice({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="flex items-start gap-2 rounded-xl border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 p-3 text-sm text-green-800 dark:text-green-300">
-      <CheckCircle2 size={17} className="mt-0.5 shrink-0" />
-      {children}
-    </p>
-  );
-}
-
-function ErrorNotice({ children }: { children: React.ReactNode }) {
-  return (
-    <p
-      role="alert"
-      className="rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300"
-    >
-      {children}
-    </p>
   );
 }
 
@@ -280,10 +261,9 @@ function CancellationSection({
   role: string | null;
 }) {
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
   const [confirming, setConfirming] = useState(false);
   const [reason, setReason] = useState("");
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
   const preview = operations.cancellation;
   const record = operations.cancellationRecord;
   const isAdmin = role === "admin" || role === "super_admin";
@@ -293,8 +273,10 @@ function CancellationSection({
     onSuccess: () => {
       setConfirming(false);
       setReason("");
-      setError("");
-      setNotice("The lesson was cancelled and both sides were notified.");
+      showToast(
+        "The lesson was cancelled and both sides were notified.",
+        "success"
+      );
       void queryClient.invalidateQueries({ queryKey: ["lessons"] });
       void queryClient.invalidateQueries({
         queryKey: ["lesson-ops", lesson.id],
@@ -302,8 +284,12 @@ function CancellationSection({
       void queryClient.invalidateQueries({ queryKey: ["student", "credits"] });
     },
     onError: (failure) =>
-      setError(
-        errorMessage(failure, "Unable to cancel this lesson. Please try again.")
+      showToast(
+        errorMessage(
+          failure,
+          "Unable to cancel this lesson. Please try again."
+        ),
+        "error"
       ),
   });
 
@@ -366,7 +352,6 @@ function CancellationSection({
             {record?.reason ?? lesson.cancelReason}
           </p>
         )}
-        {notice && <Notice>{notice}</Notice>}
       </Section>
     );
   }
@@ -408,15 +393,10 @@ function CancellationSection({
               : ""}
         </p>
       )}
-      {notice && <Notice>{notice}</Notice>}
-      {error && <ErrorNotice>{error}</ErrorNotice>}
       {!confirming ? (
         <button
           type="button"
-          onClick={() => {
-            setNotice("");
-            setConfirming(true);
-          }}
+          onClick={() => setConfirming(true)}
           className="rounded-xl border border-red-300 dark:border-red-500/30 px-5 py-2.5 font-semibold text-red-700 transition hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-500/10"
         >
           {isAdmin ? "Cancel lesson as academy" : "Cancel lesson"}
@@ -425,7 +405,6 @@ function CancellationSection({
         <form
           onSubmit={(event) => {
             event.preventDefault();
-            setError("");
             mutation.mutate();
           }}
           className="space-y-3"
@@ -485,6 +464,7 @@ function RescheduleSection({
   viewerId?: string;
 }) {
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
   const [startsAt, setStartsAt] = useState(() =>
     toLocalInput(
       lesson.status === "cancelled"
@@ -493,8 +473,6 @@ function RescheduleSection({
     )
   );
   const [note, setNote] = useState("");
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
   const pending = operations.pendingReschedule;
   const isAdmin = role === "admin" || role === "super_admin";
   // A cancelled lesson is not moved, it is rebooked: the same request/accept
@@ -532,16 +510,19 @@ function RescheduleSection({
         note,
       }),
     onSuccess: () => {
-      setError("");
-      setNotice(
+      showToast(
         isMakeup
           ? "Your make-up proposal was sent. The slot is booked only when the student accepts."
-          : "Your reschedule request was sent. The lesson stays as scheduled until it is accepted."
+          : "Your reschedule request was sent. The lesson stays as scheduled until it is accepted.",
+        "success"
       );
       refresh();
     },
     onError: (failure) =>
-      setError(errorMessage(failure, "Unable to send the reschedule request.")),
+      showToast(
+        errorMessage(failure, "Unable to send the reschedule request."),
+        "error"
+      ),
   });
 
   const respondMutation = useMutation({
@@ -553,31 +534,36 @@ function RescheduleSection({
       note: string;
     }) => respondToRescheduleRequest(pending!.id, action, reply),
     onSuccess: (_, variables) => {
-      setError("");
-      setNotice(
+      showToast(
         variables.action === "accept"
           ? isMakeup
             ? "The make-up lesson is booked."
             : "The lesson was moved to the new time."
           : isMakeup
             ? "The make-up proposal was declined. Nothing was booked."
-            : "The lesson stays at its current time."
+            : "The lesson stays at its current time.",
+        "success"
       );
       refresh();
     },
     onError: (failure) =>
-      setError(errorMessage(failure, "Unable to reply to the request.")),
+      showToast(
+        errorMessage(failure, "Unable to reply to the request."),
+        "error"
+      ),
   });
 
   const withdrawMutation = useMutation({
     mutationFn: () => cancelRescheduleRequest(pending!.id),
     onSuccess: () => {
-      setError("");
-      setNotice("Your reschedule request was withdrawn.");
+      showToast("Your reschedule request was withdrawn.", "success");
       refresh();
     },
     onError: (failure) =>
-      setError(errorMessage(failure, "Unable to withdraw the request.")),
+      showToast(
+        errorMessage(failure, "Unable to withdraw the request."),
+        "error"
+      ),
   });
 
   const busy =
@@ -602,8 +588,6 @@ function RescheduleSection({
           ? "A make-up time is a proposal. Nothing is booked until the student accepts."
           : "A reschedule is a request, not a cancellation. The lesson keeps its time until the other side accepts."}
       </p>
-      {notice && <Notice>{notice}</Notice>}
-      {error && <ErrorNotice>{error}</ErrorNotice>}
 
       {pending && (
         <RescheduleCard
@@ -627,14 +611,12 @@ function RescheduleSection({
         <form
           onSubmit={(event) => {
             event.preventDefault();
-            setError("");
-            setNotice("");
             if (!proposedStart || !proposedEnd) {
-              setError("Choose a new date and time.");
+              showToast("Choose a new date and time.", "error");
               return;
             }
             if (proposedStart.getTime() <= Date.now()) {
-              setError("Choose a future time.");
+              showToast("Choose a future time.", "error");
               return;
             }
             createMutation.mutate();
@@ -797,8 +779,8 @@ function AttendanceSection({
   role: string | null;
 }) {
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
   const now = useNow(5_000);
-  const [callError, setCallError] = useState("");
   const summary = operations.attendance;
   const hours = operations.hours;
   const calls = operations.calls ?? [];
@@ -821,14 +803,16 @@ function AttendanceSection({
     mutationFn: (targetRole?: string) =>
       callLesson(lesson.id, isParticipant ? undefined : targetRole),
     onSuccess: () => {
-      setCallError("");
       void queryClient.invalidateQueries({
         queryKey: ["lesson-ops", lesson.id],
       });
       void queryClient.invalidateQueries({ queryKey: ["lesson-calls"] });
     },
     onError: (failure) =>
-      setCallError(errorMessage(failure, "The call could not be sent.")),
+      showToast(
+        errorMessage(failure, "The call could not be sent."),
+        "error"
+      ),
   });
 
   const ringable = (participant: AttendanceParticipant) =>
@@ -966,14 +950,6 @@ function AttendanceSection({
           ))}
         </div>
       )}
-      {callError && (
-        <p
-          role="status"
-          className="text-xs font-semibold text-red-600 dark:text-red-400"
-        >
-          {callError}
-        </p>
-      )}
     </Section>
   );
 }
@@ -988,10 +964,9 @@ function ExcuseSection({
   role: string | null;
 }) {
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
   const [category, setCategory] = useState("illness");
   const [explanation, setExplanation] = useState("");
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
   const outcome = lesson.cancellationOutcome;
   const eligible =
     role === "student" &&
@@ -1003,14 +978,16 @@ function ExcuseSection({
   const mutation = useMutation({
     mutationFn: () => requestExcuse(lesson.id, { category, explanation }),
     onSuccess: () => {
-      setError("");
-      setNotice("Your excuse request was sent for review.");
+      showToast("Your excuse request was sent for review.", "success");
       void queryClient.invalidateQueries({
         queryKey: ["lesson-ops", lesson.id],
       });
     },
     onError: (failure) =>
-      setError(errorMessage(failure, "Unable to send the excuse request.")),
+      showToast(
+        errorMessage(failure, "Unable to send the excuse request."),
+        "error"
+      ),
   });
 
   if (!eligible && !existing) return null;
@@ -1053,15 +1030,14 @@ function ExcuseSection({
             ask the academy to review it. An approved excuse restores the lesson
             credit.
           </p>
-          {notice && <Notice>{notice}</Notice>}
-          {error && <ErrorNotice>{error}</ErrorNotice>}
           <form
             onSubmit={(event) => {
               event.preventDefault();
-              setError("");
-              setNotice("");
               if (explanation.trim().length < 10) {
-                setError("Explain what happened in at least 10 characters.");
+                showToast(
+                  "Explain what happened in at least 10 characters.",
+                  "error"
+                );
                 return;
               }
               mutation.mutate();
@@ -1111,24 +1087,25 @@ function IncidentSection({
   role: string | null;
 }) {
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
   const [type, setType] = useState("attendance_dispute");
   const [detail, setDetail] = useState("");
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
   const existing = operations.incident;
   const canReport = role === "teacher" || role === "student";
 
   const mutation = useMutation({
     mutationFn: () => reportLessonIncident(lesson.id, { type, detail }),
     onSuccess: () => {
-      setError("");
-      setNotice("The issue was reported to the academy.");
+      showToast("The issue was reported to the academy.", "success");
       void queryClient.invalidateQueries({
         queryKey: ["lesson-ops", lesson.id],
       });
     },
     onError: (failure) =>
-      setError(errorMessage(failure, "Unable to report the issue.")),
+      showToast(
+        errorMessage(failure, "Unable to report the issue."),
+        "error"
+      ),
   });
 
   if (!canReport) return null;
@@ -1159,15 +1136,11 @@ function IncidentSection({
             If the attendance record does not match what happened, report it.
             The academy reviews every report.
           </p>
-          {notice && <Notice>{notice}</Notice>}
-          {error && <ErrorNotice>{error}</ErrorNotice>}
           <form
             onSubmit={(event) => {
               event.preventDefault();
-              setError("");
-              setNotice("");
               if (detail.trim().length < 5) {
-                setError("Describe the issue in at least 5 characters.");
+                showToast("Describe the issue in at least 5 characters.", "error");
                 return;
               }
               mutation.mutate();

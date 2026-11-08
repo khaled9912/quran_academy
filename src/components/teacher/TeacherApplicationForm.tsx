@@ -21,6 +21,7 @@ import {
 import { PhoneInput } from "@/components/ui/phone-input";
 import { submitTeacherApplication } from "@/services/teacher-application.service";
 import { ApiError } from "@/lib/backend-client";
+import { useToast } from "@/providers/toast-provider";
 
 const MAX_CV_BYTES = 2 * 1024 * 1024;
 const MAX_INTRO_BYTES = 20 * 1024 * 1024;
@@ -35,6 +36,7 @@ const DEFAULT_APPLICANT_COUNTRY: CountryCode = "EG";
 type Status = "idle" | "submitting" | "success";
 
 export function TeacherApplicationForm() {
+  const { showToast } = useToast();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -50,7 +52,6 @@ export function TeacherApplicationForm() {
   const [intro, setIntro] = useState<File | null>(null);
   const [quran, setQuran] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [submitError, setSubmitError] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const [reference, setReference] = useState("");
 
@@ -76,6 +77,7 @@ export function TeacherApplicationForm() {
         ...current,
         cv: "Upload your CV as a PDF, DOC, or DOCX file.",
       }));
+      showToast("Upload your CV as a PDF, DOC, or DOCX file.", "error");
       setCv(null);
       return;
     }
@@ -84,6 +86,7 @@ export function TeacherApplicationForm() {
         ...current,
         cv: "The CV must be 2 MB or smaller.",
       }));
+      showToast("The CV must be 2 MB or smaller.", "error");
       setCv(null);
       return;
     }
@@ -102,19 +105,23 @@ export function TeacherApplicationForm() {
       event.target.value = "";
       if (!file) return;
       if (!INTRO_PATTERN.test(file.name)) {
+        const message =
+          "Upload your recording as MP3, M4A, WAV, OGG, WebM, MP4, or MOV.";
         setErrors((current) => ({
           ...current,
-          [field]:
-            "Upload your recording as MP3, M4A, WAV, OGG, WebM, MP4, or MOV.",
+          [field]: message,
         }));
+        showToast(message, "error");
         setFile(null);
         return;
       }
       if (file.size > MAX_INTRO_BYTES) {
+        const message = "The recording must be 20 MB or smaller.";
         setErrors((current) => ({
           ...current,
-          [field]: "The recording must be 20 MB or smaller.",
+          [field]: message,
         }));
+        showToast(message, "error");
         setFile(null);
         return;
       }
@@ -167,12 +174,11 @@ export function TeacherApplicationForm() {
     const nextErrors = validate();
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
-      setSubmitError("");
+      showToast(Object.values(nextErrors)[0], "error");
       return;
     }
 
     setStatus("submitting");
-    setSubmitError("");
     setErrors({});
     try {
       const result = await submitTeacherApplication({
@@ -199,9 +205,12 @@ export function TeacherApplicationForm() {
           if (messages[0]) mapped[field] = messages[0];
         });
         setErrors(mapped);
-        setSubmitError("Please fix the highlighted fields and try again.");
+        showToast("Please fix the highlighted fields and try again.", "error");
       } else if (!(error instanceof ApiError)) {
-        setSubmitError("Unable to submit your application. Please try again.");
+        showToast(
+          "Unable to submit your application. Please try again.",
+          "error"
+        );
       }
     }
   };
@@ -228,15 +237,6 @@ export function TeacherApplicationForm() {
       noValidate
       className="rounded-3xl border border-card-border bg-card-bg p-6 sm:p-8"
     >
-      {submitError && (
-        <p
-          role="alert"
-          className="mb-6 rounded-xl border border-red-400/40 bg-red-500/10 p-4 text-sm text-red-600 dark:text-red-400"
-        >
-          {submitError}
-        </p>
-      )}
-
       <div className="grid gap-6 sm:grid-cols-2">
         <div>
           <label
@@ -254,11 +254,6 @@ export function TeacherApplicationForm() {
               errors.fullName ? "border-red-400" : ""
             }`}
           />
-          {errors.fullName && (
-            <p className="mt-2 text-xs text-red-500 dark:text-red-400">
-              {errors.fullName}
-            </p>
-          )}
         </div>
 
         <div>
@@ -273,11 +268,6 @@ export function TeacherApplicationForm() {
             autoComplete="email"
             className={`${inputClass} ${errors.email ? "border-red-400" : ""}`}
           />
-          {errors.email && (
-            <p className="mt-2 text-xs text-red-500 dark:text-red-400">
-              {errors.email}
-            </p>
-          )}
         </div>
 
         <div className="sm:col-span-2">
@@ -324,11 +314,6 @@ export function TeacherApplicationForm() {
               );
             })}
           </div>
-          {errors.subjects && (
-            <p className="mt-2 text-xs text-red-500 dark:text-red-400">
-              {errors.subjects}
-            </p>
-          )}
         </div>
 
         <div className="sm:col-span-2">
@@ -367,11 +352,6 @@ export function TeacherApplicationForm() {
               );
             })}
           </div>
-          {errors.englishLevel && (
-            <p className="mt-2 text-xs text-red-500 dark:text-red-400">
-              {errors.englishLevel}
-            </p>
-          )}
         </div>
 
         <div>
@@ -394,11 +374,6 @@ export function TeacherApplicationForm() {
               errors.experienceYears ? "border-red-400" : ""
             }`}
           />
-          {errors.experienceYears && (
-            <p className="mt-2 text-xs text-red-500 dark:text-red-400">
-              {errors.experienceYears}
-            </p>
-          )}
         </div>
 
         <div>
@@ -418,11 +393,6 @@ export function TeacherApplicationForm() {
               errors.availabilityNote ? "border-red-400" : ""
             }`}
           />
-          {errors.availabilityNote && (
-            <p className="mt-2 text-xs text-red-500 dark:text-red-400">
-              {errors.availabilityNote}
-            </p>
-          )}
         </div>
 
         <div className="sm:col-span-2">
@@ -441,15 +411,7 @@ export function TeacherApplicationForm() {
             }`}
           />
           <div className="mt-2 flex items-center justify-between text-xs opacity-70">
-            <span>
-              {errors.bio ? (
-                <span className="text-red-500 dark:text-red-400">
-                  {errors.bio}
-                </span>
-              ) : (
-                "20 to 2000 characters."
-              )}
-            </span>
+            <span>20 to 2000 characters.</span>
             <span>{bio.length}/2000</span>
           </div>
         </div>
@@ -497,11 +459,6 @@ export function TeacherApplicationForm() {
                 className="sr-only"
               />
             </label>
-          )}
-          {errors.cv && (
-            <p className="mt-2 text-xs text-red-500 dark:text-red-400">
-              {errors.cv}
-            </p>
           )}
           <p className="mt-2 text-xs opacity-60">
             Your CV is only visible to academy administrators.
@@ -554,11 +511,6 @@ export function TeacherApplicationForm() {
                 className="sr-only"
               />
             </label>
-          )}
-          {errors.intro && (
-            <p className="mt-2 text-xs text-red-500 dark:text-red-400">
-              {errors.intro}
-            </p>
           )}
           <p className="mt-2 text-xs opacity-60">
             Optional: record a 1–2 minute voice note on your phone introducing
@@ -614,11 +566,6 @@ export function TeacherApplicationForm() {
                 className="sr-only"
               />
             </label>
-          )}
-          {errors.quran && (
-            <p className="mt-2 text-xs text-red-500 dark:text-red-400">
-              {errors.quran}
-            </p>
           )}
           <p className="mt-2 text-xs opacity-60">
             Required: record 1–2 minutes of your Quran recitation and upload it

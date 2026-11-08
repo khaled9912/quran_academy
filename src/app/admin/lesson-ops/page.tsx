@@ -15,6 +15,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
 import { ApiError } from "@/lib/backend-client";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 import {
@@ -444,6 +445,7 @@ const policyFields: {
 
 function PolicyForm({ policy }: { policy: AcademyPolicy }) {
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
   const [values, setValues] = useState<Record<string, string>>(() =>
     Object.fromEntries(
       policyFields.map((field) => [field.key, String(policy[field.key])])
@@ -452,8 +454,6 @@ function PolicyForm({ policy }: { policy: AcademyPolicy }) {
   const [payScheduled, setPayScheduled] = useState(
     policy.payScheduledDurationWhenAttended
   );
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
 
   const mutation = useMutation({
     mutationFn: () => {
@@ -466,12 +466,14 @@ function PolicyForm({ policy }: { policy: AcademyPolicy }) {
       return updateLessonPolicy(payload);
     },
     onSuccess: (saved) => {
-      setError("");
-      setNotice("Policy updated.");
+      showToast("Policy updated.", "success");
       queryClient.setQueryData(["lesson-policy"], saved);
     },
-    onError: (failure) =>
-      setError(failure instanceof ApiError ? "" : "Unable to save the policy."),
+    onError: (failure) => {
+      if (!(failure instanceof ApiError)) {
+        showToast("Unable to save the policy.", "error");
+      }
+    },
   });
 
   return (
@@ -481,24 +483,9 @@ function PolicyForm({ policy }: { policy: AcademyPolicy }) {
         affects cancellations, reschedules, no-show review, and teacher hours
         immediately.
       </p>
-      {notice && (
-        <p className="mt-3 rounded-xl border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 p-3 text-sm text-green-800 dark:text-green-300">
-          {notice}
-        </p>
-      )}
-      {error && (
-        <p
-          role="alert"
-          className="mt-3 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300"
-        >
-          {error}
-        </p>
-      )}
       <form
         onSubmit={(event) => {
           event.preventDefault();
-          setError("");
-          setNotice("");
           mutation.mutate();
         }}
         className="mt-5 space-y-4"

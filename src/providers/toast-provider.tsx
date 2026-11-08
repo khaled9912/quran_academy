@@ -9,7 +9,13 @@ import {
   useRef,
   useState,
 } from "react";
-import { AlertCircle, CheckCircle2, Info, X } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Info,
+  TriangleAlert,
+  X,
+} from "lucide-react";
 import { TOAST_EVENT, type ToastTone } from "@/lib/toast";
 
 export type { ToastTone } from "@/lib/toast";
@@ -26,25 +32,31 @@ type ToastContextValue = {
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
+// Keep in sync with mobile/src/providers/toast-provider.tsx (same shape, same palette).
 const TONE_STYLES: Record<ToastTone, { icon: typeof Info; classes: string }> = {
   success: {
     icon: CheckCircle2,
     classes:
-      "border-green-600/30 bg-[#eef7f1] text-[#1d4e47] dark:border-green-500/40 dark:bg-[#12241f] dark:text-green-100",
+      "border-[#1f6b2c59] bg-[#e9f4ea] text-[#1f6b2c] dark:border-[#8fd39a66] dark:bg-[#12241f] dark:text-[#8fd39a]",
   },
   error: {
     icon: AlertCircle,
     classes:
-      "border-red-500/30 bg-[#fdf0ef] text-[#7a241d] dark:border-red-500/40 dark:bg-[#2a1513] dark:text-red-100",
+      "border-[#9a554c66] bg-[#fbefec] text-[#9a554c] dark:border-[#f0a79e66] dark:bg-[#2a1513] dark:text-[#f0a79e]",
+  },
+  warning: {
+    icon: TriangleAlert,
+    classes:
+      "border-[#9a6b1f66] bg-[#fbf3e4] text-[#9a6b1f] dark:border-[#e8c07a66] dark:bg-[#2a2113] dark:text-[#e8c07a]",
   },
   info: {
     icon: Info,
     classes:
-      "border-[#1d4e47]/20 bg-card-bg text-foreground dark:border-white/15",
+      "border-[#2d6b8659] bg-[#e8f1f5] text-[#2d6b86] dark:border-[#9cc9de59] dark:bg-[#1c3a52] dark:text-[#9cc9de]",
   },
 };
 
-const DISMISS_AFTER_MS = 6000;
+const DISMISS_AFTER_MS = 5000;
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -94,9 +106,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             <div
               key={toast.id}
               role="status"
-              className={`pointer-events-auto flex w-full max-w-md items-start gap-3 rounded-2xl border px-4 py-3 shadow-xl backdrop-blur ${classes}`}
+              className={`toast-in pointer-events-auto flex w-full max-w-[480px] items-start gap-3 rounded-2xl border px-4 py-3 shadow-xl ${classes}`}
             >
-              <Icon size={18} className="mt-0.5 shrink-0" />
+              <Icon size={20} className="shrink-0" />
               <p className="min-w-0 flex-1 text-sm font-medium leading-5">
                 {toast.message}
               </p>
@@ -106,7 +118,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                 onClick={() => dismiss(toast.id)}
                 className="shrink-0 rounded-full p-0.5 opacity-60 transition hover:opacity-100"
               >
-                <X size={15} />
+                <X size={16} />
               </button>
             </div>
           );

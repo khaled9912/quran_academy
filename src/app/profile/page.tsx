@@ -7,7 +7,6 @@ import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import type { CountryCode } from "libphonenumber-js";
 import {
   Camera,
-  CheckCircle2,
   ClipboardList,
   KeyRound,
   Loader2,
@@ -28,7 +27,9 @@ import {
   type UpdateProfileInput,
 } from "@/services/profile.service";
 import { useAuth } from "@/providers/auth-provider";
-import { changePassword } from "@/services/auth.service";
+import { useToast } from "@/providers/toast-provider";
+import { PasswordField } from "@/components/ui/password-field";
+import { changePassword, requestOtp } from "@/services/auth.service";
 import {
   lessonDateTime,
   progressClasses,
@@ -62,6 +63,7 @@ const profileFormSchema = z.object({
 
 export default function ProfilePage() {
   const { profile, updateUser } = useAuth();
+  const { showToast } = useToast();
   const parsedPhone = profile?.phoneNumber
     ? splitE164(profile.phoneNumber)
     : null;
@@ -73,30 +75,34 @@ export default function ProfilePage() {
   );
   const [phone, setPhone] = useState(parsedPhone?.national ?? "");
   const [avatarPreview, setAvatarPreview] = useState(profile?.avatarUrl ?? "");
-  const [notice, setNotice] = useState("");
-  const [formError, setFormError] = useState("");
-  const [avatarError, setAvatarError] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [passwordNotice, setPasswordNotice] = useState("");
+  const [stepUpPassword, setStepUpPassword] = useState("");
+  const [stepUpCode, setStepUpCode] = useState("");
+  const [codeSentTo, setCodeSentTo] = useState("");
+  const [sendingCode, setSendingCode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const saveMutation = useMutation({
     mutationFn: updateProfile,
     onSuccess: ({ user }) => {
       updateUser(user);
-      setNotice("Your profile has been updated.");
-      setFormError("");
+      showToast("Your profile has been updated.", "success");
+      setStepUpPassword("");
+      setStepUpCode("");
+      setCodeSentTo("");
     },
     onError: (error) => {
-      setNotice("");
-      setFormError(
-        error instanceof ApiError
-          ? ""
-          : "Unable to save your profile. Please try again."
-      );
+      if (error instanceof ApiError) {
+        if (error.status === 403)
+          showToast(
+            "We couldn't verify your identity. Check the password or code and try again.",
+            "error"
+          );
+        return;
+      }
+      showToast("Unable to save your profile. Please try again.", "error");
     },
   });
 
@@ -106,16 +112,11 @@ export default function ProfilePage() {
       const preview = `${avatarUrl}?v=${Date.now()}`;
       setAvatarPreview(preview);
       if (profile) updateUser({ ...profile, avatarUrl: preview });
-      setAvatarError("");
-      setNotice("Your profile photo has been updated.");
+      showToast("Your profile photo has been updated.", "success");
     },
     onError: (error) => {
-      setNotice("");
-      setAvatarError(
-        error instanceof ApiError
-          ? ""
-          : "Unable to upload the image. Please try again."
-      );
+      if (!(error instanceof ApiError))
+        showToast("Unable to upload the image. Please try again.", "error");
     },
   });
 
@@ -124,16 +125,11 @@ export default function ProfilePage() {
     onSuccess: () => {
       setAvatarPreview("");
       if (profile) updateUser({ ...profile, avatarUrl: null });
-      setAvatarError("");
-      setNotice("Your profile photo has been removed.");
+      showToast("Your profile photo has been removed.", "success");
     },
     onError: (error) => {
-      setNotice("");
-      setAvatarError(
-        error instanceof ApiError
-          ? ""
-          : "Unable to remove the image. Please try again."
-      );
+      if (!(error instanceof ApiError))
+        showToast("Unable to remove the image. Please try again.", "error");
     },
   });
 
@@ -149,18 +145,14 @@ export default function ProfilePage() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      setPasswordError("");
-      setPasswordNotice(
-        "Your password has been changed. Other devices were signed out."
+      showToast(
+        "Your password has been changed. Other devices were signed out.",
+        "success"
       );
     },
     onError: (error) => {
-      setPasswordNotice("");
-      setPasswordError(
-        error instanceof ApiError
-          ? ""
-          : "Unable to change your password. Please try again."
-      );
+      if (!(error instanceof ApiError))
+        showToast("Unable to change your password. Please try again.", "error");
     },
   });
 
@@ -189,15 +181,25 @@ export default function ProfilePage() {
   const hasStoredEmail = Boolean(profile.email);
   const hasStoredPhone = Boolean(profile.phoneNumber);
 
+  // Rebinding a sign-in identifier needs step-up proof, so the API demands a
+  // current password or a code to the number already on the account.
+  const typedEmail = email.trim().toLowerCase();
+  const typedPhoneE164 = phone.trim() ? toE164(phone, country) : null;
+  const emailChanged =
+    Boolean(typedEmail) &&
+    typedEmail !== (profile.email ?? "").trim().toLowerCase();
+  const phoneChanged =
+    Boolean(typedPhoneE164) && typedPhoneE164 !== (profile.phoneNumber ?? "");
+  const needsStepUp = emailChanged || phoneChanged;
+
   const handleFileChange = (file: File | undefined) => {
-    setAvatarError("");
     if (!file) return;
     if (!ALLOWED_TYPES.includes(file.type)) {
-      setAvatarError("Choose a PNG, JPEG, or WebP image.");
+      showToast("Choose a PNG, JPEG, or WebP image.", "error");
       return;
     }
     if (file.size > MAX_AVATAR_BYTES) {
-      setAvatarError("Choose an image under 2 MB.");
+      showToast("Choose an image under 2 MB.", "error");
       return;
     }
     uploadMutation.mutate(file);
@@ -205,14 +207,12 @@ export default function ProfilePage() {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setNotice("");
-    setFormError("");
 
     const trimmedName = fullName.trim();
     const trimmedEmail = email.trim();
 
     if (hasStoredEmail && !trimmedEmail) {
-      setFormError("Enter the email address for your account.");
+      showToast("Enter the email address for your account.", "error");
       return;
     }
 
@@ -222,7 +222,10 @@ export default function ProfilePage() {
     });
 
     if (!parsed.success) {
-      setFormError(parsed.error.issues[0]?.message ?? "Please fix the form.");
+      showToast(
+        parsed.error.issues[0]?.message ?? "Please fix the form.",
+        "error"
+      );
       return;
     }
 
@@ -233,35 +236,61 @@ export default function ProfilePage() {
     if (typedPhone || hasStoredPhone) {
       const e164 = toE164(typedPhone, country);
       if (!e164) {
-        setFormError("Enter a valid mobile number for the selected country.");
+        showToast(
+          "Enter a valid mobile number for the selected country.",
+          "error"
+        );
         return;
       }
       input.phoneNumber = e164;
     }
 
+    if (needsStepUp) {
+      if (!stepUpPassword.trim() && !stepUpCode.trim()) {
+        showToast(
+          "Confirm your identity with your current password or a code sent to your mobile.",
+          "error"
+        );
+        return;
+      }
+      if (stepUpPassword.trim()) input.currentPassword = stepUpPassword;
+      if (stepUpCode.trim()) input.phoneCode = stepUpCode.trim();
+    }
+
     saveMutation.mutate(input);
+  };
+
+  const handleSendStepUpCode = async () => {
+    if (!profile.phoneNumber || sendingCode) return;
+    setSendingCode(true);
+    try {
+      await requestOtp(profile.phoneNumber);
+      setCodeSentTo(profile.phoneNumber);
+    } catch {
+      showToast("Unable to send the code. Please try again.", "error");
+    } finally {
+      setSendingCode(false);
+    }
   };
 
   const handlePasswordSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (passwordMutation.isPending) return;
-    setPasswordError("");
-    setPasswordNotice("");
 
     if (!currentPassword) {
-      setPasswordError("Enter your current password.");
+      showToast("Enter your current password.", "error");
       return;
     }
     if (newPassword.length < 8) {
-      setPasswordError("Choose a new password of at least 8 characters.");
+      showToast("Choose a new password of at least 8 characters.", "error");
       return;
     }
     if (newPassword !== confirmPassword) {
-      setPasswordError("The new passwords do not match.");
+      showToast("The new passwords do not match.", "error");
       return;
     }
     if (newPassword === currentPassword) {
-      setPasswordError("Choose a password different from your current one.");
+      showToast("Choose a password different from your current one.", "error");
       return;
     }
 
@@ -350,14 +379,6 @@ export default function ProfilePage() {
               <p className="text-xs text-foreground opacity-60">
                 PNG, JPEG, or WebP. Up to 2 MB.
               </p>
-              {avatarError && (
-                <p
-                  role="alert"
-                  className="text-sm text-red-600 dark:text-red-400"
-                >
-                  {avatarError}
-                </p>
-              )}
             </div>
           </section>
 
@@ -436,22 +457,71 @@ export default function ProfilePage() {
                 </p>
               </div>
 
-              {notice && (
-                <p
-                  role="status"
-                  className="flex items-start gap-2 rounded-xl border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 p-4 text-sm text-green-800 dark:text-green-300"
-                >
-                  <CheckCircle2 size={18} className="mt-0.5 shrink-0" />
-                  {notice}
-                </p>
-              )}
-              {formError && (
-                <p
-                  role="alert"
-                  className="rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
-                >
-                  {formError}
-                </p>
+              {needsStepUp && (
+                <div className="rounded-2xl border border-amber-200 dark:border-amber-500/30 bg-amber-500/10 p-4">
+                  <p className="text-sm font-bold uppercase tracking-[.14em] text-amber-700 dark:text-amber-300">
+                    Confirm it's you
+                  </p>
+                  <p className="mt-1 text-sm text-foreground opacity-75">
+                    {emailChanged && phoneChanged
+                      ? "You changed both your email and mobile number."
+                      : emailChanged
+                        ? "You changed your email address."
+                        : "You changed your mobile number."}{" "}
+                    Verify with your current password, or a code sent to the
+                    number already on your account.
+                  </p>
+                  <label
+                    htmlFor="stepup-password"
+                    className="mt-3 block text-sm font-semibold"
+                  >
+                    Current password
+                  </label>
+                  <PasswordField
+                    id="stepup-password"
+                    value={stepUpPassword}
+                    onChange={(event) => setStepUpPassword(event.target.value)}
+                    autoComplete="current-password"
+                    className={`${inputClass} mt-2`}
+                  />
+                  {hasStoredPhone && (
+                    <div className="mt-3">
+                      <button
+                        type="button"
+                        onClick={() => void handleSendStepUpCode()}
+                        disabled={sendingCode || busy}
+                        className="inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2.5 text-sm font-semibold transition hover:border-green-500 disabled:opacity-50"
+                      >
+                        {sendingCode && (
+                          <Loader2 size={16} className="animate-spin" />
+                        )}
+                        {sendingCode
+                          ? "Sending…"
+                          : `Send code to ${profile.phoneNumber}`}
+                      </button>
+                      {codeSentTo && (
+                        <>
+                          <label
+                            htmlFor="stepup-code"
+                            className="mt-3 block text-sm font-semibold"
+                          >
+                            Code sent to {codeSentTo}
+                          </label>
+                          <input
+                            id="stepup-code"
+                            inputMode="numeric"
+                            autoComplete="one-time-code"
+                            value={stepUpCode}
+                            onChange={(event) =>
+                              setStepUpCode(event.target.value)
+                            }
+                            className={`${inputClass} mt-2`}
+                          />
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
 
               <button
@@ -492,9 +562,8 @@ export default function ProfilePage() {
               >
                 Current password
               </label>
-              <input
+              <PasswordField
                 id="current-password"
-                type="password"
                 value={currentPassword}
                 onChange={(event) => setCurrentPassword(event.target.value)}
                 autoComplete="current-password"
@@ -509,9 +578,8 @@ export default function ProfilePage() {
               >
                 New password
               </label>
-              <input
+              <PasswordField
                 id="new-password"
-                type="password"
                 value={newPassword}
                 onChange={(event) => setNewPassword(event.target.value)}
                 autoComplete="new-password"
@@ -527,9 +595,8 @@ export default function ProfilePage() {
               >
                 Confirm new password
               </label>
-              <input
+              <PasswordField
                 id="confirm-password"
-                type="password"
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
                 autoComplete="new-password"
@@ -544,24 +611,6 @@ export default function ProfilePage() {
                 At least 8 characters, including a number and a lowercase
                 letter.
               </p>
-
-              {passwordNotice && (
-                <p
-                  role="status"
-                  className="mt-4 flex items-start gap-2 rounded-xl border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 p-4 text-sm text-green-800 dark:text-green-300"
-                >
-                  <CheckCircle2 size={18} className="mt-0.5 shrink-0" />
-                  {passwordNotice}
-                </p>
-              )}
-              {passwordError && (
-                <p
-                  role="alert"
-                  className="mt-4 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
-                >
-                  {passwordError}
-                </p>
-              )}
 
               <button
                 type="submit"

@@ -18,6 +18,9 @@ export interface UpdateProfileInput {
   fullName?: string;
   email?: string;
   phoneNumber?: string;
+  /** Step-up proof, required by the API whenever email or mobile changes. */
+  currentPassword?: string;
+  phoneCode?: string;
 }
 
 export const updateProfile = (input: UpdateProfileInput) =>
