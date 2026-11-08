@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Menu from "./Menu";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/providers/auth-provider";
@@ -13,6 +13,8 @@ import { NotificationsBell } from "@/components/NotificationsBell";
 const Navbar = () => {
   const { role, profile, logout, isAuthenticated } = useAuth();
   const pathname = usePathname();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreWrapper = useRef<HTMLDivElement>(null);
   const displayName =
     profile?.fullName ?? profile?.full_name ?? role?.replace("_", " ") ?? "";
 
@@ -28,6 +30,31 @@ const Navbar = () => {
     isAuthenticated && role && navigationConfig[role]
       ? navigationConfig[role]
       : navigationConfig.anonymous;
+
+  const moreLinks = links.filter((link) => link.inMore);
+  const inlineLinks = links.filter((link) => !link.inMore);
+  const moreActive = moreLinks.some((link) => isActiveLink(link.href));
+
+  useEffect(() => {
+    setMoreOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!moreOpen) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!moreWrapper.current?.contains(event.target as Node))
+        setMoreOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMoreOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [moreOpen]);
 
   return (
     <div className="navbar bg-[var(--navbar-bg)] text-[var(--navbar-text)] backdrop-blur">
@@ -91,7 +118,7 @@ const Navbar = () => {
           </Link>
 
           <div className="hidden items-center gap-2 text-sm font-medium md:flex">
-            {links.map((link) => {
+            {inlineLinks.map((link) => {
               const active = isActiveLink(link.href);
 
               return (
@@ -100,7 +127,7 @@ const Navbar = () => {
                   href={link.href}
                   aria-current={active ? "page" : undefined}
                   className={[
-                    "rounded-full px-3 py-1.5 transition-colors",
+                    "shrink-0 rounded-full px-3 py-1.5 transition-colors",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--navbar-text)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--navbar-bg)]",
                     active
                       ? "bg-[var(--nav-active-bg)] font-semibold text-[var(--nav-active-text)]"
@@ -111,10 +138,56 @@ const Navbar = () => {
                 </Link>
               );
             })}
+
+            {moreLinks.length ? (
+              <div ref={moreWrapper} className="relative shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setMoreOpen((open) => !open)}
+                  aria-expanded={moreOpen}
+                  aria-haspopup="true"
+                  className={[
+                    "shrink-0 rounded-full px-3 py-1.5 transition-colors",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--navbar-text)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--navbar-bg)]",
+                    moreActive
+                      ? "bg-[var(--nav-active-bg)] font-semibold text-[var(--nav-active-text)]"
+                      : "text-[var(--nav-text-muted)] hover:bg-[var(--nav-hover-bg)] hover:text-[var(--navbar-text)]",
+                  ].join(" ")}
+                >
+                  More
+                </button>
+
+                {moreOpen ? (
+                  <ul className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-2xl border border-card-border bg-card-bg py-1.5 text-sm shadow-2xl">
+                    {moreLinks.map((link) => {
+                      const active = isActiveLink(link.href);
+
+                      return (
+                        <li key={link.href}>
+                          <Link
+                            href={link.href}
+                            onClick={() => setMoreOpen(false)}
+                            aria-current={active ? "page" : undefined}
+                            className={[
+                              "block px-4 py-2.5 transition-colors",
+                              active
+                                ? "bg-[var(--nav-active-bg)] font-semibold text-[var(--nav-active-text)]"
+                                : "text-[var(--nav-text-muted)] hover:bg-[var(--nav-hover-bg)] hover:text-[var(--navbar-text)]",
+                            ].join(" ")}
+                          >
+                            {link.label}
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           <ThemeToggle className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-[var(--toggle-bg)] text-[var(--toggle-icon)] shadow-sm" />
           <NotificationsBell />
 
