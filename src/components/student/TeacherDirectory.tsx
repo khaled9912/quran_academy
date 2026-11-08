@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarDays } from "lucide-react";
 import {
@@ -10,6 +11,7 @@ import {
 import { Avatar } from "@/components/ui/avatar";
 import { StarRating } from "@/components/ui/star-rating";
 import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 import { WEEKDAY_SHORT } from "@/lib/utils";
 import { TimeZoneNote } from "@/components/student/TimeZoneNote";
@@ -21,6 +23,7 @@ interface TeacherDirectoryProps {
 
 export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
   const { role } = useAuth();
+  const { showToast } = useToast();
   const enabled = role === "student";
   const viewerTimeZone = getViewerTimeZone();
 
@@ -46,6 +49,17 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
   const error = directoryQuery.error ?? assignedQuery.error;
   const loading = directoryQuery.isLoading || assignedQuery.isLoading;
 
+  useEffect(() => {
+    if (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Unable to load the teacher list.",
+        "error"
+      );
+    }
+  }, [error, showToast]);
+
   return (
     <section className="rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -70,17 +84,6 @@ export function TeacherDirectory({ compact = false }: TeacherDirectoryProps) {
           </Link>
         )}
       </div>
-
-      {error && (
-        <p
-          role="alert"
-          className="mt-5 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
-        >
-          {error instanceof Error
-            ? error.message
-            : "Unable to load the teacher list."}
-        </p>
-      )}
 
       {loading ? (
         <p className="mt-6 text-sm text-foreground opacity-70">

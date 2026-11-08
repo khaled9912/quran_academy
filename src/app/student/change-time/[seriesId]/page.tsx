@@ -12,6 +12,7 @@ import {
   requestTimeChange,
 } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
 import { ApiError } from "@/lib/backend-client";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 import { TimeZoneNote } from "@/components/student/TimeZoneNote";
@@ -29,12 +30,11 @@ export default function ChangeWeeklyTimePage() {
   const seriesId = params?.seriesId ?? "";
   const router = useRouter();
   const { role } = useAuth();
+  const { showToast } = useToast();
   const queryClient = useQueryClient();
   const viewerTimeZone = getViewerTimeZone();
   const [selected, setSelected] = useState<string | null>(null);
   const [note, setNote] = useState("");
-  const [notice, setNotice] = useState("");
-  const [formError, setFormError] = useState("");
 
   const seriesQuery = useQuery({
     queryKey: ["series"],
@@ -83,9 +83,9 @@ export default function ChangeWeeklyTimePage() {
         ? requestTimeChange(series.id, ruleId, note)
         : Promise.reject(new Error("This weekly time no longer exists.")),
     onSuccess: async () => {
-      setFormError("");
-      setNotice(
-        "Your weekly time is changed. Your upcoming lessons are on the new time now."
+      showToast(
+        "Your weekly time is changed. Your upcoming lessons are on the new time now.",
+        "success"
       );
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["change-requests"] }),
@@ -97,12 +97,8 @@ export default function ChangeWeeklyTimePage() {
       setNote("");
     },
     onError: (error) => {
-      setNotice("");
-      setFormError(
-        error instanceof ApiError
-          ? ""
-          : "Unable to send the request. Please try again."
-      );
+      if (!(error instanceof ApiError))
+        showToast("Unable to send the request. Please try again.", "error");
     },
   });
 
@@ -121,14 +117,13 @@ export default function ChangeWeeklyTimePage() {
       router.push("/student/availability");
     },
     onError: (error) => {
-      setNotice("");
-      setFormError(
-        error instanceof ApiError
-          ? ""
-          : error instanceof Error
+      if (!(error instanceof ApiError))
+        showToast(
+          error instanceof Error
             ? error.message
-            : "Unable to end the weekly time. Please try again."
-      );
+            : "Unable to end the weekly time. Please try again.",
+          "error"
+        );
     },
   });
 
@@ -140,8 +135,6 @@ export default function ChangeWeeklyTimePage() {
       )
     )
       return;
-    setFormError("");
-    setNotice("");
     endSeries.mutate();
   };
 
@@ -183,23 +176,6 @@ export default function ChangeWeeklyTimePage() {
             <RefreshCw size={16} /> Refresh
           </button>
         </div>
-
-        {notice && (
-          <p
-            role="status"
-            className="mt-6 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-sm text-green-800 dark:text-green-300"
-          >
-            {notice}
-          </p>
-        )}
-        {formError && (
-          <p
-            role="alert"
-            className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
-          >
-            {formError}
-          </p>
-        )}
 
         {seriesQuery.isLoading ? (
           <p className="mt-8 text-foreground/70">Loading your weekly time…</p>
@@ -361,8 +337,6 @@ export default function ChangeWeeklyTimePage() {
                   type="button"
                   disabled={!selected || submit.isPending}
                   onClick={() => {
-                    setFormError("");
-                    setNotice("");
                     if (selected) submit.mutate(selected);
                   }}
                   className="mt-4 w-full rounded-xl bg-[#1c5145] px-4 py-3 font-semibold text-white transition hover:bg-[#163f36] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-green-600 dark:hover:bg-green-500"

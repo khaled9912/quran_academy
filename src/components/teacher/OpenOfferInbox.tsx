@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { BellRing, Check, RefreshCw } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -9,6 +8,7 @@ import {
   getTeacherOpenOffers,
 } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
 import { ApiError } from "@/lib/backend-client";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 import type { OpenStudentOffer } from "@/types/scheduling";
@@ -33,9 +33,8 @@ const formatOfferRange = (startsAt: string, endsAt: string) => {
 
 export function OpenOfferInbox() {
   const { role } = useAuth();
+  const { showToast } = useToast();
   const queryClient = useQueryClient();
-  const [notice, setNotice] = useState("");
-  const [acceptError, setAcceptError] = useState("");
 
   const offersQuery = useQuery({
     queryKey: ["open-offers", "teacher"],
@@ -71,18 +70,31 @@ export function OpenOfferInbox() {
   const acceptMutation = useMutation({
     mutationFn: (offerId: string) => acceptOpenOffer(offerId),
     onSuccess: async (result) => {
-      setAcceptError("");
       const student = result.offer?.studentName ?? "the student";
-      setNotice(`Booked ${student}. The lesson is now on your schedule.`);
-      await invalidate();
-    },
-    onError: async (error) => {
-      setAcceptError(
-        error instanceof ApiError ? "" : "This time is no longer available."
+      showToast(
+        `Booked ${student}. The lesson is now on your schedule.`,
+        "success"
       );
       await invalidate();
     },
+    onError: async (error) => {
+      if (!(error instanceof ApiError)) {
+        showToast("This time is no longer available.", "error");
+      }
+      await invalidate();
+    },
   });
+
+  useEffect(() => {
+    if (offersQuery.error) {
+      showToast(
+        offersQuery.error instanceof Error
+          ? offersQuery.error.message
+          : "Unable to load student offers.",
+        "error"
+      );
+    }
+  }, [offersQuery.error, showToast]);
 
   const accept = (offer: OpenStudentOffer) => {
     if (
@@ -93,13 +105,9 @@ export function OpenOfferInbox() {
         )}? It will be booked on your schedule right away.`
       )
     ) {
-      setNotice("");
-      setAcceptError("");
       acceptMutation.mutate(offer.id);
     }
   };
-
-  const error = acceptError || offersQuery.error;
 
   return (
     <section className="mt-8 rounded-3xl border border-card-border bg-card-bg p-6 shadow-sm">
@@ -125,28 +133,6 @@ export function OpenOfferInbox() {
           <RefreshCw size={15} /> Refresh
         </button>
       </div>
-
-      {error && (
-        <p
-          role="alert"
-          className="mt-5 rounded-xl bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
-        >
-          {error instanceof Error
-            ? error.message
-            : error || "Unable to load student offers."}
-        </p>
-      )}
-      {notice && (
-        <p
-          role="status"
-          className="mt-5 rounded-xl bg-green-500/10 p-4 text-sm text-green-800 dark:text-green-300"
-        >
-          {notice}{" "}
-          <Link href="/schedule" className="font-semibold underline">
-            Open schedule
-          </Link>
-        </p>
-      )}
 
       <div className="mt-5 space-y-3">
         {offersQuery.isLoading ? (

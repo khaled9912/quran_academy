@@ -16,6 +16,10 @@ const PUBLIC_PATHS = [
   "/registration-unavailable",
 ];
 const AUTH_PATHS = ["/login", "/signup", "/register", "/forgot-password"];
+// Any signed-in role may open these; the API decides what each one sees. The
+// lesson room is joined by teachers and students, and staff may enter as
+// support, so the role gate below must not bounce them to a dashboard.
+const ANY_ROLE_PATHS = [/^\/lesson(\/|$)/];
 const REGISTRATION_PATHS = ["/signup", "/register"];
 const REGISTRATION_API_PATHS = ["/api/auth/register", "/api/auth/otp/verify"];
 
@@ -116,7 +120,16 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  // 4. Validate role-based path access
+  // Shared pages are open to every signed-in role, even before the client has
+  // written the routing cookie.
+  if (ANY_ROLE_PATHS.some((pattern) => pattern.test(pathname))) {
+    return NextResponse.next();
+  }
+
+  // 3. Role routing. The user-role cookie is written by client code, so it can
+  // be forged — this only decides which dashboard to land on. Every page below
+  // fetches from the API, which authenticates the session cookie and enforces
+  // the role policy; do not treat this block as an access control.
   if (role) {
     const allowedPatterns = ROLE_PATHS[role];
     if (
@@ -157,6 +170,7 @@ export const config = {
     "/teachers",
     "/teachers/:path*",
     "/schedule",
+    "/lesson/:path*",
     "/login",
     "/signup",
     "/register",

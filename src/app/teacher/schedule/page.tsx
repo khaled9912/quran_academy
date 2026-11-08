@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarDays, RefreshCw } from "lucide-react";
 import { cancelLesson, getLessons } from "@/services/lesson.service";
 import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
 import {
   isLessonJoinable,
   isLessonLive,
@@ -48,9 +49,8 @@ const cancellationLabels: Record<string, string> = {
 
 export default function TeacherSchedulePage() {
   const { role } = useAuth();
+  const { showToast } = useToast();
   const queryClient = useQueryClient();
-  const [notice, setNotice] = useState("");
-  const [error, setError] = useState("");
   const [filter, setFilter] = useState<ReportFilter>("all");
 
   useEffect(() => {
@@ -71,18 +71,20 @@ export default function TeacherSchedulePage() {
     mutationFn: (id: string) => cancelLesson(id),
     onSuccess: async (result) => {
       const outcome = result?.preview?.outcome;
-      setNotice(
+      showToast(
         outcome === "late_cancelled_by_teacher"
           ? "Lesson cancelled. The academy was notified for review and the student's credit was restored."
-          : "Lesson cancelled. The student was notified and their lesson credit was restored."
+          : "Lesson cancelled. The student was notified and their lesson credit was restored.",
+        "success"
       );
       await queryClient.invalidateQueries({ queryKey: ["lessons"] });
     },
     onError: (mutationError) => {
-      setError(
+      showToast(
         mutationError instanceof Error
           ? mutationError.message
-          : "Unable to cancel this lesson."
+          : "Unable to cancel this lesson.",
+        "error"
       );
     },
   });
@@ -161,23 +163,6 @@ export default function TeacherSchedulePage() {
             </button>
           </div>
         </div>
-
-        {error && (
-          <p
-            role="alert"
-            className="mb-6 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
-          >
-            {error}
-          </p>
-        )}
-        {notice && (
-          <p
-            role="status"
-            className="mb-6 rounded-xl border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 p-4 text-sm text-green-800 dark:text-green-300"
-          >
-            {notice}
-          </p>
-        )}
 
         {lessonsQuery.isError && (
           <p
@@ -341,8 +326,6 @@ export default function TeacherSchedulePage() {
                           {cancellable && (
                             <button
                               onClick={() => {
-                                setError("");
-                                setNotice("");
                                 if (
                                   window.confirm(
                                     "Cancel this lesson? The academy cancellation policy applies and the student is notified. Late cancellations are reviewed and restore one lesson credit."

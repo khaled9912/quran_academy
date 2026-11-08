@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { CheckCircle2, Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
 import { ApiError } from "@/lib/backend-client";
+import { useToast } from "@/providers/toast-provider";
 import {
   adjustStudentCredits,
   approveExcuseRequest,
@@ -48,29 +49,10 @@ const time = (value: string) =>
     hour12: true,
   });
 
-// API failures already surface as a toast; keep inline text for local failures.
+// API failures already surface as a toast; only fire one for local failures
+// (an empty message is ignored by the toast provider).
 const errorMessage = (error: unknown, fallback: string) =>
   error instanceof ApiError ? "" : fallback;
-
-function ErrorNotice({ children }: { children: React.ReactNode }) {
-  return (
-    <p
-      role="alert"
-      className="rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300"
-    >
-      {children}
-    </p>
-  );
-}
-
-function Notice({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="flex items-start gap-2 rounded-xl border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 p-3 text-sm text-green-800 dark:text-green-300">
-      <CheckCircle2 size={16} className="mt-0.5 shrink-0" />
-      {children}
-    </p>
-  );
-}
 
 export function AttendanceList({
   attendance,
@@ -150,10 +132,9 @@ export function HoursReview({
   hours: TeacherHours;
   onChanged: () => void;
 }) {
+  const { showToast } = useToast();
   const [minutes, setMinutes] = useState(String(hours.proposedPayableMinutes));
   const [note, setNote] = useState("");
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
 
   const approve = useMutation({
     mutationFn: () =>
@@ -162,22 +143,26 @@ export function HoursReview({
         note,
       }),
     onSuccess: () => {
-      setError("");
-      setNotice("Hours approved.");
+      showToast("Hours approved.", "success");
       onChanged();
     },
     onError: (failure) =>
-      setError(errorMessage(failure, "Unable to approve these hours.")),
+      showToast(
+        errorMessage(failure, "Unable to approve these hours."),
+        "error"
+      ),
   });
   const reject = useMutation({
     mutationFn: () => rejectTeacherHours(hours.id, note),
     onSuccess: () => {
-      setError("");
-      setNotice("Hours rejected.");
+      showToast("Hours rejected.", "success");
       onChanged();
     },
     onError: (failure) =>
-      setError(errorMessage(failure, "Unable to reject these hours.")),
+      showToast(
+        errorMessage(failure, "Unable to reject these hours."),
+        "error"
+      ),
   });
   const busy = approve.isPending || reject.isPending;
 
@@ -220,16 +205,6 @@ export function HoursReview({
           <dd>{hours.approvedPayableMinutes ?? "—"}</dd>
         </div>
       </dl>
-      {notice && (
-        <div className="mt-3">
-          <Notice>{notice}</Notice>
-        </div>
-      )}
-      {error && (
-        <div className="mt-3">
-          <ErrorNotice>{error}</ErrorNotice>
-        </div>
-      )}
       <div className="mt-3 flex flex-wrap items-end gap-2">
         <label className="block w-28">
           <span className="mb-1 block text-xs font-semibold">Minutes</span>
@@ -290,11 +265,10 @@ export function IncidentReview({
   incident: LessonIncident;
   onChanged: () => void;
 }) {
+  const { showToast } = useToast();
   const [action, setAction] = useState("student_no_show");
   const [note, setNote] = useState("");
   const [payable, setPayable] = useState("");
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -308,12 +282,14 @@ export function IncidentReview({
         teacherPayableMinutes: payable ? Number(payable) : undefined,
       }),
     onSuccess: () => {
-      setError("");
-      setNotice("Incident resolved.");
+      showToast("Incident resolved.", "success");
       onChanged();
     },
     onError: (failure) =>
-      setError(errorMessage(failure, "Unable to resolve this incident.")),
+      showToast(
+        errorMessage(failure, "Unable to resolve this incident."),
+        "error"
+      ),
   });
 
   const resolved = incident.status !== "open";
@@ -342,16 +318,6 @@ export function IncidentReview({
       )}
       {!resolved && (
         <>
-          {notice && (
-            <div className="mt-3">
-              <Notice>{notice}</Notice>
-            </div>
-          )}
-          {error && (
-            <div className="mt-3">
-              <ErrorNotice>{error}</ErrorNotice>
-            </div>
-          )}
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <SelectField
               value={action}
@@ -403,29 +369,32 @@ export function ExcuseReview({
   excuse: ExcuseRequest;
   onChanged: () => void;
 }) {
+  const { showToast } = useToast();
   const [note, setNote] = useState("");
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
 
   const approve = useMutation({
     mutationFn: () => approveExcuseRequest(excuse.id, note),
     onSuccess: () => {
-      setError("");
-      setNotice("Excuse approved. The student credit was restored.");
+      showToast("Excuse approved. The student credit was restored.", "success");
       onChanged();
     },
     onError: (failure) =>
-      setError(errorMessage(failure, "Unable to approve this excuse.")),
+      showToast(
+        errorMessage(failure, "Unable to approve this excuse."),
+        "error"
+      ),
   });
   const reject = useMutation({
     mutationFn: () => rejectExcuseRequest(excuse.id, note),
     onSuccess: () => {
-      setError("");
-      setNotice("Excuse rejected.");
+      showToast("Excuse rejected.", "success");
       onChanged();
     },
     onError: (failure) =>
-      setError(errorMessage(failure, "Unable to reject this excuse.")),
+      showToast(
+        errorMessage(failure, "Unable to reject this excuse."),
+        "error"
+      ),
   });
   const busy = approve.isPending || reject.isPending;
   const pending = excuse.status === "pending";
@@ -453,16 +422,6 @@ export function ExcuseReview({
       )}
       {pending && (
         <>
-          {notice && (
-            <div className="mt-3">
-              <Notice>{notice}</Notice>
-            </div>
-          )}
-          {error && (
-            <div className="mt-3">
-              <ErrorNotice>{error}</ErrorNotice>
-            </div>
-          )}
           <div className="mt-3 flex flex-wrap gap-2">
             <input
               value={note}
@@ -506,10 +465,9 @@ export function CreditAdjust({
   balance?: number;
   onChanged: () => void;
 }) {
+  const { showToast } = useToast();
   const [amount, setAmount] = useState("1");
   const [reason, setReason] = useState("");
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -518,13 +476,12 @@ export function CreditAdjust({
         reason,
       }),
     onSuccess: () => {
-      setError("");
       setReason("");
-      setNotice("Credit adjustment saved.");
+      showToast("Credit adjustment saved.", "success");
       onChanged();
     },
     onError: (failure) =>
-      setError(errorMessage(failure, "Unable to adjust credits.")),
+      showToast(errorMessage(failure, "Unable to adjust credits."), "error"),
   });
 
   return (
@@ -532,16 +489,6 @@ export function CreditAdjust({
       <p className="font-semibold">
         Student credits{balance != null ? ` · balance ${balance}` : ""}
       </p>
-      {notice && (
-        <div className="mt-2">
-          <Notice>{notice}</Notice>
-        </div>
-      )}
-      {error && (
-        <div className="mt-2">
-          <ErrorNotice>{error}</ErrorNotice>
-        </div>
-      )}
       <div className="mt-2 flex flex-wrap gap-2">
         <input
           type="number"
@@ -582,10 +529,9 @@ export function PenaltyCreate({
   lessonId?: string;
   onChanged: () => void;
 }) {
+  const { showToast } = useToast();
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -597,29 +543,24 @@ export function PenaltyCreate({
         reason,
       }),
     onSuccess: () => {
-      setError("");
       setAmount("");
       setReason("");
-      setNotice("Penalty proposed. It is not deducted until it is approved.");
+      showToast(
+        "Penalty proposed. It is not deducted until it is approved.",
+        "success"
+      );
       onChanged();
     },
     onError: (failure) =>
-      setError(errorMessage(failure, "Unable to create the penalty.")),
+      showToast(
+        errorMessage(failure, "Unable to create the penalty."),
+        "error"
+      ),
   });
 
   return (
     <div className="rounded-xl border border-card-border bg-background p-3 text-sm">
       <p className="font-semibold">Propose a teacher penalty</p>
-      {notice && (
-        <div className="mt-2">
-          <Notice>{notice}</Notice>
-        </div>
-      )}
-      {error && (
-        <div className="mt-2">
-          <ErrorNotice>{error}</ErrorNotice>
-        </div>
-      )}
       <div className="mt-2 flex flex-wrap gap-2">
         <input
           type="number"
@@ -659,15 +600,18 @@ export function PenaltyReview({
   penalty: TeacherPenalty;
   onChanged: () => void;
 }) {
+  const { showToast } = useToast();
   const [note, setNote] = useState("");
-  const [error, setError] = useState("");
 
   const review = useMutation({
     mutationFn: (status: "approved" | "rejected") =>
       reviewTeacherPenalty(penalty.id, { status, note }),
     onSuccess: onChanged,
     onError: (failure) =>
-      setError(errorMessage(failure, "Unable to review the penalty.")),
+      showToast(
+        errorMessage(failure, "Unable to review the penalty."),
+        "error"
+      ),
   });
 
   return (
@@ -685,11 +629,6 @@ export function PenaltyReview({
           {penalty.status}
         </span>
       </div>
-      {error && (
-        <div className="mt-2">
-          <ErrorNotice>{error}</ErrorNotice>
-        </div>
-      )}
       {penalty.status === "pending" && (
         <div className="mt-2 flex flex-wrap gap-2">
           <input
@@ -728,15 +667,18 @@ export function ReliabilityCard({
   event: ReliabilityEvent;
   onChanged: () => void;
 }) {
+  const { showToast } = useToast();
   const [note, setNote] = useState("");
-  const [error, setError] = useState("");
 
   const mutation = useMutation({
     mutationFn: () =>
       resolveReliabilityEvent(event.id, { note, action: "reviewed" }),
     onSuccess: onChanged,
     onError: (failure) =>
-      setError(errorMessage(failure, "Unable to update this event.")),
+      showToast(
+        errorMessage(failure, "Unable to update this event."),
+        "error"
+      ),
   });
 
   return (
@@ -759,11 +701,6 @@ export function ReliabilityCard({
         <p className="mt-2 text-xs opacity-60">
           Resolution: {event.resolutionNote}
         </p>
-      )}
-      {error && (
-        <div className="mt-2">
-          <ErrorNotice>{error}</ErrorNotice>
-        </div>
       )}
       {!event.resolvedAt && (
         <div className="mt-2 flex flex-wrap gap-2">
@@ -804,6 +741,7 @@ export function SalaryCard({
   period: SalaryPeriod;
   onChanged: () => void;
 }) {
+  const { showToast } = useToast();
   const [adjustment, setAdjustment] = useState(
     String(period.manualAdjustmentEgp)
   );
@@ -812,8 +750,6 @@ export function SalaryCard({
   );
   const [notes, setNotes] = useState(period.notes ?? "");
   const [status, setStatus] = useState(period.status);
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -824,12 +760,14 @@ export function SalaryCard({
         status: status as "open" | "reviewed" | "paid",
       }),
     onSuccess: () => {
-      setError("");
-      setNotice("Salary review saved.");
+      showToast("Salary review saved.", "success");
       onChanged();
     },
     onError: (failure) =>
-      setError(errorMessage(failure, "Unable to save this salary review.")),
+      showToast(
+        errorMessage(failure, "Unable to save this salary review."),
+        "error"
+      ),
   });
 
   const locked = period.status === "paid";
@@ -895,16 +833,6 @@ export function SalaryCard({
           <dd>{period.pendingPenaltyEgp.toFixed(2)} EGP</dd>
         </div>
       </dl>
-      {notice && (
-        <div className="mt-3">
-          <Notice>{notice}</Notice>
-        </div>
-      )}
-      {error && (
-        <div className="mt-3">
-          <ErrorNotice>{error}</ErrorNotice>
-        </div>
-      )}
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
         <label className="block">
           <span className="mb-1 block text-xs font-semibold">

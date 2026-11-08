@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCw } from "lucide-react";
 import { getAssignedWeeklyAvailability } from "@/services/scheduling.service";
@@ -8,6 +9,7 @@ import { TeacherDirectory } from "@/components/student/TeacherDirectory";
 import { OpenOfferPanel } from "@/components/student/OpenOfferPanel";
 import { TimeZoneNote } from "@/components/student/TimeZoneNote";
 import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 import { WEEKDAY_SHORT } from "@/lib/utils";
 import {
@@ -18,6 +20,7 @@ import {
 
 export default function StudentAvailabilityPage() {
   const { role } = useAuth();
+  const { showToast } = useToast();
   const queryClient = useQueryClient();
   const viewerTimeZone = getViewerTimeZone();
   const assignedQuery = useQuery({
@@ -28,6 +31,17 @@ export default function StudentAvailabilityPage() {
   });
   const series = assignedQuery.data?.series ?? [];
   const error = assignedQuery.error;
+
+  useEffect(() => {
+    if (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Unable to load your weekly times.",
+        "error"
+      );
+    }
+  }, [error, showToast]);
 
   if (role !== "student")
     return (
@@ -64,17 +78,6 @@ export default function StudentAvailabilityPage() {
             <RefreshCw size={16} /> Refresh
           </button>
         </div>
-
-        {error && (
-          <p
-            role="alert"
-            className="mt-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
-          >
-            {error instanceof Error
-              ? error.message
-              : "Unable to load your weekly times."}
-          </p>
-        )}
 
         {!assignedQuery.isLoading && !assignedQuery.data?.teacher ? (
           <OpenOfferPanel />

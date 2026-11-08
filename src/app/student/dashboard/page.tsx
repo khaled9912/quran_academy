@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import {
   CalendarDays,
   Clock3,
@@ -12,7 +11,7 @@ import {
   Video,
 } from "lucide-react";
 import type { Lesson } from "@/types/lesson";
-import { upcomingDayPage } from "@/lib/lesson-window";
+import { todayLessons, upcomingLessons } from "@/lib/lesson-window";
 import { isLessonLive } from "@/lib/lesson-feedback";
 import { useNow } from "@/hooks/use-now";
 import { LiveNowBadge } from "@/components/LiveNowBadge";
@@ -65,26 +64,13 @@ const StudentDashboard = () => {
   const { lessonsQuery, availabilityQuery, changesQuery } =
     useStudentDashboard();
   const viewerTimeZone = getViewerTimeZone();
-  const [upcomingDays, setUpcomingDays] = useState(1);
   const lessons = lessonsQuery.data ?? [];
   const sorted = [...lessons].sort((a, b) =>
     a.startsAt.localeCompare(b.startsAt)
   );
   const now = useNow();
-  // Started (or early-completed) lessons stay listed until their scheduled end
-  // so students can rejoin after a dropped call.
-  const upcoming = sorted.filter(
-    (lesson) =>
-      lesson.status !== "cancelled" && new Date(lesson.endsAt).getTime() > now
-  );
-  const upcomingPage = upcomingDayPage(upcoming, upcomingDays, now);
-  const nextDayLabel = upcomingPage.nextDay
-    ? new Date(upcomingPage.nextDay).toLocaleDateString(undefined, {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-      })
-    : null;
+  const today = todayLessons(lessons, now);
+  const hasLaterLessons = upcomingLessons(lessons, now).length > 0;
   const completed = sorted.filter((lesson) => lesson.status === "completed");
   const cancelled = sorted.filter((lesson) => lesson.status === "cancelled");
   const teacher = availabilityQuery.data?.teacher;
@@ -282,9 +268,19 @@ const StudentDashboard = () => {
             </section>
 
             <section className="bg-card-bg border border-card-border rounded-3xl p-6 md:p-8">
-              <div className="flex items-center gap-3 mb-6">
-                <CalendarDays className="text-green-600 dark:text-green-400" />
-                <h2 className="text-2xl font-semibold">Upcoming lessons</h2>
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+                <div className="flex items-center gap-3">
+                  <CalendarDays className="text-green-600 dark:text-green-400" />
+                  <h2 className="text-2xl font-semibold">
+                    Today&apos;s lessons
+                  </h2>
+                </div>
+                <Link
+                  href="/schedule"
+                  className="text-sm font-semibold text-green-600 dark:text-green-400 hover:underline"
+                >
+                  My schedule →
+                </Link>
               </div>
               {lessonsQuery.isLoading ? (
                 <div className="space-y-4">
@@ -295,97 +291,92 @@ const StudentDashboard = () => {
                     />
                   ))}
                 </div>
-              ) : upcoming.length ? (
-                <>
-                  <div className="space-y-4">
-                    {upcomingPage.lessons.map((lesson) => {
-                      const live = isLessonLive(
-                        lesson.startsAt,
-                        lesson.endsAt,
-                        lesson.status,
-                        now
-                      );
-                      const countdown =
-                        lesson.status === "scheduled"
-                          ? startsInLabel(lesson.startsAt, now)
-                          : null;
-                      return (
-                        <article
-                          key={lesson.id}
-                          className={`rounded-2xl border p-5 ${
-                            live ? "border-green-400" : "border-card-border"
-                          }`}
-                        >
-                          <div className="flex flex-wrap items-start justify-between gap-3">
-                            <div>
-                              <p className="flex flex-wrap items-center gap-2 font-semibold">
-                                {dateTime(lesson.startsAt)}
-                                {live && <LiveNowBadge />}
-                              </p>
-                              {countdown ? (
-                                <p className="mt-1 text-sm font-semibold text-green-600 dark:text-green-400">
-                                  {countdown}
-                                </p>
-                              ) : null}
-                              <p className="mt-1 flex items-center gap-2 text-sm text-foreground opacity-70">
-                                <Clock3 size={15} />
-                                Until{" "}
-                                {new Date(lesson.endsAt).toLocaleTimeString(
-                                  [],
-                                  {
-                                    hour: "numeric",
-                                    minute: "2-digit",
-                                    hour12: true,
-                                  }
-                                )}
-                              </p>
-                              <p className="mt-1 text-sm text-foreground opacity-70">
-                                Teacher:{" "}
-                                {lesson.teacherName ?? "Assigned teacher"}
-                              </p>
-                            </div>
-                            <div className="flex flex-col items-end gap-2">
-                              <span className="flex flex-wrap justify-end gap-2">
-                                {lesson.isTrial && (
-                                  <span className="rounded-full bg-sky-100 dark:bg-sky-500/15 px-3 py-1 text-xs font-semibold text-sky-800 dark:text-sky-300">
-                                    Trial
-                                  </span>
-                                )}
-                                {!live && (
-                                  <span
-                                    className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[lesson.status]}`}
-                                  >
-                                    {lesson.status.replaceAll("_", " ")}
-                                  </span>
-                                )}
-                              </span>
-                              <Link
-                                href={`/lesson/${lesson.id}`}
-                                className="inline-flex items-center gap-2 rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
-                              >
-                                <Video size={15} /> Attend lesson
-                              </Link>
-                            </div>
-                          </div>
-                        </article>
-                      );
-                    })}
-                  </div>
-                  {upcomingPage.hasMore && (
-                    <div className="mt-4 flex justify-center">
-                      <button
-                        type="button"
-                        onClick={() => setUpcomingDays((value) => value + 1)}
-                        className="rounded-xl border border-card-border bg-card-bg px-5 py-2.5 text-sm font-semibold transition hover:border-green-500"
+              ) : today.length ? (
+                <div className="space-y-4">
+                  {today.map((lesson) => {
+                    const live = isLessonLive(
+                      lesson.startsAt,
+                      lesson.endsAt,
+                      lesson.status,
+                      now
+                    );
+                    const countdown =
+                      lesson.status === "scheduled"
+                        ? startsInLabel(lesson.startsAt, now)
+                        : null;
+                    return (
+                      <article
+                        key={lesson.id}
+                        className={`rounded-2xl border p-5 ${
+                          live ? "border-green-400" : "border-card-border"
+                        }`}
                       >
-                        Load more{nextDayLabel ? ` · ${nextDayLabel}` : ""}
-                      </button>
-                    </div>
-                  )}
-                </>
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <p className="flex flex-wrap items-center gap-2 font-semibold">
+                              {dateTime(lesson.startsAt)}
+                              {live && <LiveNowBadge />}
+                            </p>
+                            {countdown ? (
+                              <p className="mt-1 text-sm font-semibold text-green-600 dark:text-green-400">
+                                {countdown}
+                              </p>
+                            ) : null}
+                            <p className="mt-1 flex items-center gap-2 text-sm text-foreground opacity-70">
+                              <Clock3 size={15} />
+                              Until{" "}
+                              {new Date(lesson.endsAt).toLocaleTimeString([], {
+                                hour: "numeric",
+                                minute: "2-digit",
+                                hour12: true,
+                              })}
+                            </p>
+                            <p className="mt-1 text-sm text-foreground opacity-70">
+                              Teacher:{" "}
+                              {lesson.teacherName ?? "Assigned teacher"}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-end gap-2">
+                            <span className="flex flex-wrap justify-end gap-2">
+                              {lesson.isTrial && (
+                                <span className="rounded-full bg-sky-100 dark:bg-sky-500/15 px-3 py-1 text-xs font-semibold text-sky-800 dark:text-sky-300">
+                                  Trial
+                                </span>
+                              )}
+                              {!live && (
+                                <span
+                                  className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[lesson.status]}`}
+                                >
+                                  {lesson.status.replaceAll("_", " ")}
+                                </span>
+                              )}
+                            </span>
+                            <Link
+                              href={`/lesson/${lesson.id}`}
+                              className="inline-flex items-center gap-2 rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
+                            >
+                              <Video size={15} /> Attend lesson
+                            </Link>
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : hasLaterLessons ? (
+                <div className="rounded-2xl border border-dashed border-card-border p-8 text-center text-foreground opacity-70">
+                  No lessons today. Your next lesson shows here on the day.{" "}
+                  <Link
+                    href="/schedule"
+                    className="font-semibold text-green-600 dark:text-green-400 hover:underline"
+                  >
+                    Open your schedule
+                  </Link>{" "}
+                  to see the week ahead.
+                </div>
               ) : (
                 <div className="rounded-2xl border border-dashed border-card-border p-8 text-center text-foreground opacity-70">
-                  No upcoming lessons.{" "}
+                  No lessons booked yet.{" "}
                   <Link
                     href="/student/availability"
                     className="font-semibold text-green-600 dark:text-green-400 hover:underline"
@@ -480,10 +471,10 @@ const StudentDashboard = () => {
               <dl className="space-y-4">
                 <div>
                   <dt className="text-sm text-foreground opacity-70">
-                    Upcoming lessons
+                    Today&apos;s lessons
                   </dt>
                   <dd className="text-3xl font-bold text-green-600 dark:text-green-400">
-                    {upcoming.length}
+                    {today.length}
                   </dd>
                 </div>
                 <div>

@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Copy, Landmark, Send } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
+import { ApiError } from "@/lib/backend-client";
 import { getStudentBilling, markPaymentSent } from "@/services/billing.service";
 import type { AcademyBankAccount, StudentBilling } from "@/types/billing";
 
@@ -50,13 +52,12 @@ const bankFields = (bank: AcademyBankAccount) =>
 
 export default function StudentPaymentsPage() {
   const { role } = useAuth();
+  const { showToast } = useToast();
   const isStudent = role === "student";
   const queryClient = useQueryClient();
   const [month, setMonth] = useState<string | undefined>(undefined);
   const [note, setNote] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
-  const [notice, setNotice] = useState("");
-  const [error, setError] = useState("");
 
   const billingQuery = useQuery({
     queryKey: ["billing", "student", month ?? "latest"],
@@ -74,20 +75,22 @@ export default function StudentPaymentsPage() {
       return markPaymentSent({ month: billing.month, note });
     },
     onSuccess: async () => {
-      setError("");
-      setNotice(
-        "Thanks — the academy will check the transfer and confirm this month."
+      showToast(
+        "Thanks — the academy will check the transfer and confirm this month.",
+        "success"
       );
       setNote("");
       await queryClient.invalidateQueries({ queryKey: ["billing"] });
     },
     onError: (mutationError) => {
-      setNotice("");
-      setError(
-        mutationError instanceof Error
-          ? mutationError.message
-          : "Unable to mark the payment as sent."
-      );
+      if (!(mutationError instanceof ApiError)) {
+        showToast(
+          mutationError instanceof Error
+            ? mutationError.message
+            : "Unable to mark the payment as sent.",
+          "error"
+        );
+      }
     },
   });
 
@@ -100,7 +103,7 @@ export default function StudentPaymentsPage() {
         1600
       );
     } catch {
-      setError("Could not copy. Select the text and copy it manually.");
+      showToast("Could not copy. Select the text and copy it manually.", "error");
     }
   };
 
@@ -406,16 +409,6 @@ export default function StudentPaymentsPage() {
                   There is nothing to pay for this month.
                 </p>
               )}
-              {notice ? (
-                <p className="mt-3 rounded-xl bg-green-500/10 px-3 py-2 text-sm text-green-700 dark:text-green-400">
-                  {notice}
-                </p>
-              ) : null}
-              {error ? (
-                <p className="mt-3 rounded-xl bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">
-                  {error}
-                </p>
-              ) : null}
             </section>
           </>
         ) : null}

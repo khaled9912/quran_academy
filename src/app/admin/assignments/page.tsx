@@ -11,7 +11,9 @@ import {
   getTeacherStudentAssignments,
   removeTeacherStudentAssignment,
 } from "@/services/assignment.service";
+import { ApiError } from "@/lib/backend-client";
 import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
 import { SelectField } from "@/components/ui/select-field";
 
 const queryError = (error: unknown, fallback: string) =>
@@ -19,6 +21,7 @@ const queryError = (error: unknown, fallback: string) =>
 
 export default function AdminAssignmentsPage() {
   const { role } = useAuth();
+  const { showToast } = useToast();
   const canManage = role === "admin" || role === "super_admin";
   const queryClient = useQueryClient();
 
@@ -40,8 +43,6 @@ export default function AdminAssignmentsPage() {
 
   const [teacherId, setTeacherId] = useState("");
   const [studentId, setStudentId] = useState("");
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
 
   const teachers = teachersQuery.data ?? [];
   const students = studentsQuery.data ?? [];
@@ -63,8 +64,9 @@ export default function AdminAssignmentsPage() {
   const assignMutation = useMutation({
     mutationFn: () => assignStudentToTeacher(teacherId, studentId),
     onSuccess: async (assignment) => {
-      setNotice(
-        `${assignment.studentName ?? "Student"} is now assigned to ${assignment.teacherName ?? "the teacher"}.`
+      showToast(
+        `${assignment.studentName ?? "Student"} is now assigned to ${assignment.teacherName ?? "the teacher"}.`,
+        "success"
       );
       setTeacherId("");
       setStudentId("");
@@ -73,30 +75,38 @@ export default function AdminAssignmentsPage() {
       });
     },
     onError: (mutationError) => {
-      setError(queryError(mutationError, "Unable to create the assignment."));
+      if (!(mutationError instanceof ApiError)) {
+        showToast(
+          queryError(mutationError, "Unable to create the assignment."),
+          "error"
+        );
+      }
     },
   });
 
   const removeMutation = useMutation({
     mutationFn: (id: string) => removeTeacherStudentAssignment(id),
     onSuccess: async () => {
-      setNotice("Assignment removed.");
+      showToast("Assignment removed.", "success");
       await queryClient.invalidateQueries({
         queryKey: ["teacher-student-assignments"],
       });
     },
     onError: (mutationError) => {
-      setError(queryError(mutationError, "Unable to remove the assignment."));
+      if (!(mutationError instanceof ApiError)) {
+        showToast(
+          queryError(mutationError, "Unable to remove the assignment."),
+          "error"
+        );
+      }
     },
   });
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (assignMutation.isPending) return;
-    setError("");
-    setNotice("");
     if (!teacherId || !studentId) {
-      setError("Choose both a teacher and a student.");
+      showToast("Choose both a teacher and a student.", "error");
       return;
     }
     assignMutation.mutate();
@@ -233,22 +243,6 @@ export default function AdminAssignmentsPage() {
               </Link>
             </p>
           )}
-          {error && (
-            <p
-              role="alert"
-              className="mt-4 rounded-xl bg-red-50 dark:bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300"
-            >
-              {error}
-            </p>
-          )}
-          {notice && (
-            <p
-              role="status"
-              className="mt-4 rounded-xl bg-green-50 dark:bg-green-500/10 p-3 text-sm text-green-800 dark:text-green-300"
-            >
-              {notice}
-            </p>
-          )}
         </section>
 
         <section>
@@ -281,11 +275,7 @@ export default function AdminAssignmentsPage() {
                     </p>
                   </div>
                   <button
-                    onClick={() => {
-                      setError("");
-                      setNotice("");
-                      removeMutation.mutate(assignment.id);
-                    }}
+                    onClick={() => removeMutation.mutate(assignment.id)}
                     disabled={removeMutation.isPending}
                     className="inline-flex items-center gap-2 rounded-xl border border-red-300 dark:border-red-500/30 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 transition hover:bg-red-500 hover:text-white disabled:opacity-50"
                   >

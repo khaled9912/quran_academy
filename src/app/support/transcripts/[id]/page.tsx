@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -15,6 +15,8 @@ import {
   Users,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
+import { ApiError } from "@/lib/backend-client";
 import {
   getReviewWorkspace,
   saveQualityReview,
@@ -182,6 +184,7 @@ function ReviewForm({
   onSaved: (status: ReviewStatus) => void;
 }) {
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
   const [scores, setScores] = useState<Record<ScoreKey, number | null>>({
     teachingClarity: review?.teachingClarity ?? null,
     studentPractice: review?.studentPractice ?? null,
@@ -196,7 +199,6 @@ function ReviewForm({
   const [studentAction, setStudentAction] = useState(
     review?.studentAction ?? ""
   );
-  const [error, setError] = useState("");
 
   const mutation = useMutation({
     mutationFn: (status: ReviewStatus) => {
@@ -211,7 +213,6 @@ function ReviewForm({
       return saveQualityReview(lessonId, input);
     },
     onSuccess: async (_, status) => {
-      setError("");
       await queryClient.invalidateQueries({
         queryKey: ["review-workspace", lessonId],
       });
@@ -220,23 +221,25 @@ function ReviewForm({
       onSaved(status);
     },
     onError: (mutationError) => {
-      setError(
-        mutationError instanceof Error
-          ? mutationError.message
-          : "The review could not be saved."
-      );
+      if (!(mutationError instanceof ApiError)) {
+        showToast(
+          mutationError instanceof Error
+            ? mutationError.message
+            : "The review could not be saved.",
+          "error"
+        );
+      }
     },
   });
 
   const handleSave = (status: ReviewStatus) => {
-    setError("");
     if (status === "submitted") {
       if (Object.values(scores).some((value) => value === null)) {
-        setError("Score all four areas before submitting.");
+        showToast("Score all four areas before submitting.", "error");
         return;
       }
       if (gaps.trim().length < 3) {
-        setError("Describe at least one gap before submitting.");
+        showToast("Describe at least one gap before submitting.", "error");
         return;
       }
     }
@@ -325,12 +328,6 @@ function ReviewForm({
         </label>
       </div>
 
-      {error ? (
-        <p className="mt-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400">
-          {error}
-        </p>
-      ) : null}
-
       <div className="mt-5 flex flex-wrap gap-3">
         <button
           type="button"
@@ -355,23 +352,17 @@ function ReviewForm({
 
 export default function SupportLessonReviewPage() {
   const { role } = useAuth();
+  const { showToast } = useToast();
   const canReview =
     role === "support" || role === "admin" || role === "super_admin";
   const params = useParams<{ id: string }>();
   const lessonId = params?.id ?? "";
-  const [notice, setNotice] = useState("");
 
   const workspaceQuery = useQuery({
     queryKey: ["review-workspace", lessonId],
     queryFn: () => getReviewWorkspace(lessonId),
     enabled: canReview && lessonId.length > 0,
   });
-
-  useEffect(() => {
-    if (!notice) return;
-    const timer = setTimeout(() => setNotice(""), 4000);
-    return () => clearTimeout(timer);
-  }, [notice]);
 
   if (!canReview) {
     return (
@@ -432,12 +423,6 @@ export default function SupportLessonReviewPage() {
                 </p>
               ) : null}
             </header>
-
-            {notice ? (
-              <p className="mb-5 rounded-xl border border-green-500/40 bg-green-500/10 px-4 py-3 text-sm text-green-700 dark:text-green-400">
-                {notice}
-              </p>
-            ) : null}
 
             <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {metricCard(
@@ -508,10 +493,11 @@ export default function SupportLessonReviewPage() {
                 lessonId={lessonId}
                 review={workspace.review}
                 onSaved={(status) =>
-                  setNotice(
+                  showToast(
                     status === "submitted"
                       ? "Review submitted."
-                      : "Draft saved."
+                      : "Draft saved.",
+                    "success"
                   )
                 }
               />

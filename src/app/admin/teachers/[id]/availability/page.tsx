@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -12,6 +12,7 @@ import {
   publishWeeklyAvailabilityForTeacher,
 } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 import {
   WEEKDAY_LABELS,
@@ -47,6 +48,7 @@ export default function AdminTeacherAvailabilityPage() {
   const params = useParams<{ id: string }>();
   const teacherId = params?.id ?? "";
   const { role } = useAuth();
+  const { showToast } = useToast();
   const canManage = role === "admin" || role === "super_admin";
   const queryClient = useQueryClient();
 
@@ -54,8 +56,6 @@ export default function AdminTeacherAvailabilityPage() {
   const [start, setStart] = useState("17:00");
   const [duration, setDuration] = useState<DurationMinutes>(60);
   const [timeZoneOverride, setTimeZoneOverride] = useState("");
-  const [formError, setFormError] = useState("");
-  const [notice, setNotice] = useState("");
   const end = addMinutes(start, duration);
 
   const localTimeZone = useMemo(
@@ -107,11 +107,11 @@ export default function AdminTeacherAvailabilityPage() {
         timeZoneId,
       }),
     onSuccess: async (created) => {
-      setFormError("");
-      setNotice(
+      showToast(
         `Announced ${created.length} weekly ${
           created.length === 1 ? "time" : "times"
-        } for this teacher.`
+        } for this teacher.`,
+        "success"
       );
       await invalidate();
     },
@@ -121,14 +121,12 @@ export default function AdminTeacherAvailabilityPage() {
     mutationFn: (ruleId: string) =>
       deleteTeacherWeeklyAvailabilityAsAdmin(teacherId, ruleId),
     onSuccess: async () => {
-      setFormError("");
-      setNotice("Weekly time removed.");
+      showToast("Weekly time removed.", "success");
       await invalidate();
     },
   });
 
   const toggleDay = (day: number) => {
-    setNotice("");
     setDays((current) =>
       current.includes(day)
         ? current.filter((value) => value !== day)
@@ -138,14 +136,12 @@ export default function AdminTeacherAvailabilityPage() {
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    setNotice("");
-    setFormError("");
     if (!days.length) {
-      setFormError("Choose at least one weekday.");
+      showToast("Choose at least one weekday.", "error");
       return;
     }
     if (!Number.isFinite(minutesOf(start))) {
-      setFormError("Choose a valid start time.");
+      showToast("Choose a valid start time.", "error");
       return;
     }
     publishMutation.mutate();
@@ -160,7 +156,6 @@ export default function AdminTeacherAvailabilityPage() {
         )}? Students will no longer see this time.`
       )
     ) {
-      setNotice("");
       deleteMutation.mutate(rule.id);
     }
   };
@@ -173,12 +168,17 @@ export default function AdminTeacherAvailabilityPage() {
         .join(", ")} · ${start} – ${end}`
     : "Choose the days this teacher teaches.";
 
-  const error =
-    formError ||
-    (teacherQuery.error ??
-      rulesQuery.error ??
-      publishMutation.error ??
-      deleteMutation.error);
+  const loadError = teacherQuery.error ?? rulesQuery.error;
+
+  useEffect(() => {
+    if (!loadError) return;
+    showToast(
+      loadError instanceof Error
+        ? loadError.message
+        : "Unable to update availability.",
+      "error"
+    );
+  }, [loadError, showToast]);
 
   if (!canManage) {
     return (
@@ -220,25 +220,6 @@ export default function AdminTeacherAvailabilityPage() {
             <RefreshCw size={16} /> Refresh
           </button>
         </div>
-
-        {error && (
-          <p
-            role="alert"
-            className="mt-6 rounded-xl bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
-          >
-            {error instanceof Error
-              ? error.message
-              : error || "Unable to update availability."}
-          </p>
-        )}
-        {notice && (
-          <p
-            role="status"
-            className="mt-6 rounded-xl bg-green-500/10 p-4 text-sm text-green-800 dark:text-green-300"
-          >
-            {notice}
-          </p>
-        )}
 
         <div className="mt-8 grid gap-6 md:grid-cols-[.9fr_1.1fr]">
           <form

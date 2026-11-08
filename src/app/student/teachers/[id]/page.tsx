@@ -14,6 +14,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { StarRating } from "@/components/ui/star-rating";
 import { TimeZoneNote } from "@/components/student/TimeZoneNote";
 import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 import { WEEKDAY_LABELS, formatWeeklyTimeRange } from "@/lib/utils";
 import {
@@ -29,11 +30,10 @@ export default function StudentTeacherBookingPage() {
   const params = useParams<{ id: string }>();
   const teacherId = params?.id ?? "";
   const { role } = useAuth();
+  const { showToast } = useToast();
   const queryClient = useQueryClient();
   const viewerTimeZone = getViewerTimeZone();
   const [selected, setSelected] = useState<string[]>([]);
-  const [notice, setNotice] = useState("");
-  const [formError, setFormError] = useState("");
 
   const teacherQuery = useQuery({
     queryKey: ["teacher-profile", teacherId],
@@ -62,16 +62,16 @@ export default function StudentTeacherBookingPage() {
   const book = useMutation({
     mutationFn: (ruleIds: string[]) => bookWeeklySlots(ruleIds),
     onSuccess: async (result) => {
-      setFormError("");
       setSelected([]);
-      setNotice(
+      showToast(
         `${result.series.length} weekly ${
           result.series.length === 1 ? "time is" : "times are"
         } yours. They repeat every week — ask the academy if you need to change one.${
           result.lessons.some((lesson) => lesson.isTrial)
             ? " Your first lesson is a trial."
             : ""
-        }`
+        }`,
+        "success"
       );
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["lessons"] }),
@@ -82,18 +82,15 @@ export default function StudentTeacherBookingPage() {
       ]);
     },
     onError: (error) => {
-      setNotice("");
-      setFormError(
-        error instanceof ApiError
-          ? ""
-          : "Unable to book these times. Please try again."
-      );
+      if (!(error instanceof ApiError))
+        showToast(
+          "Unable to book these times. Please try again.",
+          "error"
+        );
     },
   });
 
   const toggle = (rule: WeeklyRule) => {
-    setNotice("");
-    setFormError("");
     if (rule.status !== "available") return;
     setSelected((current) =>
       current.includes(rule.id)
@@ -178,23 +175,6 @@ export default function StudentTeacherBookingPage() {
               >
                 <strong>Your first lesson is a trial.</strong> Your first booked
                 lesson is flagged automatically — no extra step.
-              </p>
-            )}
-
-            {notice && (
-              <p
-                role="status"
-                className="mt-6 rounded-xl border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 p-4 text-sm text-green-800 dark:text-green-300"
-              >
-                {notice}
-              </p>
-            )}
-            {formError && (
-              <p
-                role="alert"
-                className="mt-6 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
-              >
-                {formError}
               </p>
             )}
 
@@ -388,8 +368,6 @@ export default function StudentTeacherBookingPage() {
                     type="button"
                     disabled={!selected.length || book.isPending}
                     onClick={() => {
-                      setFormError("");
-                      setNotice("");
                       book.mutate(selected);
                     }}
                     className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-green-500 px-5 py-3 font-semibold text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"

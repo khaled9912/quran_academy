@@ -12,6 +12,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
+import { useToast } from "@/providers/toast-provider";
 import { ApiError } from "@/lib/backend-client";
 import { teacherSubjectLabel } from "@/lib/teacher-subjects";
 import {
@@ -52,6 +53,7 @@ const formatDate = (value: string) =>
 
 export default function AdminTeacherApplicationsPage() {
   const { role } = useAuth();
+  const { showToast } = useToast();
   const canManage = role === "admin" || role === "super_admin";
   const queryClient = useQueryClient();
 
@@ -60,8 +62,6 @@ export default function AdminTeacherApplicationsPage() {
   );
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
-  const [actionError, setActionError] = useState("");
-  const [notice, setNotice] = useState("");
   const [downloadingKey, setDownloadingKey] = useState<string | null>(null);
 
   const applicationsQuery = useQuery({
@@ -81,20 +81,24 @@ export default function AdminTeacherApplicationsPage() {
       reason?: string;
     }) => reviewTeacherApplication(id, { status, reason }),
     onSuccess: async (result) => {
-      setActionError("");
       setRejectingId(null);
       setRejectReason("");
       if (result.inviteCode) {
-        setNotice(
-          `Approved. Invite code: ${result.inviteCode} (valid for 15 minutes). Share it with the teacher so they can set a password.`
+        showToast(
+          `Approved. Invite code: ${result.inviteCode} (valid for 15 minutes). Share it with the teacher so they can set a password.`,
+          "success"
         );
       } else if (result.inviteEmailed) {
-        setNotice("Approved. The invitation email was sent to the teacher.");
+        showToast(
+          "Approved. The invitation email was sent to the teacher.",
+          "success"
+        );
       } else {
-        setNotice(
+        showToast(
           result.application.status === "rejected"
             ? "Application rejected."
-            : "Application approved. Ask the teacher to use Forgot password to get a code."
+            : "Application approved. Ask the teacher to use Forgot password to get a code.",
+          "success"
         );
       }
       await queryClient.invalidateQueries({
@@ -102,10 +106,9 @@ export default function AdminTeacherApplicationsPage() {
       });
     },
     onError: (error) => {
-      setNotice("");
-      setActionError(
-        error instanceof ApiError ? "" : "Unable to update the application."
-      );
+      if (!(error instanceof ApiError)) {
+        showToast("Unable to update the application.", "error");
+      }
     },
   });
 
@@ -114,7 +117,6 @@ export default function AdminTeacherApplicationsPage() {
     kind: "cv" | "intro" | "quran"
   ) => {
     setDownloadingKey(`${application.id}:${kind}`);
-    setActionError("");
     try {
       const blob =
         kind === "cv"
@@ -143,10 +145,11 @@ export default function AdminTeacherApplicationsPage() {
       link.remove();
       URL.revokeObjectURL(url);
     } catch (error) {
-      setActionError(
+      showToast(
         error instanceof Error
           ? error.message
-          : `Unable to download the ${kind === "cv" ? "CV" : "recording"}.`
+          : `Unable to download the ${kind === "cv" ? "CV" : "recording"}.`,
+        "error"
       );
     } finally {
       setDownloadingKey(null);
@@ -155,7 +158,10 @@ export default function AdminTeacherApplicationsPage() {
 
   const submitRejection = (application: TeacherApplication) => {
     if (rejectReason.trim().length < 3) {
-      setActionError("Give a short rejection reason (at least 3 characters).");
+      showToast(
+        "Give a short rejection reason (at least 3 characters).",
+        "error"
+      );
       return;
     }
     reviewMutation.mutate({
@@ -193,8 +199,6 @@ export default function AdminTeacherApplicationsPage() {
               type="button"
               onClick={() => {
                 setFilter(option.value);
-                setActionError("");
-                setNotice("");
                 setRejectingId(null);
               }}
               className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
@@ -208,23 +212,14 @@ export default function AdminTeacherApplicationsPage() {
           ))}
         </div>
 
-        {notice && (
-          <p
-            role="status"
-            className="mb-6 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-sm"
-          >
-            {notice}
-          </p>
-        )}
-        {(actionError || applicationsQuery.isError) && (
+        {applicationsQuery.isError && (
           <p
             role="alert"
             className="mb-6 rounded-xl border border-red-400/40 bg-red-500/10 p-4 text-sm text-red-600 dark:text-red-400"
           >
-            {actionError ||
-              (applicationsQuery.error instanceof Error
-                ? applicationsQuery.error.message
-                : "Unable to load applications.")}
+            {applicationsQuery.error instanceof Error
+              ? applicationsQuery.error.message
+              : "Unable to load applications."}
           </p>
         )}
 

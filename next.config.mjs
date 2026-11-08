@@ -16,11 +16,31 @@ const nextConfig = {
     root: __dirname,
   },
   async headers() {
-    if (!isPreviewDeployment) return [];
+    // Clickjacking and MIME-sniffing protections apply everywhere, including
+    // production. A restrictive script CSP is deliberately not set here: the
+    // lesson room embeds a cross-origin Jitsi iframe and needs camera/mic.
+    const securityHeaders = [
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "X-Frame-Options", value: "SAMEORIGIN" },
+      {
+        key: "Content-Security-Policy",
+        value: "frame-ancestors 'self'; base-uri 'self'",
+      },
+      {
+        key: "Referrer-Policy",
+        value: "strict-origin-when-cross-origin",
+      },
+    ];
+    if (!isPreviewDeployment) {
+      return [{ source: "/:path*", headers: securityHeaders }];
+    }
     return [
       {
         source: "/:path*",
-        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+        headers: [
+          ...securityHeaders,
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
       },
     ];
   },

@@ -10,6 +10,7 @@ import { reportUnexpectedError } from "@/lib/sentry";
 import { useAuth } from "@/providers/auth-provider";
 import { useToast } from "@/providers/toast-provider";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { PasswordField } from "@/components/ui/password-field";
 import { DEFAULT_COUNTRY, countryByCode, toE164 } from "@/lib/countries";
 
 const signupSchema = z.object({
@@ -49,17 +50,13 @@ const SignUpPage = () => {
   const [devCode, setDevCode] = useState<string | null>(null);
   const [phoneLoading, setPhoneLoading] = useState(false);
 
-  const [message, setMessage] = useState("");
-
   const switchMode = (next: Mode) => {
     setMode(next);
-    setMessage("");
   };
 
   const handleEmailSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (loading) return;
-    setMessage("");
 
     const parsed = signupSchema.safeParse({
       fullName,
@@ -68,7 +65,10 @@ const SignUpPage = () => {
     });
 
     if (!parsed.success) {
-      setMessage(parsed.error.issues[0]?.message ?? "Please fix the form.");
+      showToast(
+        parsed.error.issues[0]?.message ?? "Please fix the form.",
+        "error"
+      );
       return;
     }
 
@@ -87,14 +87,14 @@ const SignUpPage = () => {
         registrationCountryFromDocument() ?? undefined
       );
       if (!user?.role) {
-        setMessage("Unable to determine your role. Contact support.");
+        showToast("Unable to determine your role. Contact support.", "error");
         return;
       }
       // The AuthProvider redirects to the student dashboard once the session is applied.
       applySession(user);
     } catch (error) {
       if (!(error instanceof ApiError))
-        showToast("Unable to create your account. Please try again.");
+        showToast("Unable to create your account. Please try again.", "error");
       reportUnexpectedError(error);
     } finally {
       setLoading(false);
@@ -104,23 +104,22 @@ const SignUpPage = () => {
   const handleSendCode = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (phoneLoading) return;
-    setMessage("");
     if (!fullName.trim()) {
-      setMessage("Please enter your full name.");
+      showToast("Please enter your full name.", "error");
       return;
     }
     if (fullName.includes("@")) {
-      setMessage("Enter your name, not an email address.");
+      showToast("Enter your name, not an email address.", "error");
       return;
     }
     const e164 = toE164(phone, country);
     if (!e164) {
       const selected = countryByCode(country);
-      setPhoneError(
-        `Enter a valid mobile number for ${selected?.name ?? "the selected country"}${
-          selected ? ` (${selected.dial})` : ""
-        }.`
-      );
+      const invalidMessage = `Enter a valid mobile number for ${
+        selected?.name ?? "the selected country"
+      }${selected ? ` (${selected.dial})` : ""}.`;
+      setPhoneError(invalidMessage);
+      showToast(invalidMessage, "error");
       return;
     }
     setPhoneError("");
@@ -130,14 +129,15 @@ const SignUpPage = () => {
       setSentTo(e164);
       setCodeSent(true);
       setDevCode(result.devCode ?? null);
-      setMessage(
+      showToast(
         result.devCode
           ? "Development mode: use the code shown below."
-          : result.message
+          : result.message,
+        "info"
       );
     } catch (error) {
       if (!(error instanceof ApiError))
-        showToast("Unable to send the code. Please try again.");
+        showToast("Unable to send the code. Please try again.", "error");
       reportUnexpectedError(error);
     } finally {
       setPhoneLoading(false);
@@ -147,13 +147,12 @@ const SignUpPage = () => {
   const handleVerify = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (phoneLoading) return;
-    setMessage("");
     if (!/^\d{4,8}$/.test(code.trim())) {
-      setMessage("Enter the numeric code you received.");
+      showToast("Enter the numeric code you received.", "error");
       return;
     }
     if (!sentTo) {
-      setMessage("Request a new code to continue.");
+      showToast("Request a new code to continue.", "error");
       return;
     }
     setPhoneLoading(true);
@@ -165,14 +164,17 @@ const SignUpPage = () => {
         registrationCountryFromDocument() ?? undefined
       );
       if (!result.user) {
-        setMessage("We could not create your account. Please try again.");
+        showToast(
+          "We could not create your account. Please try again.",
+          "error"
+        );
         return;
       }
       // The AuthProvider redirects to the student dashboard once the session is applied.
       applySession(result.user);
     } catch (error) {
       if (!(error instanceof ApiError))
-        showToast("Unable to verify the code. Please try again.");
+        showToast("Unable to verify the code. Please try again.", "error");
       reportUnexpectedError(error);
     } finally {
       setPhoneLoading(false);
@@ -185,7 +187,6 @@ const SignUpPage = () => {
     setDevCode(null);
     setSentTo("");
     setPhoneError("");
-    setMessage("");
   };
 
   const inputClass =
@@ -262,9 +263,8 @@ const SignUpPage = () => {
               >
                 Password
               </label>
-              <input
+              <PasswordField
                 id="password"
-                type="password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 required
@@ -384,15 +384,6 @@ const SignUpPage = () => {
               Change my details
             </button>
           </form>
-        )}
-
-        {message && (
-          <p
-            role="alert"
-            className="mt-4 text-center text-sm text-red-500 dark:text-red-400"
-          >
-            {message}
-          </p>
         )}
 
         <div className="mt-8 text-center text-sm text-foreground opacity-75">
