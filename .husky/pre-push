@@ -1,4 +1,6 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-npm run format && npm run build
+# Format is a choice, not a gate: `prettier --write` used to rewrite files
+# halfway through a push. These checks only read.
+npm run typecheck && npm run build
