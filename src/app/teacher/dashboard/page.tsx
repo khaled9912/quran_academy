@@ -7,10 +7,11 @@ import { getMyAvailabilityRules } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
 import { isReportDue } from "@/lib/lesson-feedback";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
+import { laterLessons, todayLessons } from "@/lib/lesson-window";
+import { NextUpLessons } from "@/components/NextUpLessons";
 import {
   weekdayLabel,
   formatWeeklyTimeRange,
-  isToday,
   startsInLabel,
 } from "@/lib/utils";
 
@@ -46,18 +47,9 @@ export default function TeacherDashboardPage() {
   const failed = lessonsQuery.isError || rulesQuery.isError;
   const now = Date.now();
 
-  const upcomingLessons = lessons
-    .filter(
-      (lesson) =>
-        // Keep started (or early-completed) lessons until their scheduled end
-        // so teachers can rejoin after a dropped call.
-        lesson.status !== "cancelled" && new Date(lesson.endsAt).getTime() > now
-    )
-    .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
   const bookedRules = rules.filter((rule) => rule.status !== "available");
-  const todayLessons = upcomingLessons.filter((lesson) =>
-    isToday(lesson.startsAt, now)
-  );
+  const todays = todayLessons(lessons, now);
+  const nextUp = laterLessons(lessons, now);
   const reportsDue = lessons
     .filter(isReportDue)
     .sort((a, b) => b.startsAt.localeCompare(a.startsAt));
@@ -70,7 +62,7 @@ export default function TeacherDashboardPage() {
   }[] = [
     {
       title: "Today's lessons",
-      value: todayLessons.length,
+      value: todays.length,
       loading: lessonsQuery.isLoading,
     },
     {
@@ -173,9 +165,9 @@ export default function TeacherDashboardPage() {
                   />
                 ))}
               </div>
-            ) : todayLessons.length ? (
+            ) : todays.length ? (
               <div className="space-y-3">
-                {todayLessons.map((lesson) => {
+                {todays.map((lesson) => {
                   const countdown =
                     lesson.status === "scheduled"
                       ? startsInLabel(lesson.startsAt, now)
@@ -210,9 +202,10 @@ export default function TeacherDashboardPage() {
               </div>
             ) : (
               <p className="text-foreground opacity-70">
-                No lessons today. Open the full schedule to see the week ahead.
+                No lessons today. Your next one is listed below.
               </p>
             )}
+            <NextUpLessons lessons={nextUp} perspective="teacher" />
           </section>
 
           <section className="rounded-3xl border border-card-border bg-card-bg p-6">

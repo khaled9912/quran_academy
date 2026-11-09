@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useMutation } from "@tanstack/react-query";
-import { Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
+import { ChevronRight, Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
 import { ApiError } from "@/lib/backend-client";
 import { useToast } from "@/providers/toast-provider";
 import {
@@ -305,6 +306,13 @@ export function IncidentReview({
             {incident.teacherName} with {incident.studentName} ·{" "}
             {dateTime(incident.startsAt)}
           </p>
+          <Link
+            href={`/lesson/${incident.lessonId}`}
+            className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-green-700 dark:text-green-400 hover:underline"
+          >
+            Open lesson
+            <ChevronRight size={13} />
+          </Link>
         </div>
         <span className="rounded-full border border-card-border px-2.5 py-0.5 text-xs font-semibold capitalize">
           {incident.status}

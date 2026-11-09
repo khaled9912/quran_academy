@@ -15,6 +15,7 @@ import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 import {
   WEEKDAY_LABELS,
   WEEKDAY_SHORT,
+  formatTimeOfDay,
   formatWeeklyTimeRange,
   weekdayLabel,
 } from "@/lib/utils";
@@ -148,7 +149,7 @@ export default function TeacherAvailabilityPage() {
         .slice()
         .sort((a, b) => DAY_ORDER.indexOf(a) - DAY_ORDER.indexOf(b))
         .map((day) => WEEKDAY_SHORT[day])
-        .join(", ")} · ${start} – ${end}`
+        .join(", ")} · ${formatTimeOfDay(start)} – ${formatTimeOfDay(end)}`
     : "Choose the days you teach.";
 
   const error = rulesQuery.error;

@@ -1,12 +1,13 @@
 import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query";
+import { socketAwareInterval } from "@/lib/realtime-liveness";
 import { reportUnexpectedError } from "@/lib/sentry";
 
 /**
- * Screens that used to re-fetch every 15s now receive SignalR change events and
- * invalidate on demand. This slow cadence is only a safety net for a dropped
- * socket (a missed event is repaired on reconnect, not in between).
+ * Screens used to re-fetch every 15s; they now receive SignalR change events
+ * and invalidate on demand. This cadence is the safety net for a socket that is
+ * down, so `socketAwareInterval` suspends it while the socket is healthy.
  */
-export const LIVE_SYNC_INTERVAL = 120_000;
+export const LIVE_SYNC_INTERVAL = socketAwareInterval(120_000);
 
 /**
  * Shared defaults: API data is session-scoped, so window refetches are noisy.

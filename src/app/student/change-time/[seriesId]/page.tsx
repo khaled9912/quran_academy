@@ -299,24 +299,14 @@ export default function ChangeWeeklyTimePage() {
                   <p className="mt-2 text-sm text-foreground/60">
                     {series.teacherName} has not announced any other weekly
                     times right now. You can look for another teacher, or end
-                    this weekly time.
+                    this weekly time below.
                   </p>
-                  <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
-                    <Link
-                      href="/student/availability"
-                      className="rounded-xl bg-[#1c5145] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#163f36] dark:bg-green-600 dark:hover:bg-green-500"
-                    >
-                      Browse other teachers
-                    </Link>
-                    <button
-                      type="button"
-                      disabled={endSeries.isPending}
-                      onClick={confirmEndSeries}
-                      className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-300"
-                    >
-                      {endSeries.isPending ? "Ending…" : "End weekly lessons"}
-                    </button>
-                  </div>
+                  <Link
+                    href="/student/availability"
+                    className="mt-5 inline-block rounded-xl bg-[#1c5145] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#163f36] dark:bg-green-600 dark:hover:bg-green-500"
+                  >
+                    Browse other teachers
+                  </Link>
                 </div>
               )}
             </section>
@@ -349,6 +339,26 @@ export default function ChangeWeeklyTimePage() {
                 </p>
               </section>
             )}
+
+            <section className="mt-6 rounded-3xl border border-card-border bg-card-bg p-6 shadow-sm">
+              <h2 className="text-lg font-semibold">
+                Stop these weekly lessons
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-foreground/60">
+                Ending this weekly time cancels every future lesson with{" "}
+                {series.teacherName}, not just the next one. Your teacher is
+                told and the time opens up for other students. Lessons you have
+                already taken, and your credits, are unaffected.
+              </p>
+              <button
+                type="button"
+                disabled={endSeries.isPending}
+                onClick={confirmEndSeries}
+                className="mt-4 w-full rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-700 transition hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:px-6 dark:text-red-300"
+              >
+                {endSeries.isPending ? "Ending…" : "End weekly lessons"}
+              </button>
+            </section>
           </>
         )}
       </div>

@@ -1,6 +1,8 @@
 export interface NavLink {
   label: string;
   href: string;
+  /** Desktop nav folds these into the "More" menu; mobile shows every link. */
+  inMore?: boolean;
 }
 
 export const navigationConfig: Record<string, NavLink[]> = {
@@ -34,12 +36,12 @@ export const navigationConfig: Record<string, NavLink[]> = {
     { label: "Assignments", href: "/admin/assignments" },
     { label: "Time changes", href: "/admin/change-requests" },
     { label: "Lessons", href: "/admin/lessons" },
-    { label: "Lesson ops", href: "/admin/lesson-ops" },
-    { label: "Payments", href: "/admin/payments" },
-    { label: "Transcripts", href: "/admin/transcripts" },
-    { label: "Reviews", href: "/support/transcripts" },
-    { label: "Support team", href: "/admin/support" },
-    { label: "Profile", href: "/profile" },
+    { label: "Lesson ops", href: "/admin/lesson-ops", inMore: true },
+    { label: "Payments", href: "/admin/payments", inMore: true },
+    { label: "Transcripts", href: "/admin/transcripts", inMore: true },
+    { label: "Reviews", href: "/support/transcripts", inMore: true },
+    { label: "Support team", href: "/admin/support", inMore: true },
+    { label: "Profile", href: "/profile", inMore: true },
   ],
   super_admin: [
     { label: "Dashboard", href: "/super-admin/dashboard" },
@@ -48,12 +50,12 @@ export const navigationConfig: Record<string, NavLink[]> = {
     { label: "Assignments", href: "/admin/assignments" },
     { label: "Time changes", href: "/admin/change-requests" },
     { label: "Lessons", href: "/admin/lessons" },
-    { label: "Lesson ops", href: "/admin/lesson-ops" },
-    { label: "Payments", href: "/admin/payments" },
-    { label: "Transcripts", href: "/admin/transcripts" },
-    { label: "Reviews", href: "/support/transcripts" },
-    { label: "Support team", href: "/admin/support" },
-    { label: "Profile", href: "/profile" },
+    { label: "Lesson ops", href: "/admin/lesson-ops", inMore: true },
+    { label: "Payments", href: "/admin/payments", inMore: true },
+    { label: "Transcripts", href: "/admin/transcripts", inMore: true },
+    { label: "Reviews", href: "/support/transcripts", inMore: true },
+    { label: "Support team", href: "/admin/support", inMore: true },
+    { label: "Profile", href: "/profile", inMore: true },
   ],
   support: [
     { label: "Review queue", href: "/support/transcripts" },

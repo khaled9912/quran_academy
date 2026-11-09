@@ -1,4 +1,6 @@
+import { ROLE_DASHBOARDS } from "@/constants/role-routes";
 import { backendFetch } from "@/lib/backend-client";
+import type { UserRole } from "@/types/user";
 
 export type NotificationKind =
   | "booking"
@@ -28,6 +30,10 @@ export const notificationCta = (link: string | null): string | null => {
   if (!link) return null;
   if (link.startsWith("/lesson/")) return "Open lesson";
   if (link.startsWith("/schedule")) return "Open schedule";
+  if (link.startsWith("/book")) return "Choose a time";
+  if (link.startsWith("/payments") || link.startsWith("/people")) {
+    return "Open payments";
+  }
   return "Open";
 };
 
@@ -35,8 +41,17 @@ export const notificationCta = (link: string | null): string | null => {
  * A notification row is written once and read by both clients, so its link uses
  * the mobile app's flat routes. The web app nests the same screens per role, so
  * those few paths are resolved against the reader's role before navigating.
+ *
+ * Every flat route needs an entry for every role that can receive it: `/schedule`
+ * is the student page on web, and most of its notifications go to teachers.
  */
 const webRoutes: Record<string, Record<string, string>> = {
+  "/schedule": {
+    student: "/schedule",
+    teacher: "/teacher/schedule",
+    admin: "/admin/lessons",
+    super_admin: "/admin/lessons",
+  },
   "/book": { student: "/student/availability" },
   "/requests": {
     teacher: "/teacher/schedule",
@@ -56,7 +71,13 @@ const webRoutes: Record<string, Record<string, string>> = {
 export const resolveNotificationHref = (
   link: string,
   role: string | null | undefined
-) => webRoutes[link]?.[role ?? ""] ?? link;
+) => {
+  const routes = webRoutes[link];
+  if (!routes) return link;
+  // A flat route with no page for this role would open someone else's screen,
+  // so send the reader to their own dashboard instead.
+  return routes[role ?? ""] ?? ROLE_DASHBOARDS[role as UserRole] ?? link;
+};
 
 export const getNotifications = () =>
   backendFetch<NotificationsFeed>("/api/notifications");
