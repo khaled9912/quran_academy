@@ -11,6 +11,7 @@ import {
   startRinger,
   stopRinger,
 } from "@/lib/lesson-ringer";
+import { socketAwareInterval } from "@/lib/realtime-liveness";
 
 /** A ring stops on its own; nobody should be chased by a call for an hour. */
 const RING_TIMEOUT_MS = 45_000;
@@ -20,10 +21,15 @@ const RING_WINDOW_MS = 90_000;
 
 const TITLE_PREFIX = "Calling: ";
 
+/** How often to look for a ring when no socket is delivering the `calls` scope. */
+const RING_POLL_MS = 20_000;
+
 /**
  * Rings for calls addressed to the signed-in user. The list query is the only
- * trigger: the realtime socket invalidates it instantly and its own interval
- * plus refetch-on-focus cover a tab that was throttled or a socket that died.
+ * trigger: the realtime `calls` scope invalidates it the moment a call starts,
+ * and connecting, reconnecting or returning to the tab sweeps it. The interval
+ * therefore runs only while the socket is down (socketAwareInterval); window
+ * focus refetches stay off globally in the query client.
  */
 export function LessonRingProvider({
   children,
@@ -38,7 +44,7 @@ export function LessonRingProvider({
     queryKey: ["lesson-calls"],
     queryFn: getRecentCalls,
     enabled: isAuthenticated,
-    refetchInterval: 20_000,
+    refetchInterval: socketAwareInterval(RING_POLL_MS),
   });
 
   useEffect(() => {

@@ -133,3 +133,12 @@ export const deleteTeacherWeeklyAvailabilityAsAdmin = (
     `/api/admin/teachers/${encodeURIComponent(teacherId)}/availability-rules/${encodeURIComponent(ruleId)}`,
     { method: "DELETE" }
   );
+/** Ends every student's repeating series on this weekly time so it can be removed. */
+export const releaseTeacherWeeklyAvailabilityAsAdmin = (
+  teacherId: string,
+  ruleId: string
+) =>
+  backendFetch<{ released: number; lessonsCancelled: number }>(
+    `/api/admin/teachers/${encodeURIComponent(teacherId)}/availability-rules/${encodeURIComponent(ruleId)}/release`,
+    { method: "POST" }
+  );

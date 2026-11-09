@@ -17,6 +17,7 @@ import {
 } from "@microsoft/signalr";
 import { useQueryClient } from "@tanstack/react-query";
 import { backendFetch } from "@/lib/backend-client";
+import { setRealtimeLive } from "@/lib/realtime-liveness";
 import { useAuth } from "@/providers/auth-provider";
 
 /**
@@ -131,6 +132,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
     // A cached ticket belongs to the session that requested it.
     ticketRef.current = null;
+    setRealtimeLive(false);
     setLiveConnection(null);
     let stopped = false;
     let connection: HubConnection | null = null;
@@ -220,6 +222,10 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         next.onclose(() => {
           connection = null;
           setLiveConnection(null);
+          // Polling is suspended while the socket is live, so this sweep is
+          // also what re-arms every interval now that it is not.
+          setRealtimeLive(false);
+          void queryClient.invalidateQueries();
           scheduleRetry();
         });
         await next.start();
@@ -229,6 +235,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         }
         connection = next;
         retryAttempts = 0;
+        setRealtimeLive(true);
         setLiveConnection(next);
         setRevision((value) => value + 1);
       } catch {
@@ -259,6 +266,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       if (flushTimer !== undefined) window.clearTimeout(flushTimer);
       const current = connection;
       connection = null;
+      setRealtimeLive(false);
       setLiveConnection(null);
       if (current) void current.stop();
     };

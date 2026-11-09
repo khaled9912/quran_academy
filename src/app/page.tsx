@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { ReviewsSection } from "@/components/ReviewsSection";
+import { SignUpCta } from "@/components/SignUpCta";
 import { BlogCard } from "@/components/blog/BlogCard";
 import { sortedBlogPosts } from "@/lib/blog";
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_TITLE } from "@/lib/seo";
@@ -114,12 +115,10 @@ export default function HomePage() {
               world.
             </p>
             <div className="mt-8 flex w-full flex-col gap-3 sm:mt-9 sm:flex-row">
-              <Link
-                href="/signup"
+              <SignUpCta
+                label="Start learning"
                 className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500 sm:w-auto"
-              >
-                Start learning <ArrowRight size={18} />
-              </Link>
+              />
               <Link
                 href="/contact"
                 className="inline-flex w-full items-center justify-center rounded-2xl border border-[#cedaCD] bg-white/70 px-6 py-3.5 text-base font-semibold text-[#244c40] transition hover:bg-white dark:border-[#3a5a7a] dark:bg-white/10 dark:text-foreground dark:hover:bg-white/15 sm:w-auto"
@@ -277,12 +276,10 @@ export default function HomePage() {
                 From your first sign-up to your next lesson, we make it easy to
                 stay connected and keep learning.
               </p>
-              <Link
-                href="/signup"
+              <SignUpCta
+                label="Create your student account"
                 className="registration-cta mt-7 inline-flex items-center gap-2 font-semibold text-[#1d5144] hover:gap-3 dark:text-green-400"
-              >
-                Create your student account <ArrowRight size={18} />
-              </Link>
+              />
             </div>
             <div className="space-y-4">
               {steps.map((step) => (
@@ -354,12 +351,11 @@ export default function HomePage() {
             your learning journey.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <Link
-              href="/signup"
+            <SignUpCta
+              label="Get started"
+              withArrow={false}
               className="registration-cta rounded-xl bg-[#e4c18e] px-6 py-3.5 font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"
-            >
-              Get started
-            </Link>
+            />
             <Link
               href="/contact"
               className="rounded-xl border border-white/30 px-6 py-3.5 font-semibold text-white transition hover:bg-white/10"

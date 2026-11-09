@@ -6,6 +6,13 @@ import type { JitsiExternalApi, JitsiExternalApiOptions } from "@/types/jitsi";
 
 const SCRIPT_ID = "jitsi-external-api";
 
+/**
+ * The academy backdrop every camera feed is composited onto. It is served by
+ * the Jitsi deployment itself, so the iframe loads it without cross-origin
+ * rules.
+ */
+const BRANDED_BACKGROUND = "/branding/ana-quran-lesson-background.jpg";
+
 type JoinMode = "audio-video" | "audio-only" | "view-only";
 
 function loadJitsiScript(domain: string) {
@@ -185,11 +192,11 @@ export function JitsiRoom({
             startWithAudioMuted: mode === "view-only",
             startWithVideoMuted: mode !== "audio-video",
             enableInsecureRoomNameWarning: false,
-            // Only the controls a lesson actually needs.
+            // Only the controls a lesson actually needs. The background is not
+            // among them: the academy backdrop is applied automatically.
             toolbarButtons: [
               "microphone",
               "camera",
-              "select-background",
               "desktop",
               "whiteboard",
               "chat",
@@ -217,9 +224,25 @@ export function JitsiRoom({
         };
         api = new window.JitsiMeetExternalAPI(domain, options);
         onApiReadyRef.current?.(api);
+
+        // The backdrop is not something the reader picks, so it is re-applied
+        // every time their camera turns on, not only once on join.
+        const applyBrandedBackground = () => {
+          if (mode !== "audio-video") return;
+          api?.executeCommand(
+            "setVirtualBackground",
+            true,
+            `https://${domain}${BRANDED_BACKGROUND}`
+          );
+        };
+
         api.addListener("videoConferenceJoined", () => {
           setJoined(true);
           onJoinedRef.current?.();
+          applyBrandedBackground();
+        });
+        api.addListener("videoMuteStatusChanged", (status) => {
+          if (!(status as { muted?: boolean }).muted) applyBrandedBackground();
         });
         api.addListener("videoConferenceLeft", () => {
           onLeftRef.current?.();

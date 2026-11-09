@@ -10,6 +10,7 @@ import {
   deleteTeacherWeeklyAvailabilityAsAdmin,
   getTeacherWeeklyAvailabilityForAdmin,
   publishWeeklyAvailabilityForTeacher,
+  releaseTeacherWeeklyAvailabilityAsAdmin,
 } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
 import { useToast } from "@/providers/toast-provider";
@@ -119,10 +120,20 @@ export default function AdminTeacherAvailabilityPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (ruleId: string) =>
-      deleteTeacherWeeklyAvailabilityAsAdmin(teacherId, ruleId),
-    onSuccess: async () => {
-      showToast("Weekly time removed.", "success");
+    mutationFn: async (rule: WeeklyRule) => {
+      // A booked time carries students' repeating series. Those must end before
+      // the slot itself can go, otherwise the API refuses to delete it.
+      if (rule.status !== "available")
+        await releaseTeacherWeeklyAvailabilityAsAdmin(teacherId, rule.id);
+      return deleteTeacherWeeklyAvailabilityAsAdmin(teacherId, rule.id);
+    },
+    onSuccess: async (_result, rule) => {
+      showToast(
+        rule.status === "available"
+          ? "Weekly time removed."
+          : "Weekly time removed. The students booked on it and the teacher were notified.",
+        "success"
+      );
       await invalidate();
     },
   });
@@ -149,15 +160,16 @@ export default function AdminTeacherAvailabilityPage() {
   };
 
   const confirmRemove = (rule: WeeklyRule) => {
-    if (
-      window.confirm(
-        `Remove ${weekdayLabel(rule.dayOfWeek)} · ${formatWeeklyTimeRange(
-          rule.startsAtTime,
-          rule.endsAtTime
-        )}? Students will no longer see this time.`
-      )
-    ) {
-      deleteMutation.mutate(rule.id);
+    const booked = rule.status !== "available";
+    const label = `${weekdayLabel(rule.dayOfWeek)} · ${formatWeeklyTimeRange(
+      rule.startsAtTime,
+      rule.endsAtTime
+    )}`;
+    const message = booked
+      ? `Remove ${label}? This ends the weekly lessons of every student booked on it and cancels their future lessons. The students and the teacher are notified.`
+      : `Remove ${label}? Students will no longer see this time.`;
+    if (window.confirm(message)) {
+      deleteMutation.mutate(rule);
     }
   };
 
@@ -350,7 +362,7 @@ export default function AdminTeacherAvailabilityPage() {
                           const booked = rule.status !== "available";
                           const removing =
                             deleteMutation.isPending &&
-                            deleteMutation.variables === rule.id;
+                            deleteMutation.variables?.id === rule.id;
                           return (
                             <div
                               key={rule.id}
@@ -369,21 +381,26 @@ export default function AdminTeacherAvailabilityPage() {
                                     : "Open for a student to book."}
                                 </p>
                               </div>
-                              {booked ? (
-                                <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800 dark:bg-sky-500/15 dark:text-sky-300">
-                                  Booked
-                                </span>
-                              ) : (
+                              <div className="flex items-center gap-2">
+                                {booked ? (
+                                  <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800 dark:bg-sky-500/15 dark:text-sky-300">
+                                    Booked
+                                  </span>
+                                ) : null}
                                 <button
                                   type="button"
                                   onClick={() => confirmRemove(rule)}
                                   disabled={removing}
-                                  aria-label="Remove weekly time"
+                                  aria-label={
+                                    booked
+                                      ? "End this booked weekly time and remove it"
+                                      : "Remove weekly time"
+                                  }
                                   className="rounded-lg p-2 text-red-600 hover:bg-red-500/10 disabled:opacity-50 dark:text-red-400"
                                 >
                                   <Trash2 size={18} />
                                 </button>
-                              )}
+                              </div>
                             </div>
                           );
                         })}

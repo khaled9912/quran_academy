@@ -215,13 +215,14 @@ A student has at most one active teacher at a time; the API enforces this and re
 
 ### Admin availability management
 
-| Method | Endpoint                                                      | Purpose                                      |
-| ------ | ------------------------------------------------------------- | -------------------------------------------- |
-| GET    | `/api/admin/teachers/{teacherId}/availability-rules`          | List that teacher's weekly rules             |
-| POST   | `/api/admin/teachers/{teacherId}/availability-rules`          | Publish weekly rules on the teacher's behalf |
-| DELETE | `/api/admin/teachers/{teacherId}/availability-rules/{ruleId}` | Delete an unbooked weekly rule               |
+| Method | Endpoint                                                              | Purpose                                                  |
+| ------ | --------------------------------------------------------------------- | -------------------------------------------------------- |
+| GET    | `/api/admin/teachers/{teacherId}/availability-rules`                  | List that teacher's weekly rules                         |
+| POST   | `/api/admin/teachers/{teacherId}/availability-rules`                  | Publish weekly rules on the teacher's behalf             |
+| POST   | `/api/admin/teachers/{teacherId}/availability-rules/{ruleId}/release` | End every active series booked on this rule              |
+| DELETE | `/api/admin/teachers/{teacherId}/availability-rules/{ruleId}`         | Delete a weekly rule that no longer has an active series |
 
-The admin body is the same as the teacher's own publish call: `{ "daysOfWeek": [6, 0, 1], "startsAtTime": "15:00:00", "endsAtTime": "16:00:00", "timeZoneId": "Africa/Cairo" }`. Every rule must be 30, 45, or 60 minutes long; rules that overlap the teacher's existing rules or lessons are rejected with `400`. A rule that already backs an active series cannot be deleted — the response is `409` — because deleting it would silently cancel a booked weekly time.
+The admin body is the same as the teacher's own publish call: `{ "daysOfWeek": [6, 0, 1], "startsAtTime": "15:00:00", "endsAtTime": "16:00:00", "timeZoneId": "Africa/Cairo" }`. Every rule must be 30, 45, or 60 minutes long; rules that overlap the teacher's existing rules or lessons are rejected with `400`. A rule that still backs an active series cannot be deleted — the response is `409` — because deleting it would silently cancel a booked weekly time. `…/{ruleId}/release` is the admin override for exactly that case: it deactivates each active series on the rule, cancels their future scheduled lessons with `cancellationOutcome = "series_ended"` (no credit moves and no reliability strike, because those rows were never charged), drops the teacher assignment when the pair has no other active series, and notifies both sides from the academy. It answers `200 { "released": 2, "lessonsCancelled": 11 }`, `404` for an unknown rule, and the `DELETE` then returns `204`. The web and mobile admin screens run the two calls in sequence behind one confirmation.
 
 The older one-off endpoints (`/api/admin/teachers/{teacherId}/availability`, `/api/teacher/availability`, `/api/student/teacher/availability`, `/api/teachers/directory`, `/api/lesson-requests`) are still mounted for backwards compatibility but the web and mobile apps no longer call them.
 
@@ -442,9 +443,30 @@ A participant always rings the other side; `targetRole` is only read from staff.
 | GET    | `/api/teacher/salary-periods`       | teacher         | Monthly salary periods                             |
 | POST   | `/api/devices/register`             | any             | `{ token, platform }` Expo push token              |
 | POST   | `/api/devices/unregister`           | any             | `{ token, platform? }` — call on sign-out          |
+| GET    | `/api/web-push/key`                 | any             | `{ key }` VAPID public key; `503` when unconfigured |
+| POST   | `/api/web-push/subscribe`           | any             | `{ endpoint, p256dh, auth }` browser subscription   |
+| POST   | `/api/web-push/unsubscribe`         | any             | `{ endpoint }` — call on sign-out                   |
 | GET    | `/api/lessons/{id}/excuse`          | student         | Existing excuse request                            |
 | POST   | `/api/lessons/{id}/excuse`          | student         | `{ category, explanation }` (late/no-show lessons) |
 | POST   | `/api/lessons/{id}/incident`        | teacher/student | `{ type, detail }` attendance dispute or no-show   |
+
+### Browser push subscriptions
+
+Web Push is what lets a lesson call reach a laptop with no tab open. The client
+registers `/sw.js`, subscribes through `pushManager` with the key from
+`GET /api/web-push/key`, and posts the resulting `{ endpoint, p256dh, auth }`
+triple. Permission is only ever asked for inside a click, so nothing here
+prompts on its own.
+
+The server checks the `endpoint` against the push services browsers actually
+use (`fcm.googleapis.com`, `web.push.apple.com`,
+`updates.push.services.mozilla.com`) and answers `400` for anything else — it
+POSTs to that URL with its VAPID signature attached, so an unvalidated endpoint
+would turn the API into a relay. A subscription is per browser profile, not per
+account: registering the same endpoint under a different signed-in account moves
+the row instead of creating a second one, and `pushsubscriptionchange` in the
+worker re-registers silently when the push service rotates it. Expired
+subscriptions are deleted by the sender when the push service answers 404/410.
 
 Three independent teacher-hour values are stored per lesson: `actualAttendanceMinutes` from intervals, `proposedPayableMinutes` (actual, or the full scheduled time when the policy pays scheduled duration and both sides attended), and admin `approvedPayableMinutes`. Approval status is `pending`, `approved`, `adjusted`, `rejected`, or `not_applicable`, with the auditor and adjustment reason recorded.
 
@@ -503,7 +525,7 @@ Rules enforced by the API: one report and one review per lesson; both are reject
 
 ## Lesson room
 
-`/lesson/{id}` loads the lesson through `GET /api/lessons/{id}` (which already enforces ownership) and embeds Jitsi Meet through the official External API (`https://{domain}/external_api.js`) inside our own page. The room name is derived from the lesson id and the Jitsi domain is configurable with `NEXT_PUBLIC_JITSI_DOMAIN` (defaults to `meet.jit.si`). Before joining, the page asks for camera/microphone access and offers three modes: camera + mic, mic only, or watch/listen only. Devices are enumerated first; when none are present (or permission is blocked) the page explains why and keeps a working "Join without camera & mic" path instead of dead-ending. Screen sharing is part of the standard Jitsi toolbar.
+`/lesson/{id}` loads the lesson through `GET /api/lessons/{id}` (which already enforces ownership) and embeds Jitsi Meet through the official External API (`https://{domain}/external_api.js`) inside our own page. The room name is derived from the lesson id and the Jitsi domain is configurable with `NEXT_PUBLIC_JITSI_DOMAIN` (defaults to `meet.jit.si`). Before joining, the page asks for camera/microphone access and offers three modes: camera + mic, mic only, or watch/listen only. Devices are enumerated first; when none are present (or permission is blocked) the page explains why and keeps a working "Join without camera & mic" path instead of dead-ending. Screen sharing is part of the standard Jitsi toolbar; the app-level lock described below decides who may use it.
 
 The mobile app embeds the same room with the native `@jitsi/react-native-sdk` (not a WebView) and must point at the same self-hosted Jitsi host as the web build (the domain is baked into the app bundle). The room header exposes a native share sheet with the room URL so a participant can invite someone they trust; the room stays unlisted.
 
@@ -521,13 +543,38 @@ Jitsi cannot annotate a live screen share, so marks travel over the existing rea
 
 | Hub method                                               | Purpose                                                                                                                    |
 | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `JoinLessonPen(lessonId)`                                | Participant-only. Adds the connection to `lesson-pen:{lessonId}` and returns `{ strokes: [{ id, color, width, points }] }` |
+| `JoinLessonPen(lessonId)`                                | Participant-only. Adds the connection to `lesson-pen:{lessonId}` and returns `{ strokes: [{ id, color, width, points }], frame }` |
 | `StartPenStroke(lessonId, strokeId, color, width, x, y)` | Drawer-only. Broadcasts `PenStrokeStarted { id, color, width, x, y }` to the other participants                            |
 | `AppendPenStroke(lessonId, strokeId, points)`            | Drawer-only. `points` is `[x, y, ...]` (at most 256 doubles per call); broadcasts `PenStrokeAppended`                      |
 | `EndPenStroke(lessonId, strokeId)`                       | Drawer-only. Broadcasts `PenStrokeEnded`                                                                                   |
 | `ClearLessonPen(lessonId)`                               | Drawer-only. Broadcasts `PenCleared`                                                                                       |
+| `SetPenFrame(lessonId, aspect)`                          | Drawer-only. Fits the annotation box to the shared picture; broadcasts `PenFrameChanged { frame }` and returns the clamped ratio |
 
-Only the lesson's teacher, an admin, or a super admin may draw; support staff and students receive the marks read-only. Ink is ephemeral in-memory state (newest 400 strokes, dropped after 6 idle hours) and is never persisted. Points are normalized to each viewer's own stage, so a share that is letterboxed or cropped differently — especially a portrait phone — can drift from the shared picture.
+`strokeId` is an opaque client string of 1–64 letters, digits or dashes — not a GUID. Both apps generate their own shape, and the hub only uses it to match appends and ends to a stroke.
+
+Only the lesson's teacher, an admin, or a super admin may draw; support staff and students receive the marks read-only. Ink is ephemeral in-memory state (newest 400 strokes, dropped after 6 idle hours) and is never persisted.
+
+**Where a point lands.** Coordinates are normalized inside the lesson's annotation frame, not inside each viewer's call view. The frame is the largest centered box of the shared picture's ratio that fits the stage, so a mark at `0.5, 0.5` is the middle of the shared page on every screen — a desktop and a portrait phone agree. `frame` is that box's width-to-height ratio and defaults to 16:9, which matches a laptop display and most cameras. Whoever marks can correct it by dragging the corner grip (or arrow keys) until the box lines up with the picture they see; only the ratio travels, because each screen recentres the box in its own layout. Clearing ink does not reset the frame, and changing the frame re-places existing marks, which is the point: marks stick to the page. Residual error remains where Jitsi's own filmstrip or toolbars push the picture off centre, since the app cannot measure inside the video surface.
+
+### One screen share at a time
+
+A lesson allows only one shared screen. Jitsi has no server or config setting for this, so the rule lives on our hub: a first-come lock per lesson, held by the SignalR connection that claimed it and freed automatically when that connection drops.
+
+| Hub method                  | Purpose                                                                                                                                       |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `JoinLessonShare(lessonId)` | Participant-only. Subscribes to `lesson-share:{lessonId}` and returns the current `{ on, holder }` so someone joining mid-lesson learns it is taken |
+| `ClaimLessonShare(lessonId)` | Fires when the local client starts sharing. Returns `{ accepted, holder }`; the winner is broadcast to the others as `LessonShareChanged { on: true, holder }` |
+| `ReleaseLessonShare(lessonId)` | Called when the local share stops or the client leaves the room. Broadcasts `LessonShareChanged { on: false, holder: null }`                |
+| `LeaveLessonShare(lessonId)` | Unsubscribes on hang-up or unmount                                                                                                             |
+
+`holder` is always labelled from the other participant's point of view ("Your teacher", "Your student", "An admin", or a scrubbed display name), never from the sharer's. A participant who loses a race re-claims harmlessly, so the holder never blocks themselves.
+
+Behaviour differs by platform because the Jitsi surfaces differ:
+
+- **Web** (External API): on a rejected claim the provider force-stops the violator with `toggleShareScreen` and shows a bottom banner naming the current holder.
+- **Mobile** (React Native SDK): `onScreenShareToggled` only reports the local share and the SDK exposes no way to stop it, so the app cannot be force-stopped. It shows the same banner with "please stop yours" instead. Both sides then stay in sync through the hub.
+
+Known gap, accepted deliberately: an iOS app suspended mid-share stops JavaScript, and the socket close frees the lock — so the other participant can start a share briefly before the first resumes. Fail-open applies throughout: if the realtime socket is unavailable, the rule cannot be checked and screen sharing keeps working normally.
 
 ## Lesson transcripts and off-platform flags
 

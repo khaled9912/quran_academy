@@ -15,8 +15,13 @@ import { Minimize2, PenLine, PhoneOff, PictureInPicture2 } from "lucide-react";
 import { JitsiRoom } from "@/components/JitsiRoom";
 import { LessonPenOverlay } from "@/components/lesson/LessonPenOverlay";
 import { useAuth } from "@/providers/auth-provider";
+import { useRealtimeConnection } from "@/providers/realtime-provider";
 import { sendAttendanceEvent } from "@/services/lesson.service";
 import type { JitsiExternalApi } from "@/types/jitsi";
+
+/** The lesson's one-share lock, as the hub reports it. */
+type ShareState = { on?: boolean; holder?: string | null };
+type ShareClaim = { accepted?: boolean; holder?: string | null };
 
 export interface ActiveLessonCall {
   lessonId: string;
@@ -240,13 +245,96 @@ function LessonCallHost({
     );
   }, []);
 
-  const handleApiReady = useCallback((api: JitsiExternalApi | null) => {
-    apiRef.current = api;
-    setPipActive(false);
-    if (!api) return;
-    api.addListener("pipEntered", () => setPipActive(true));
-    api.addListener("pipLeft", () => setPipActive(false));
+  const { connection, revision } = useRealtimeConnection();
+  const [share, setShare] = useState<{ holder: string | null; local: boolean }>(
+    { holder: null, local: false }
+  );
+  // The Jitsi listeners are registered once per conference, so they read the
+  // current lesson and socket through refs instead of closing over them.
+  const lessonIdRef = useRef(call.lessonId);
+  const connectionRef = useRef(connection);
+  lessonIdRef.current = call.lessonId;
+  connectionRef.current = connection;
+
+  const handleShareStatus = useCallback((event: unknown) => {
+    const on = Boolean((event as { on?: boolean } | null)?.on);
+    const currentConnection = connectionRef.current;
+    const lessonId = lessonIdRef.current;
+    setShare((current) => ({ ...current, local: on }));
+    // With no live socket the lock cannot be consulted, so sharing still works.
+    if (!currentConnection || !lessonId) return;
+
+    if (!on) {
+      void currentConnection
+        .invoke("ReleaseLessonShare", lessonId)
+        .catch(() => {});
+      return;
+    }
+
+    void currentConnection
+      .invoke<ShareClaim>("ClaimLessonShare", lessonId)
+      .then((claim) => {
+        if (claim?.accepted) {
+          setShare((current) => ({ ...current, holder: null }));
+          return;
+        }
+        setShare({
+          holder: claim?.holder ?? "Another participant",
+          local: true,
+        });
+        // The lesson allows one screen at a time, so this share cannot stay.
+        apiRef.current?.executeCommand("toggleShareScreen");
+      })
+      .catch(() => {});
   }, []);
+
+  // Follow the lock for as long as this call is up, and hand it back on the way
+  // out so hanging up mid-share never leaves the other person blocked.
+  useEffect(() => {
+    if (!joined || !connection) return;
+    let disposed = false;
+    setShare({ holder: null, local: false });
+
+    const onChanged = (state: ShareState) =>
+      setShare((current) => ({
+        ...current,
+        holder: state?.on ? (state.holder ?? "Another participant") : null,
+      }));
+
+    connection.on("LessonShareChanged", onChanged);
+    void connection
+      .invoke<ShareState>("JoinLessonShare", call.lessonId)
+      .then((state) => {
+        if (!disposed && state?.on) {
+          setShare((current) => ({
+            ...current,
+            holder: state.holder ?? "Another participant",
+          }));
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      disposed = true;
+      connection.off("LessonShareChanged", onChanged);
+      void connection
+        .invoke("ReleaseLessonShare", call.lessonId)
+        .catch(() => {});
+      void connection.invoke("LeaveLessonShare", call.lessonId).catch(() => {});
+    };
+  }, [connection, revision, joined, call.lessonId]);
+
+  const handleApiReady = useCallback(
+    (api: JitsiExternalApi | null) => {
+      apiRef.current = api;
+      setPipActive(false);
+      if (!api) return;
+      api.addListener("pipEntered", () => setPipActive(true));
+      api.addListener("pipLeft", () => setPipActive(false));
+      api.addListener("screenSharingStatusChanged", handleShareStatus);
+    },
+    [handleShareStatus]
+  );
 
   const togglePip = () => {
     apiRef.current?.executeCommand(pipActive ? "hidePiP" : "showPiP");
@@ -403,6 +491,18 @@ function LessonCallHost({
             canDraw={canMark}
             onDone={() => setPenActive(false)}
           />
+        )}
+        {share.holder && !share.local && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="pointer-events-none absolute inset-x-0 bottom-20 z-20 flex justify-center px-3"
+          >
+            <p className="max-w-lg rounded-xl bg-neutral-900/90 px-4 py-2 text-center text-xs font-medium text-white shadow-lg sm:text-sm">
+              {share.holder} is sharing their screen. Only one screen share at a
+              time — you can share once they stop.
+            </p>
+          </div>
         )}
       </div>
     </div>

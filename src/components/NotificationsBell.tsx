@@ -15,6 +15,12 @@ import {
   type AppNotification,
 } from "@/services/notification.service";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
+import {
+  desktopPermission,
+  requestDesktopAlerts,
+  type DesktopPermission,
+} from "@/lib/notification-tray";
+import { ensureWebPushSubscription } from "@/lib/web-push";
 
 const timeAgo = (value: string) => {
   const date = new Date(value);
@@ -46,10 +52,12 @@ const useNotificationsFeed = () => {
 export const NOTIFICATIONS_QUERY_KEY = ["notifications"] as const;
 
 export const NotificationsBell = () => {
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated, role, user } = useAuth();
   const queryClient = useQueryClient();
   const query = useNotificationsFeed();
   const [open, setOpen] = useState(false);
+  const [permission, setPermission] =
+    useState<DesktopPermission>("unsupported");
   const wrapper = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const items = query.data?.items ?? [];
@@ -70,6 +78,11 @@ export const NotificationsBell = () => {
       document.removeEventListener("keydown", onKey);
     };
   }, [open]);
+
+  // Read lazily: the browser only answers once the page owns the DOM.
+  useEffect(() => {
+    if (isAuthenticated) setPermission(desktopPermission());
+  }, [isAuthenticated]);
 
   if (!isAuthenticated) return null;
 
@@ -117,21 +130,43 @@ export const NotificationsBell = () => {
                 </span>
               ) : null}
             </p>
-            {unread > 0 ? (
-              <button
-                type="button"
-                onClick={() =>
-                  void markAllNotificationsRead().then(() =>
-                    queryClient.invalidateQueries({
-                      queryKey: NOTIFICATIONS_QUERY_KEY,
+            <div className="flex shrink-0 items-center gap-4">
+              {permission === "default" ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    void requestDesktopAlerts().then((next) => {
+                      setPermission(next);
+                      // This click is the only moment a browser allows both the
+                      // prompt and a push subscription, so the two are done
+                      // together rather than asked for twice.
+                      if (next === "granted" && user?.id) {
+                        void ensureWebPushSubscription(user.id);
+                      }
                     })
-                  )
-                }
-                className="text-xs font-semibold text-green-600 dark:text-green-400 hover:underline"
-              >
-                Mark all read
-              </button>
-            ) : null}
+                  }
+                  aria-label="Allow notifications from Ana Quran, even when this tab is closed"
+                  className="text-xs font-semibold text-green-600 dark:text-green-400 hover:underline"
+                >
+                  Turn on alerts
+                </button>
+              ) : null}
+              {unread > 0 ? (
+                <button
+                  type="button"
+                  onClick={() =>
+                    void markAllNotificationsRead().then(() =>
+                      queryClient.invalidateQueries({
+                        queryKey: NOTIFICATIONS_QUERY_KEY,
+                      })
+                    )
+                  }
+                  className="text-xs font-semibold text-green-600 dark:text-green-400 hover:underline"
+                >
+                  Mark all read
+                </button>
+              ) : null}
+            </div>
           </div>
 
           <div className="max-h-[60vh] overflow-y-auto">

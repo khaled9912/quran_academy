@@ -11,7 +11,12 @@ import {
   Video,
 } from "lucide-react";
 import type { Lesson } from "@/types/lesson";
-import { todayLessons, upcomingLessons } from "@/lib/lesson-window";
+import {
+  laterLessons,
+  todayLessons,
+  upcomingLessons,
+} from "@/lib/lesson-window";
+import { NextUpLessons } from "@/components/NextUpLessons";
 import { isLessonLive } from "@/lib/lesson-feedback";
 import { useNow } from "@/hooks/use-now";
 import { LiveNowBadge } from "@/components/LiveNowBadge";
@@ -70,6 +75,7 @@ const StudentDashboard = () => {
   );
   const now = useNow();
   const today = todayLessons(lessons, now);
+  const nextUp = laterLessons(lessons, now);
   const hasLaterLessons = upcomingLessons(lessons, now).length > 0;
   const completed = sorted.filter((lesson) => lesson.status === "completed");
   const cancelled = sorted.filter((lesson) => lesson.status === "cancelled");
@@ -365,14 +371,8 @@ const StudentDashboard = () => {
                 </div>
               ) : hasLaterLessons ? (
                 <div className="rounded-2xl border border-dashed border-card-border p-8 text-center text-foreground opacity-70">
-                  No lessons today. Your next lesson shows here on the day.{" "}
-                  <Link
-                    href="/schedule"
-                    className="font-semibold text-green-600 dark:text-green-400 hover:underline"
-                  >
-                    Open your schedule
-                  </Link>{" "}
-                  to see the week ahead.
+                  No lessons today. Your next lesson shows here on the day, and
+                  what is coming up is listed below.
                 </div>
               ) : (
                 <div className="rounded-2xl border border-dashed border-card-border p-8 text-center text-foreground opacity-70">
@@ -386,6 +386,7 @@ const StudentDashboard = () => {
                   with a teacher.
                 </div>
               )}
+              <NextUpLessons lessons={nextUp} perspective="student" />
             </section>
 
             <section className="bg-card-bg border border-card-border rounded-3xl p-6 md:p-8">
