@@ -340,7 +340,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                 Visit the blog <ArrowRight size={16} aria-hidden />
               </Link>
             </div>
-            <div className="mt-8 grid gap-6 md:grid-cols-2">
+            <div className="mt-8 grid gap-6 md:grid-cols-3">
               {related.map((relatedPost) => (
                 <BlogCard key={relatedPost.slug} post={relatedPost} />
               ))}

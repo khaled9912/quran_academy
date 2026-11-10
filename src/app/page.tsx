@@ -18,10 +18,18 @@ import {
 import { SignUpCta } from "@/components/SignUpCta";
 import { SiteFooter } from "@/components/SiteFooter";
 import { BlogCard } from "@/components/blog/BlogCard";
-import { sortedBlogPosts } from "@/lib/blog";
+import { getBlogPost, type BlogPost } from "@/lib/blog";
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_TITLE } from "@/lib/seo";
 
-const latestGuides = sortedBlogPosts();
+// Curated by what a first-time visitor needs, not by publish date: the
+// getting-started guide, the Tajweed guide, and the parents' guide.
+const featuredGuides = [
+  "how-to-learn-quran-online",
+  "learn-quran-with-tajweed",
+  "online-quran-classes-for-kids",
+]
+  .map((slug) => getBlogPost(slug))
+  .filter((post): post is BlogPost => post !== undefined);
 
 export const metadata: Metadata = {
   title: { absolute: SITE_TITLE },
@@ -111,8 +119,7 @@ export default function HomePage() {
             </h1>
             <p className="mt-4 max-w-xl text-base leading-7 text-[#5d726a] dark:text-foreground/70 sm:mt-6 sm:text-lg sm:leading-8">
               Learn Quran, Tajweed, Arabic, and Islamic studies with dedicated
-              teachers through personal online lessons — from anywhere in the
-              world.
+              teachers in one-to-one online lessons, taught in English.
             </p>
             <div className="mt-8 flex w-full flex-col gap-3 sm:mt-9 sm:flex-row">
               <SignUpCta
@@ -146,7 +153,7 @@ export default function HomePage() {
                   size={17}
                   className="text-[#6b936c] dark:text-green-400"
                 />{" "}
-                Learn from anywhere
+                Learn from home
               </span>
             </div>
           </div>
@@ -280,6 +287,30 @@ export default function HomePage() {
                 label="Create your student account"
                 className="registration-cta mt-7 inline-flex items-center gap-2 font-semibold text-[#1d5144] hover:gap-3 dark:text-green-400"
               />
+              <p className="mt-6 text-sm leading-7 text-[#687b70] dark:text-foreground/70">
+                Looking for a specific programme? See{" "}
+                <Link
+                  href="/courses"
+                  className="font-semibold text-[#1d5145] underline decoration-[#b9cfc2] underline-offset-4 dark:text-green-400 dark:decoration-green-400/40"
+                >
+                  all programmes
+                </Link>
+                ,{" "}
+                <Link
+                  href="/courses/quran-for-kids"
+                  className="font-semibold text-[#1d5145] underline decoration-[#b9cfc2] underline-offset-4 dark:text-green-400 dark:decoration-green-400/40"
+                >
+                  Quran classes for kids
+                </Link>
+                , or{" "}
+                <Link
+                  href="/courses/tajweed"
+                  className="font-semibold text-[#1d5145] underline decoration-[#b9cfc2] underline-offset-4 dark:text-green-400 dark:decoration-green-400/40"
+                >
+                  Tajweed classes
+                </Link>
+                .
+              </p>
             </div>
             <div className="space-y-4">
               {steps.map((step) => (
@@ -315,8 +346,16 @@ export default function HomePage() {
               Practical answers before you start.
             </h2>
             <p className="mt-4 max-w-xl leading-7 text-[#687b70] dark:text-foreground/70">
-              Clear guides on learning Quran online, Tajweed, memorization, and
-              choosing the right teacher — for students and parents worldwide.
+              Clear guides on learning Quran online, starting Tajweed, and
+              choosing lessons for children — with more on{" "}
+              <Link
+                href="/blog"
+                className="font-semibold text-[#1d5145] underline decoration-[#b9cfc2] underline-offset-4 dark:text-green-400 dark:decoration-green-400/40"
+              >
+                the blog
+              </Link>
+              , including how to choose an academy and how memorization plans
+              work.
             </p>
           </div>
           <Link
@@ -327,7 +366,7 @@ export default function HomePage() {
           </Link>
         </div>
         <div className="mt-8 grid gap-5 md:grid-cols-3">
-          {latestGuides.map((post) => (
+          {featuredGuides.map((post) => (
             <BlogCard key={post.slug} post={post} />
           ))}
         </div>

@@ -527,7 +527,7 @@ export default function QuranForKidsPage() {
           </div>
           <p className="mx-auto mt-6 flex max-w-md items-center justify-center gap-2 text-sm text-white/60">
             <Globe2 size={15} />
-            English-speaking families in six countries and beyond
+            Website registration is open to families in six countries
           </p>
         </div>
       </section>

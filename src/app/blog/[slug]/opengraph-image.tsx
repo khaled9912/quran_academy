@@ -128,7 +128,7 @@ export default async function BlogOpengraphImage({
             }}
           >
             <div style={{ display: "flex" }}>
-              Practical Quran learning guides for English speakers worldwide
+              Practical Quran learning guides, taught in English
             </div>
             <div style={{ display: "flex", color: "#d8c29f" }}>
               {post ? `${post.readingMinutes} min read` : "Read the guide"}

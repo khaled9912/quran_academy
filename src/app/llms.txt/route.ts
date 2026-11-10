@@ -14,7 +14,7 @@ export function GET() {
 
   const body = `# Ana Quran Academy
 
-> Ana Quran Academy is a global online Quran academy for English-speaking students. We teach Quran, Tajweed, memorization, Arabic, and Islamic studies through one-to-one online lessons with reviewed teachers.
+> Ana Quran Academy is an online Quran academy for English-speaking students. We teach Quran, Tajweed, memorization, Arabic, and Islamic studies through one-to-one online lessons with reviewed teachers.
 
 ## What we teach
 
@@ -26,7 +26,7 @@ export function GET() {
 
 ## Who we teach
 
-English-speaking children and adults, including beginners and families, living in the United States, the United Kingdom, Canada, Australia, New Zealand, Europe, and other countries worldwide. Lessons are delivered in English.
+English-speaking children and adults, including beginners and families. Website registration is currently open to the United States, the United Kingdom, Canada, Australia, New Zealand, and Ireland; students elsewhere are welcome to contact the academy, which will tell them what is possible. Lessons are delivered in English.
 
 ## How learning works
 
@@ -46,6 +46,7 @@ English-speaking children and adults, including beginners and families, living i
 
 - [Courses](${SITE_URL}/courses): all programmes at a glance
 - [Online Quran classes for kids](${SITE_URL}/courses/quran-for-kids): one-to-one lessons for children and teenagers, taught in English
+- [Online Tajweed classes](${SITE_URL}/courses/tajweed): one-to-one Tajweed lessons with correction in every lesson
 
 ## Key pages
 

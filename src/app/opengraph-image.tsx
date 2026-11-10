@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { SITE_NAME } from "@/lib/seo";
 
-export const alt = `${SITE_NAME} — Learn Quran Online Worldwide`;
+export const alt = `${SITE_NAME} — Learn Quran Online in English`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -89,7 +89,7 @@ export default function OpengraphImage() {
                 maxWidth: 900,
               }}
             >
-              Learn Quran Online Worldwide
+              Learn Quran Online in English
             </div>
             <div
               style={{
