@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, BookOpen, Clock3 } from "lucide-react";
 
 import { BlogCard } from "@/components/blog/BlogCard";
 import { JsonLd } from "@/components/JsonLd";
+import { SiteFooter } from "@/components/SiteFooter";
 import {
   BLOG_AUTHOR,
   formatBlogDate,
@@ -103,7 +104,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   if (!post) notFound();
 
   const url = absoluteUrl(`/blog/${post.slug}`);
-  const related = relatedBlogPosts(post.slug);
+  const related = relatedBlogPosts(post.slug, 4);
 
   const articleSchema = {
     "@context": "https://schema.org",
@@ -347,6 +348,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           </div>
         </section>
       )}
+      <SiteFooter />
     </main>
   );
 }

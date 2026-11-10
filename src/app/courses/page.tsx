@@ -12,6 +12,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { SiteFooter } from "@/components/SiteFooter";
+
 import { JsonLd } from "@/components/JsonLd";
 import { absoluteUrl, pageMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
 
@@ -406,6 +408,7 @@ export default function CoursesPage() {
           </div>
         </div>
       </section>
+      <SiteFooter />
     </main>
   );
 }

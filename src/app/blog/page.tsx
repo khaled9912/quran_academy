@@ -4,6 +4,7 @@ import { ArrowRight, BookOpen, Clock3 } from "lucide-react";
 
 import { BlogCard } from "@/components/blog/BlogCard";
 import { JsonLd } from "@/components/JsonLd";
+import { SiteFooter } from "@/components/SiteFooter";
 import { formatBlogDate, sortedBlogPosts, type BlogPost } from "@/lib/blog";
 import { absoluteUrl, pageMetadata, SITE_URL } from "@/lib/seo";
 
@@ -164,6 +165,7 @@ export default function BlogPage() {
           </div>
         </div>
       </section>
+      <SiteFooter />
     </main>
   );
 }

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { JsonLd } from "@/components/JsonLd";
+import { SiteFooter } from "@/components/SiteFooter";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -406,46 +407,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <footer className="border-t border-[#e5e9df] bg-white dark:border-card-border dark:bg-card-bg">
-        <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 text-sm text-[#718078] dark:text-foreground/60 md:flex-row md:items-center md:justify-between md:px-8">
-          <p>
-            One-to-one online Quran, Arabic, and Islamic studies for
-            English-speaking students worldwide.
-          </p>
-          <div className="flex gap-5">
-            <Link
-              href="/"
-              className="hover:text-[#1c5145] dark:hover:text-green-400"
-            >
-              Home
-            </Link>
-            <Link
-              href="/courses"
-              className="hover:text-[#1c5145] dark:hover:text-green-400"
-            >
-              Courses
-            </Link>
-            <Link
-              href="/blog"
-              className="hover:text-[#1c5145] dark:hover:text-green-400"
-            >
-              Blog
-            </Link>
-            <Link
-              href="/contact"
-              className="hover:text-[#1c5145] dark:hover:text-green-400"
-            >
-              Contact
-            </Link>
-            <Link
-              href="/login"
-              className="hover:text-[#1c5145] dark:hover:text-green-400"
-            >
-              Student login
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }
