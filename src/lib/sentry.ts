@@ -1,4 +1,4 @@
-import * as Sentry from "@sentry/nextjs";
+import type { ErrorEvent, EventHint } from "@sentry/nextjs";
 import { ApiError } from "./backend-client";
 
 /**
@@ -23,7 +23,7 @@ export const sentryOptions = {
     /^moz-extension:\/\//,
     /^safari(-web)?-extension:\/\//,
   ],
-  beforeSend(event: Sentry.ErrorEvent, hint: Sentry.EventHint) {
+  beforeSend(event: ErrorEvent, hint: EventHint) {
     // Only real failures are worth a quota slot, never warnings/info/logs.
     if (event.level && event.level !== "error" && event.level !== "fatal") {
       return null;
@@ -35,8 +35,16 @@ export const sentryOptions = {
   },
 };
 
+type SentryClient = typeof import("@sentry/nextjs");
+
+let clientPromise: Promise<SentryClient> | null = null;
+
+// The browser SDK is ~40-70 KB gzipped; load it only when something needs it.
+export const loadSentryClient = (): Promise<SentryClient> =>
+  (clientPromise ??= import("@sentry/nextjs"));
+
 /** Reports unexpected failures; expected 4xx API responses are left to the UI. */
 export function reportUnexpectedError(error: unknown) {
   if (error instanceof ApiError && error.status < 500) return;
-  Sentry.captureException(error);
+  void loadSentryClient().then((Sentry) => Sentry.captureException(error));
 }

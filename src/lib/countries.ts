@@ -4,7 +4,7 @@ import {
   isValidPhoneNumber,
   parsePhoneNumberFromString,
   type CountryCode,
-} from "libphonenumber-js";
+} from "libphonenumber-js/min";
 
 export interface CountryOption {
   code: CountryCode;

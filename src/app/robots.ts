@@ -34,7 +34,6 @@ export default function robots(): MetadataRoute.Robots {
           "/login",
           "/signup",
           "/forgot-password",
-          "/sentry-example-page",
         ],
       },
     ],

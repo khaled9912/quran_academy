@@ -52,14 +52,6 @@ const nextConfig = {
     if (!apiOrigin) return [];
     return [{ source: "/api/:path*", destination: `${apiOrigin}/api/:path*` }];
   },
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "images.pexels.com",
-      },
-    ],
-  },
 };
 
 export default withSentryConfig(nextConfig, {

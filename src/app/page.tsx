@@ -15,13 +15,13 @@ import {
   Users,
 } from "lucide-react";
 
-import { ReviewsSection } from "@/components/ReviewsSection";
 import { SignUpCta } from "@/components/SignUpCta";
+import { SiteFooter } from "@/components/SiteFooter";
 import { BlogCard } from "@/components/blog/BlogCard";
 import { sortedBlogPosts } from "@/lib/blog";
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_TITLE } from "@/lib/seo";
 
-const latestGuides = sortedBlogPosts().slice(0, 3);
+const latestGuides = sortedBlogPosts();
 
 export const metadata: Metadata = {
   title: { absolute: SITE_TITLE },
@@ -305,8 +305,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <ReviewsSection />
-
       <section className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-20">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -366,65 +364,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer
-        id="contact"
-        className="border-t border-[#e5e9df] bg-white dark:border-card-border dark:bg-card-bg"
-      >
-        <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 text-sm text-[#718078] dark:text-foreground/60 md:flex-row md:items-center md:justify-between md:px-8">
-          <div className="flex items-center">
-            <img
-              src="/logo-ana-quran.svg?v=2026-11-06-1"
-              alt="Ana Quran"
-              width={57}
-              height={80}
-              className="h-20 w-auto dark:hidden md:h-24"
-            />
-            <img
-              src="/logo-ana-quran-light.svg?v=2026-11-06-1"
-              alt="Ana Quran"
-              width={57}
-              height={80}
-              className="hidden h-20 w-auto dark:block md:h-24"
-            />
-          </div>
-          <p>
-            One-to-one online Quran, Arabic, and Islamic studies for
-            English-speaking students worldwide.
-          </p>
-          <div className="flex gap-5">
-            <Link
-              href="/about"
-              className="hover:text-[#1c5145] dark:hover:text-green-400"
-            >
-              About
-            </Link>
-            <Link
-              href="/courses"
-              className="hover:text-[#1c5145] dark:hover:text-green-400"
-            >
-              Courses
-            </Link>
-            <Link
-              href="/blog"
-              className="hover:text-[#1c5145] dark:hover:text-green-400"
-            >
-              Blog
-            </Link>
-            <Link
-              href="/contact"
-              className="hover:text-[#1c5145] dark:hover:text-green-400"
-            >
-              Contact
-            </Link>
-            <Link
-              href="/login"
-              className="hover:text-[#1c5145] dark:hover:text-green-400"
-            >
-              Student login
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }
