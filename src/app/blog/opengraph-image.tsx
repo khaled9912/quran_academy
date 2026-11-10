@@ -101,8 +101,7 @@ export default function BlogIndexOpengraphImage() {
               }}
             >
               Practical articles on learning Quran online, Tajweed,
-              memorization, and choosing a teacher — for English speakers
-              worldwide.
+              memorization, and choosing a teacher — for English speakers.
             </div>
           </div>
 

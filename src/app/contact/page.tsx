@@ -7,7 +7,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata: Metadata = pageMetadata({
   title: "Contact Us",
   description:
-    "Have a question about online Quran, Tajweed, Arabic, or Islamic studies classes? Contact Ana Quran Academy from anywhere in the world and our team will reply.",
+    "Have a question about online Quran, Tajweed, Arabic, or Islamic studies classes? Message Ana Quran Academy and our team will reply. New student registration is open to the US, UK, Canada, Australia, New Zealand, and Ireland.",
   path: "/contact",
   keywords: [
     "contact online Quran academy",
@@ -26,9 +26,11 @@ const ContactPage = () => {
               Contact Us
             </h1>
             <p className="text-lg text-foreground opacity-75">
-              Ready to start your Quran journey? Send us a message from anywhere
-              in the world and we will help you every step of the way. Lessons
-              are scheduled in your local time zone.
+              Ready to start your Quran journey? Send us a message and we will
+              help you every step of the way. New student registration is
+              currently open to the US, UK, Canada, Australia, New Zealand, and
+              Ireland; if you live elsewhere, write to us and we will tell you
+              what is possible. Lessons are scheduled in your local time zone.
             </p>
           </div>
           <ContactForm />

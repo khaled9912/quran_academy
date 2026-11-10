@@ -19,12 +19,12 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata: Metadata = pageMetadata({
   title: "About Us",
   description:
-    "Ana Quran Academy is a global online Quran academy for English-speaking students. Learn Quran, Tajweed, memorization, Arabic, and Islamic studies one-to-one from anywhere.",
+    "Ana Quran Academy is an online Quran academy for English-speaking students. Learn Quran, Tajweed, memorization, Arabic, and Islamic studies one-to-one, taught in English.",
   path: "/about",
   keywords: [
-    "global online Quran academy",
+    "online Quran academy in English",
     "Quran academy for English speakers",
-    "online Quran classes worldwide",
+    "online Quran classes in the US and UK",
     "learn Quran online with qualified teachers",
     "private Quran lessons in English",
   ],
@@ -90,7 +90,7 @@ const faqs = [
   {
     question: "Do I need to live in a particular country?",
     answer:
-      "No. Ana Quran Academy teaches students online worldwide. You need an internet connection and a suitable device. The exact lesson times depend on teacher availability in your time zone.",
+      "Website registration is currently open to students in the United States, United Kingdom, Canada, Australia, New Zealand, and Ireland. You need an internet connection and a suitable device, and lesson times depend on teacher availability in your time zone. If you live elsewhere, contact us and we will tell you what is possible.",
   },
   {
     question: "Are lessons taught in English?",
@@ -144,13 +144,13 @@ export default function AboutPage() {
             About Ana Quran Academy
           </div>
           <h1 className="mt-6 max-w-3xl text-4xl font-black leading-[1.05] tracking-[-0.04em] text-[#123c35] dark:text-white sm:text-5xl md:text-6xl">
-            A global online Quran academy for English-speaking students.
+            An online Quran academy for English-speaking students.
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-[#5d726a] dark:text-foreground/70">
             Ana Quran Academy teaches Quran, Tajweed, memorization, Arabic, and
             Islamic studies through one-to-one online lessons. Our teachers are
-            based in Egypt, and our students learn from their own homes in
-            countries around the world.
+            based in Egypt, and every lesson pairs one teacher with one student,
+            in English, from their own homes.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Link
@@ -173,18 +173,19 @@ export default function AboutPage() {
         <div className="grid gap-10 md:grid-cols-[0.9fr_1.1fr] md:gap-16">
           <div>
             <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#a7773e] dark:text-amber-300">
-              Learn from anywhere
+              Where we teach
             </p>
             <h2 className="mt-4 text-3xl font-bold tracking-tight text-[#173b35] dark:text-foreground sm:text-4xl">
-              One academy, students around the world.
+              One academy, English-speaking students in six countries.
             </h2>
           </div>
           <div className="space-y-5 leading-8 text-[#5d726a] dark:text-foreground/70">
             <p>
               We are an online-first academy, not a local school tied to one
-              city. We welcome students from the United States, the United
-              Kingdom, Canada, Australia, New Zealand, Europe, and other
-              regions.
+              city. Website registration is currently open to the United States,
+              the United Kingdom, Canada, Australia, New Zealand, and Ireland.
+              If you live elsewhere, contact us and we will tell you what is
+              possible.
             </p>
             <p>
               Lessons are taught in English, and your schedule is shown in your
@@ -293,7 +294,7 @@ export default function AboutPage() {
                 "One teacher and one student in every lesson",
                 "Lessons of 30, 45, or 60 minutes",
                 "Teaching and communication in English",
-                "A teaching team based in Egypt, serving students worldwide",
+                "A teaching team based in Egypt, teaching in English",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-3">
                   <CheckCircle2

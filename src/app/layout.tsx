@@ -37,11 +37,15 @@ const organizationSchema = {
   },
   image: absoluteUrl("/opengraph-image"),
   description:
-    "A global online Quran academy teaching Quran, Tajweed, memorization, Arabic, and Islamic studies to English-speaking students through one-to-one lessons.",
-  areaServed: {
-    "@type": "Place",
-    name: "Worldwide",
-  },
+    "An online Quran academy teaching Quran, Tajweed, memorization, Arabic, and Islamic studies to English-speaking students through one-to-one lessons.",
+  areaServed: [
+    { "@type": "Country", name: "United States" },
+    { "@type": "Country", name: "United Kingdom" },
+    { "@type": "Country", name: "Canada" },
+    { "@type": "Country", name: "Australia" },
+    { "@type": "Country", name: "New Zealand" },
+    { "@type": "Country", name: "Ireland" },
+  ],
   availableLanguage: "English",
   contactPoint: {
     "@type": "ContactPoint",
