@@ -45,6 +45,7 @@ const cancellationLabels: Record<string, string> = {
   teacher_no_show: "Teacher no-show",
   both_absent: "Both absent",
   series_ended: "Student ended weekly lessons",
+  series_rescheduled: "Student moved to another weekly time",
 };
 
 export default function TeacherSchedulePage() {

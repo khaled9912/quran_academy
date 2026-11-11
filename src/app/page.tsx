@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -162,37 +163,66 @@ export default function HomePage() {
             <div className="absolute -right-5 -top-7 h-40 w-40 rounded-full bg-[#dfe8d6] blur-3xl dark:bg-green-500/20" />
             <div className="absolute -bottom-7 -left-7 h-44 w-44 rounded-full bg-[#ebd7b2] blur-3xl dark:bg-amber-500/15" />
             <div className="relative overflow-hidden rounded-[2.2rem] border border-[#dfeee1] bg-[#dfe9dd] p-3 shadow-[0_30px_50px_rgba(18,67,59,0.12)] dark:border-[#2f4f6b] dark:bg-[#1f3a52] dark:shadow-black/30">
-              <div className="relative aspect-[4/5] overflow-hidden rounded-[1.8rem] bg-[linear-gradient(135deg,#9acc9d_0%,#7bc792_30%,#6ebd82_100%)] sm:aspect-[5/4]">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.2),transparent_25%),radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.12),transparent_22%)]" />
-                <div className="absolute left-5 top-5 rounded-full border border-white/35 bg-white/20 px-3 py-2 text-sm font-semibold text-white shadow-lg backdrop-blur-sm">
+              <div className="relative overflow-hidden rounded-[1.8rem]">
+                <div className="grid aspect-[4/5] grid-cols-5 grid-rows-6 gap-2 sm:aspect-[5/4]">
+                  <Image
+                    src="/hero/child-reading.jpg"
+                    alt="A student reading the Quran at home"
+                    width={640}
+                    height={954}
+                    priority
+                    className="col-span-3 row-span-6 h-full w-full rounded-[1.4rem] object-cover"
+                  />
+                  <Image
+                    src="/hero/child-smiling.jpg"
+                    alt="A student resting his hand on his Quran"
+                    width={480}
+                    height={360}
+                    className="col-span-2 row-span-3 h-full w-full rounded-[1.4rem] object-cover"
+                  />
+                  <Image
+                    src="/hero/child-girl.jpg"
+                    alt="A student holding her Quran"
+                    width={480}
+                    height={360}
+                    className="col-span-2 row-span-3 h-full w-full rounded-[1.4rem] object-cover"
+                  />
+                </div>
+
+                {/* The pill and tagline sit over a photograph, so they carry
+                    their own scrim instead of the panel's flat gradient. */}
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#0e3b31]/75 via-[#0e3b31]/25 to-transparent" />
+
+                <div className="absolute left-4 top-4 rounded-full border border-white/35 bg-white/20 px-3 py-2 text-sm font-semibold text-white shadow-lg backdrop-blur-sm">
                   Personal guidance
                 </div>
-                <div className="absolute left-5 top-16 max-w-[220px] text-[15px] font-semibold leading-tight text-white/90">
+                <div className="absolute left-4 top-[4.5rem] max-w-[15rem] text-[15px] font-semibold leading-tight text-white/95">
                   Easy way to learn Quran and Arabic online with tajweed.
                 </div>
 
-                <img
-                  src="/logo-ana-quran-light.svg?v=2026-11-06-1"
-                  alt="Ana Quran"
-                  width={140}
-                  height={197}
-                  className="absolute right-[6%] top-[42%] hidden h-[46%] w-auto -translate-y-1/2 drop-shadow-[0_14px_30px_rgba(10,60,35,0.28)] sm:block"
-                />
-
-                <div className="absolute bottom-5 left-5 right-5 text-white">
+                <div className="absolute bottom-4 left-4 right-4 flex items-center gap-3 rounded-2xl bg-white/95 px-3 py-2.5 shadow-[0_16px_30px_rgba(10,45,35,0.18)] ring-1 ring-[#e5ece1] backdrop-blur-sm dark:bg-[#12303f]/95 dark:ring-[#3a5a7a]">
                   <img
-                    src="/logo-ana-quran-light.svg?v=2026-11-06-1"
-                    alt="Ana Quran"
-                    width={96}
-                    height={135}
-                    className="mb-4 h-24 w-auto drop-shadow-[0_14px_30px_rgba(10,60,35,0.28)] sm:hidden"
+                    src="/logo-ana-quran-mark.svg?v=2026-11-07-1"
+                    alt=""
+                    width={26}
+                    height={37}
+                    className="h-9 w-auto shrink-0 dark:hidden"
                   />
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-white/75">
-                    Ana Quran
-                  </p>
-                  <p className="mt-2 max-w-[330px] text-2xl font-bold leading-tight tracking-[-0.04em]">
-                    A meaningful learning journey starts with one lesson.
-                  </p>
+                  <img
+                    src="/logo-ana-quran-mark-light.svg?v=2026-11-07-1"
+                    alt=""
+                    width={26}
+                    height={37}
+                    className="hidden h-9 w-auto shrink-0 dark:block"
+                  />
+                  <span className="min-w-0">
+                    <span className="block text-sm font-bold text-[#173b35] dark:text-white">
+                      Ana Quran Academy
+                    </span>
+                    <span className="mt-0.5 block text-xs leading-snug text-[#5d726a] dark:text-foreground/70">
+                      A meaningful learning journey starts with one lesson.
+                    </span>
+                  </span>
                 </div>
               </div>
 

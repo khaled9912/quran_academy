@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Camera, Loader2, Mic, VideoOff } from "lucide-react";
 import type { JitsiExternalApi, JitsiExternalApiOptions } from "@/types/jitsi";
 import type { LessonRoomFlags } from "@/services/lesson-room-config.service";
@@ -62,6 +62,7 @@ interface JitsiRoomProps {
   room: string;
   displayName: string;
   flags: LessonRoomFlags;
+  transcriptionConsent?: ReactNode;
   onClose: () => void;
   onJoined?: () => void;
   onLeft?: () => void;
@@ -73,6 +74,7 @@ export function JitsiRoom({
   room,
   displayName,
   flags,
+  transcriptionConsent,
   onClose,
   onJoined,
   onLeft,
@@ -214,6 +216,11 @@ export function JitsiRoom({
               "desktop",
               ...(currentFlags.whiteboard ? ["whiteboard"] : []),
               ...(currentFlags.chat ? ["chat"] : []),
+              // Opens Jitsi's "Performance settings" dialog. It trades picture
+              // quality for bandwidth, so a teacher on a weak Egyptian line can
+              // keep the audio alive — but it is a knob students should not
+              // reach for, hence the flag.
+              ...(currentFlags.performanceSettings ? ["videoquality"] : []),
             ],
             disableReactions: true,
             disablePolls: true,
@@ -286,7 +293,8 @@ export function JitsiRoom({
       <div ref={containerRef} className="h-full w-full" />
 
       {!mode && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 bg-black p-6 text-center text-white">
+        <div className="absolute inset-0 overflow-y-auto bg-black p-6 text-center text-white">
+          <div className="flex min-h-full flex-col items-center justify-center gap-5">
           <div>
             <h2 className="text-2xl font-semibold">
               Ready to join your lesson?
@@ -303,6 +311,7 @@ export function JitsiRoom({
               your speakers.
             </p>
           )}
+          {transcriptionConsent}
           <div className="flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
@@ -363,6 +372,7 @@ export function JitsiRoom({
               </div>
             </div>
           )}
+          </div>
         </div>
       )}
 
