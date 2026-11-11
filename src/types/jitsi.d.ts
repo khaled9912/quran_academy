@@ -11,6 +11,8 @@ export interface JitsiExternalApiOptions {
 export interface JitsiExternalApi {
   dispose: () => void;
   addListener: (event: string, listener: (...args: unknown[]) => void) => void;
+  removeListener: (event: string, listener: (...args: unknown[]) => void) => void;
+  isAudioMuted: () => Promise<boolean>;
   executeCommand: (command: string, ...args: unknown[]) => void;
 }
 

@@ -30,7 +30,7 @@ Student:
 - `/student/dashboard` — overview
 - `/student/availability` — teacher directory and instant weekly multi-select booking
 - `/student/teachers/{id}` — teacher profile and weekly times
-- `/student/change-time/{seriesId}` — request a different weekly time (admin handles it)
+- `/student/change-time/{seriesId}` — move your weekly time to another time your teacher publishes; times whose next class is closer than the academy's notice window are not offered
 - `/student/payments` — monthly USD statement and claim
 - `/schedule`, `/lesson/{id}` — recurring schedule, live room, recap/report/review, lesson operations
 
@@ -55,7 +55,9 @@ Support role:
 
 A teacher publishes **weekly rules** (weekday + window + IANA time zone; 30, 45, or 60 minutes). Announcing a rule is the teacher's consent, so a student books **any number** of that teacher's open rules instantly — no teacher confirmation and no admin approval. Each booking becomes a permanent series; the API materializes 8 weeks of lessons and rolls the window forward. A student's first-ever lesson is the free trial.
 
-To move a weekly time, the student submits a change request that only the **admin** handles; the teacher is notified that a review is happening but does not see the requested time until approval. Students can end a series themselves.
+To move a weekly time, the student picks another open rule of the same teacher and the change applies immediately to that one weekly booking — every future week moves, other booked days stay as they are. The teacher and admins are notified of the new time; nobody approves it. Moving a single dated lesson is a separate reschedule request that the other side must accept, and it never changes the weekly time. Students can end a series themselves.
+
+Example: a student booked Monday 6 PM and Thursday 6 PM. Changing the Monday booking to Wednesday 7 PM moves every future Monday to Wednesday; Thursday is untouched. Rescheduling only next Monday's lesson moves that one date, after acceptance.
 
 The frontend's expected .NET endpoints, request/response examples, and server-side consistency rules are documented in [`docs/dotnet-integration.md`](docs/dotnet-integration.md).
 

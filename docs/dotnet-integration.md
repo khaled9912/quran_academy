@@ -14,7 +14,7 @@ A typical student journey looks like this:
 - Complete a profile, add contact details, and upload an avatar.
 - Browse teachers and the weekly times each one has announced.
 - Pick any number of weekly times and book them instantly — the earliest one is automatically their trial lesson.
-- Follow the recurring weekly schedule, receive reminders 5 minutes before and at the start, and request a different weekly time (handled by the admin) if their schedule changes.
+- Follow the recurring weekly schedule, receive reminders 5 minutes before and at the start, move a weekly booking to another time the teacher published (applied instantly; the teacher is notified), and propose moving a single lesson, which the other side accepts or declines.
 - Join the live lesson room and view the class report or review afterward.
 
 This means the student does not need to understand the backend details directly; they just interact with a clean interface while the API enforces the rules behind the scenes. The frontend fetches data from the API, submits requests for booking or profile updates, and displays the results in a friendly way.
@@ -158,7 +158,8 @@ Each directory item is `{ "teacher": { ...UserDto }, "slots": [ ...WeeklyRuleDto
       "startsAtTime": "15:00:00",
       "endsAtTime": "16:00:00",
       "timeZoneId": "Africa/Cairo",
-      "status": "booked"
+      "status": "booked",
+      "nextStartsAt": "2026-11-14T13:00:00Z"
     }
   ],
   "series": [
@@ -179,9 +180,12 @@ Each directory item is `{ "teacher": { ...UserDto }, "slots": [ ...WeeklyRuleDto
   "averageRating": 4.8,
   "reviewCount": 12,
   "reviews": [],
-  "hasLessons": false
+  "hasLessons": false,
+  "timeChangeLeadMinutes": 60
 }
 ```
+
+`nextStartsAt` is the instant this recurring time happens next in its own time zone (`null` when the teacher's time gives no occurrence in the next two weeks). `timeChangeLeadMinutes` is the academy-wide notice a student must leave a teacher when moving onto a weekly time; `/student/change-time/[seriesId]` hides any rule whose `nextStartsAt` lands inside that window, and the server refuses such a move with `409` if a client offers it anyway.
 
 `hasLessons` is `false` until the student has ever had a lesson; the frontend uses it to show that the first booking will be a trial. When the student has no assigned teacher, `/api/student/teacher/weekly-availability` returns `{ "teacher": null, "slots": [], "series": [] }`.
 
@@ -264,8 +268,8 @@ Approving an application creates an active `teacher` account (with a random inte
 - Every booking creates a permanent `LessonSeries`, and the API materializes the next 8 weeks of lessons from it, rolling forward on every schedule read.
 - A rule can back only one active series, so a booked rule is no longer offered to other students.
 - The student's **first-ever lesson** is flagged `isTrial: true` automatically.
-- To move a weekly time, the student submits a change request that goes **to the admin only**. The teacher is not notified and has no screen for it; the admin contacts the teacher out of band and then approves or declines.
-- A student may only request a change to another open rule of the same teacher.
+- To move a weekly time, the student picks another open rule of the **same teacher** and the change applies immediately to that one series: every future week moves, while the student's other series keep their times. The teacher and admins are notified; there is no approval step.
+- Moving a single dated lesson is a different flow (reschedule request, below): it needs the other side's acceptance and never changes the series.
 
 ### Teacher availability endpoints
 
@@ -315,6 +319,12 @@ Accepting checks the teacher is active, the student still has no teacher, and ne
 | DELETE | `/api/student/series/{seriesId}`                 | End a weekly series (`204`); future lessons cancelled                     |
 | GET    | `/api/admin/change-requests?status=applied`      | Read-only history (`applied`, plus legacy rows)                           |
 
+A change request moves the series and rebuilds its future lessons in one transaction. Scheduled future lessons become `cancelled` with `cancellationOutcome = "series_rescheduled"`; they and their dependent history are never deleted. Their pending reschedule requests close in the same transaction. No credit moves or strikes are recorded. Both clients label this outcome "Weekly time changed". Existing individual cancellations remain untouched; only superseded weekly occurrences are excluded from deduplication, so moving away and back works without resurrecting ordinary cancellations. Original dates in a one-off reschedule's history also prevent duplicate materialization. A displaced future trial keeps its trial status on the earliest rebuilt lesson.
+
+The startup schema replaces the unique series/start index with `IX_Lessons_SeriesId_StartsAt_Current`, excluding only `series_rescheduled` records. Ordinary cancellations and active occurrences still reserve their series/date. Apply the updated backend schema before using these changes.
+
+Known target conflicts reject the weekly move with `409`. The rule's `nextStartsAt` must also respect `Scheduling__TimeChangeLeadMinutes` (`0` disables this notice window). A conflict discovered while extending the rolling calendar skips that occurrence and records `Weekly lesson not booked` notices, deduped per series/date: participants receive `kind = booking`, `link = /schedule`; admins receive `/admin/lesson-ops` to arrange an alternative.
+
 A change request returns:
 
 ```json
@@ -340,9 +350,9 @@ A change request returns:
 }
 ```
 
-The change applies as it is requested — there is no approval call. The target rule must belong to the same teacher (`404`), differ from the current rule, still be open, and not overlap another of the student's series or an existing lesson in the materialized window; a clash returns `409` and the student picks again, including when another student took the slot first. The series is retargeted and its future lessons are rebuilt in the same serializable transaction, then the student and teacher get a `Time changed` notification naming the new time and every admin gets an informational one. Rows already stored with status `pending`, `approved` or `rejected` come from the removed approval queue and stay readable so old records keep rendering; `adminNote` is only set on those legacy rows.
+The change applies as it is requested — there is no approval call. The target rule must belong to the same teacher (`404`), differ from the current rule, still be open, and not overlap another of the student's series or an existing lesson in the materialized window; a clash returns `409` and the student picks again, including when another student took the slot first. The series is retargeted and its future lessons are rebuilt in the same serializable transaction, then the student and teacher get a `Weekly time changed` notification naming the new time and every admin gets an informational one. Rows already stored with status `pending`, `approved` or `rejected` come from the removed approval queue and stay readable so old records keep rendering; `adminNote` is only set on those legacy rows.
 
-`DELETE /api/student/series/{seriesId}` ends the student's own weekly series. It deactivates the series, cancels its future scheduled lessons with `cancellationOutcome = "series_ended"`, and deactivates the teacher assignment when no other active series with that teacher remains. The teacher receives a notification; the response is `204`. The slot becomes bookable again immediately.
+`DELETE /api/student/series/{seriesId}` ends the student's own weekly series. It deactivates the series, cancels its future scheduled lessons with `cancellationOutcome = "series_ended"`, closes their pending reschedule requests, and deactivates the teacher assignment when no other active series with that teacher remains. The teacher receives a notification; the response is `204`. The slot becomes bookable again immediately.
 
 ### Booking consistency requirements
 
@@ -354,7 +364,7 @@ These are backend responsibilities, not frontend checks:
 4. Reject a booking that overlaps another of the student's series, the teacher's calendar, or the student's calendar for the next 8 weeks.
 5. Materialize 8 weeks of lessons per series and roll the window forward whenever lessons are read.
 6. Store instants as UTC (`timestamp with time zone`), weekly times as `time`, and zones as IANA ids; resolve daylight-saving transitions when materializing.
-7. Key the admin-only change request on `seriesId`, keep one pending request per series, and never expose the requested time to the teacher (they only get a "being reviewed" notice).
+7. Apply a weekly time change to the one `seriesId` it names, inside a serializable transaction; cancel (never delete) that series' future scheduled lessons with `series_rescheduled`, rebuild them at the new time, and leave the student's other series untouched.
 8. Derive actor identity and role from the validated server-side session, never from request JSON or browser cookies.
 
 ## Confirmed lessons
@@ -408,9 +418,9 @@ Cancellation is blocked for support, for already cancelled/completed/ended lesso
 | POST   | `/api/reschedule-requests/{requestId}/cancel`  | Withdraw a request                                            |
 | POST   | `/api/lessons/{id}/replacement`                | Admin-only direct make-up booking; the web app never calls it |
 
-Rules: one `pending` request per lesson; the default reply deadline is the policy's `rescheduleResponseHours`; pending requests expire in the background monitor. A request only stores a proposed time — nothing moves until the other side replies. Accepting on a scheduled lesson moves its `startsAt`/`endsAt` and never creates a duplicate. A reschedule does not cancel the lesson, so no cancellation outcome or credit movement is recorded.
+Rules: one `pending` request per lesson; the default reply deadline is the policy's `rescheduleResponseHours`; pending requests expire in the background monitor, which writes the requester a `Reschedule request expired` notification (and `Make-up proposal expired` on a cancelled lesson) with `link = /lesson/{id}` so they learn nothing moved instead of waiting. A request only stores a proposed time — nothing moves until the other side replies. Accepting on a scheduled lesson moves its `startsAt`/`endsAt` and never creates a duplicate; when the lesson belongs to a weekly series the notification adds "Only this lesson changed — your weekly time stays as booked", because rescheduling never touches the series. A reschedule does not cancel the lesson, so no cancellation outcome or credit movement is recorded. Normal proposals and acceptance require the original lesson not to have started. An admin-created normal proposal is answered by the teacher; make-up proposals are answered by the student (admins retain override authority). Expiry from a new request or late reply uses the same atomic notification path as the monitor. Both clients label the operation "Reschedule this lesson" and link students to "Change weekly time instead" for recurring changes.
 
-A cancelled lesson is rebooked through the same routes: the teacher (or an admin) posts a reschedule request against it and the student's accept creates the make-up row. A make-up lesson has `isMakeup = true`, `originalLessonId`, the original duration, and exactly one active replacement per original; it adds no credit and no charge. The original and replacement link to each other through `/api/lessons/{id}/operations`. `POST /api/lessons/{id}/replacement` stays as the staff override for times agreed outside the app.
+A cancelled lesson is rebooked through the same routes: the teacher (or an admin) posts a reschedule request against it and the student's accept creates the make-up row. Both clients expose these controls on cancelled lesson pages, with status guidance while a student awaits a proposal. `series_ended` and `series_rescheduled` occurrences are ineligible and return `409`, including from the admin direct-booking route. A make-up lesson has `isMakeup = true`, `originalLessonId`, the original duration, and exactly one active replacement per original; it adds no credit and no charge. The original and replacement link to each other through `/api/lessons/{id}/operations`. `POST /api/lessons/{id}/replacement` stays as the staff override for times agreed outside the app.
 
 ### Attendance (real participation)
 
@@ -434,21 +444,43 @@ A participant always rings the other side; `targetRole` is only read from staff.
 
 ### Teacher hours, credits, reliability, salary
 
-| Method | Endpoint                            | Role            | Purpose                                            |
-| ------ | ----------------------------------- | --------------- | -------------------------------------------------- |
-| GET    | `/api/student/credits`              | student         | Balance plus append-only ledger                    |
-| GET    | `/api/student/reliability`          | student         | Own reliability events                             |
-| GET    | `/api/teacher/reliability`          | teacher         | Own reliability events                             |
-| GET    | `/api/teacher/hours?month=&status=` | teacher         | Per-lesson hours                                   |
-| GET    | `/api/teacher/salary-periods`       | teacher         | Monthly salary periods                             |
-| POST   | `/api/devices/register`             | any             | `{ token, platform }` Expo push token              |
-| POST   | `/api/devices/unregister`           | any             | `{ token, platform? }` — call on sign-out          |
+| Method | Endpoint                            | Role            | Purpose                                             |
+| ------ | ----------------------------------- | --------------- | --------------------------------------------------- |
+| GET    | `/api/student/credits`              | student         | Balance plus append-only ledger                     |
+| GET    | `/api/student/reliability`          | student         | Own reliability events                              |
+| GET    | `/api/teacher/reliability`          | teacher         | Own reliability events                              |
+| GET    | `/api/teacher/hours?month=&status=` | teacher         | Per-lesson hours                                    |
+| GET    | `/api/teacher/salary-periods`       | teacher         | Monthly salary periods                              |
+| POST   | `/api/devices/register`             | any             | `{ token, platform }` Expo push token               |
+| POST   | `/api/devices/unregister`           | any             | `{ token, platform? }` — call on sign-out           |
 | GET    | `/api/web-push/key`                 | any             | `{ key }` VAPID public key; `503` when unconfigured |
 | POST   | `/api/web-push/subscribe`           | any             | `{ endpoint, p256dh, auth }` browser subscription   |
 | POST   | `/api/web-push/unsubscribe`         | any             | `{ endpoint }` — call on sign-out                   |
-| GET    | `/api/lessons/{id}/excuse`          | student         | Existing excuse request                            |
-| POST   | `/api/lessons/{id}/excuse`          | student         | `{ category, explanation }` (late/no-show lessons) |
-| POST   | `/api/lessons/{id}/incident`        | teacher/student | `{ type, detail }` attendance dispute or no-show   |
+| GET    | `/api/lessons/{id}/excuse`          | student         | Existing excuse request                             |
+| POST   | `/api/lessons/{id}/excuse`          | student         | `{ category, explanation }` (late/no-show lessons)  |
+| POST   | `/api/lessons/{id}/incident`        | teacher/student | `{ type, detail }` attendance dispute or no-show    |
+
+`GET /api/lessons/{id}/operations` returns every incident on the lesson in
+`incidents` (newest first), each carrying `reportedBy` — the account that filed
+it, or `null` when `LessonOpsMonitor` opened it. A type can be filed once per
+lesson, so a repeat `POST` answers `409`; clients drop the types already on the
+lesson from the picker instead of letting the submit fail. The endpoint accepts
+all three types from either participant, but each client offers only
+`attendance_dispute` plus the *other* side's no-show, because "teacher did not
+attend" is not something the teacher can report about themselves. Existing
+reports are labelled "Your report", "Filed by {name}", or "Recorded
+automatically", and the form stays beside them rather than replacing it.
+
+`conduct_concern` is a fourth, confidential type, accepted only while
+`LessonRoom__ReportConcern` is on (otherwise `404`) and only from the lesson's
+actual student (a caller who also holds a teacher, admin or support role gets
+`403`). Detail is 5–1000 characters, once per lesson (`409` on repeat). The
+concern and its resolution are hidden from the lesson's teacher and from every
+teacher-role account, in `operations` and in the admin queue. Admin
+notifications name the reporter but never copy the concern text into the
+notice, push, email or audit log. Resolving accepts only `resolved` or
+`dismissed` with an optional note; it never creates penalties, attendance
+outcomes, compensation or participant notices.
 
 ### Browser push subscriptions
 
@@ -482,7 +514,7 @@ The student credit ledger (`LessonCreditTransactions`) is append-only and idempo
 | POST   | `/api/admin/excuse-requests/{id}/approve`    | Approve (restores the lesson credit)                          |
 | POST   | `/api/admin/excuse-requests/{id}/reject`     | Reject                                                        |
 | GET    | `/api/admin/lesson-incidents?status=`        | Incident queue                                                |
-| POST   | `/api/admin/lesson-incidents/{id}/resolve`   | `{ action, note?, teacherPayableMinutes? }`                   |
+| POST   | `/api/admin/lesson-incidents/{id}/resolve`   | `{ action, note?, teacherPayableMinutes? }` (see below)       |
 | GET    | `/api/admin/teacher-hours?month=&status=`    | Hours approval queue                                          |
 | POST   | `/api/admin/teacher-hours/{id}/approve`      | `{ approvedMinutes?, note? }`                                 |
 | POST   | `/api/admin/teacher-hours/{id}/reject`       | Reject                                                        |
@@ -537,18 +569,24 @@ Admins and super admins can open any confirmed lesson room as academy support: `
 
 The room is unlisted, not access-controlled. The Jitsi room itself is unlisted rather than locked: anyone who knows the room name can join directly on the Jitsi deployment, and display names are not verified. Real enforcement requires a JWT-enabled Jitsi (JaaS or self-hosted) where only the teacher receives a moderator token and the room is protected by lobby or required moderator.
 
+### Live room feature flags
+
+`GET /api/config/lesson-room` is anonymous, sent with `Cache-Control: no-store`, and answers `{ "whiteboard": false, "chat": false, "cameraBackground": false, "pen": false, "performanceSettings": false, "transcription": false, "reportConcern": false }`, read from `LessonRoom__Whiteboard`, `LessonRoom__Chat`, `LessonRoom__CameraBackground`, `LessonRoom__Pen`, `LessonRoom__PerformanceSettings`, `LessonRoom__Transcription` and `LessonRoom__ReportConcern` (all off when unset). Both clients refetch it every 30 seconds through TanStack Query, and the room only mounts once the first answer has arrived. Jitsi fixes its toolbar buttons and background switches when the conference is created, so those five flags only reach rooms opened afterwards. `transcription` and `reportConcern` are app-level controls and follow a refresh inside an open room; both fail closed when the request errors, and the web stops capture when its last successful answer is older than 45 seconds. A suspended or offline client cannot receive a remote switch-off instantly. Deploy the API before any client that reads it — while the route is unmapped it answers `401` under the fail-closed policy, and a client treats that as every flag off.
+
+`performanceSettings` is read by the web app only. It adds `"videoquality"` to `toolbarButtons`, which is the button that opens Jitsi's "Performance settings" dialog (best performance ↔ highest quality). The mobile SDK builds a fixed native toolbar that has no such button, so the field arrives in the payload and no mobile control.
+
 ### Screen marking (lesson pen)
 
 Jitsi cannot annotate a live screen share, so marks travel over the existing realtime hub as a lesson-scoped ink layer. Clients draw on a transparent canvas/SVG over the Jitsi view; points are normalized to that overlay (`0..1`) and the REST layer is not involved.
 
-| Hub method                                               | Purpose                                                                                                                    |
-| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Hub method                                               | Purpose                                                                                                                           |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `JoinLessonPen(lessonId)`                                | Participant-only. Adds the connection to `lesson-pen:{lessonId}` and returns `{ strokes: [{ id, color, width, points }], frame }` |
-| `StartPenStroke(lessonId, strokeId, color, width, x, y)` | Drawer-only. Broadcasts `PenStrokeStarted { id, color, width, x, y }` to the other participants                            |
-| `AppendPenStroke(lessonId, strokeId, points)`            | Drawer-only. `points` is `[x, y, ...]` (at most 256 doubles per call); broadcasts `PenStrokeAppended`                      |
-| `EndPenStroke(lessonId, strokeId)`                       | Drawer-only. Broadcasts `PenStrokeEnded`                                                                                   |
-| `ClearLessonPen(lessonId)`                               | Drawer-only. Broadcasts `PenCleared`                                                                                       |
-| `SetPenFrame(lessonId, aspect)`                          | Drawer-only. Fits the annotation box to the shared picture; broadcasts `PenFrameChanged { frame }` and returns the clamped ratio |
+| `StartPenStroke(lessonId, strokeId, color, width, x, y)` | Drawer-only. Broadcasts `PenStrokeStarted { id, color, width, x, y }` to the other participants                                   |
+| `AppendPenStroke(lessonId, strokeId, points)`            | Drawer-only. `points` is `[x, y, ...]` (at most 256 doubles per call); broadcasts `PenStrokeAppended`                             |
+| `EndPenStroke(lessonId, strokeId)`                       | Drawer-only. Broadcasts `PenStrokeEnded`                                                                                          |
+| `ClearLessonPen(lessonId)`                               | Drawer-only. Broadcasts `PenCleared`                                                                                              |
+| `SetPenFrame(lessonId, aspect)`                          | Drawer-only. Fits the annotation box to the shared picture; broadcasts `PenFrameChanged { frame }` and returns the clamped ratio  |
 
 `strokeId` is an opaque client string of 1–64 letters, digits or dashes — not a GUID. Both apps generate their own shape, and the hub only uses it to match appends and ends to a stroke.
 
@@ -560,12 +598,12 @@ Only the lesson's teacher, an admin, or a super admin may draw; support staff an
 
 A lesson allows only one shared screen. Jitsi has no server or config setting for this, so the rule lives on our hub: a first-come lock per lesson, held by the SignalR connection that claimed it and freed automatically when that connection drops.
 
-| Hub method                  | Purpose                                                                                                                                       |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `JoinLessonShare(lessonId)` | Participant-only. Subscribes to `lesson-share:{lessonId}` and returns the current `{ on, holder }` so someone joining mid-lesson learns it is taken |
-| `ClaimLessonShare(lessonId)` | Fires when the local client starts sharing. Returns `{ accepted, holder }`; the winner is broadcast to the others as `LessonShareChanged { on: true, holder }` |
-| `ReleaseLessonShare(lessonId)` | Called when the local share stops or the client leaves the room. Broadcasts `LessonShareChanged { on: false, holder: null }`                |
-| `LeaveLessonShare(lessonId)` | Unsubscribes on hang-up or unmount                                                                                                             |
+| Hub method                     | Purpose                                                                                                                                                        |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `JoinLessonShare(lessonId)`    | Participant-only. Subscribes to `lesson-share:{lessonId}` and returns the current `{ on, holder }` so someone joining mid-lesson learns it is taken            |
+| `ClaimLessonShare(lessonId)`   | Fires when the local client starts sharing. Returns `{ accepted, holder }`; the winner is broadcast to the others as `LessonShareChanged { on: true, holder }` |
+| `ReleaseLessonShare(lessonId)` | Called when the local share stops or the client leaves the room. Broadcasts `LessonShareChanged { on: false, holder: null }`                                   |
+| `LeaveLessonShare(lessonId)`   | Unsubscribes on hang-up or unmount                                                                                                                             |
 
 `holder` is always labelled from the other participant's point of view ("Your teacher", "Your student", "An admin", or a scrubbed display name), never from the sharer's. A participant who loses a race re-claims harmlessly, so the holder never blocks themselves.
 
@@ -578,37 +616,47 @@ Known gap, accepted deliberately: an iOS app suspended mid-share stops JavaScrip
 
 ## Lesson transcripts and off-platform flags
 
-Transcripts are not captured by the web or mobile app: the call runs in a cross-origin iframe, so only the Jitsi deployment can record audio. The API exposes the storage and review side, ready for the transcription bot.
+The call runs in a cross-origin iframe, so the web page cannot read remote audio. While `LessonRoom__Transcription` is on, each consenting participant on a desktop browser transcribes **only their own microphone** with the browser's English speech recognition and uploads text through the authenticated self-ingest route. Consent is optional and unchecked by default; capture pauses while Jitsi reports the mic muted and stops on leave, consent withdrawal, flag off or provider failure. The browser's speech provider may process the audio; the academy stores text only. Native mobile cannot transcribe: it sends one `unsupported` status and shows that limitation. Client text and statuses are untrusted signals.
 
 | Method | Endpoint                             | Purpose                                                                                                  |
 | ------ | ------------------------------------ | -------------------------------------------------------------------------------------------------------- |
-| POST   | `/api/lessons/{id}/transcript`       | Bot ingest; `{ segments: [{ speaker?, text, atSeconds? }] }`                                             |
-| GET    | `/api/admin/transcripts`             | Flagged lessons, newest first (ReviewerOnly)                                                             |
+| POST   | `/api/lessons/{id}/transcript/self`  | Participant self-ingest; `{ segments: [{ id, text, atSeconds? }], status }`                              |
+| POST   | `/api/lessons/{id}/transcript`       | Trusted server relay ingest; `{ segments: [{ speaker?, text, atSeconds? }] }`                            |
+| GET    | `/api/admin/transcripts`             | Flagged lessons and capture coverage gaps (max 200), flagged first (ReviewerOnly)                        |
 | GET    | `/api/admin/lessons/{id}/transcript` | Full ordered transcript for one lesson (ReviewerOnly)                                                    |
 | GET    | `/api/admin/review-queue`            | Review queue: `status=all\|unreviewed\|draft\|submitted\|flagged`, optional `flagged=true`, `from`, `to` |
 | GET    | `/api/admin/lessons/{id}/review`     | Lesson, metrics, existing review and ordered segments                                                    |
 | PUT    | `/api/admin/lessons/{id}/review`     | Upsert the rubric review (draft or submitted)                                                            |
 | GET    | `/api/admin/review-digest`           | Weekly per-teacher rollup: `weekStart=yyyy-MM-dd` (defaults to this Monday, UTC)                         |
 
-Ingest rules: anonymous but requires the `X-Transcript-Key` header to equal `Transcripts:IngestKey`; the route returns `404` while no key is configured, which keeps the feature off. Each request carries 1–200 segments; empty text is skipped, text is capped at 4000 characters, and the speaker defaults to `Unknown`. `AtSeconds` is the offset from the start of the recording.
+Self-ingest rules: the caller must be the lesson's actual teacher or student with the matching role; speaker and `source: "client"` are derived server-side. `404` while `LessonRoom__Transcription` is off; `409` for cancelled lessons or outside `startsAt − 15 min` to `endsAt + 15 min`. `status` is `started`, `muted`, `unsupported`, `denied`, `stopped` or `error`; `unsupported`/`denied` must carry no segments. 0–50 segments per request, each with a nonempty UUID `id` (deduplicated per lesson and user), 1–1000 trimmed characters, and an optional finite `atSeconds` between 0 and lesson duration + 30 minutes. Limits: 30 requests per minute per user, 256 KB body. The web batches at most 20 segments / 48 KB, retries with backoff, and sends a best-effort keepalive flush on leave; an abrupt disconnect can lose text.
 
-The API scans every segment for `phone`, `email`, `platform` (WhatsApp, Telegram, Instagram, TikTok, Signal, Skype, …) and `offplatform` ("call me", "my number", "outside the lesson"). Matches are stored as comma-separated flags on the segment. The admin list groups flagged segments per lesson and merges the reasons; the detail view returns every segment with `flags` as an array so the UI can highlight the offending lines.
+Relay ingest rules: anonymous but requires the `X-Transcript-Key` header to equal `Transcripts:IngestKey`; the route returns `404` while no key is configured, which keeps it off, and `401` for a wrong key. The key is server-only and never ships in a client. Each request carries 1–200 segments; empty text is skipped, text is capped at 4000 characters, and the speaker defaults to `Unknown`. `AtSeconds` is the offset from the start of the recording.
 
-Transcript text belongs in this API and Postgres only. Never enable Jitsi's `/transcripts` static route: it publishes files at a guessable public URL, which is unacceptable for lessons involving minors.
+Both routes share a 5000-segment cap per lesson (`409` when exceeded) and reject lessons that ended more than 30 days ago (`409`).
+
+Coverage gaps: set `Transcripts__LightCaptureSince` to the approved UTC activation instant. Joins and self-uploads observed while capture is on, in lessons starting at or after that instant, record a capture expectation per participant (`LessonTranscriptCaptures`); a missing or invalid cutoff records none. After `endsAt + 15 min`, an expected teacher capture with zero segments and at least 10 minutes of teacher attendance appears in `/api/admin/transcripts` with reason `unsupported_device` or `no_transcript` and `flaggedSegments: 0`. These are informational, never evidence of poaching: muting, silence, declined consent and device limits are legitimate.
+
+The API scans segments for six heuristic review codes: `phone` (phone numbers), `email` (email addresses), `platform` (external platforms, including chat apps, sites and video apps), `offplatform` (off-platform contact or lesson arrangements), `payment` (payment discussion) and `secrecy` (secrecy language). Detection can use request-local same-speaker context to recognize phrases split across segments; context is not shared between speakers or carried across ingest requests. These flags are review signals, not proof of misconduct. Matches are stored as comma-separated flags on the segment. The admin list groups flagged segments per lesson and merges the reasons; the detail view returns every segment with `flags` as an array so the UI can highlight lines for review.
+
+Transcript text belongs in this API and Postgres only. Never enable Jitsi's `/transcripts` static route: it publishes files at a guessable public URL, which is unacceptable for lessons involving minors. The infrastructure privacy overlay answers `404` for `/transcripts` and everything under it.
+
+Retention is fixed at 30 days for every transcript, flagged or not. EF query filters immediately hide segments stored more than 30 days ago and capture rows first seen more than 30 days ago, and the `TranscriptRetention` hosted service deletes them at startup and hourly. Reviews and incidents are kept, so a reviewer's verdict and notes outlive the text; copy anything needed as evidence into the review notes within 30 days. Reviewer responses are sent with `Cache-Control: no-store`.
 
 ### Support review workflow
 
 The `support` role is read-only outside reviews: it can open the transcript endpoints above, save a rubric review, and read the weekly digest. It cannot change lessons, students, teachers, or assignments. Admins and super admins share the same review access through the `ReviewerOnly` policy (`admin`, `super_admin`, `support`); `AdminOnly` still guards everything else under `/api/admin`.
 
 - **Automated metrics** in the workspace: segment counts by speaker, estimated talk-time balance (~150 words per minute; a signal, not a clock), recorded length from `atSeconds`, and flagged segments/reasons. The text comes from ASR, so the API never scores recitation or tajweed automatically.
-- **Rubric**: four 1–5 scores (`teachingClarity`, `studentPractice`, `correctionQuality`, `engagement`) plus `strengths`, `gaps`, `teacherAction`, `studentAction`. Drafts can be incomplete; submitting requires all four scores and a gap of at least 3 characters. A lesson must have at least one transcript segment before it can be reviewed.
+- **Rubric**: four 1–5 scores (`teachingClarity`, `studentPractice`, `correctionQuality`, `engagement`) plus `strengths`, `gaps`, `teacherAction`, `studentAction`. Drafts can be incomplete and can be saved without transcript text (for missing-capture follow-up notes); submitting requires retained transcript text, all four scores and a gap of at least 3 characters. Do not score unavailable capture as poor teaching.
+- **Workspace capture fields**: `captures` (`role`, `lastStatus`, `firstSeenAt`, `lastSeenAt`, `lastSegmentAt`, `segmentCount`, `expected` per participant), `coverageReasons` (`unsupported_device` / `no_transcript`), `retentionDays: 30`, and each segment's `source` (`client` for self-ingest, `server` for the relay).
 - **Audit**: every workspace or transcript read writes a `TranscriptAccessLogs` row (`lessonId`, `userId`, `accessedAt`). There is no UI for the log yet; query it directly when an access audit is needed.
 - **Weekly digest**: groups submitted reviews by teacher for the week, with rubric averages, follow-up actions, and the lessons still unreviewed or only drafted. This is the artifact the support lead reviews at the end of the week.
 - **Accounts**: admins create support reviewers from `/admin/support` (`POST /api/admin/users` with `role: "support"`), list them with `GET /api/admin/support-users`, and deactivate/reactivate them through the existing `PATCH`/`DELETE /api/admin/users/{id}` endpoints.
 
 The frontend mirrors the API: `/support/transcripts` is the queue, `/support/transcripts/{id}` is the transcript plus rubric, and `/support/weekly` is the digest. Admins reach the same pages from the navigation.
 
-Consent and retention are product decisions, not API details: transcripts cover lessons that may involve minors, so tell students and guardians what is recorded, who can read it, and how long it is kept before enabling capture.
+Both capture and concern reporting stay off until the owner approves the consent wording (including that the browser's speech provider may process audio), guardian consent for minors, and the activation cutoff. Transcripts remain reviewer-only; teachers and students never read them.
 
 ## Contact form
 

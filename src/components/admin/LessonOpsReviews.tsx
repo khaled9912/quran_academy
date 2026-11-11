@@ -267,7 +267,8 @@ export function IncidentReview({
   onChanged: () => void;
 }) {
   const { showToast } = useToast();
-  const [action, setAction] = useState("student_no_show");
+  const conductConcern = incident.type === "conduct_concern";
+  const [action, setAction] = useState(conductConcern ? "resolved" : "student_no_show");
   const [note, setNote] = useState("");
   const [payable, setPayable] = useState("");
 
@@ -278,7 +279,8 @@ export function IncidentReview({
           | "student_no_show"
           | "teacher_no_show"
           | "both_absent"
-          | "dismissed",
+          | "dismissed"
+          | "resolved",
         note,
         teacherPayableMinutes: payable ? Number(payable) : undefined,
       }),
@@ -330,7 +332,10 @@ export function IncidentReview({
             <SelectField
               value={action}
               onChange={setAction}
-              options={incidentActions}
+              options={conductConcern ? [
+                { value: "resolved", label: "Resolved after review" },
+                { value: "dismissed", label: "Dismiss concern" },
+              ] : incidentActions}
               size="sm"
               disabled={mutation.isPending}
             />
