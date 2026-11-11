@@ -30,7 +30,7 @@ Student:
 - `/student/dashboard` — overview
 - `/student/availability` — teacher directory and instant weekly multi-select booking
 - `/student/teachers/{id}` — teacher profile and weekly times
-- `/student/change-time/{seriesId}` — request a different weekly time (admin handles it)
+- `/student/change-time/{seriesId}` — move your weekly time to another time your teacher publishes; times whose next class is closer than the academy's notice window are not offered
 - `/student/payments` — monthly USD statement and claim
 - `/schedule`, `/lesson/{id}` — recurring schedule, live room, recap/report/review, lesson operations
 

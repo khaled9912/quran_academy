@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Menu from "./Menu";
+import WhatsAppButton from "./WhatsAppButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/providers/auth-provider";
 import { navigationConfig } from "@/constants/navigation";
@@ -142,6 +143,7 @@ const Navbar = () => {
           />
         </Link>
         <div className="flex items-center gap-2">
+          <WhatsAppButton className="h-9 w-9" />
           <ThemeToggle className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-[var(--toggle-bg)] text-[var(--toggle-icon)] shadow-sm" />
           <NotificationsBell />
           <Menu />
@@ -258,6 +260,7 @@ const Navbar = () => {
         </div>
 
         <div className="flex shrink-0 items-center gap-3">
+          <WhatsAppButton className="h-8 w-8" />
           <ThemeToggle className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-[var(--toggle-bg)] text-[var(--toggle-icon)] shadow-sm" />
           <NotificationsBell />
 
@@ -270,7 +273,7 @@ const Navbar = () => {
               </Link>
               <Link href="/signup" className="registration-cta">
                 <button className="rounded-xl bg-[#f1d1a1] px-4 py-2 text-sm font-semibold text-[#173d3f] transition hover:bg-[#f6d9a8]">
-                  Register
+                  Start a free trial
                 </button>
               </Link>
             </>

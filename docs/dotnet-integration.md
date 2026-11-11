@@ -158,7 +158,8 @@ Each directory item is `{ "teacher": { ...UserDto }, "slots": [ ...WeeklyRuleDto
       "startsAtTime": "15:00:00",
       "endsAtTime": "16:00:00",
       "timeZoneId": "Africa/Cairo",
-      "status": "booked"
+      "status": "booked",
+      "nextStartsAt": "2026-11-14T13:00:00Z"
     }
   ],
   "series": [
@@ -179,9 +180,12 @@ Each directory item is `{ "teacher": { ...UserDto }, "slots": [ ...WeeklyRuleDto
   "averageRating": 4.8,
   "reviewCount": 12,
   "reviews": [],
-  "hasLessons": false
+  "hasLessons": false,
+  "timeChangeLeadMinutes": 60
 }
 ```
+
+`nextStartsAt` is the instant this recurring time happens next in its own time zone (`null` when the teacher's time gives no occurrence in the next two weeks). `timeChangeLeadMinutes` is the academy-wide notice a student must leave a teacher when moving onto a weekly time; `/student/change-time/[seriesId]` hides any rule whose `nextStartsAt` lands inside that window, and the server refuses such a move with `409` if a client offers it anyway.
 
 `hasLessons` is `false` until the student has ever had a lesson; the frontend uses it to show that the first booking will be a trial. When the student has no assigned teacher, `/api/student/teacher/weekly-availability` returns `{ "teacher": null, "slots": [], "series": [] }`.
 
@@ -315,6 +319,8 @@ Accepting checks the teacher is active, the student still has no teacher, and ne
 | DELETE | `/api/student/series/{seriesId}`                 | End a weekly series (`204`); future lessons cancelled                     |
 | GET    | `/api/admin/change-requests?status=applied`      | Read-only history (`applied`, plus legacy rows)                           |
 
+A change request moves the series and rebuilds its future lessons in one transaction. Besides the usual `409` reasons (time just taken, overlap with another series, conflict on either calendar), it answers `409` with a `message` when the rule's `nextStartsAt` is closer than `timeChangeLeadMinutes` — the academy-wide notice a teacher gets. `Scheduling__TimeChangeLeadMinutes` sets it, and `0` turns the rule off.
+
 A change request returns:
 
 ```json
@@ -434,21 +440,21 @@ A participant always rings the other side; `targetRole` is only read from staff.
 
 ### Teacher hours, credits, reliability, salary
 
-| Method | Endpoint                            | Role            | Purpose                                            |
-| ------ | ----------------------------------- | --------------- | -------------------------------------------------- |
-| GET    | `/api/student/credits`              | student         | Balance plus append-only ledger                    |
-| GET    | `/api/student/reliability`          | student         | Own reliability events                             |
-| GET    | `/api/teacher/reliability`          | teacher         | Own reliability events                             |
-| GET    | `/api/teacher/hours?month=&status=` | teacher         | Per-lesson hours                                   |
-| GET    | `/api/teacher/salary-periods`       | teacher         | Monthly salary periods                             |
-| POST   | `/api/devices/register`             | any             | `{ token, platform }` Expo push token              |
-| POST   | `/api/devices/unregister`           | any             | `{ token, platform? }` — call on sign-out          |
+| Method | Endpoint                            | Role            | Purpose                                             |
+| ------ | ----------------------------------- | --------------- | --------------------------------------------------- |
+| GET    | `/api/student/credits`              | student         | Balance plus append-only ledger                     |
+| GET    | `/api/student/reliability`          | student         | Own reliability events                              |
+| GET    | `/api/teacher/reliability`          | teacher         | Own reliability events                              |
+| GET    | `/api/teacher/hours?month=&status=` | teacher         | Per-lesson hours                                    |
+| GET    | `/api/teacher/salary-periods`       | teacher         | Monthly salary periods                              |
+| POST   | `/api/devices/register`             | any             | `{ token, platform }` Expo push token               |
+| POST   | `/api/devices/unregister`           | any             | `{ token, platform? }` — call on sign-out           |
 | GET    | `/api/web-push/key`                 | any             | `{ key }` VAPID public key; `503` when unconfigured |
 | POST   | `/api/web-push/subscribe`           | any             | `{ endpoint, p256dh, auth }` browser subscription   |
 | POST   | `/api/web-push/unsubscribe`         | any             | `{ endpoint }` — call on sign-out                   |
-| GET    | `/api/lessons/{id}/excuse`          | student         | Existing excuse request                            |
-| POST   | `/api/lessons/{id}/excuse`          | student         | `{ category, explanation }` (late/no-show lessons) |
-| POST   | `/api/lessons/{id}/incident`        | teacher/student | `{ type, detail }` attendance dispute or no-show   |
+| GET    | `/api/lessons/{id}/excuse`          | student         | Existing excuse request                             |
+| POST   | `/api/lessons/{id}/excuse`          | student         | `{ category, explanation }` (late/no-show lessons)  |
+| POST   | `/api/lessons/{id}/incident`        | teacher/student | `{ type, detail }` attendance dispute or no-show    |
 
 ### Browser push subscriptions
 
@@ -537,18 +543,22 @@ Admins and super admins can open any confirmed lesson room as academy support: `
 
 The room is unlisted, not access-controlled. The Jitsi room itself is unlisted rather than locked: anyone who knows the room name can join directly on the Jitsi deployment, and display names are not verified. Real enforcement requires a JWT-enabled Jitsi (JaaS or self-hosted) where only the teacher receives a moderator token and the room is protected by lobby or required moderator.
 
+### Live room feature flags
+
+`GET /api/config/lesson-room` is anonymous and answers `{ "whiteboard": false, "chat": false, "cameraBackground": false, "pen": false }`, read from `LessonRoom__Whiteboard`, `LessonRoom__Chat`, `LessonRoom__CameraBackground` and `LessonRoom__Pen` (all off when unset). Both clients fetch it once at startup through TanStack Query with infinite stale time, and the room only mounts once the answer has arrived: Jitsi fixes its toolbar buttons and background switches when the conference is created, so a flip only reaches rooms opened afterwards. Deploy the API before any client that reads it — while the route is unmapped it answers `401` under the fail-closed policy, and a client treats that as every flag off.
+
 ### Screen marking (lesson pen)
 
 Jitsi cannot annotate a live screen share, so marks travel over the existing realtime hub as a lesson-scoped ink layer. Clients draw on a transparent canvas/SVG over the Jitsi view; points are normalized to that overlay (`0..1`) and the REST layer is not involved.
 
-| Hub method                                               | Purpose                                                                                                                    |
-| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Hub method                                               | Purpose                                                                                                                           |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `JoinLessonPen(lessonId)`                                | Participant-only. Adds the connection to `lesson-pen:{lessonId}` and returns `{ strokes: [{ id, color, width, points }], frame }` |
-| `StartPenStroke(lessonId, strokeId, color, width, x, y)` | Drawer-only. Broadcasts `PenStrokeStarted { id, color, width, x, y }` to the other participants                            |
-| `AppendPenStroke(lessonId, strokeId, points)`            | Drawer-only. `points` is `[x, y, ...]` (at most 256 doubles per call); broadcasts `PenStrokeAppended`                      |
-| `EndPenStroke(lessonId, strokeId)`                       | Drawer-only. Broadcasts `PenStrokeEnded`                                                                                   |
-| `ClearLessonPen(lessonId)`                               | Drawer-only. Broadcasts `PenCleared`                                                                                       |
-| `SetPenFrame(lessonId, aspect)`                          | Drawer-only. Fits the annotation box to the shared picture; broadcasts `PenFrameChanged { frame }` and returns the clamped ratio |
+| `StartPenStroke(lessonId, strokeId, color, width, x, y)` | Drawer-only. Broadcasts `PenStrokeStarted { id, color, width, x, y }` to the other participants                                   |
+| `AppendPenStroke(lessonId, strokeId, points)`            | Drawer-only. `points` is `[x, y, ...]` (at most 256 doubles per call); broadcasts `PenStrokeAppended`                             |
+| `EndPenStroke(lessonId, strokeId)`                       | Drawer-only. Broadcasts `PenStrokeEnded`                                                                                          |
+| `ClearLessonPen(lessonId)`                               | Drawer-only. Broadcasts `PenCleared`                                                                                              |
+| `SetPenFrame(lessonId, aspect)`                          | Drawer-only. Fits the annotation box to the shared picture; broadcasts `PenFrameChanged { frame }` and returns the clamped ratio  |
 
 `strokeId` is an opaque client string of 1–64 letters, digits or dashes — not a GUID. Both apps generate their own shape, and the hub only uses it to match appends and ends to a stroke.
 
@@ -560,12 +570,12 @@ Only the lesson's teacher, an admin, or a super admin may draw; support staff an
 
 A lesson allows only one shared screen. Jitsi has no server or config setting for this, so the rule lives on our hub: a first-come lock per lesson, held by the SignalR connection that claimed it and freed automatically when that connection drops.
 
-| Hub method                  | Purpose                                                                                                                                       |
-| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `JoinLessonShare(lessonId)` | Participant-only. Subscribes to `lesson-share:{lessonId}` and returns the current `{ on, holder }` so someone joining mid-lesson learns it is taken |
-| `ClaimLessonShare(lessonId)` | Fires when the local client starts sharing. Returns `{ accepted, holder }`; the winner is broadcast to the others as `LessonShareChanged { on: true, holder }` |
-| `ReleaseLessonShare(lessonId)` | Called when the local share stops or the client leaves the room. Broadcasts `LessonShareChanged { on: false, holder: null }`                |
-| `LeaveLessonShare(lessonId)` | Unsubscribes on hang-up or unmount                                                                                                             |
+| Hub method                     | Purpose                                                                                                                                                        |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `JoinLessonShare(lessonId)`    | Participant-only. Subscribes to `lesson-share:{lessonId}` and returns the current `{ on, holder }` so someone joining mid-lesson learns it is taken            |
+| `ClaimLessonShare(lessonId)`   | Fires when the local client starts sharing. Returns `{ accepted, holder }`; the winner is broadcast to the others as `LessonShareChanged { on: true, holder }` |
+| `ReleaseLessonShare(lessonId)` | Called when the local share stops or the client leaves the room. Broadcasts `LessonShareChanged { on: false, holder: null }`                                   |
+| `LeaveLessonShare(lessonId)`   | Unsubscribes on hang-up or unmount                                                                                                                             |
 
 `holder` is always labelled from the other participant's point of view ("Your teacher", "Your student", "An admin", or a scrubbed display name), never from the sharer's. A participant who loses a race re-claims harmlessly, so the holder never blocks themselves.
 

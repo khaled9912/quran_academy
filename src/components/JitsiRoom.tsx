@@ -3,14 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera, Loader2, Mic, VideoOff } from "lucide-react";
 import type { JitsiExternalApi, JitsiExternalApiOptions } from "@/types/jitsi";
+import type { LessonRoomFlags } from "@/services/lesson-room-config.service";
 
 const SCRIPT_ID = "jitsi-external-api";
 
-/**
- * The academy backdrop every camera feed is composited onto. It is served by
- * the Jitsi deployment itself, so the iframe loads it without cross-origin
- * rules.
- */
+/** Served by the Jitsi host so the image is same-origin with the room. */
 const BRANDED_BACKGROUND = "/branding/ana-quran-lesson-background.jpg";
 
 type JoinMode = "audio-video" | "audio-only" | "view-only";
@@ -64,6 +61,7 @@ interface JitsiRoomProps {
   domain: string;
   room: string;
   displayName: string;
+  flags: LessonRoomFlags;
   onClose: () => void;
   onJoined?: () => void;
   onLeft?: () => void;
@@ -74,6 +72,7 @@ export function JitsiRoom({
   domain,
   room,
   displayName,
+  flags,
   onClose,
   onJoined,
   onLeft,
@@ -87,6 +86,9 @@ export function JitsiRoom({
   // Re-creating the Jitsi instance drops the participant out of the call, so
   // the effect below must not depend on values that can change mid-call.
   const displayNameRef = useRef(displayName);
+  // Likewise the toolbar and the background switch are read once, when the
+  // conference is built; a later flag change cannot move them.
+  const flagsRef = useRef(flags);
   const [mode, setMode] = useState<JoinMode | null>(null);
   const [requesting, setRequesting] = useState(false);
   const [permissionError, setPermissionError] = useState("");
@@ -99,6 +101,7 @@ export function JitsiRoom({
   onLeftRef.current = onLeft;
   onApiReadyRef.current = onApiReady;
   displayNameRef.current = displayName;
+  flagsRef.current = flags;
 
   useEffect(() => {
     const mediaDevices = navigator.mediaDevices;
@@ -173,6 +176,7 @@ export function JitsiRoom({
       .then(() => {
         if (disposed || !containerRef.current || !window.JitsiMeetExternalAPI)
           return;
+        const currentFlags = flagsRef.current;
         const options: JitsiExternalApiOptions = {
           roomName: room,
           parentNode: containerRef.current,
@@ -192,25 +196,36 @@ export function JitsiRoom({
             startWithAudioMuted: mode === "view-only",
             startWithVideoMuted: mode !== "audio-video",
             enableInsecureRoomNameWarning: false,
-            // Only the controls a lesson actually needs. The background is not
-            // among them: the academy backdrop is applied automatically.
+            // The academy backdrop is a switch, not a default: with the flag
+            // off, students are shown as themselves.
+            ...(currentFlags.cameraBackground
+              ? {
+                  disableVirtualBackground: false,
+                  // The academy picture is the only one offered.
+                  virtualBackground: { disableAddingImages: true },
+                }
+              : { disableVirtualBackground: true }),
+            // Only the controls the flags allow.
+            // Leaving is deliberately absent — the room overlay owns it, so
+            // every exit can ask for confirmation first.
             toolbarButtons: [
               "microphone",
               "camera",
               "desktop",
-              "whiteboard",
-              "chat",
-              "hangup",
+              ...(currentFlags.whiteboard ? ["whiteboard"] : []),
+              ...(currentFlags.chat ? ["chat"] : []),
             ],
             disableReactions: true,
             disablePolls: true,
             hideConferenceSubject: true,
             hideConferenceTimer: true,
             // The embedded API opens and owns the floating window, so the lesson
-            // preview can stay visible on other tabs and windows.
+            // preview can stay visible on other tabs and windows. Minimize and
+            // the automatic pop-out on navigation cover that; a second control
+            // next to them only invites mis-taps.
             pip: {
               enableBrowserPiP: true,
-              showToolbarButton: true,
+              showToolbarButton: false,
             },
           },
           interfaceConfigOverwrite: {
@@ -225,10 +240,10 @@ export function JitsiRoom({
         api = new window.JitsiMeetExternalAPI(domain, options);
         onApiReadyRef.current?.(api);
 
-        // The backdrop is not something the reader picks, so it is re-applied
+        // The backdrop is not something the student picks, so it is re-applied
         // every time their camera turns on, not only once on join.
         const applyBrandedBackground = () => {
-          if (mode !== "audio-video") return;
+          if (!currentFlags.cameraBackground || mode !== "audio-video") return;
           api?.executeCommand(
             "setVirtualBackground",
             true,
