@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import {
   REGISTRATION_COOKIE,
-  isRegistrationAllowed,
   registrationCountryFromHeaders,
 } from "@/lib/registration";
 
@@ -10,17 +9,16 @@ const PUBLIC_PATHS = [
   "/",
   "/about",
   "/courses",
+  "/plans",
   "/contact",
   "/blog",
   "/teach",
-  "/registration-unavailable",
 ];
 const AUTH_PATHS = ["/login", "/signup", "/register", "/forgot-password"];
 // Any signed-in role may open these; the API decides what each one sees. The
 // lesson room is joined by teachers and students, and staff may enter as
 // support, so the role gate below must not bounce them to a dashboard.
 const ANY_ROLE_PATHS = [/^\/lesson(\/|$)/];
-const REGISTRATION_PATHS = ["/signup", "/register"];
 const REGISTRATION_API_PATHS = ["/api/auth/register", "/api/auth/otp/verify"];
 
 const ROLE_DASHBOARDS: Record<string, string> = {
@@ -93,17 +91,6 @@ export function middleware(req: NextRequest) {
     return NextResponse.next({ request: { headers } });
   }
 
-  // Hide the registration page itself for countries outside the allowlist.
-  if (
-    REGISTRATION_PATHS.includes(pathname) &&
-    country &&
-    !isRegistrationAllowed(country)
-  ) {
-    return withCountry(
-      NextResponse.redirect(new URL("/registration-unavailable", req.url))
-    );
-  }
-
   const token = req.cookies.get("academy-auth")?.value;
   const role = getRoleFromCookie(req);
 
@@ -159,8 +146,8 @@ export const config = {
     "/contact",
     "/blog",
     "/blog/:path*",
+    "/plans",
     "/teach",
-    "/registration-unavailable",
     "/super-admin/:path*",
     "/admin/:path*",
     "/support/:path*",
