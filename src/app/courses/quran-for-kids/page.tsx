@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { SiteFooter } from "@/components/SiteFooter";
+import { SignUpCta } from "@/components/SignUpCta";
 
 import { JsonLd } from "@/components/JsonLd";
 import { absoluteUrl, pageMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
@@ -242,12 +243,10 @@ export default function QuranForKidsPage() {
             stays with your child each week.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/signup"
+            <SignUpCta
+              label="Start with a free trial"
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
-            >
-              Start with a free trial <ArrowRight size={18} />
-            </Link>
+            />
             <Link
               href="/contact"
               className="inline-flex items-center justify-center rounded-2xl border border-[#cedacd] bg-white/70 px-6 py-3.5 text-base font-semibold text-[#244c40] transition hover:bg-white dark:border-[#3a5a7a] dark:bg-white/10 dark:text-foreground dark:hover:bg-white/15"
@@ -455,12 +454,11 @@ export default function QuranForKidsPage() {
               and we will tell you what is possible.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/signup"
+              <SignUpCta
+                label="Book a free trial"
+                arrowSize={16}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1d4e47] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
-              >
-                Book a free trial <ArrowRight size={16} />
-              </Link>
+              />
               <Link
                 href="/courses"
                 className="inline-flex items-center justify-center rounded-xl border border-[#cedacd] px-5 py-3 text-sm font-semibold text-[#244c40] transition hover:bg-white dark:border-[#3a5a7a] dark:text-foreground dark:hover:bg-white/10"
@@ -516,12 +514,11 @@ export default function QuranForKidsPage() {
             before committing to a weekly plan.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <Link
-              href="/signup"
+            <SignUpCta
+              label="Create an account"
+              withArrow={false}
               className="rounded-xl bg-[#e4c18e] px-6 py-3.5 font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"
-            >
-              Create an account
-            </Link>
+            />
             <Link
               href="/contact"
               className="rounded-xl border border-white/30 px-6 py-3.5 font-semibold text-white transition hover:bg-white/10"

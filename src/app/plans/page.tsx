@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { headers } from "next/headers";
 import {
-  ArrowRight,
   CheckCircle2,
   Clock,
   FileText,
@@ -13,13 +12,10 @@ import {
 } from "lucide-react";
 
 import { JsonLd } from "@/components/JsonLd";
+import { PlanChoiceCta } from "@/components/PlanChoiceCta";
+import { SignUpCta } from "@/components/SignUpCta";
 import { SiteFooter } from "@/components/SiteFooter";
-import {
-  absoluteUrl,
-  pageMetadata,
-  SITE_NAME,
-  SITE_URL,
-} from "@/lib/seo";
+import { absoluteUrl, pageMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
 import {
   LESSON_MINUTES,
   perClassUsd,
@@ -102,7 +98,7 @@ const faqs = [
   {
     question: "Can I change or stop my plan?",
     answer:
-      "Yes. There is no contract term. You can change your weekly days or end your plan from your account.",
+      "Yes. There is no contract term and nothing to cancel. Pick the days a week you want on this page whenever it changes, and you are only ever billed for the lessons that actually took place.",
   },
   {
     question: "Is the first lesson really free?",
@@ -150,7 +146,12 @@ export default async function PlansPage() {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: absoluteUrl("/") },
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: absoluteUrl("/"),
+      },
       { "@type": "ListItem", position: 2, name: "Plans", item: url },
     ],
   };
@@ -228,12 +229,10 @@ export default async function PlansPage() {
             with the same teacher each week. Your first class is free.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/signup"
+            <SignUpCta
+              label="Start with a free lesson"
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
-            >
-              Start with a free lesson <ArrowRight size={18} />
-            </Link>
+            />
             <Link
               href="/contact"
               className="inline-flex items-center justify-center rounded-2xl border border-[#cedacd] bg-white/70 px-6 py-3.5 text-base font-semibold text-[#244c40] transition hover:bg-white dark:border-[#3a5a7a] dark:bg-white/10 dark:text-foreground dark:hover:bg-white/15"
@@ -297,12 +296,12 @@ export default async function PlansPage() {
                 )}
               </div>
 
-              <Link
-                href="/signup"
+              <PlanChoiceCta
+                daysPerWeek={plan.daysPerWeek}
+                label="Book a free lesson"
+                arrowSize={16}
                 className="mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
-              >
-                Book a free lesson <ArrowRight size={16} />
-              </Link>
+              />
             </article>
           ))}
         </div>
@@ -376,12 +375,10 @@ export default async function PlansPage() {
             Your first class is free. Tell us the days and times that suit your
             family, and we will match you with a teacher who teaches them.
           </p>
-          <Link
-            href="/signup"
+          <SignUpCta
+            label="Book your free lesson"
             className="mt-7 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white transition hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
-          >
-            Book your free lesson <ArrowRight size={18} />
-          </Link>
+          />
         </div>
       </section>
 

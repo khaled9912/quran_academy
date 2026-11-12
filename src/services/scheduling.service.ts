@@ -79,6 +79,9 @@ export const getTeacherWeeklyAvailabilityForAdmin = (teacherId: string) =>
   backendFetch<WeeklyRule[]>(
     `/api/admin/teachers/${encodeURIComponent(teacherId)}/availability-rules`
   );
+/** Every active teacher's published week in one call, for the assignment desk. */
+export const getAllTeacherAvailabilityRulesForAdmin = () =>
+  backendFetch<WeeklyRule[]>("/api/admin/teachers/availability-rules");
 export const publishWeeklyAvailabilityForTeacher = (
   teacherId: string,
   input: {

@@ -14,6 +14,7 @@ import {
 
 import { JsonLd } from "@/components/JsonLd";
 import { SiteFooter } from "@/components/SiteFooter";
+import { SignUpCta } from "@/components/SignUpCta";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -153,12 +154,10 @@ export default function AboutPage() {
             in English, from their own homes.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/signup"
+            <SignUpCta
+              label="Start with a free trial"
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
-            >
-              Start with a free trial <ArrowRight size={18} />
-            </Link>
+            />
             <Link
               href="/contact"
               className="inline-flex items-center justify-center rounded-2xl border border-[#cedacd] bg-white/70 px-6 py-3.5 text-base font-semibold text-[#244c40] transition hover:bg-white dark:border-[#3a5a7a] dark:bg-white/10 dark:text-foreground dark:hover:bg-white/15"
@@ -392,12 +391,11 @@ export default function AboutPage() {
             lesson.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <Link
-              href="/signup"
+            <SignUpCta
+              label="Get started"
+              withArrow={false}
               className="rounded-xl bg-[#e4c18e] px-6 py-3.5 font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"
-            >
-              Get started
-            </Link>
+            />
             <Link
               href="/contact"
               className="rounded-xl border border-white/30 px-6 py-3.5 font-semibold text-white transition hover:bg-white/10"

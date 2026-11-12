@@ -15,6 +15,8 @@ export type StudentOnboarding = {
   islamicStudiesLevel: string;
   arabicLevel: string;
   timeZoneId: string;
+  /** Days a week they asked for on /plans. Zero means they never chose. */
+  planDaysPerWeek: number;
   weeklySlots: StudentWeeklyPreference[];
   completedAt: string | null;
   updatedAt: string;

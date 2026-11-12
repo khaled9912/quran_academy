@@ -204,9 +204,12 @@ Each directory item is `{ "teacher": { ...UserDto }, "slots": [ ...WeeklyRuleDto
 | POST   | `/api/teacher-student-assignments`      | Assign `{ "teacherId": "uuid", "studentId": "uuid" }` |
 | DELETE | `/api/teacher-student-assignments/{id}` | Deactivate assignment                                 |
 | GET    | `/api/admin/students/pending`           | Every active student with their onboarding answers    |
+| PATCH  | `/api/student/plan`                     | Record `{ "daysPerWeek": 2 }` — one of `2`, `3`, `4`, `5` |
 | POST   | `/api/admin/students/{id}/weekly-lessons` | Book `{ "ruleIds": ["uuid"] }` and assign that teacher |
 
 `GET /api/admin/students/pending` is the assignment desk's whole input. It returns one row per active student — including students who already have a teacher, so the desk can sort them — shaped `{ studentId, studentName, email, registeredAt, onboarding, hasTeacher, teacherName }`. `onboarding` is the same `StudentOnboardingDto` the student reads back from `GET /api/student/onboarding`, or `null` when they never opened setup; its `weeklySlots` are the student's own preferences in the student's zone, never bookings. Rows come back longest-waiting first.
+
+`StudentOnboardingDto` also carries `planDaysPerWeek`: the tier the student tapped on `/plans`, or `0` when they never chose. `PATCH /api/student/plan` (`StudentOnly`) with `{ "daysPerWeek": 2 | 3 | 4 | 5 }` records it and returns the same DTO; anything else returns `400 { "errors": { "daysPerWeek": [...] } }`. It is a wish, not a subscription — no payment, invoice, or price reads it — and the setup wizard never clears it, so a student can choose a tier before or after finishing their answers. The desk shows it as a `Wants N days a week` chip beside the student's own weekly times.
 
 A student has at most one active teacher at a time; the API enforces this and reassignment replaces the previous active assignment.
 
@@ -227,6 +230,7 @@ A student has at most one active teacher at a time; the API enforces this and re
 
 | Method | Endpoint                                                              | Purpose                                                  |
 | ------ | --------------------------------------------------------------------- | -------------------------------------------------------- |
+| GET    | `/api/admin/teachers/availability-rules`                              | Every active teacher's weekly rules in one list          |
 | GET    | `/api/admin/teachers/{teacherId}/availability-rules`                  | List that teacher's weekly rules                         |
 | POST   | `/api/admin/teachers/{teacherId}/availability-rules`                  | Publish weekly rules on the teacher's behalf             |
 | POST   | `/api/admin/teachers/{teacherId}/availability-rules/{ruleId}/release` | End every active series booked on this rule              |
@@ -299,6 +303,8 @@ Approving an application creates an active `teacher` account (with a random inte
 It creates one rule per weekday and returns `201` with the created `WeeklyRuleDto` list. It returns `400 { "message": "..." }` when no weekday is given, the end time is not after the start time, the window is not 30, 45, or 60 minutes, the time zone is unknown, or the hours overlap an existing rule. Deleting an unbooked rule returns `204`; a rule referenced by a series or a pending change request returns `409`.
 
 `GET /api/teacher/availability-rules` returns the same `WeeklyRuleDto` list, with `status` reflecting whether a student has booked each rule.
+
+`GET /api/admin/teachers/availability-rules` is the bulk form for the assignment desk: one flat `WeeklyRuleDto[]` covering every **active** teacher, each row carrying its `teacherId`, with `status` limited to `available` or `booked` (no student is in scope, so `yours` never appears). Teachers who publish nothing simply have no rows. The desk groups the list by `teacherId`, takes the first rule's `timeZoneId` as that teacher's clock, and counts how many of the waiting student's offered windows overlap at least one `available` rule — the overlap is tested in the teacher's zone, never the admin's.
 
 ### Open student offers (first teacher books)
 
@@ -541,7 +547,7 @@ The student credit ledger (`LessonCreditTransactions`) is append-only and idempo
 
 Every lesson-related notice — no-show incidents, excuse requests, late-cancellation reviews, reminders, and report-due notices — carries `link = /lesson/{id}` and a body naming both participants, the lesson date and time, and what happened. `/lesson/{id}` exists on both clients and is admin-readable, so an admin tapping a notice lands directly on that lesson's room and operations panel. Push payloads repeat the same value in `data.link`, which the mobile app routes on tap; local reminders still route through `data.lessonId`.
 
-A finished student setup is the one non-lesson event that rings staff. `PUT /api/student/onboarding` with `completed: true` writes `Student waiting for a teacher` (`kind = request`, `link = /people/assign`) to every admin, once per student — deduped on `student-waiting:{studentId}:admin:{adminId}` — and only while that student has no active assignment. The body carries the application itself: the four levels and the earliest weekly window they offered, named in the student's own zone, so an admin reading the bell already knows who this is and what they can take. On web the link resolves to `/admin/assignments`; on mobile it opens the assign screen.
+A completed student setup is the one non-lesson event that rings staff. `PUT /api/student/onboarding` with `completed: true` writes `Student waiting for a teacher` (`kind = request`, `link = /people/assign`) to every admin while that student has no active assignment. Every later save by the same unassigned student writes `Student updated their application`, so the desk is told about the new answers instead of working from the first submission. The dedupe key is per save (`student-waiting:{studentId}:{savedAt}:admin:{adminId}`), never per student. The body carries the application itself: the four levels and the earliest weekly window they offered, named in the student's own zone, so an admin reading the bell already knows who this is and what they can take. On web the link resolves to `/admin/assignments`; on mobile it opens the assign screen.
 
 A notification row is stored once and read by both clients, so `link` always uses the mobile app's flat routes (`/schedule`, `/book`, `/people`, `/people/assign`, `/payments`, `/earnings`, `/lesson/{id}`, `/admin/lesson-ops`) — never a role-prefixed web path. The web app nests the same screens per role and translates the flat paths in `resolveNotificationHref` (`src/services/notification.service.ts`); add an entry there whenever a notice starts pointing at a new screen. Teachers have no lesson-request screen on either client, so request notices send them to `/schedule`.
 

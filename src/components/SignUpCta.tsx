@@ -10,6 +10,7 @@ type Props = {
   label: string;
   className: string;
   withArrow?: boolean;
+  arrowSize?: number;
 };
 
 /**
@@ -19,7 +20,12 @@ type Props = {
  * their own dashboard once the cached identity arrives. Sending a signed-in
  * visitor to /signup is a dead end for someone who already has an account.
  */
-export function SignUpCta({ label, className, withArrow = true }: Props) {
+export function SignUpCta({
+  label,
+  className,
+  withArrow = true,
+  arrowSize = 18,
+}: Props) {
   const { isAuthenticated, role } = useAuth();
   const href = isAuthenticated && role ? ROLE_DASHBOARDS[role] : "/signup";
   const signedIn = href !== "/signup";
@@ -27,7 +33,7 @@ export function SignUpCta({ label, className, withArrow = true }: Props) {
   return (
     <Link href={href} className={className}>
       {signedIn ? "Go to my dashboard" : label}
-      {withArrow ? <ArrowRight size={18} /> : null}
+      {withArrow ? <ArrowRight size={arrowSize} /> : null}
     </Link>
   );
 }
