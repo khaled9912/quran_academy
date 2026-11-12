@@ -416,6 +416,12 @@ const StudentDashboard = () => {
                         {levelWord(onboarding.islamicStudiesLevel)}
                       </dd>
                     </div>
+                    <div className="flex justify-between gap-3">
+                      <dt className="text-foreground opacity-70">Arabic</dt>
+                      <dd className="font-semibold">
+                        {levelWord(onboarding.arabicLevel)}
+                      </dd>
+                    </div>
                   </dl>
                   <Link
                     href="/student/onboarding"

@@ -9,6 +9,7 @@ import {
   ArrowRight,
   BookOpen,
   Check,
+  Languages,
   Moon,
   ScrollText,
 } from "lucide-react";
@@ -50,6 +51,12 @@ const SUBJECTS = [
     hint: "Basics of faith, worship and manners.",
     icon: Moon,
   },
+  {
+    key: "arabicLevel",
+    title: "Arabic",
+    hint: "The Arabic language: vocabulary and grammar.",
+    icon: Languages,
+  },
 ] as const;
 
 type LevelKey = (typeof SUBJECTS)[number]["key"];
@@ -69,6 +76,7 @@ export default function StudentOnboardingPage() {
     quranLevel: "",
     tajweedLevel: "",
     islamicStudiesLevel: "",
+    arabicLevel: "",
   });
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
@@ -96,6 +104,7 @@ export default function StudentOnboardingPage() {
       quranLevel: saved.quranLevel as StudentLevel,
       tajweedLevel: saved.tajweedLevel as StudentLevel,
       islamicStudiesLevel: saved.islamicStudiesLevel as StudentLevel,
+      arabicLevel: saved.arabicLevel as StudentLevel,
     });
     setSelected(keysFromPreferences(saved.weeklySlots));
     if (!saved.completedAt && saved.weeklySlots.length === 0) setStep(0);
@@ -127,6 +136,12 @@ export default function StudentOnboardingPage() {
   const levelsComplete = SUBJECTS.every((subject) => levels[subject.key]);
   const canFinish = levelsComplete && selected.size > 0;
 
+  // The dashboard sends a student who has not finished setup straight back here,
+  // so the link would only bounce them. It appears once leaving actually lands.
+  const canLeaveSetup =
+    Boolean(assignedQuery.data?.teacher) ||
+    Boolean(onboardingQuery.data?.completedAt);
+
   const toggleSlot = useCallback((key: string, next: boolean) => {
     setSelected((current) => {
       const updated = new Set(current);
@@ -141,6 +156,7 @@ export default function StudentOnboardingPage() {
       quranLevel: levels.quranLevel,
       tajweedLevel: levels.tajweedLevel,
       islamicStudiesLevel: levels.islamicStudiesLevel,
+      arabicLevel: levels.arabicLevel,
       timeZoneId: viewerTimeZone,
       weeklySlots: slotsFromKeys(selected),
       completed,
@@ -250,14 +266,16 @@ export default function StudentOnboardingPage() {
   return (
     <div className="min-h-screen bg-background px-4 pt-24 pb-16 text-foreground">
       <div className="mx-auto w-full max-w-3xl">
-        <div className="mb-6 flex items-center justify-between gap-4">
-          <Link
-            href="/student/dashboard"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-green-600 dark:text-green-400 hover:underline"
-          >
-            <ArrowLeft size={15} /> Back to my dashboard
-          </Link>
-          <span className="text-sm text-foreground opacity-60">
+        <div className="mb-6 flex items-center gap-4">
+          {canLeaveSetup && (
+            <Link
+              href="/student/dashboard"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-green-600 dark:text-green-400 hover:underline"
+            >
+              <ArrowLeft size={15} /> Back to my dashboard
+            </Link>
+          )}
+          <span className="ml-auto text-sm text-foreground opacity-60">
             Step {step + 1} of 2
           </span>
         </div>
@@ -396,8 +414,8 @@ export default function StudentOnboardingPage() {
 
               <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
                 <p className="text-sm text-foreground opacity-70">
-                  {SUBJECTS.filter((subject) => levels[subject.key]).length} of 3
-                  chosen
+                  {SUBJECTS.filter((subject) => levels[subject.key]).length} of{" "}
+                  {SUBJECTS.length} chosen
                 </p>
                 <button
                   type="button"
@@ -417,8 +435,11 @@ export default function StudentOnboardingPage() {
             <>
               <h1 className="text-3xl font-bold">When could you take a lesson?</h1>
               <p className="mt-2 text-lg text-foreground opacity-75">
-                Tap every two-hour window that usually works for you. Drag across
-                the grid to select a run of times.
+                Tap every hour that usually works for you.
+                <span className="hidden sm:inline">
+                  {" "}
+                  Drag across the grid to select a run of times.
+                </span>
               </p>
 
               <div className="mt-6 flex flex-wrap items-center gap-3 text-sm">

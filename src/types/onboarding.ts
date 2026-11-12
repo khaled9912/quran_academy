@@ -13,6 +13,7 @@ export type StudentOnboarding = {
   quranLevel: string;
   tajweedLevel: string;
   islamicStudiesLevel: string;
+  arabicLevel: string;
   timeZoneId: string;
   weeklySlots: StudentWeeklyPreference[];
   completedAt: string | null;
@@ -23,6 +24,7 @@ export type OnboardingDraft = {
   quranLevel: StudentLevel | "";
   tajweedLevel: StudentLevel | "";
   islamicStudiesLevel: StudentLevel | "";
+  arabicLevel: StudentLevel | "";
   timeZoneId: string;
   weeklySlots: { dayOfWeek: number; startsAtTime: string; endsAtTime: string }[];
   completed: boolean;

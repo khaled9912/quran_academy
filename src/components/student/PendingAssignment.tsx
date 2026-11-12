@@ -31,9 +31,14 @@ export function PendingAssignment({ onboarding }: PendingAssignmentProps) {
     {
       label: "Your level",
       detail: onboarding
-        ? `${levelWord(onboarding.quranLevel)} · ${levelWord(
-            onboarding.tajweedLevel
-          )} · ${levelWord(onboarding.islamicStudiesLevel)}`
+        ? [
+            ["Quran", onboarding.quranLevel],
+            ["Tajweed", onboarding.tajweedLevel],
+            ["Studies", onboarding.islamicStudiesLevel],
+            ["Arabic", onboarding.arabicLevel],
+          ]
+            .map(([subject, level]) => `${subject} ${levelWord(level)}`)
+            .join(" · ")
         : "Not given yet.",
       done: Boolean(onboarding),
     },
