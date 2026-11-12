@@ -40,7 +40,7 @@ English-speaking children and adults, including beginners and families. Website 
 
 - The first lesson is a free trial for new students
 - After the trial, lessons are billed monthly in US dollars (USD) by bank transfer
-- The monthly amount depends on the teacher's rate and the lesson length
+- Published weekly plans cover 30-minute one-to-one classes from two to five days a week: [Plans](${SITE_URL}/plans)
 
 ## Courses
 

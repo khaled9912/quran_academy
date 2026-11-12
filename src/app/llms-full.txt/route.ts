@@ -54,7 +54,7 @@ Teachers apply with their experience and CV, and every application is reviewed b
 
 - New students start with a free trial lesson
 - After the trial, lessons are billed monthly in US dollars (USD) by bank transfer
-- The monthly amount depends on the teacher's rate and the number of lesson minutes
+- Published weekly plans cover 30-minute classes from two to five days a week — see /plans for the current figures
 - Students claim each month's payment in their account; the academy confirms it
 - Currency conversion or bank fees, if any, are set by the student's bank
 
@@ -86,7 +86,7 @@ Yes. A new student's first lesson is a free trial. After that, lessons are bille
 
 ### How much do lessons cost?
 
-The price depends on the teacher's rate and lesson length. Fees are shown and billed in US dollars (USD). Contact the academy for current options.
+Weekly plans are published at /plans: 30-minute one-to-one classes, two to five days a week, billed monthly in US dollars (USD). Longer 45 and 60-minute lessons are arranged with the academy.
 
 ### How are lessons scheduled?
 

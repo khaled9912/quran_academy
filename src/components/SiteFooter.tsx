@@ -5,6 +5,7 @@ import { sortedBlogPosts } from "@/lib/blog";
 const COURSE_LINKS = [
   { href: "/courses", label: "All courses" },
   { href: "/courses/quran-for-kids", label: "Quran for kids" },
+  { href: "/plans", label: "Plans and pricing" },
 ];
 
 const ACADEMY_LINKS = [

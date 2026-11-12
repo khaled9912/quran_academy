@@ -274,8 +274,12 @@ export default function CoursesPage() {
                       Fees
                     </dt>
                     <dd className="mt-1 leading-7">
-                      Billed monthly in US dollars by bank transfer; the amount
-                      depends on the teacher&apos;s rate and lesson length.
+                      Billed monthly in US dollars by bank transfer. Published
+                      weekly plans are on{" "}
+                      <Link href="/plans" className="underline">
+                        the plans page
+                      </Link>
+                      .
                     </dd>
                   </div>
                   <div>

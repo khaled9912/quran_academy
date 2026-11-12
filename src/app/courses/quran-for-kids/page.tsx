@@ -417,9 +417,12 @@ export default function QuranForKidsPage() {
             </h2>
             <p className="mt-5 leading-7 text-[#6b7c73] dark:text-foreground/70">
               The first lesson is free for a new student. After that, lessons
-              are billed monthly in US dollars by bank transfer, and the amount
-              depends on the teacher&apos;s rate and the lesson length you
-              choose. Your bank may apply its own conversion or transfer fees.
+              are billed monthly in US dollars by bank transfer. Published
+              weekly plans of 30-minute classes are on{" "}
+              <Link href="/plans" className="underline">
+                the plans page
+              </Link>
+              . Your bank may apply its own conversion or transfer fees.
             </p>
             <p className="mt-4 leading-7 text-[#6b7c73] dark:text-foreground/70">
               Weekly times come from each teacher&apos;s published availability
