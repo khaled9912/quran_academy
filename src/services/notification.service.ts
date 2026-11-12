@@ -31,6 +31,8 @@ export const notificationCta = (link: string | null): string | null => {
   if (link.startsWith("/lesson/")) return "Open lesson";
   if (link.startsWith("/schedule")) return "Open schedule";
   if (link.startsWith("/book")) return "Choose a time";
+  // Checked before the /people prefix, which otherwise claims it for payments.
+  if (link === "/people/assign") return "Open the assignment desk";
   if (link.startsWith("/payments") || link.startsWith("/people")) {
     return "Open payments";
   }
@@ -61,6 +63,11 @@ const webRoutes: Record<string, Record<string, string>> = {
     super_admin: "/admin/change-requests",
   },
   "/people": { admin: "/admin/payments", super_admin: "/admin/payments" },
+  // The mobile app's assign screen; on web the same job is the assignment desk.
+  "/people/assign": {
+    admin: "/admin/assignments",
+    super_admin: "/admin/assignments",
+  },
   "/earnings": { teacher: "/teacher/payments" },
   "/payments": {
     student: "/student/payments",
