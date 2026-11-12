@@ -1,14 +1,11 @@
 import { backendFetch } from "@/lib/backend-client";
 import type {
-  BookWeeklySlotsResult,
   ChangeRequestStatus,
   LessonChangeRequest,
   LessonSeries,
-  OpenStudentOffer,
   PublicTeacher,
   WeeklyAvailability,
   WeeklyRule,
-  WeeklyTeacher,
 } from "@/types/scheduling";
 
 // Public endpoints
@@ -20,9 +17,7 @@ export const getPublicTeacher = (teacherId: string) =>
   );
 
 // Student-facing weekly availability
-/** Active teachers and the weekly times they announced. */
-export const getTeacherDirectory = () =>
-  backendFetch<WeeklyTeacher[]>("/api/teachers/weekly-directory");
+/** The weekly times of the teacher assigned to this student. */
 export const getTeacherWeeklyAvailability = (teacherId: string) =>
   backendFetch<WeeklyAvailability>(
     `/api/teachers/${encodeURIComponent(teacherId)}/weekly-availability`
@@ -34,11 +29,6 @@ export const getMySeries = () =>
 export const endWeeklySeries = (seriesId: string) =>
   backendFetch<null>(`/api/student/series/${encodeURIComponent(seriesId)}`, {
     method: "DELETE",
-  });
-export const bookWeeklySlots = (ruleIds: string[]) =>
-  backendFetch<BookWeeklySlotsResult>("/api/student/bookings", {
-    method: "POST",
-    body: JSON.stringify({ ruleIds }),
   });
 export const getMyChangeRequests = () =>
   backendFetch<LessonChangeRequest[]>("/api/student/change-requests");
@@ -57,29 +47,6 @@ export const requestTimeChange = (
           : { requestedRuleId }
       ),
     }
-  );
-
-// Open student offers claimed by the first accepting teacher
-export const getMyOpenOffers = () =>
-  backendFetch<OpenStudentOffer[]>("/api/student/open-offers");
-export const publishOpenOffer = (startsAt: string, endsAt: string) =>
-  backendFetch<OpenStudentOffer>("/api/student/open-offers", {
-    method: "POST",
-    body: JSON.stringify({ startsAt, endsAt }),
-  });
-export const withdrawOpenOffer = (offerId: string) =>
-  backendFetch<null>(
-    `/api/student/open-offers/${encodeURIComponent(offerId)}`,
-    {
-      method: "DELETE",
-    }
-  );
-export const getTeacherOpenOffers = () =>
-  backendFetch<OpenStudentOffer[]>("/api/teacher/open-offers");
-export const acceptOpenOffer = (offerId: string) =>
-  backendFetch<{ lessonId: string; offer: OpenStudentOffer }>(
-    `/api/teacher/open-offers/${encodeURIComponent(offerId)}/accept`,
-    { method: "POST" }
   );
 
 // Teacher weekly availability

@@ -374,8 +374,8 @@ export default function QuranForKidsPage() {
               not restart with a new face.
             </p>
             <p className="mt-3 leading-7 text-[#6b7c73] dark:text-foreground/70">
-              When you browse teachers, you can read ratings and reviews from
-              completed lessons before choosing.
+              The academy matches your child with a teacher and sets the weekly
+              time. Every teacher is rated by students after completed lessons.
             </p>
           </article>
 

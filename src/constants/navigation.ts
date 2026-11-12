@@ -16,8 +16,6 @@ export const navigationConfig: Record<string, NavLink[]> = {
   ],
   student: [
     { label: "Dashboard", href: "/student/dashboard" },
-    { label: "Book a lesson", href: "/student/availability" },
-    { label: "Teachers", href: "/teachers" },
     { label: "My schedule", href: "/schedule" },
     { label: "Payments", href: "/student/payments" },
     { label: "Profile", href: "/profile" },

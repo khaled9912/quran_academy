@@ -21,10 +21,6 @@ export default function PublicTeacherProfilePage() {
   });
 
   const teacher = teacherQuery.data;
-  const bookHref =
-    role === "student"
-      ? `/student/teachers/${encodeURIComponent(id)}`
-      : "/login";
 
   return (
     <main className="min-h-screen bg-background text-foreground pt-24 pb-16">
@@ -69,11 +65,13 @@ export default function PublicTeacherProfilePage() {
                 </div>
               </div>
               <Link
-                href={bookHref}
+                href={role === "student" ? "/student/dashboard" : "/signup"}
                 className="inline-flex items-center gap-2 rounded-xl bg-green-500 px-5 py-3 font-semibold text-white transition hover:bg-green-600"
               >
                 <CalendarCheck size={18} />
-                {role === "student" ? "Book weekly times" : "Sign in to book"}
+                {role === "student"
+                  ? "My dashboard"
+                  : "Sign up — we assign your teacher"}
               </Link>
             </section>
 

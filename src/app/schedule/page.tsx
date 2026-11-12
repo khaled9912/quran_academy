@@ -321,10 +321,10 @@ export default function StudentSchedulePage() {
               <>
                 No upcoming lessons.{" "}
                 <Link
-                  href="/student/availability"
+                  href="/student/dashboard"
                   className="font-semibold text-green-600 dark:text-green-400 hover:underline"
                 >
-                  Choose weekly times
+                  See your dashboard
                 </Link>
                 .
               </>

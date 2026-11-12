@@ -114,7 +114,7 @@ export default function ChangeWeeklyTimePage() {
         queryClient.invalidateQueries({ queryKey: ["change-requests"] }),
         queryClient.invalidateQueries({ queryKey: ["lessons"] }),
       ]);
-      router.push("/student/availability");
+      router.push("/student/dashboard");
     },
     onError: (error) => {
       if (!(error instanceof ApiError))
@@ -131,7 +131,7 @@ export default function ChangeWeeklyTimePage() {
     if (!series) return;
     if (
       !window.confirm(
-        `End these weekly lessons?\n\nThis cancels your future lessons with ${series.teacherName} and lets your teacher know. You can book a new weekly time at any time.`
+        `End these weekly lessons?\n\nThis cancels your future lessons with ${series.teacherName} and lets your teacher know. Message the academy whenever you want a new weekly time.`
       )
     )
       return;
@@ -150,10 +150,10 @@ export default function ChangeWeeklyTimePage() {
     <main className="min-h-[75vh] bg-background px-5 py-12 text-foreground md:px-8">
       <div className="mx-auto max-w-4xl">
         <Link
-          href="/student/availability"
+          href="/student/dashboard"
           className="text-sm font-semibold text-green-700 hover:underline dark:text-green-400"
         >
-          ← Back to your weekly times
+          ← Back to your dashboard
         </Link>
         <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -298,14 +298,14 @@ export default function ChangeWeeklyTimePage() {
                   <p className="font-semibold">No other times available</p>
                   <p className="mt-2 text-sm text-foreground/60">
                     {series.teacherName} has not announced any other weekly
-                    times right now. You can look for another teacher, or end
-                    this weekly time below.
+                    times right now. Message the academy if you need a
+                    different teacher, or end this weekly time below.
                   </p>
                   <Link
-                    href="/student/availability"
-                    className="mt-5 inline-block rounded-xl bg-[#1c5145] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#163f36] dark:bg-green-600 dark:hover:bg-green-500"
+                    href="/contact"
+                    className="mt-5 inline-block rounded-xl border border-card-border px-4 py-2.5 text-sm font-semibold transition hover:border-green-500"
                   >
-                    Browse other teachers
+                    Message the academy
                   </Link>
                 </div>
               )}

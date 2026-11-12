@@ -7,14 +7,42 @@ import { getPublicTeachers } from "@/services/scheduling.service";
 import { Avatar } from "@/components/ui/avatar";
 import { StarRating } from "@/components/ui/star-rating";
 import { lessonDateTime } from "@/lib/lesson-feedback";
+import { useAuth } from "@/providers/auth-provider";
 
 export default function PublicTeachersPage() {
+  const { role } = useAuth();
   const teachersQuery = useQuery({
     queryKey: ["teachers", "public"],
     queryFn: getPublicTeachers,
+    // Students only ever see the teacher the academy assigned them.
+    enabled: role !== "student",
   });
 
   const teachers = teachersQuery.data ?? [];
+
+  if (role === "student") {
+    return (
+      <main className="min-h-screen bg-background text-foreground pt-24 pb-16">
+        <div className="mx-auto max-w-3xl px-4 md:px-8 lg:px-16">
+          <div className="rounded-3xl border border-card-border bg-card-bg p-8 text-center">
+            <h1 className="text-2xl font-bold">
+              The academy chooses your teacher
+            </h1>
+            <p className="mt-3 text-foreground opacity-75">
+              Your teacher is matched to your level and your times, and shows on
+              your dashboard as soon as it is set.
+            </p>
+            <Link
+              href="/student/dashboard"
+              className="mt-6 inline-block rounded-xl bg-green-500 px-5 py-2.5 font-semibold text-white transition hover:bg-green-600"
+            >
+              Go to my dashboard
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-background text-foreground pt-24 pb-16">
@@ -29,7 +57,7 @@ export default function PublicTeachersPage() {
             </h1>
             <p className="mt-2 max-w-2xl text-lg text-foreground opacity-75">
               Every rating comes from a student after a completed lesson. Open a
-              teacher to read their reviews and choose weekly times.
+              teacher to read their reviews and see what they teach.
             </p>
           </div>
           <button
@@ -104,7 +132,7 @@ export default function PublicTeachersPage() {
                   </div>
 
                   <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-green-600 dark:text-green-400">
-                    <GraduationCap size={16} /> View profile & book weekly times
+                    <GraduationCap size={16} /> View profile
                   </span>
                 </Link>
               );

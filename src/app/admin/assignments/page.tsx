@@ -14,6 +14,7 @@ import {
 import { ApiError } from "@/lib/backend-client";
 import { useAuth } from "@/providers/auth-provider";
 import { useToast } from "@/providers/toast-provider";
+import { AssignmentStudio } from "@/components/admin/AssignmentStudio";
 import { SelectField } from "@/components/ui/select-field";
 
 const queryError = (error: unknown, fallback: string) =>
@@ -134,10 +135,12 @@ export default function AdminAssignmentsPage() {
           </Link>
           <h1 className="text-4xl font-bold mb-2">Teacher assignments</h1>
           <p className="text-lg text-foreground opacity-75">
-            Connect each student to a teacher. Assigning a new teacher replaces
-            the student&apos;s current teacher.
+            Students never choose a teacher — the academy does. Place each new
+            signup with a teacher and book their weekly lesson.
           </p>
         </div>
+
+        <AssignmentStudio />
 
         <section className="mb-10 rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
           <div className="mb-5 flex items-center gap-3">

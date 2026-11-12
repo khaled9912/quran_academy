@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { getLessons } from "@/services/lesson.service";
+import { getMyOnboarding } from "@/services/onboarding.service";
 import {
   getAssignedWeeklyAvailability,
   getMyChangeRequests,
@@ -34,5 +35,11 @@ export const useStudentDashboard = () => {
     refetchInterval: LIVE_SYNC_INTERVAL,
   });
 
-  return { lessonsQuery, availabilityQuery, changesQuery };
+  const onboardingQuery = useQuery({
+    queryKey: ["onboarding", "student"],
+    queryFn: getMyOnboarding,
+    enabled,
+  });
+
+  return { lessonsQuery, availabilityQuery, changesQuery, onboardingQuery };
 };

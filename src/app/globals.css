@@ -246,3 +246,159 @@ body {
 .toast-in {
   animation: toast-in 0.2s ease-out;
 }
+
+/* Student onboarding journey: the steps have to feel like forward motion, not a
+   page reload, so each transition is animated and staggered by hand. */
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translate3d(28px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes step-out {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(-28px, 0, 0);
+  }
+}
+
+@keyframes step-back-in {
+  from {
+    opacity: 0;
+    transform: translate3d(-28px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes step-back-out {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(28px, 0, 0);
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    transform: scale(0.86);
+  }
+  60% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes draw-check {
+  from {
+    stroke-dashoffset: 42;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes halo {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.55;
+  }
+  70% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+.step-in {
+  animation: step-in 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.step-out {
+  animation: step-out 0.2s ease-in both;
+}
+
+.step-back-in {
+  animation: step-back-in 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.step-back-out {
+  animation: step-back-out 0.2s ease-in both;
+}
+
+.rise-in {
+  animation: rise-in 0.4s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.pop-in {
+  animation: pop-in 0.24s ease-out;
+}
+
+.draw-check {
+  stroke-dasharray: 42;
+  animation: draw-check 0.5s 0.1s ease-out both;
+}
+
+.halo {
+  animation: halo 1.6s ease-out infinite;
+}
+
+.breathe {
+  animation: breathe 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step-in,
+  .step-out,
+  .step-back-in,
+  .step-back-out,
+  .rise-in,
+  .pop-in,
+  .draw-check,
+  .halo,
+  .breathe {
+    animation: none;
+  }
+}

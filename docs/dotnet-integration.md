@@ -294,6 +294,8 @@ It creates one rule per weekday and returns `201` with the created `WeeklyRuleDt
 
 A student **without an active teacher** can offer one-off times instead of booking a weekly rule. Every active teacher receives a notification; the first teacher who accepts books a one-off `Lesson` on their schedule instantly, and the offer closes for everyone else.
 
+> **Not used by the web client.** Since the academy assigns every student, the web app neither publishes offers nor shows the teacher inbox; it kept these endpoints for the mobile app until that flow is retired with it.
+
 | Method | Endpoint                                    | Purpose                                                |
 | ------ | ------------------------------------------- | ------------------------------------------------------ |
 | GET    | `/api/student/open-offers`                  | The student's own offered times (last day and forward) |

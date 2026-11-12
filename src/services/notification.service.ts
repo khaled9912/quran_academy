@@ -52,7 +52,9 @@ const webRoutes: Record<string, Record<string, string>> = {
     admin: "/admin/lessons",
     super_admin: "/admin/lessons",
   },
-  "/book": { student: "/student/availability" },
+  // Self-booking is gone: the academy sets the time, so the student's answer to
+  // a declined request is their dashboard, where the new time appears.
+  "/book": { student: "/student/dashboard" },
   "/requests": {
     teacher: "/teacher/schedule",
     admin: "/admin/change-requests",
