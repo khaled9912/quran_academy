@@ -100,7 +100,10 @@ export function LessonCallProvider({
   const [minimized, setMinimized] = useState(false);
   // Loaded with the app so a room opened later never has to wait on it: the
   // flags decide the Jitsi toolbar, which is fixed once the conference exists.
-  const { flags, flagsLoaded, captureValidUntil } = useLessonRoomFlags();
+  // The refresh loop only runs while a room is open, so a tab that is merely
+  // sitting on a dashboard asks the server nothing.
+  const { flags, flagsLoaded, captureValidUntil } =
+    useLessonRoomFlags(Boolean(call));
   const stopCaptureRef = useRef<((flush?: boolean) => void) | null>(null);
   const callRef = useRef(call);
   callRef.current = call;
