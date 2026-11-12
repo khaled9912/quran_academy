@@ -10,15 +10,15 @@ export const SITE_NAME = "Ana Quran Academy";
 
 // Bump this when the public marketing pages change so sitemap lastmod stays
 // meaningful instead of changing on every deploy.
-export const CONTENT_LAST_UPDATED = "2026-11-07";
+export const CONTENT_LAST_UPDATED = "2026-11-10";
 
 export const IS_PREVIEW_DEPLOYMENT =
   process.env.VERCEL_ENV !== undefined &&
   process.env.VERCEL_ENV !== "production";
 export const SITE_SHORT_NAME = "Ana Quran";
 export const SITE_DESCRIPTION =
-  "Learn Quran online with qualified teachers at Ana Quran Academy. Join personalized Quran, Tajweed, and memorization classes from anywhere in the world.";
-export const SITE_TITLE = "Ana Quran Academy | Learn Quran Online Worldwide";
+  "Learn Quran online one-to-one with Ana Quran Academy. Quran, Tajweed, memorization, and Arabic lessons taught in English, for students in the US, UK, Canada, Australia, New Zealand, and Ireland.";
+export const SITE_TITLE = "Ana Quran Academy | Learn Quran Online in English";
 
 export const SITE_KEYWORDS = [
   "online Quran academy",
@@ -37,10 +37,10 @@ export const SITE_KEYWORDS = [
   "Quran classes for beginners",
   "online Quran lessons for families",
   "learn Quran online with qualified teachers",
-  "online Quran classes for Muslims worldwide",
+  "online Quran classes in English",
   "private Quran lessons in English",
   "affordable online Quran classes",
-  "learn Quran online from anywhere in the world",
+  "learn Quran online from home",
 ];
 
 export function absoluteUrl(path = "/") {
@@ -53,7 +53,7 @@ const OG_IMAGE = {
   type: "image/png",
   width: 1200,
   height: 630,
-  alt: `${SITE_NAME} — Learn Quran Online Worldwide`,
+  alt: `${SITE_NAME} — Learn Quran Online in English`,
 };
 
 export function pageMetadata({

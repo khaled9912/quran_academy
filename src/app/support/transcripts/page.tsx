@@ -22,14 +22,22 @@ const display = (value: string) =>
 const flagLabel: Record<TranscriptFlag, string> = {
   phone: "Phone number",
   email: "Email address",
-  platform: "Chat app",
+  platform: "External platform",
   offplatform: "Off-platform",
+  payment: "Payment discussion",
+  secrecy: "Secrecy language",
+  no_transcript: "No transcript captured",
+  unsupported_device: "Unsupported device",
 };
 
 const flagBadge = (flag: TranscriptFlag) => (
   <span
     key={flag}
-    className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300"
+    className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
+      flag === "no_transcript" || flag === "unsupported_device"
+        ? "border-card-border bg-card-bg text-foreground"
+        : "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+    }}`}
   >
     {flagLabel[flag] ?? flag}
   </span>
@@ -39,7 +47,7 @@ const filters: Array<{ value: ReviewQueueFilter; label: string }> = [
   { value: "unreviewed", label: "Needs review" },
   { value: "draft", label: "Drafts" },
   { value: "submitted", label: "Submitted" },
-  { value: "flagged", label: "Flagged" },
+  { value: "flagged", label: "Review signals" },
   { value: "all", label: "All" },
 ];
 
@@ -113,7 +121,8 @@ export default function SupportReviewQueuePage() {
           <h1 className="mb-2 text-4xl font-bold">Lesson review queue</h1>
           <p className="text-lg text-foreground opacity-75">
             Read the transcript, score the lesson and record the gaps the
-            teacher and student should work on. Flagged lessons come first.
+            teacher and student should work on. Keyword matches come first;
+            coverage gaps are informational, not misconduct.
           </p>
         </div>
 

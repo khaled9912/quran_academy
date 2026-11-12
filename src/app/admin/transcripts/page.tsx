@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, ArrowLeft, PhoneCall, RefreshCw } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
+import { TranscriptCoverage } from "@/components/TranscriptCoverage";
 import {
   getFlaggedLessons,
   getLessonTranscript,
@@ -26,12 +27,22 @@ const display = (value: string) =>
 const flagLabel: Record<TranscriptFlag, string> = {
   phone: "Phone number",
   email: "Email address",
-  platform: "Chat app",
+  platform: "External platform",
   offplatform: "Off-platform",
+  payment: "Payment discussion",
+  secrecy: "Secrecy language",
+  no_transcript: "No transcript captured",
+  unsupported_device: "Unsupported device",
 };
 
 const FlagBadge = ({ flag }: { flag: TranscriptFlag }) => (
-  <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300">
+  <span
+    className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
+      flag === "no_transcript" || flag === "unsupported_device"
+        ? "border-card-border bg-card-bg text-foreground"
+        : "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+    }}`}
+  >
     {flagLabel[flag] ?? flag}
   </span>
 );
@@ -58,6 +69,8 @@ export default function AdminTranscriptsPage() {
     queryKey: ["lesson-transcript", selectedLessonId],
     queryFn: () => getLessonTranscript(selectedLessonId as string),
     enabled: canManage && selectedLessonId !== null,
+    refetchInterval: 60_000,
+    gcTime: 0,
   });
 
   if (!canManage) {
@@ -82,8 +95,8 @@ export default function AdminTranscriptsPage() {
           </Link>
           <h1 className="text-4xl font-bold mb-2">Lesson transcripts</h1>
           <p className="text-lg text-foreground opacity-75">
-            Lessons where a participant shared a phone number, email, or chat
-            handle, or asked to continue outside the academy.
+            Keyword matches and capture coverage gaps for human review. Missing
+            text and automated flags are not proof of misconduct.
           </p>
         </div>
 
@@ -107,8 +120,7 @@ export default function AdminTranscriptsPage() {
           </div>
         ) : flagged.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-card-border bg-card-bg p-10 text-center opacity-70">
-            No lessons have been flagged. Transcripts are stored once the
-            transcription service is connected to the lesson room.
+            No retained keyword matches or capture coverage gaps to review.
           </div>
         ) : selectedLessonId ? (
           <section>
@@ -153,6 +165,12 @@ export default function AdminTranscriptsPage() {
                   </p>
                 </header>
 
+                <TranscriptCoverage captures={transcriptQuery.data.captures} />
+                {transcriptQuery.data.segments.length === 0 && (
+                  <p className="mb-4 text-sm opacity-70">
+                    No retained transcript text.
+                  </p>
+                )}
                 <ol className="space-y-3">
                   {transcriptQuery.data.segments.map((segment) => {
                     const flaggedSegment = segment.flags.length > 0;
@@ -168,6 +186,11 @@ export default function AdminTranscriptsPage() {
                         <div className="mb-1 flex flex-wrap items-center gap-2 text-xs opacity-70">
                           <span className="font-semibold text-foreground opacity-100">
                             {segment.speaker}
+                          </span>
+                          <span>
+                            {segment.source === "client"
+                              ? "Browser text (unverified)"
+                              : "Server transcript"}
                           </span>
                           {offset(segment.atSeconds) ? (
                             <span>{offset(segment.atSeconds)}</span>
@@ -217,7 +240,9 @@ export default function AdminTranscriptsPage() {
                   <div className="flex items-center gap-3 text-sm">
                     <PhoneCall size={16} className="opacity-60" />
                     <span className="font-semibold">
-                      {lesson.flaggedSegments} flagged
+                      {lesson.flaggedSegments > 0
+                        ? `${lesson.flaggedSegments} keyword matches`
+                        : "Coverage only"}
                     </span>
                   </div>
                 </div>

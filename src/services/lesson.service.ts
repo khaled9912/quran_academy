@@ -180,7 +180,7 @@ export const getLessonIncidents = (status = "open") =>
 export const resolveLessonIncident = (
   id: string,
   input: {
-    action: "student_no_show" | "teacher_no_show" | "both_absent" | "dismissed";
+    action: "student_no_show" | "teacher_no_show" | "both_absent" | "dismissed" | "resolved";
     note?: string;
     teacherPayableMinutes?: number;
   }

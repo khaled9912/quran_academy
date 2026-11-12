@@ -1,4 +1,8 @@
-import type { TranscriptFlag, TranscriptSegment } from "./transcript";
+import type {
+  TranscriptCapture,
+  TranscriptFlag,
+  TranscriptSegment,
+} from "./transcript";
 
 export type ReviewStatus = "draft" | "submitted";
 
@@ -57,6 +61,8 @@ export interface LessonQualityReview {
 }
 
 export interface ReviewWorkspace {
+  captures: TranscriptCapture[];
+  coverageReasons: TranscriptFlag[];
   lesson: {
     id: string;
     teacherId: string;

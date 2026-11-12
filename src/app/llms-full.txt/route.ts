@@ -14,16 +14,18 @@ export function GET() {
 
   const body = `# Ana Quran Academy — full overview
 
-Ana Quran Academy is a global online Quran academy for English-speaking students. Students learn Quran, Tajweed, memorization, Arabic, and Islamic studies through one-to-one online lessons with reviewed teachers. The academy is based in Egypt and teaches students remotely in their own countries.
+Ana Quran Academy is an online Quran academy for English-speaking students. Students learn Quran, Tajweed, memorization, Arabic, and Islamic studies through one-to-one online lessons with reviewed teachers. The academy is based in Egypt and teaches students remotely, from their own homes.
 
 Website: ${SITE_URL}
 Contact: ${SITE_URL}/contact
 
 ## Positioning
 
-Ana Quran Academy is an international online academy, not a local academy tied to one country. It serves English-speaking Muslims worldwide: children, adults, beginners, and families. Lessons are taught in English.
+Ana Quran Academy is an international online academy, not a local academy tied to one country. It serves English-speaking Muslims: children, adults, beginners, and families. Lessons are taught in English.
 
-We do not claim a local address, branch, or physical campus in any student's country. Students join lessons online from wherever they are, subject to teacher availability and time-zone fit.
+Website registration is currently open to the United States, the United Kingdom, Canada, Australia, New Zealand, and Ireland. Students in other countries are welcome to contact the academy, which will tell them what is possible.
+
+We do not claim a local address, branch, or physical campus in any student's country. Students join lessons online from their own homes, subject to teacher availability and time-zone fit.
 
 ## Subjects and programs
 
@@ -62,13 +64,13 @@ Teachers apply with their experience and CV, and every application is reviewed b
 - Adults starting from the beginning
 - Students who want Tajweed or memorization support
 - Families looking for consistent one-to-one lessons
-- English-speaking learners in the US, UK, Canada, Australia, New Zealand, Europe, and elsewhere
+- English-speaking learners in the US, UK, Canada, Australia, New Zealand, and Ireland
 
 ## Frequently asked questions
 
 ### Do I need to live in a particular country?
 
-No. Ana Quran Academy teaches students online worldwide. You need an internet connection and a suitable device. Lesson times depend on teacher availability in your time zone.
+Website registration is currently open to the United States, the United Kingdom, Canada, Australia, New Zealand, and Ireland, and lessons are taught in English. You need an internet connection and a suitable device. Lesson times depend on teacher availability in your time zone. If you live elsewhere, contact the academy and it will tell you what is possible.
 
 ### Are lessons in English?
 
@@ -100,6 +102,7 @@ Programmes are one-to-one and taught in English. Availability varies by teacher 
 
 - All programmes: ${SITE_URL}/courses
 - Online Quran classes for kids: ${SITE_URL}/courses/quran-for-kids
+- Online Tajweed classes: ${SITE_URL}/courses/tajweed
 
 ## Blog
 

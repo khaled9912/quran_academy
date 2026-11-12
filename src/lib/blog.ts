@@ -18,6 +18,8 @@ export type BlogPost = {
   keywords: string[];
   intro: string[];
   sections: BlogSection[];
+  /** Slugs of the guides that genuinely continue this one, most relevant first. */
+  related: string[];
 };
 
 export const BLOG_AUTHOR = "Ana Quran Academy";
@@ -33,18 +35,18 @@ export const blogPosts: BlogPost[] = [
       "A good academy is more than a polished website. Here is what to compare before you enroll, from teacher review to time zones, currency, and trial lessons.",
     category: "Choosing a program",
     publishedAt: "2026-11-05",
-    updatedAt: "2026-11-05",
-    readingMinutes: 8,
+    updatedAt: "2026-11-10",
+    readingMinutes: 9,
     keywords: [
       "best online Quran academy for English speakers",
       "how to choose an online Quran academy",
-      "online Quran classes for Muslims worldwide",
+      "online Quran classes in English",
       "private Quran lessons in English",
       "affordable online Quran classes",
     ],
     intro: [
       "Searching for an online Quran academy returns a long list of websites that often sound similar. The differences that matter are not in the slogans; they are in who teaches, how lessons run, how scheduling works, and what you pay.",
-      "This checklist is written for English-speaking students and parents anywhere in the world. Use it to compare academies calmly, ask better questions, and avoid surprises after enrolling.",
+      "This checklist is written for English-speaking students and parents comparing academies online. Use it to compare academies calmly, ask better questions, and avoid surprises after enrolling.",
     ],
     sections: [
       {
@@ -103,6 +105,26 @@ export const blogPosts: BlogPost[] = [
           "Useful questions include: What will we cover in the first month? How much practice should we do between lessons? Which Mushaf or materials should we use? How will you tell us that progress is happening?",
         ],
       },
+      {
+        heading: "Red flags worth taking seriously",
+        paragraphs: [
+          "Most disappointing academies reveal themselves in the first conversation. You do not need proof of bad intent; you only need a clear reason to keep looking.",
+        ],
+        list: [
+          "No way to speak to a human before you pay.",
+          "Prices that change once you ask, or fees that only appear after the first invoice.",
+          "A different teacher each week, with no record of what was covered.",
+          "Promises of fluent recitation or complete memorization on a fixed deadline.",
+          "No explanation of how progress is reviewed or what happens when you miss a lesson.",
+          "Pressure to pay for months upfront to keep an offer.",
+        ],
+        note: "If you want to compare formats before you decide, start with [the programmes at Ana Quran Academy](/courses) and read [how weekly lessons work](/about).",
+      },
+    ],
+    related: [
+      "how-to-learn-quran-online",
+      "learn-quran-with-tajweed",
+      "online-quran-classes-for-kids",
     ],
   },
   {
@@ -115,8 +137,8 @@ export const blogPosts: BlogPost[] = [
       "Memorization is built by routine, not by bursts of effort. A practical guide to sabaq, sabqi, and manzil, with realistic ways to keep revision steady.",
     category: "Memorization",
     publishedAt: "2026-11-02",
-    updatedAt: "2026-11-02",
-    readingMinutes: 7,
+    updatedAt: "2026-11-10",
+    readingMinutes: 8,
     keywords: [
       "Quran memorization online",
       "online Hifz classes",
@@ -183,6 +205,27 @@ export const blogPosts: BlogPost[] = [
           "If you are a parent supporting a child, keep the routine visible and calm. The goal is a steady habit, not a race against another student.",
         ],
       },
+      {
+        heading: "A sample week that stays realistic",
+        paragraphs: [
+          "Plans fail when they assume every day is the same. This is a shape that working adults and school-age students can usually keep, with the portion size set by the teacher after the first fortnight.",
+        ],
+        list: [
+          "Before the lesson: recite the new portion slowly three times and read its meaning once.",
+          "Day after the lesson: memorize the first half in short blocks rather than one long sitting.",
+          "Next day: memorize the second half, then recite the whole portion once from memory.",
+          "Middle of the week: recent revision only, with no new material added.",
+          "Later in the week: recite the new portion to a family member, or record it and listen back.",
+          "Before the next lesson: older revision, cycling one portion from last month.",
+          "Lesson day: recite, note what slipped, and agree what to repeat.",
+        ],
+        note: "Two lessons a week changes the arithmetic: split the new portion across both days instead of doubling it. Correcting recitation before memorizing new text usually pays off, as covered in [learning Quran with Tajweed](/blog/learn-quran-with-tajweed), and you can see how lessons are structured in [our programmes](/courses).",
+      },
+    ],
+    related: [
+      "learn-quran-with-tajweed",
+      "how-to-learn-quran-online",
+      "choose-online-quran-academy",
     ],
   },
   {
@@ -195,8 +238,8 @@ export const blogPosts: BlogPost[] = [
       "Tajweed is learned by reciting and being corrected, not by memorizing rule names. Here is what the first months usually look like.",
     category: "Tajweed",
     publishedAt: "2026-10-28",
-    updatedAt: "2026-10-28",
-    readingMinutes: 7,
+    updatedAt: "2026-11-10",
+    readingMinutes: 9,
     keywords: [
       "learn Quran with Tajweed",
       "online Tajweed classes",
@@ -265,6 +308,33 @@ export const blogPosts: BlogPost[] = [
           "Be cautious of anyone promising perfect recitation in a few weeks. Tajweed is a long-term discipline, and steady correction is more valuable than a fast start.",
         ],
       },
+      {
+        heading: "How Tajweed fits with reading and memorization",
+        paragraphs: [
+          "Learners often treat reading, Tajweed, and memorization as three separate courses. They are three sides of the same skill, and the order you take them in matters more than the labels.",
+          "Reading first: if the letters are not yet stable, build reading fluency before studying rules in detail. A rule applied to a word you cannot yet read confidently is hard to hear.",
+          "Tajweed alongside reading: once you can read a page with vowel marks, correct recitation becomes the focus of most lessons. This is the stage where a teacher's ear matters most.",
+          "Memorization after accuracy: memorizing accurate recitation is worth doing, but memorizing a mistake takes far longer to undo. Many students add structured Hifz once short surahs are recited correctly, as described in [our guide to online Quran memorization](/blog/quran-memorization-online).",
+        ],
+      },
+      {
+        heading: "What to bring to your first Tajweed lesson",
+        paragraphs: [
+          "Preparation is small, but it changes what the teacher can assess in the first sitting.",
+        ],
+        list: [
+          "One Mushaf, and the same printed layout every week.",
+          "Headphones or a quiet room, so the teacher can hear the thin differences between letters.",
+          "A notebook for the one rule you are working on, not a list of every rule you have heard.",
+          "Two or three short verses you already recite, so your current level is heard quickly.",
+        ],
+        note: "The first lesson is a free trial for new students, and the teacher uses it to hear your letters before suggesting a plan. See [what our Tajweed classes cover](/courses/tajweed), or read [how to learn Quran online](/blog/how-to-learn-quran-online) if you are still working on the letters.",
+      },
+    ],
+    related: [
+      "how-to-learn-quran-online",
+      "quran-memorization-online",
+      "online-quran-classes-for-kids",
     ],
   },
   {
@@ -277,14 +347,14 @@ export const blogPosts: BlogPost[] = [
       "Children do well online when lessons are short, predictable, and supported at home. A parent-focused guide to format, routine, safety, and realistic progress.",
     category: "For parents",
     publishedAt: "2026-10-24",
-    updatedAt: "2026-10-24",
-    readingMinutes: 7,
+    updatedAt: "2026-11-10",
+    readingMinutes: 8,
     keywords: [
       "online Quran classes for kids",
       "Quran classes for children online",
       "online Quran learning for families",
       "Quran classes for beginners",
-      "online Quran classes for Muslims worldwide",
+      "online Quran classes in English",
     ],
     intro: [
       "Online Quran classes can work very well for children, but they are not simply the family class moved to a screen. Children need shorter lessons, predictable routines, and an adult nearby for the early years.",
@@ -340,6 +410,19 @@ export const blogPosts: BlogPost[] = [
           "Ask the teacher for one or two concrete goals each month, and review them together. Visible, modest goals are more motivating than vague promises of fluency.",
         ],
       },
+      {
+        heading: "What happens in the first lesson",
+        paragraphs: [
+          "The first lesson is a free trial, and its purpose is assessment rather than progress. The teacher checks what the child already recognizes, how they respond to correction, and how long their attention holds.",
+          "Expect a report on three things afterwards: a starting point, a suggested lesson length, and whether a shorter or slower beginning would suit the child better. A serious academy will say honestly if a child is not ready yet.",
+        ],
+        note: "You can see how each age stage is taught in [our kids programme](/courses/quran-for-kids), including lesson length, equipment, and what parents should expect.",
+      },
+    ],
+    related: [
+      "choose-online-quran-academy",
+      "how-to-learn-quran-online",
+      "learn-quran-with-tajweed",
     ],
   },
   {
@@ -352,14 +435,14 @@ export const blogPosts: BlogPost[] = [
       "You do not need to live near a teacher to learn the Quran. A clear goal, a steady weekly rhythm, and the right teacher are enough to begin.",
     category: "Getting started",
     publishedAt: "2026-10-20",
-    updatedAt: "2026-10-20",
-    readingMinutes: 8,
+    updatedAt: "2026-11-10",
+    readingMinutes: 10,
     keywords: [
       "learn Quran online",
       "online Quran classes",
       "Quran classes online",
       "online Quran learning",
-      "learn Quran online from anywhere in the world",
+      "learn Quran online from home",
       "online Quran academy",
     ],
     intro: [
@@ -423,6 +506,35 @@ export const blogPosts: BlogPost[] = [
           "Availability still depends on teacher schedules and the subject you want to study. If you are unsure where to start, [contact the academy](/contact) and ask which teacher and weekly times fit your level and time zone.",
         ],
       },
+      {
+        heading: "If you cannot read Arabic yet",
+        paragraphs: [
+          "Start with the letters, not with a surah you hope to memorize. Adult beginners usually work through a graded primer that teaches isolated letters, their connecting forms, and vowel marks before continuous Quran text. Many academies use a first book for this stage; the title matters far less than the sequence.",
+          "Set expectations honestly. Reading the letters takes weeks, reading a page takes months, and reciting with steady Tajweed takes years. The first milestone is deliberately small, which is why it should be the only target for the first month.",
+          "Tell your teacher you are starting from zero. It changes the pace, the materials, and the practice you are assigned. Most adult beginners are in exactly this position, so there is nothing to hide.",
+        ],
+        note: "If you already read the letters and want to correct your recitation, [what Tajweed lessons cover](/blog/learn-quran-with-tajweed) is the next guide, and [our Tajweed classes](/courses/tajweed) explain how correction works in a real lesson.",
+      },
+      {
+        heading: "A realistic first week",
+        paragraphs: [
+          "Momentum in week one comes from a plan small enough to survive a bad week. This is a shape that works for most adults and older students.",
+        ],
+        list: [
+          "Before the trial: choose two weekly times that survive your busiest week, and test your microphone and connection.",
+          "Trial lesson: recite what you can, ask what the first month covers, and write down the practice you are given.",
+          "Day after the trial: practise the assigned portion for ten minutes, out loud.",
+          "Midweek: ten more minutes, plus five minutes reviewing the letters or rule from the day before.",
+          "Before the second lesson: recite the whole assigned portion once and mark where it breaks down.",
+          "Second lesson: recite, get it corrected, and agree the next small step.",
+        ],
+        note: "One lesson a week is enough to begin, and two is faster. Lessons last 30, 45, or 60 minutes; you can compare the formats in [our programmes](/courses).",
+      },
+    ],
+    related: [
+      "learn-quran-with-tajweed",
+      "choose-online-quran-academy",
+      "quran-memorization-online",
     ],
   },
 ];
@@ -437,20 +549,24 @@ export function sortedBlogPosts() {
   );
 }
 
-export function relatedBlogPosts(slug: string, limit = 2) {
+export function relatedBlogPosts(slug: string, limit = 3) {
   const current = getBlogPost(slug);
   if (!current) return sortedBlogPosts().slice(0, limit);
 
-  const sameCategory = blogPosts.filter(
-    (post) => post.slug !== slug && post.category === current.category
-  );
-  const others = sortedBlogPosts().filter(
+  const chosen = current.related
+    .map((relatedSlug) => getBlogPost(relatedSlug))
+    .filter((post): post is BlogPost => post !== undefined);
+
+  if (chosen.length >= limit) return chosen.slice(0, limit);
+
+  // Guard against a mistyped or missing slug so the section is never short.
+  const fallback = sortedBlogPosts().filter(
     (post) =>
       post.slug !== slug &&
-      !sameCategory.some((candidate) => candidate.slug === post.slug)
+      !chosen.some((candidate) => candidate.slug === post.slug)
   );
 
-  return [...sameCategory, ...others].slice(0, limit);
+  return [...chosen, ...fallback].slice(0, limit);
 }
 
 export function formatBlogDate(isoDate: string) {

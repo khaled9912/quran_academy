@@ -68,7 +68,7 @@ const Menu = () => {
                 aria-current={isActiveLink("/signup") ? "page" : undefined}
                 className={`registration-cta ${linkClassName("/signup")}`}
               >
-                Register
+                Start a free trial
               </Link>
             </>
           ) : (

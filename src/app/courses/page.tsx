@@ -37,6 +37,7 @@ type Pathway = {
   title: string;
   description: string;
   guide?: { label: string; href: string };
+  programme?: { label: string; href: string };
 };
 
 const pathways: Pathway[] = [
@@ -55,6 +56,10 @@ const pathways: Pathway[] = [
     title: "Tajweed",
     description:
       "Learn articulation points, pronunciation, and recitation rules, with correction in every lesson rather than theory alone.",
+    programme: {
+      label: "View the Tajweed programme",
+      href: "/courses/tajweed",
+    },
     guide: {
       label: "What Tajweed lessons cover",
       href: "/blog/learn-quran-with-tajweed",
@@ -309,30 +314,40 @@ export default function CoursesPage() {
             </p>
           </div>
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {pathways.map(({ icon: Icon, title, description, guide }) => (
-              <article
-                key={title}
-                className="flex flex-col rounded-3xl border border-[#e5e9df] bg-white p-7 shadow-sm dark:border-card-border dark:bg-card-bg"
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf3e9] text-[#547a5d] dark:bg-green-500/15 dark:text-green-300">
-                  <Icon size={23} />
-                </div>
-                <h3 className="mt-5 text-xl font-bold text-[#23483c] dark:text-foreground">
-                  {title}
-                </h3>
-                <p className="mt-3 flex-1 leading-7 text-[#6b7c73] dark:text-foreground/70">
-                  {description}
-                </p>
-                {guide && (
-                  <Link
-                    href={guide.href}
-                    className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#1d5145] hover:gap-3 dark:text-green-400"
-                  >
-                    {guide.label} <ArrowRight size={15} aria-hidden />
-                  </Link>
-                )}
-              </article>
-            ))}
+            {pathways.map(
+              ({ icon: Icon, title, description, guide, programme }) => (
+                <article
+                  key={title}
+                  className="flex flex-col rounded-3xl border border-[#e5e9df] bg-white p-7 shadow-sm dark:border-card-border dark:bg-card-bg"
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf3e9] text-[#547a5d] dark:bg-green-500/15 dark:text-green-300">
+                    <Icon size={23} />
+                  </div>
+                  <h3 className="mt-5 text-xl font-bold text-[#23483c] dark:text-foreground">
+                    {title}
+                  </h3>
+                  <p className="mt-3 flex-1 leading-7 text-[#6b7c73] dark:text-foreground/70">
+                    {description}
+                  </p>
+                  {programme && (
+                    <Link
+                      href={programme.href}
+                      className="registration-cta mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-[#1d4e47] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
+                    >
+                      {programme.label} <ArrowRight size={15} aria-hidden />
+                    </Link>
+                  )}
+                  {guide && (
+                    <Link
+                      href={guide.href}
+                      className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-[#1d5145] hover:gap-3 dark:text-green-400"
+                    >
+                      {guide.label} <ArrowRight size={15} aria-hidden />
+                    </Link>
+                  )}
+                </article>
+              )
+            )}
           </div>
         </div>
       </section>
@@ -390,7 +405,8 @@ export default function CoursesPage() {
           </h2>
           <p className="mx-auto mt-4 max-w-xl leading-7 text-white/75">
             Create your account, pick a subject, and begin with a free trial
-            lesson.
+            lesson. Registration is currently open to students in the US, UK,
+            Canada, Australia, New Zealand, and Ireland.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Link

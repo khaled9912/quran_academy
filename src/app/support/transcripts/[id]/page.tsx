@@ -15,6 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
+import { TranscriptCoverage } from "@/components/TranscriptCoverage";
 import { useToast } from "@/providers/toast-provider";
 import { ApiError } from "@/lib/backend-client";
 import {
@@ -43,8 +44,12 @@ const display = (value: string) =>
 const flagLabel: Record<TranscriptFlag, string> = {
   phone: "Phone number",
   email: "Email address",
-  platform: "Chat app",
+  platform: "External platform",
   offplatform: "Off-platform",
+  payment: "Payment discussion",
+  secrecy: "Secrecy language",
+  no_transcript: "No transcript captured",
+  unsupported_device: "Unsupported device",
 };
 
 const offset = (seconds: number | null) => {
@@ -177,10 +182,12 @@ function ScoreRow({
 function ReviewForm({
   lessonId,
   review,
+  hasTranscript,
   onSaved,
 }: {
   lessonId: string;
   review: LessonQualityReview | null;
+  hasTranscript: boolean;
   onSaved: (status: ReviewStatus) => void;
 }) {
   const queryClient = useQueryClient();
@@ -222,12 +229,7 @@ function ReviewForm({
     },
     onError: (mutationError) => {
       if (!(mutationError instanceof ApiError)) {
-        showToast(
-          mutationError instanceof Error
-            ? mutationError.message
-            : "The review could not be saved.",
-          "error"
-        );
+        showToast("The review could not be saved. Please try again.", "error");
       }
     },
   });
@@ -258,19 +260,26 @@ function ReviewForm({
         ) : null}
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        {scoreLabels.map((item) => (
-          <ScoreRow
-            key={item.key}
-            label={item.label}
-            hint={item.hint}
-            value={scores[item.key]}
-            onChange={(value) =>
-              setScores((current) => ({ ...current, [item.key]: value }))
-            }
-          />
-        ))}
-      </div>
+      <p className="mb-4 text-sm opacity-70">
+        Save summaries and follow-up actions, not copied transcript quotes.
+        {!hasTranscript &&
+          " No retained transcript: save follow-up notes as a draft; do not score missing capture."}
+      </p>
+      {hasTranscript && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {scoreLabels.map((item) => (
+            <ScoreRow
+              key={item.key}
+              label={item.label}
+              hint={item.hint}
+              value={scores[item.key]}
+              onChange={(value) =>
+                setScores((current) => ({ ...current, [item.key]: value }))
+              }
+            />
+          ))}
+        </div>
+      )}
 
       <div className="mt-4 space-y-4">
         <label className="block">
@@ -339,7 +348,7 @@ function ReviewForm({
         </button>
         <button
           type="button"
-          disabled={mutation.isPending}
+          disabled={mutation.isPending || !hasTranscript}
           onClick={() => handleSave("submitted")}
           className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-60"
         >
@@ -362,6 +371,8 @@ export default function SupportLessonReviewPage() {
     queryKey: ["review-workspace", lessonId],
     queryFn: () => getReviewWorkspace(lessonId),
     enabled: canReview && lessonId.length > 0,
+    refetchInterval: 60_000,
+    gcTime: 0,
   });
 
   if (!canReview) {
@@ -424,6 +435,7 @@ export default function SupportLessonReviewPage() {
               ) : null}
             </header>
 
+            <TranscriptCoverage captures={workspace.captures} />
             <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {metricCard(
                 "Transcript segments",
@@ -451,6 +463,11 @@ export default function SupportLessonReviewPage() {
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
               <section>
                 <h2 className="mb-3 text-xl font-semibold">Transcript</h2>
+                {workspace.segments.length === 0 && (
+                  <p className="mb-4 text-sm opacity-70">
+                    No retained transcript text.
+                  </p>
+                )}
                 <ol className="max-h-[70vh] space-y-3 overflow-y-auto pr-1">
                   {workspace.segments.map((segment) => {
                     const flagged = segment.flags.length > 0;
@@ -466,6 +483,11 @@ export default function SupportLessonReviewPage() {
                         <div className="mb-1 flex flex-wrap items-center gap-2 text-xs opacity-70">
                           <span className="font-semibold text-foreground opacity-100">
                             {segment.speaker}
+                          </span>
+                          <span>
+                            {segment.source === "client"
+                              ? "Browser text (unverified)"
+                              : "Server transcript"}
                           </span>
                           {offset(segment.atSeconds) ? (
                             <span>{offset(segment.atSeconds)}</span>
@@ -492,6 +514,7 @@ export default function SupportLessonReviewPage() {
                 key={`${lessonId}:${workspace.review?.updatedAt ?? "new"}`}
                 lessonId={lessonId}
                 review={workspace.review}
+                hasTranscript={workspace.segments.length > 0}
                 onSaved={(status) =>
                   showToast(
                     status === "submitted"

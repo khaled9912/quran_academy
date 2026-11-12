@@ -5,18 +5,29 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
+  type MutableRefObject,
 } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Minimize2, PenLine, PhoneOff, PictureInPicture2 } from "lucide-react";
+import { Minimize2, PenLine, PhoneOff } from "lucide-react";
 import { JitsiRoom } from "@/components/JitsiRoom";
+import { LeaveLessonDialog } from "@/components/lesson/LeaveLessonDialog";
 import { LessonPenOverlay } from "@/components/lesson/LessonPenOverlay";
+import {
+  SelfTranscriptionConsent,
+  SelfTranscriptionControls,
+} from "@/components/lesson/SelfTranscriptionControls";
+import { StudentConcernReport } from "@/components/lesson/StudentConcernReport";
+import { useSelfTranscription } from "@/hooks/use-self-transcription";
 import { useAuth } from "@/providers/auth-provider";
 import { useRealtimeConnection } from "@/providers/realtime-provider";
+import { useLessonRoomFlags } from "@/hooks/use-lesson-room-flags";
 import { sendAttendanceEvent } from "@/services/lesson.service";
+import type { LessonRoomFlags } from "@/services/lesson-room-config.service";
 import type { JitsiExternalApi } from "@/types/jitsi";
 
 /** The lesson's one-share lock, as the hub reports it. */
@@ -44,6 +55,12 @@ interface LessonCallContextValue {
 const LessonCallContext = createContext<LessonCallContextValue | null>(null);
 
 const DEVICE_KEY = "ana-quran-device-id";
+
+/**
+ * How long to wait for the room to report that it left before tearing the
+ * player down anyway. The leave presence itself is sent in well under a second.
+ */
+const LEAVE_GRACE_MS = 2000;
 
 const getDeviceId = () => {
   let value = window.localStorage.getItem(DEVICE_KEY);
@@ -81,6 +98,15 @@ export function LessonCallProvider({
   const [call, setCall] = useState<ActiveLessonCall | null>(null);
   const [joined, setJoined] = useState(false);
   const [minimized, setMinimized] = useState(false);
+  // Loaded with the app so a room opened later never has to wait on it: the
+  // flags decide the Jitsi toolbar, which is fixed once the conference exists.
+  // The refresh loop only runs while a room is open, so a tab that is merely
+  // sitting on a dashboard asks the server nothing.
+  const { flags, flagsLoaded, captureValidUntil } =
+    useLessonRoomFlags(Boolean(call));
+  const stopCaptureRef = useRef<((flush?: boolean) => void) | null>(null);
+  const callRef = useRef(call);
+  callRef.current = call;
   const pathname = usePathname();
   const router = useRouter();
   // One join/leave pair per conference; the server owns the timestamps.
@@ -125,14 +151,48 @@ export function LessonCallProvider({
 
   const startCall = useCallback((next: ActiveLessonCall) => {
     // Same room: keep the existing conference (and its identity) untouched.
-    setCall((current) => (current?.room === next.room ? current : next));
+    const current = callRef.current;
+    if (
+      current?.room === next.room &&
+      current.domain === next.domain &&
+      current.lessonId === next.lessonId
+    )
+      return;
+    stopCaptureRef.current?.(true);
+    setCall(next);
   }, []);
 
   const endCall = useCallback(() => {
+    stopCaptureRef.current?.(true);
     setCall(null);
     setJoined(false);
     setMinimized(false);
   }, []);
+
+  // The live conference, shared with the host so the leave control can hang up
+  // inside the room before the player comes down.
+  const apiRef = useRef<JitsiExternalApi | null>(null);
+  // Where to go once the room confirms it left, and the timer that stops
+  // waiting if the event never arrives.
+  const pendingReturnRef = useRef<{
+    backHref: string;
+    navigate: boolean;
+  } | null>(null);
+  const returnTimerRef = useRef<number | null>(null);
+
+  const finishPendingReturn = useCallback(() => {
+    if (returnTimerRef.current !== null) {
+      window.clearTimeout(returnTimerRef.current);
+      returnTimerRef.current = null;
+    }
+    const pending = pendingReturnRef.current;
+    if (!pending) return;
+    pendingReturnRef.current = null;
+    endCall();
+    if (pending.navigate) router.push(pending.backHref);
+  }, [endCall, router]);
+
+  useEffect(() => () => finishPendingReturn(), [finishPendingReturn]);
 
   const activeRoom = call?.room ?? null;
   useEffect(() => {
@@ -165,14 +225,55 @@ export function LessonCallProvider({
     return () => window.removeEventListener("pagehide", onHide);
   }, [call, leaveCycle]);
 
-  const endAndReturn = useCallback(() => {
-    if (!call) return;
-    const { lessonId: endedLessonId, backHref } = call;
-    const shouldReturn = pathname === `/lesson/${endedLessonId}`;
+  // The room can also leave by itself — the hangup above, a kick, or a
+  // dropped connection — and any of those completes a return in flight.
+  const handleLeft = useCallback(() => {
+    stopCaptureRef.current?.(true);
+    setJoined(false);
     leaveCycle();
-    endCall();
-    if (shouldReturn) router.push(backHref);
-  }, [call, endCall, leaveCycle, pathname, router]);
+    finishPendingReturn();
+  }, [leaveCycle, finishPendingReturn]);
+
+  const endAndReturn = useCallback(() => {
+    if (!call || pendingReturnRef.current) return;
+    stopCaptureRef.current?.(true);
+    const navigate = pathname === `/lesson/${call.lessonId}`;
+    leaveCycle();
+
+    // Before the room was joined there is no conference to leave, and taking
+    // the player down is enough.
+    if (!joined) {
+      endCall();
+      if (navigate) router.push(call.backHref);
+      return;
+    }
+
+    // Removing the iframe is not leaving: the server only notices a dead
+    // connection about a minute later, so everyone keeps seeing this
+    // participant's tile until then. Hanging up inside the room sends the
+    // proper departure and the tile disappears at once.
+    pendingReturnRef.current = { backHref: call.backHref, navigate };
+    apiRef.current?.executeCommand("hangup");
+    returnTimerRef.current = window.setTimeout(
+      finishPendingReturn,
+      LEAVE_GRACE_MS
+    );
+  }, [
+    call,
+    endCall,
+    finishPendingReturn,
+    joined,
+    leaveCycle,
+    pathname,
+    router,
+  ]);
+
+  // Every leave control asks first: these buttons sit next to the ones used
+  // during the lesson, so an accidental press should not drop the call.
+  const [leavePending, setLeavePending] = useState(false);
+  useEffect(() => {
+    if (!call) setLeavePending(false);
+  }, [call]);
 
   const value = useMemo(
     () => ({ call, startCall, endCall, minimized, setMinimized }),
@@ -182,40 +283,68 @@ export function LessonCallProvider({
   return (
     <LessonCallContext.Provider value={value}>
       {children}
-      {call && (
+      {call && flagsLoaded && (
         <LessonCallHost
+          key={`${call.lessonId}:${call.domain}:${call.room}`}
           call={call}
+          flags={flags}
+          captureValidUntil={captureValidUntil}
+          stopCaptureRef={stopCaptureRef}
           joined={joined}
           minimized={minimized}
+          apiRef={apiRef}
           onMinimize={() => setMinimized(true)}
           onExpand={() => setMinimized(false)}
           onJoined={handleJoined}
-          onLeft={() => leaveCycle()}
+          onLeft={handleLeft}
           onHangup={endAndReturn}
+          onRequestLeave={() => {
+            // Nothing has been joined yet, so there is no lesson to drop.
+            if (joined) setLeavePending(true);
+            else endAndReturn();
+          }}
         />
       )}
+      <LeaveLessonDialog
+        open={leavePending}
+        onCancel={() => setLeavePending(false)}
+        onConfirm={() => {
+          setLeavePending(false);
+          endAndReturn();
+        }}
+      />
     </LessonCallContext.Provider>
   );
 }
 
 function LessonCallHost({
   call,
+  flags,
+  captureValidUntil,
+  stopCaptureRef,
   joined,
   minimized,
+  apiRef,
   onMinimize,
   onExpand,
   onJoined,
   onLeft,
   onHangup,
+  onRequestLeave,
 }: {
   call: ActiveLessonCall;
+  flags: LessonRoomFlags;
+  captureValidUntil: number;
+  stopCaptureRef: MutableRefObject<((flush?: boolean) => void) | null>;
   joined: boolean;
   minimized: boolean;
+  apiRef: MutableRefObject<JitsiExternalApi | null>;
   onMinimize: () => void;
   onExpand: () => void;
   onJoined: () => void;
   onLeft: () => void;
   onHangup: () => void;
+  onRequestLeave: () => void;
 }) {
   const pathname = usePathname();
   const expanded = pathname === `/lesson/${call.lessonId}` && !minimized;
@@ -223,15 +352,43 @@ function LessonCallHost({
   // off-screen if the visitor leaves the lesson page before joining.
   const showMini = !expanded && joined;
 
-  const apiRef = useRef<JitsiExternalApi | null>(null);
   const [pipSupported, setPipSupported] = useState(false);
-  const [pipActive, setPipActive] = useState(false);
   const [penActive, setPenActive] = useState(false);
   const wasExpanded = useRef(expanded);
-  const { role } = useAuth();
+  const { role, user, isAuthenticated } = useAuth();
+  const participant = Boolean(
+    call.trackAttendance &&
+      isAuthenticated &&
+      (role === "student" || role === "teacher")
+  );
+  const transcription = useSelfTranscription({
+    lessonId: call.lessonId,
+    userId: user?.id,
+    participant,
+    enabled: flags.transcription,
+    validUntil: captureValidUntil,
+  });
+  const {
+    stop: stopTranscription,
+    onApiReady: onTranscriptionApi,
+    onJoined: onTranscriptionJoined,
+  } = transcription;
+  useLayoutEffect(() => {
+    stopCaptureRef.current = stopTranscription;
+    return () => {
+      stopCaptureRef.current = null;
+    };
+  }, [stopCaptureRef, stopTranscription]);
+  const handleJoined = useCallback(() => {
+    onTranscriptionJoined();
+    onJoined();
+  }, [onTranscriptionJoined, onJoined]);
+
   // The server enforces the same rule; this only decides who sees the button.
+  // Marking is also a switch: no flag, no pen and no ink layer to poll.
   const canMark =
-    role === "teacher" || role === "admin" || role === "super_admin";
+    flags.pen &&
+    (role === "teacher" || role === "admin" || role === "super_admin");
 
   // Marking takes over the pointer, so leaving the full room must drop it.
   useEffect(() => {
@@ -326,19 +483,17 @@ function LessonCallHost({
 
   const handleApiReady = useCallback(
     (api: JitsiExternalApi | null) => {
+      apiRef.current?.removeListener(
+        "screenSharingStatusChanged",
+        handleShareStatus
+      );
       apiRef.current = api;
-      setPipActive(false);
+      onTranscriptionApi(api);
       if (!api) return;
-      api.addListener("pipEntered", () => setPipActive(true));
-      api.addListener("pipLeft", () => setPipActive(false));
       api.addListener("screenSharingStatusChanged", handleShareStatus);
     },
-    [handleShareStatus]
+    [apiRef, handleShareStatus, onTranscriptionApi]
   );
-
-  const togglePip = () => {
-    apiRef.current?.executeCommand(pipActive ? "hidePiP" : "showPiP");
-  };
 
   // A click that leaves the room page is also the browser gesture needed to
   // open the floating window, so the lesson stays visible while browsing.
@@ -431,49 +586,68 @@ function LessonCallHost({
               <Minimize2 size={14} />
             </button>
           )}
-          {pipSupported && (
+          {/* The mini player has no room of its own, so it keeps the only
+              leave control outside the full room. */}
+          {!expanded && (
             <button
               type="button"
-              onClick={togglePip}
-              aria-label={
-                pipActive ? "Return video to this page" : "Pop out video"
-              }
-              title={
-                pipActive
-                  ? "Return video to this page"
-                  : "Pop out video to keep it visible on other tabs and windows"
-              }
-              className={`rounded-lg p-1.5 transition ${
-                pipActive
-                  ? "bg-green-500/90 hover:bg-green-500"
-                  : "bg-white/10 hover:bg-white/20"
-              }`}
+              onClick={onRequestLeave}
+              aria-label="Leave lesson"
+              className="rounded-lg bg-red-500/90 p-1.5 transition hover:bg-red-500"
             >
-              <PictureInPicture2 size={14} />
+              <PhoneOff size={14} />
             </button>
           )}
-          <button
-            type="button"
-            onClick={onHangup}
-            aria-label="Leave lesson"
-            className="rounded-lg bg-red-500/90 p-1.5 transition hover:bg-red-500"
-          >
-            <PhoneOff size={14} />
-          </button>
         </div>
       </div>
 
+      {joined &&
+        participant &&
+        flags.transcription &&
+        (expanded || transcription.consent) && (
+          <SelfTranscriptionControls
+            enabled={flags.transcription}
+            consent={transcription.consent}
+            supported={transcription.supported}
+            state={transcription.state}
+            onConsent={transcription.setConsent}
+          />
+        )}
+      {flags.reportConcern &&
+        isAuthenticated &&
+        role === "student" &&
+        call.trackAttendance && (
+          <div className={expanded ? undefined : "hidden"}>
+            <StudentConcernReport
+              key={`${call.lessonId}:${user?.id}`}
+              lessonId={call.lessonId}
+            />
+          </div>
+        )}
+
       <div
         className={
-          expanded ? "relative min-h-0 flex-1" : "relative aspect-video w-full"
+          expanded
+            ? "relative min-h-0 flex-1"
+            : "relative aspect-video w-full shrink-0"
         }
       >
         <JitsiRoom
           domain={call.domain}
           room={call.room}
           displayName={call.displayName}
+          flags={flags}
+          transcriptionConsent={
+            participant && flags.transcription ? (
+              <SelfTranscriptionConsent
+                consent={transcription.consent}
+                supported={transcription.supported}
+                onChange={transcription.setConsent}
+              />
+            ) : null
+          }
           onClose={onHangup}
-          onJoined={onJoined}
+          onJoined={handleJoined}
           onLeft={onLeft}
           onApiReady={handleApiReady}
         />
@@ -491,6 +665,18 @@ function LessonCallHost({
             canDraw={canMark}
             onDone={() => setPenActive(false)}
           />
+        )}
+        {expanded && !penActive && (
+          // The room's own leave control. It sits above the toolbar row the
+          // iframe draws, so it never covers the mic or chat buttons.
+          <button
+            type="button"
+            onClick={onRequestLeave}
+            aria-label="Leave lesson"
+            className="absolute bottom-20 right-3 z-30 inline-flex h-11 w-11 items-center justify-center rounded-full bg-red-500/95 text-white shadow-lg transition hover:bg-red-500"
+          >
+            <PhoneOff size={18} />
+          </button>
         )}
         {share.holder && !share.local && (
           <div

@@ -54,21 +54,34 @@ export default function ChangeWeeklyTimePage() {
     enabled: role === "student" && Boolean(teacherId),
     refetchInterval: LIVE_SYNC_INTERVAL,
   });
-  const available = useMemo(() => {
-    const rules = teacherQuery.data?.slots ?? [];
-    return rules
-      .filter((rule) => rule.status === "available")
-      .map((rule) => ({
-        rule,
-        local: toViewerWeeklyTime(rule, viewerTimeZone),
-      }))
-      .sort(
-        (a, b) =>
-          DAY_ORDER.indexOf(a.local.dayOfWeek) -
-            DAY_ORDER.indexOf(b.local.dayOfWeek) ||
-          a.local.startsAtTime.localeCompare(b.local.startsAtTime)
-      );
-  }, [teacherQuery.data, viewerTimeZone]);
+  const leadMinutes = teacherQuery.data?.timeChangeLeadMinutes ?? 0;
+  // Measured from the moment the server answered, which is the instant it
+  // worked out each nextStartsAt, so the client clock never enters in.
+  const noticeAfter = (teacherQuery.dataUpdatedAt ?? 0) + leadMinutes * 60_000;
+  const openRules = (teacherQuery.data?.slots ?? []).filter(
+    (rule) => rule.status === "available"
+  );
+  const available = openRules
+    // A class already inside the academy's notice window would leave the
+    // teacher no time to prepare, so that time is not offered at all.
+    .filter(
+      (rule) =>
+        !rule.nextStartsAt ||
+        new Date(rule.nextStartsAt).getTime() >= noticeAfter
+    )
+    .map((rule) => ({
+      rule,
+      local: toViewerWeeklyTime(rule, viewerTimeZone),
+    }))
+    .sort(
+      (a, b) =>
+        DAY_ORDER.indexOf(a.local.dayOfWeek) -
+          DAY_ORDER.indexOf(b.local.dayOfWeek) ||
+        a.local.startsAtTime.localeCompare(b.local.startsAtTime)
+    );
+  const hiddenByNotice = openRules.length - available.length;
+
+  const selectedEntry = available.find((entry) => entry.rule.id === selected);
 
   const grouped = available.reduce<
     Record<number, (typeof available)[number][]>
@@ -231,6 +244,12 @@ export default function ChangeWeeklyTimePage() {
                   className="mt-2"
                 />
               )}
+              {leadMinutes > 0 && (
+                <p className="mt-2 text-xs leading-5 text-foreground/60">
+                  Times whose next class starts within {leadMinutes} minutes are
+                  not listed, so your teacher always gets that much notice.
+                </p>
+              )}
               {teacherQuery.isLoading ? (
                 <p className="mt-4 text-sm text-foreground/70">
                   Loading available times…
@@ -297,9 +316,9 @@ export default function ChangeWeeklyTimePage() {
                 <div className="mt-4 rounded-2xl border border-dashed border-card-border p-8 text-center">
                   <p className="font-semibold">No other times available</p>
                   <p className="mt-2 text-sm text-foreground/60">
-                    {series.teacherName} has not announced any other weekly
-                    times right now. Message the academy if you need a
-                    different teacher, or end this weekly time below.
+                    {hiddenByNotice > 0
+                      ? `The times your teacher has open all repeat within the next ${leadMinutes} minutes, so moving onto one would leave them no notice. Try again later, or message the academy below.`
+                      : `${series.teacherName} has not announced any other weekly times right now. Message the academy if you need a different teacher, or end this weekly time below.`}
                   </p>
                   <Link
                     href="/contact"
@@ -323,21 +342,45 @@ export default function ChangeWeeklyTimePage() {
                     className="mt-2 w-full rounded-xl border border-card-border bg-background px-3 py-3 font-normal text-foreground outline-none placeholder:text-foreground/40 focus:border-green-500"
                   />
                 </label>
-                <button
-                  type="button"
-                  disabled={!selected || submit.isPending}
-                  onClick={() => {
-                    if (selected) submit.mutate(selected);
-                  }}
-                  className="mt-4 w-full rounded-xl bg-[#1c5145] px-4 py-3 font-semibold text-white transition hover:bg-[#163f36] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-green-600 dark:hover:bg-green-500"
-                >
-                  {submit.isPending ? "Moving…" : "Move to this time"}
-                </button>
-                <p className="mt-3 text-xs leading-5 text-foreground/60">
+              </section>
+            )}
+
+            {available.length > 0 && (
+              // The move stays one press away: a teacher's list of times can
+              // run well past a screen, and this button used to sit below it.
+              <div className="sticky bottom-4 z-40 mt-6 rounded-2xl border border-card-border bg-card-bg p-3 shadow-lg">
+                <div className="flex flex-wrap items-center gap-3">
+                  <p className="min-w-0 flex-1 text-sm">
+                    {selectedEntry ? (
+                      <span className="font-semibold">
+                        Move to {WEEKDAY_SHORT[selectedEntry.local.dayOfWeek]}{" "}
+                        {formatWeeklyTimeRange(
+                          selectedEntry.local.startsAtTime,
+                          selectedEntry.local.endsAtTime
+                        )}
+                      </span>
+                    ) : (
+                      <span className="text-foreground/60">
+                        Pick a time to move to.
+                      </span>
+                    )}
+                  </p>
+                  <button
+                    type="button"
+                    disabled={!selected || submit.isPending}
+                    onClick={() => {
+                      if (selected) submit.mutate(selected);
+                    }}
+                    className="w-full rounded-xl bg-[#1c5145] px-4 py-3 font-semibold text-white transition hover:bg-[#163f36] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:px-6 dark:bg-green-600 dark:hover:bg-green-500"
+                  >
+                    {submit.isPending ? "Moving…" : "Move to this time"}
+                  </button>
+                </div>
+                <p className="mt-2 text-xs leading-5 text-foreground/60">
                   Your lessons move to the new time right away. Your teacher and
                   the academy are told about it.
                 </p>
-              </section>
+              </div>
             )}
 
             <section className="mt-6 rounded-3xl border border-card-border bg-card-bg p-6 shadow-sm">

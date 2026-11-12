@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   ...pageMetadata({
     title: "Learn Quran Online: Guides for English Speakers",
     description:
-      "Practical guides on learning Quran online, Tajweed, memorization, and choosing an online Quran academy for English-speaking students worldwide.",
+      "Practical guides on learning Quran online, Tajweed, memorization, and choosing an online Quran academy for English-speaking students.",
     path: "/blog",
     image: "/blog/opengraph-image",
     imageAlt: "Ana Quran Academy Blog — Quran learning guides",
@@ -40,8 +40,7 @@ const blogSchema = {
   "@type": "Blog",
   "@id": `${SITE_URL}/blog#blog`,
   name: "Ana Quran Academy Blog",
-  description:
-    "Practical Quran learning guides for English-speaking students worldwide.",
+  description: "Practical Quran learning guides for English-speaking students.",
   url: absoluteUrl("/blog"),
   inLanguage: "en",
   publisher: { "@id": `${SITE_URL}/#organization` },

@@ -46,7 +46,8 @@ export type CancellationOutcome =
   | "student_no_show"
   | "teacher_no_show"
   | "both_absent"
-  | "series_ended";
+  | "series_ended"
+  | "series_rescheduled";
 
 export interface Lesson {
   id: string;
@@ -212,6 +213,8 @@ export interface LessonIncident {
   createdAt: string;
   resolvedAt?: string | null;
   resolutionNote?: string | null;
+  /** Null when the lesson-ops monitor filed the row from room presence. */
+  reportedBy?: string | null;
 }
 
 export interface TeacherHours {
@@ -259,7 +262,7 @@ export interface LessonOperations {
   attendance: AttendanceSummary;
   hours?: TeacherHours | null;
   excuse?: ExcuseRequest | null;
-  incident?: LessonIncident | null;
+  incidents: LessonIncident[];
   replacementLesson?: Lesson | null;
   originalLesson?: Lesson | null;
   calls: LessonCall[];
