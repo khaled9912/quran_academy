@@ -15,13 +15,6 @@ export interface WeeklyRule {
   nextStartsAt?: string | null;
 }
 
-export interface WeeklyTeacher {
-  teacher: UserProfile;
-  slots: WeeklyRule[];
-  averageRating?: number | null;
-  reviewCount: number;
-}
-
 export interface LessonSeries {
   id: string;
   teacherId: string;
@@ -79,23 +72,6 @@ export interface WeeklyAvailability {
 export interface BookWeeklySlotsResult {
   series: LessonSeries[];
   lessons: Lesson[];
-}
-
-export type OpenOfferStatus = "open" | "claimed" | "withdrawn";
-
-/** A one-off time an unassigned student offers to every active teacher. */
-export interface OpenStudentOffer {
-  id: string;
-  studentId: string;
-  studentName: string;
-  startsAt: string;
-  endsAt: string;
-  status: OpenOfferStatus;
-  claimedByTeacherId?: string | null;
-  claimedByTeacherName?: string | null;
-  lessonId?: string | null;
-  createdAt: string;
-  claimedAt?: string | null;
 }
 
 export interface PublicTeacher {

@@ -5,7 +5,6 @@ import { CalendarPlus, RefreshCw, Trash2 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/providers/auth-provider";
 import { useToast } from "@/providers/toast-provider";
-import { OpenOfferInbox } from "@/components/teacher/OpenOfferInbox";
 import {
   deleteWeeklyAvailability,
   getMyAvailabilityRules,
@@ -180,8 +179,8 @@ export default function TeacherAvailabilityPage() {
             </p>
             <h1 className="mt-2 text-3xl font-bold">Weekly availability</h1>
             <p className="mt-2 text-foreground/70">
-              Announce the weekly times you teach. A student&apos;s booking is
-              instant and repeats every week.
+              Announce the weekly times you teach. The academy books its
+              students into them, and each booking repeats every week.
             </p>
           </div>
           <button
@@ -191,8 +190,6 @@ export default function TeacherAvailabilityPage() {
             <RefreshCw size={16} /> Refresh
           </button>
         </div>
-
-        <OpenOfferInbox />
 
         <div className="mt-8 grid gap-6 md:grid-cols-[.9fr_1.1fr]">
           <form
