@@ -132,9 +132,13 @@ const StudentDashboard = () => {
   const onboarding = onboardingQuery.data ?? null;
   const teacher = availabilityQuery.data?.teacher ?? null;
   // Unassigned accounts get the guided setup first; a student who already has a
-  // teacher is never interrupted with the wizard.
+  // teacher is never interrupted with the wizard. Both answers are needed
+  // before deciding: an unassigned student's availability resolves on a backend
+  // fast path while their onboarding is still in flight, and after a logout the
+  // cache is empty so that race is lost every time.
+  const setupIsKnown = availabilityQuery.isSuccess && onboardingQuery.isSuccess;
   const needsOnboarding =
-    Boolean(availabilityQuery.data) && !teacher && !onboarding?.completedAt;
+    setupIsKnown && !teacher && !onboarding?.completedAt;
 
   useEffect(() => {
     if (needsOnboarding) router.replace("/student/onboarding");
