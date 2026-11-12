@@ -244,7 +244,7 @@ export default function QuranForKidsPage() {
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Link
               href="/signup"
-              className="registration-cta inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
             >
               Start with a free trial <ArrowRight size={18} />
             </Link>
@@ -439,12 +439,13 @@ export default function QuranForKidsPage() {
               Where we can register families.
             </h2>
             <p className="mt-4 leading-7 text-[#5d726a] dark:text-foreground/70">
-              Website registration is currently open to families in the United
-              States, United Kingdom, Canada, Australia, New Zealand, and
-              Ireland. Lessons are taught in English.
+              Registration is open from anywhere, and lessons are taught in
+              English. A child who can follow a lesson in English can create an
+              account.
             </p>
             <p className="mt-3 leading-7 text-[#5d726a] dark:text-foreground/70">
-              If you are outside those countries,{" "}
+              The real limit is the clock, not the border: you want hours that
+              overlap your teacher&apos;s week. If you are unsure,{" "}
               <Link
                 href="/contact"
                 className="font-semibold text-[#1d5145] underline decoration-[#b9cfc2] underline-offset-4 dark:text-green-400 dark:decoration-green-400/40"
@@ -456,7 +457,7 @@ export default function QuranForKidsPage() {
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/signup"
-                className="registration-cta inline-flex items-center justify-center gap-2 rounded-xl bg-[#1d4e47] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1d4e47] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
               >
                 Book a free trial <ArrowRight size={16} />
               </Link>
@@ -517,7 +518,7 @@ export default function QuranForKidsPage() {
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Link
               href="/signup"
-              className="registration-cta rounded-xl bg-[#e4c18e] px-6 py-3.5 font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"
+              className="rounded-xl bg-[#e4c18e] px-6 py-3.5 font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"
             >
               Create an account
             </Link>
@@ -530,7 +531,7 @@ export default function QuranForKidsPage() {
           </div>
           <p className="mx-auto mt-6 flex max-w-md items-center justify-center gap-2 text-sm text-white/60">
             <Globe2 size={15} />
-            Website registration is open to families in six countries
+            Lessons taught in English, from wherever your family is
           </p>
         </div>
       </section>

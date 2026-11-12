@@ -191,7 +191,7 @@ export default function CoursesPage() {
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Link
               href="/signup"
-              className="registration-cta inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
             >
               Start with a free trial <ArrowRight size={18} />
             </Link>
@@ -294,7 +294,7 @@ export default function CoursesPage() {
               </div>
               <Link
                 href="/courses/quran-for-kids"
-                className="registration-cta inline-flex items-center justify-center gap-2 rounded-xl bg-[#1d4e47] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1d4e47] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
               >
                 Explore the kids programme <ArrowRight size={16} />
               </Link>
@@ -336,7 +336,7 @@ export default function CoursesPage() {
                   {programme && (
                     <Link
                       href={programme.href}
-                      className="registration-cta mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-[#1d4e47] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
+                      className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-[#1d4e47] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
                     >
                       {programme.label} <ArrowRight size={15} aria-hidden />
                     </Link>
@@ -409,13 +409,13 @@ export default function CoursesPage() {
           </h2>
           <p className="mx-auto mt-4 max-w-xl leading-7 text-white/75">
             Create your account, pick a subject, and begin with a free trial
-            lesson. Registration is currently open to students in the US, UK,
-            Canada, Australia, New Zealand, and Ireland.
+            lesson. Registration is open from anywhere, and lessons are taught
+            in English.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Link
               href="/signup"
-              className="registration-cta rounded-xl bg-[#e4c18e] px-6 py-3.5 font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"
+              className="rounded-xl bg-[#e4c18e] px-6 py-3.5 font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"
             >
               Get started
             </Link>

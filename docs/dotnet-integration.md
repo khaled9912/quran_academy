@@ -58,7 +58,7 @@ That guard only covers writes, so accounts created before it can still hold an a
 
 Treat a name as absent, never as a string to re-check: no client should test for `@`, and `??` (not `||`) is the right operator, since `null` is what arrives.
 
-Registration is open worldwide: no country blocks account creation. Middleware still resolves the visitor's country from the hosting provider's geo header, mirrors it to the `academy-country` cookie that the browser reads before submitting, and overwrites `x-registration-country` on `/api/auth/register` and `/api/auth/otp/verify` so the value the API receives is edge-derived rather than client-supplied — the API records nothing from it today. Web CTAs carry `registration-cta` and are hidden by a pre-paint script. Mobile has no IP geolocation, so it passes the device locale's region and treats it as a UX hint only.
+Registration is open worldwide: no country blocks account creation. Middleware still resolves the visitor's country from the hosting provider's geo header, mirrors it to the `academy-country` cookie that the browser reads before submitting, and overwrites `x-registration-country` on `/api/auth/register` and `/api/auth/otp/verify` so the value the API receives is edge-derived rather than client-supplied — the API records nothing from it today. Mobile has no IP geolocation, so it passes the device locale's region and treats it as a UX hint only.
 
 `GET /plans` reads that same geo header itself. For the countries listed in `PRICING_HIDDEN_COUNTRIES` (`src/lib/plans.ts`, currently `EG`) the page renders with no figures, no prices in metadata, and no `Offer` structured data; everyone else sees the prices. This is a deterrent, not a control — a VPN or a rewritten cookie gets around it.
 

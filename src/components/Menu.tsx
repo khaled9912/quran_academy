@@ -66,7 +66,7 @@ const Menu = () => {
                 href="/signup"
                 onClick={() => setOpen(false)}
                 aria-current={isActiveLink("/signup") ? "page" : undefined}
-                className={`registration-cta ${linkClassName("/signup")}`}
+                className={linkClassName("/signup")}
               >
                 Start a free trial
               </Link>

@@ -372,7 +372,7 @@ const LoginPage = () => {
           </form>
         )}
 
-        <div className="registration-cta mt-8 text-center text-sm text-foreground opacity-75">
+        <div className="mt-8 text-center text-sm text-foreground opacity-75">
           New here?{" "}
           <Link
             href="/signup"

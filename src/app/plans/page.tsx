@@ -230,7 +230,7 @@ export default async function PlansPage() {
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Link
               href="/signup"
-              className="registration-cta inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
             >
               Start with a free lesson <ArrowRight size={18} />
             </Link>
@@ -299,7 +299,7 @@ export default async function PlansPage() {
 
               <Link
                 href="/signup"
-                className="registration-cta mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
+                className="mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
               >
                 Book a free lesson <ArrowRight size={16} />
               </Link>
@@ -378,7 +378,7 @@ export default async function PlansPage() {
           </p>
           <Link
             href="/signup"
-            className="registration-cta mt-7 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white transition hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
+            className="mt-7 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white transition hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
           >
             Book your free lesson <ArrowRight size={18} />
           </Link>

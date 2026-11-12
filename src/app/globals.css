@@ -228,10 +228,6 @@ body {
   border-bottom: 2px solid #10b981;
 }
 
-:root[data-registration="blocked"] .registration-cta {
-  display: none !important;
-}
-
 @keyframes toast-in {
   from {
     opacity: 0;

@@ -274,7 +274,7 @@ export default async function BlogPostPage({ params }: PageProps) {
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 <Link
                   href="/signup"
-                  className="registration-cta rounded-xl bg-[#e4c18e] px-5 py-3 text-center text-sm font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"
+                  className="rounded-xl bg-[#e4c18e] px-5 py-3 text-center text-sm font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"
                 >
                   Start with a free trial
                 </Link>

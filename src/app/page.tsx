@@ -315,7 +315,7 @@ export default function HomePage() {
               </p>
               <SignUpCta
                 label="Create your student account"
-                className="registration-cta mt-7 inline-flex items-center gap-2 font-semibold text-[#1d5144] hover:gap-3 dark:text-green-400"
+                className="mt-7 inline-flex items-center gap-2 font-semibold text-[#1d5144] hover:gap-3 dark:text-green-400"
               />
               <p className="mt-6 text-sm leading-7 text-[#687b70] dark:text-foreground/70">
                 Looking for a specific programme? See{" "}
@@ -421,7 +421,7 @@ export default function HomePage() {
             <SignUpCta
               label="Get started"
               withArrow={false}
-              className="registration-cta rounded-xl bg-[#e4c18e] px-6 py-3.5 font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"
+              className="rounded-xl bg-[#e4c18e] px-6 py-3.5 font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"
             />
             <Link
               href="/contact"

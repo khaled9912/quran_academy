@@ -21,9 +21,9 @@ Contact: ${SITE_URL}/contact
 
 ## Positioning
 
-Ana Quran Academy is an international online academy, not a local academy tied to one country. It serves English-speaking Muslims: children, adults, beginners, and families. Lessons are taught in English.
+Ana Quran Academy is an international online academy, not a local academy tied to one country. It serves English-speaking Muslims worldwide: children, adults, beginners, and families. Lessons are taught in English.
 
-Website registration is currently open to the United States, the United Kingdom, Canada, Australia, New Zealand, and Ireland. Students in other countries are welcome to contact the academy, which will tell them what is possible.
+Registration is open from any country. What qualifies a student is following the lesson in English, not where they live.
 
 We do not claim a local address, branch, or physical campus in any student's country. Students join lessons online from their own homes, subject to teacher availability and time-zone fit.
 
@@ -64,13 +64,13 @@ Teachers apply with their experience and CV, and every application is reviewed b
 - Adults starting from the beginning
 - Students who want Tajweed or memorization support
 - Families looking for consistent one-to-one lessons
-- English-speaking learners in the US, UK, Canada, Australia, New Zealand, and Ireland
+- English-speaking learners wherever they live
 
 ## Frequently asked questions
 
 ### Do I need to live in a particular country?
 
-Website registration is currently open to the United States, the United Kingdom, Canada, Australia, New Zealand, and Ireland, and lessons are taught in English. You need an internet connection and a suitable device. Lesson times depend on teacher availability in your time zone. If you live elsewhere, contact the academy and it will tell you what is possible.
+No. Registration is open from any country, and lessons are taught in English. You need an internet connection and a suitable device. Lesson times depend on teacher availability in your time zone.
 
 ### Are lessons in English?
 

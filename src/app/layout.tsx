@@ -20,8 +20,6 @@ const inter = Inter({ subsets: ["latin"] });
 
 const themeScript = `(function(){try{var t=localStorage.getItem("theme");if(t!=="dark"&&t!=="light"){t=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";}var r=document.documentElement;r.dataset.theme=t;r.style.colorScheme=t;}catch(e){}})();`;
 
-const registrationScript = `(function(){try{var m=document.cookie.match(/(?:^|;\\s*)academy-country=([A-Za-z]{2})/);var a=["US","GB","CA","AU","NZ","IE"];if(m&&a.indexOf(m[1].toUpperCase())===-1){document.documentElement.dataset.registration="blocked";}}catch(e){}})();`;
-
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "EducationalOrganization",
@@ -38,14 +36,7 @@ const organizationSchema = {
   image: absoluteUrl("/opengraph-image"),
   description:
     "An online Quran academy teaching Quran, Tajweed, memorization, Arabic, and Islamic studies to English-speaking students through one-to-one lessons.",
-  areaServed: [
-    { "@type": "Country", name: "United States" },
-    { "@type": "Country", name: "United Kingdom" },
-    { "@type": "Country", name: "Canada" },
-    { "@type": "Country", name: "Australia" },
-    { "@type": "Country", name: "New Zealand" },
-    { "@type": "Country", name: "Ireland" },
-  ],
+  areaServed: [{ "@type": "Place", name: "Worldwide" }],
   availableLanguage: "English",
   contactPoint: {
     "@type": "ContactPoint",
@@ -135,7 +126,6 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-        <script dangerouslySetInnerHTML={{ __html: registrationScript }} />
       </head>
       <body className={inter.className}>
         <JsonLd data={organizationSchema} />

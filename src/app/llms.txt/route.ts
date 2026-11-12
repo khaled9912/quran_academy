@@ -26,7 +26,7 @@ export function GET() {
 
 ## Who we teach
 
-English-speaking children and adults, including beginners and families. Website registration is currently open to the United States, the United Kingdom, Canada, Australia, New Zealand, and Ireland; students elsewhere are welcome to contact the academy, which will tell them what is possible. Lessons are delivered in English.
+English-speaking children and adults, including beginners and families. Registration is open from anywhere in the world, and lessons are delivered in English.
 
 ## How learning works
 
