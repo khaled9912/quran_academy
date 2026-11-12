@@ -15,7 +15,10 @@ import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 import { useToast } from "@/providers/toast-provider";
 import { SelectField } from "@/components/ui/select-field";
 import { WEEKDAY_SHORT, formatWeeklyTimeRange } from "@/lib/utils";
-import { timeZoneLabel } from "@/lib/weekly-time";
+import {
+  timeZoneLabel,
+  toViewerWeeklyTime,
+} from "@/lib/weekly-time";
 import type { PendingStudent, StudentWeeklyPreference } from "@/types/onboarding";
 
 /** Saturday first, the order the academy reads a week in. */
@@ -36,6 +39,65 @@ const preferenceLabel = (slot: StudentWeeklyPreference) =>
     slot.startsAtTime,
     slot.endsAtTime
   )}`;
+
+type Offer = {
+  dayOfWeek: number;
+  startsAtTime: string;
+  endsAtTime: string;
+  sourceDayOfWeek: number;
+  sourceStartsAtTime: string;
+  sourceEndsAtTime: string;
+  sourceTimeZoneId: string;
+  sameZone: boolean;
+};
+
+/**
+ * Reads a student's offered hours on the teacher's clock — the teacher is the
+ * person who has to be awake — and merges consecutive hours into runs, so an
+ * evening of eight cells becomes one line to match against a published rule.
+ */
+const offersInTeacherClock = (
+  slots: StudentWeeklyPreference[],
+  teacherZone: string | undefined
+): Offer[] => {
+  if (!teacherZone) return [];
+
+  const converted: Offer[] = slots
+    .map((slot) => {
+      const local = toViewerWeeklyTime(slot, teacherZone);
+      return {
+        dayOfWeek: local.dayOfWeek,
+        startsAtTime: local.startsAtTime,
+        endsAtTime: local.endsAtTime,
+        sourceDayOfWeek: local.sourceDayOfWeek,
+        sourceStartsAtTime: local.sourceStartsAtTime,
+        sourceEndsAtTime: local.sourceEndsAtTime,
+        sourceTimeZoneId: local.sourceTimeZoneId,
+        sameZone: local.sameZone,
+      };
+    })
+    .sort(
+      (a, b) =>
+        a.dayOfWeek - b.dayOfWeek ||
+        a.startsAtTime.localeCompare(b.startsAtTime)
+    );
+
+  const runs: Offer[] = [];
+  for (const offer of converted) {
+    const last = runs[runs.length - 1];
+    if (
+      last &&
+      last.dayOfWeek === offer.dayOfWeek &&
+      last.endsAtTime === offer.startsAtTime
+    ) {
+      last.endsAtTime = offer.endsAtTime;
+      last.sourceEndsAtTime = offer.sourceEndsAtTime;
+      continue;
+    }
+    runs.push(offer);
+  }
+  return runs;
+};
 
 /**
  * The assignment desk: everything a student told us during signup, next to the
@@ -73,6 +135,10 @@ export function AssignmentStudio() {
       DAY_ORDER.indexOf(a.dayOfWeek) - DAY_ORDER.indexOf(b.dayOfWeek) ||
       a.startsAtTime.localeCompare(b.startsAtTime)
   );
+
+  // Every rule a teacher publishes carries the same zone, so the first one
+  // answers "what clock does this teacher live on?".
+  const teacherZone = rules[0]?.timeZoneId;
 
   const bookMutation = useMutation({
     mutationFn: async (student: PendingStudent) => {
@@ -178,6 +244,8 @@ export function AssignmentStudio() {
                         {levelWord(
                           student.onboarding?.islamicStudiesLevel ?? ""
                         )}
+                        {" · "}Arabic{" "}
+                        {levelWord(student.onboarding?.arabicLevel ?? "")}
                       </span>
                     </p>
                     {slots.length ? (
@@ -233,6 +301,41 @@ export function AssignmentStudio() {
                         }))}
                       />
                       <div>
+                        {teacherZone && slots.length > 0 && (
+                          <div className="mb-4">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-foreground opacity-60">
+                              Their hours on the{" "}
+                              {timeZoneLabel(teacherZone)} clock
+                            </p>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {offersInTeacherClock(slots, teacherZone).map(
+                                (offer) => (
+                                  <span
+                                    key={`${offer.dayOfWeek}-${offer.startsAtTime}`}
+                                    className="rounded-full border border-card-border px-3 py-1 text-xs font-semibold"
+                                  >
+                                    {WEEKDAY_SHORT[offer.dayOfWeek]}{" "}
+                                    {formatWeeklyTimeRange(
+                                      offer.startsAtTime,
+                                      offer.endsAtTime
+                                    )}
+                                    {!offer.sameZone && (
+                                      <span className="ml-2 font-normal opacity-70">
+                                        {WEEKDAY_SHORT[offer.sourceDayOfWeek]}{" "}
+                                        {formatWeeklyTimeRange(
+                                          offer.sourceStartsAtTime,
+                                          offer.sourceEndsAtTime
+                                        )}{" "}
+                                        in{" "}
+                                        {timeZoneLabel(offer.sourceTimeZoneId)}
+                                      </span>
+                                    )}
+                                  </span>
+                                )
+                              )}
+                            </div>
+                          </div>
+                        )}
                         {!teacherId ? (
                           <p className="text-sm text-foreground opacity-70">
                             Choose a teacher to see their open weekly times.
