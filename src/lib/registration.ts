@@ -1,40 +1,15 @@
-export const REGISTRATION_COUNTRIES = [
-  "US",
-  "GB",
-  "CA",
-  "AU",
-  "NZ",
-  "IE",
-] as const;
-
-export const REGISTRATION_COUNTRY_LABEL =
-  "United States, United Kingdom, Canada, Australia, New Zealand, and Ireland";
-
 export const REGISTRATION_COOKIE = "academy-country";
 
+/**
+ * Registration is open worldwide. The visitor's country is still captured and
+ * sent with the signup so admins can see where a student is writing from, but
+ * it no longer decides whether an account can be created.
+ */
 export function normalizeRegistrationCountry(
   value: string | null | undefined
 ): string | null {
   const code = value?.trim().toUpperCase() ?? "";
   return /^[A-Z]{2}$/.test(code) && code !== "XX" ? code : null;
-}
-
-export function isRegistrationCountry(
-  value: string | null | undefined
-): value is (typeof REGISTRATION_COUNTRIES)[number] {
-  const code = normalizeRegistrationCountry(value);
-  return (
-    code !== null &&
-    (REGISTRATION_COUNTRIES as readonly string[]).includes(code)
-  );
-}
-
-/** Unknown country fails open so local and self-hosted previews stay usable. */
-export function isRegistrationAllowed(
-  value: string | null | undefined
-): boolean {
-  const code = normalizeRegistrationCountry(value);
-  return code === null || isRegistrationCountry(code);
 }
 
 /** Reads the country supplied by Vercel, Netlify, or Cloudflare. */

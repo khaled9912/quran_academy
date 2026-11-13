@@ -26,7 +26,7 @@ export function GET() {
 
 ## Who we teach
 
-English-speaking children and adults, including beginners and families. Website registration is currently open to the United States, the United Kingdom, Canada, Australia, New Zealand, and Ireland; students elsewhere are welcome to contact the academy, which will tell them what is possible. Lessons are delivered in English.
+English-speaking children and adults, including beginners and families. Registration is open from anywhere in the world, and lessons are delivered in English.
 
 ## How learning works
 
@@ -40,7 +40,7 @@ English-speaking children and adults, including beginners and families. Website 
 
 - The first lesson is a free trial for new students
 - After the trial, lessons are billed monthly in US dollars (USD) by bank transfer
-- The monthly amount depends on the teacher's rate and the lesson length
+- Published weekly plans cover 30-minute one-to-one classes from two to five days a week: [Plans](${SITE_URL}/plans)
 
 ## Courses
 

@@ -11,6 +11,17 @@ export const saveMyOnboarding = (draft: OnboardingDraft) =>
     body: JSON.stringify(draft),
   });
 
+/**
+ * The plan a student wants, recorded from /plans. Nothing is billed from it —
+ * the fee still comes from the lessons that took place — but the assignment
+ * desk reads it next to their weekly hours.
+ */
+export const choosePlanForStudent = (daysPerWeek: number) =>
+  backendFetch<StudentOnboarding>("/api/student/plan", {
+    method: "PATCH",
+    body: JSON.stringify({ daysPerWeek }),
+  });
+
 /** Everyone waiting on a teacher, with the answers their assignment is made from. */
 export const getPendingStudents = () =>
   backendFetch<PendingStudent[]>("/api/admin/students/pending");

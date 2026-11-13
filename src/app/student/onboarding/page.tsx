@@ -9,6 +9,7 @@ import {
   ArrowRight,
   BookOpen,
   Check,
+  Languages,
   Moon,
   ScrollText,
 } from "lucide-react";
@@ -18,16 +19,25 @@ import {
   slotKey,
   slotsFromKeys,
 } from "@/components/student/AvailabilityGrid";
-import { getMyOnboarding, saveMyOnboarding } from "@/services/onboarding.service";
+import {
+  getMyOnboarding,
+  saveMyOnboarding,
+} from "@/services/onboarding.service";
 import { getAssignedWeeklyAvailability } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
+import { clearPlanChoice, readPlanChoice } from "@/lib/plan-choice";
 import { reportUnexpectedError } from "@/lib/sentry";
 import { getViewerTimeZone, timeZoneLabel } from "@/lib/weekly-time";
+import { plans } from "@/lib/plans";
 import type { StudentLevel } from "@/types/onboarding";
 
 const LEVELS: { value: StudentLevel; label: string; hint: string }[] = [
   { value: "beginner", label: "Beginner", hint: "Just starting out" },
-  { value: "intermediate", label: "Intermediate", hint: "Comfortable, still learning" },
+  {
+    value: "intermediate",
+    label: "Intermediate",
+    hint: "Comfortable, still learning",
+  },
   { value: "advanced", label: "Advanced", hint: "Confident and steady" },
 ];
 
@@ -50,11 +60,32 @@ const SUBJECTS = [
     hint: "Basics of faith, worship and manners.",
     icon: Moon,
   },
+  {
+    key: "arabicLevel",
+    title: "Arabic",
+    hint: "The Arabic language: vocabulary and grammar.",
+    icon: Languages,
+  },
 ] as const;
 
 type LevelKey = (typeof SUBJECTS)[number]["key"];
 
-const STEP_LABELS = ["Your level", "Your times"];
+const STEP_LABELS = ["Your level", "Your plan", "Your times"];
+
+/**
+ * The tier decides how many days the week has to hold, so it is asked before
+ * the grid. These are the tiers /plans sells and the API accepts. Prices stay
+ * on /plans: they are hidden from some countries, and the academy never quotes
+ * a figure inside setup.
+ */
+const PLAN_OPTIONS = plans.map((plan) => ({
+  daysPerWeek: plan.daysPerWeek,
+  hint: `${plan.classesPerMonth} classes a month`,
+}));
+
+/** How many different weekdays a set of offered hours covers. */
+const distinctDays = (keys: Iterable<string>) =>
+  new Set(Array.from(keys, (key) => key.split("|")[0])).size;
 
 export default function StudentOnboardingPage() {
   const router = useRouter();
@@ -69,8 +100,10 @@ export default function StudentOnboardingPage() {
     quranLevel: "",
     tajweedLevel: "",
     islamicStudiesLevel: "",
+    arabicLevel: "",
   });
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [planDays, setPlanDays] = useState(0);
   const [saving, setSaving] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
   const swapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -89,18 +122,32 @@ export default function StudentOnboardingPage() {
   // Resume wherever the student stopped rather than replaying step one.
   const hydrated = useRef(false);
   useEffect(() => {
-    const saved = onboardingQuery.data;
-    if (!saved || hydrated.current) return;
+    if (onboardingQuery.isLoading || hydrated.current) return;
     hydrated.current = true;
+    const saved = onboardingQuery.data;
+    // A tier tapped on /plans is the student's first answer, so setup opens
+    // with it already chosen — before an account exists it is kept on the
+    // device, and afterwards it comes back from the academy's own record.
+    const tappedOnPlans = readPlanChoice();
+    if (!saved) {
+      setPlanDays(tappedOnPlans);
+      return;
+    }
     setLevels({
       quranLevel: saved.quranLevel as StudentLevel,
       tajweedLevel: saved.tajweedLevel as StudentLevel,
       islamicStudiesLevel: saved.islamicStudiesLevel as StudentLevel,
+      arabicLevel: saved.arabicLevel as StudentLevel,
     });
     setSelected(keysFromPreferences(saved.weeklySlots));
-    if (!saved.completedAt && saved.weeklySlots.length === 0) setStep(0);
-    else if (!saved.completedAt) setStep(1);
-  }, [onboardingQuery.data]);
+    setPlanDays(saved.planDaysPerWeek || tappedOnPlans);
+    if (saved.completedAt) return;
+    // Resume at the first question still unanswered, so a student who only ever
+    // said how often they want to learn is not sent back through the levels.
+    if (SUBJECTS.some((subject) => !saved[subject.key])) setStep(0);
+    else if (!saved.planDaysPerWeek) setStep(1);
+    else setStep(2);
+  }, [onboardingQuery.data, onboardingQuery.isLoading]);
 
   useEffect(
     () => () => {
@@ -125,7 +172,16 @@ export default function StudentOnboardingPage() {
   );
 
   const levelsComplete = SUBJECTS.every((subject) => levels[subject.key]);
-  const canFinish = levelsComplete && selected.size > 0;
+  const offeredDays = useMemo(() => distinctDays(selected), [selected]);
+  // The week has to be able to hold the plan they asked for.
+  const timesFitPlan = planDays > 0 && offeredDays >= planDays;
+  const canFinish = levelsComplete && timesFitPlan;
+
+  // The dashboard sends a student who has not finished setup straight back here,
+  // so the link would only bounce them. It appears once leaving actually lands.
+  const canLeaveSetup =
+    Boolean(assignedQuery.data?.teacher) ||
+    Boolean(onboardingQuery.data?.completedAt);
 
   const toggleSlot = useCallback((key: string, next: boolean) => {
     setSelected((current) => {
@@ -141,22 +197,38 @@ export default function StudentOnboardingPage() {
       quranLevel: levels.quranLevel,
       tajweedLevel: levels.tajweedLevel,
       islamicStudiesLevel: levels.islamicStudiesLevel,
+      arabicLevel: levels.arabicLevel,
       timeZoneId: viewerTimeZone,
+      daysPerWeek: planDays || null,
       weeklySlots: slotsFromKeys(selected),
       completed,
     }),
-    [levels, selected, viewerTimeZone]
+    [levels, planDays, selected, viewerTimeZone]
   );
 
-  const handleContinue = async () => {
-    if (!levelsComplete) return;
+  const handleContinue = async (next: number) => {
+    // A jump across the header checks every question it steps over, not just
+    // the one on screen.
+    if (next > 0 && !levelsComplete) return;
+    if (next > 1 && planDays === 0) return;
     // A partial save keeps the answers on record if the student closes the tab.
     try {
       await saveMyOnboarding(draft(false));
+      clearPlanChoice();
     } catch (error) {
       reportUnexpectedError(error);
     }
-    goTo(1, 1);
+    goTo(next, 1);
+  };
+
+  /** Back is always free; forward goes through the same save as Continue. */
+  const stepTo = (next: number) => {
+    if (next === step) return;
+    if (next > step) {
+      void handleContinue(next);
+      return;
+    }
+    goTo(next, -1);
   };
 
   const handleSubmit = async () => {
@@ -164,9 +236,11 @@ export default function StudentOnboardingPage() {
     setSaving(true);
     try {
       await saveMyOnboarding(draft(true));
+      clearPlanChoice();
       queryClient.setQueryData(["onboarding", "student"], {
         ...(onboardingQuery.data ?? {}),
         ...draft(true),
+        planDaysPerWeek: planDays,
         weeklySlots: slotsFromKeys(selected).map((slot, index) => ({
           id: String(index),
           ...slot,
@@ -185,10 +259,7 @@ export default function StudentOnboardingPage() {
 
   useEffect(() => {
     if (!celebrating) return;
-    const timer = setTimeout(
-      () => router.replace("/student/dashboard"),
-      1700
-    );
+    const timer = setTimeout(() => router.replace("/student/dashboard"), 1700);
     return () => clearTimeout(timer);
   }, [celebrating, router]);
 
@@ -250,52 +321,71 @@ export default function StudentOnboardingPage() {
   return (
     <div className="min-h-screen bg-background px-4 pt-24 pb-16 text-foreground">
       <div className="mx-auto w-full max-w-3xl">
-        <div className="mb-6 flex items-center justify-between gap-4">
-          <Link
-            href="/student/dashboard"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-green-600 dark:text-green-400 hover:underline"
-          >
-            <ArrowLeft size={15} /> Back to my dashboard
-          </Link>
-          <span className="text-sm text-foreground opacity-60">
-            Step {step + 1} of 2
+        <div className="mb-6 flex items-center gap-4">
+          {canLeaveSetup && (
+            <Link
+              href="/student/dashboard"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-green-600 dark:text-green-400 hover:underline"
+            >
+              <ArrowLeft size={15} /> Back to my dashboard
+            </Link>
+          )}
+          <span className="ml-auto text-sm text-foreground opacity-60">
+            Step {step + 1} of {STEP_LABELS.length}
           </span>
         </div>
 
         <div className="mb-8">
           <div className="flex items-center gap-3">
-            {STEP_LABELS.map((label, index) => (
-              <div key={label} className="flex flex-1 items-center gap-3">
-                <span
-                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all duration-300 ${
-                    index < step
-                      ? "bg-green-500 text-white"
-                      : index === step
-                        ? "bg-green-500/15 text-green-700 ring-2 ring-green-500 dark:text-green-400"
-                        : "bg-foreground/10 text-foreground opacity-50"
-                  }`}
-                >
-                  {index < step ? <Check size={14} /> : index + 1}
-                </span>
-                <span
-                  className={`text-sm font-semibold transition-colors duration-300 ${
-                    index === step
-                      ? "text-foreground"
-                      : "text-foreground opacity-50"
-                  }`}
-                >
-                  {label}
-                </span>
-                {index === 0 && (
-                  <span className="relative h-1 flex-1 overflow-hidden rounded-full bg-foreground/10">
+            {STEP_LABELS.map((label, index) => {
+              // Any step already answered is one tap away; a later question
+              // stays out of reach until the one before it has an answer.
+              const reachable =
+                index <= step ||
+                (levelsComplete && (index === 1 || planDays > 0));
+              return (
+                <div key={label} className="flex flex-1 items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => stepTo(index)}
+                    disabled={!reachable}
+                    aria-current={index === step ? "step" : undefined}
+                    className={`flex items-center gap-3 ${
+                      reachable ? "hover:opacity-80" : "cursor-not-allowed"
+                    }`}
+                  >
                     <span
-                      className="absolute inset-y-0 left-0 rounded-full bg-green-500 transition-all duration-500 ease-out"
-                      style={{ width: step > 0 ? "100%" : "0%" }}
-                    />
-                  </span>
-                )}
-              </div>
-            ))}
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all duration-300 ${
+                        index < step
+                          ? "bg-green-500 text-white"
+                          : index === step
+                            ? "bg-green-500/15 text-green-700 ring-2 ring-green-500 dark:text-green-400"
+                            : "bg-foreground/10 text-foreground opacity-50"
+                      }`}
+                    >
+                      {index < step ? <Check size={14} /> : index + 1}
+                    </span>
+                    <span
+                      className={`text-sm font-semibold transition-colors duration-300 ${
+                        index === step
+                          ? "text-foreground"
+                          : "text-foreground opacity-50"
+                      }`}
+                    >
+                      {label}
+                    </span>
+                  </button>
+                  {index < STEP_LABELS.length - 1 && (
+                    <span className="relative h-1 flex-1 overflow-hidden rounded-full bg-foreground/10">
+                      <span
+                        className="absolute inset-y-0 left-0 rounded-full bg-green-500 transition-all duration-500 ease-out"
+                        style={{ width: step > index ? "100%" : "0%" }}
+                      />
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -317,7 +407,9 @@ export default function StudentOnboardingPage() {
             </div>
           ) : step === 0 ? (
             <>
-              <h1 className="text-3xl font-bold">Where are you starting from?</h1>
+              <h1 className="text-3xl font-bold">
+                Where are you starting from?
+              </h1>
               <p className="mt-2 text-lg text-foreground opacity-75">
                 Pick the level that fits you today in each subject. Your teacher
                 uses this to plan your lessons — nothing here is a test.
@@ -338,7 +430,9 @@ export default function StudentOnboardingPage() {
                           <Icon size={20} />
                         </span>
                         <div className="min-w-0 flex-1">
-                          <h2 className="text-lg font-semibold">{subject.title}</h2>
+                          <h2 className="text-lg font-semibold">
+                            {subject.title}
+                          </h2>
                           <p className="mt-0.5 text-sm text-foreground opacity-70">
                             {subject.hint}
                           </p>
@@ -396,13 +490,97 @@ export default function StudentOnboardingPage() {
 
               <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
                 <p className="text-sm text-foreground opacity-70">
-                  {SUBJECTS.filter((subject) => levels[subject.key]).length} of 3
-                  chosen
+                  {SUBJECTS.filter((subject) => levels[subject.key]).length} of{" "}
+                  {SUBJECTS.length} chosen
                 </p>
                 <button
                   type="button"
-                  onClick={() => void handleContinue()}
+                  onClick={() => void handleContinue(1)}
                   disabled={!levelsComplete}
+                  className="group inline-flex items-center gap-2 rounded-xl bg-green-500 px-6 py-3 font-semibold text-white transition-all duration-200 hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Continue
+                  <ArrowRight
+                    size={17}
+                    className="transition-transform duration-200 group-hover:translate-x-0.5"
+                  />
+                </button>
+              </div>
+            </>
+          ) : step === 1 ? (
+            <>
+              <h1 className="text-3xl font-bold">
+                How often do you want to learn?
+              </h1>
+              <p className="mt-2 text-lg text-foreground opacity-75">
+                Pick the days each week you would like a lesson. It sets how
+                many times the academy looks for — nothing is charged until a
+                lesson actually takes place.
+              </p>
+
+              <div
+                className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2"
+                role="group"
+                aria-label="Lessons per week"
+              >
+                {PLAN_OPTIONS.map((option, index) => {
+                  const chosen = planDays === option.daysPerWeek;
+                  return (
+                    <button
+                      key={option.daysPerWeek}
+                      type="button"
+                      aria-pressed={chosen}
+                      onClick={() => setPlanDays(option.daysPerWeek)}
+                      className={`rise-in rounded-2xl border px-5 py-4 text-left transition-all duration-200 ${
+                        chosen
+                          ? "border-green-500 bg-green-500 text-white shadow-sm"
+                          : "border-card-border bg-background hover:border-green-500 hover:bg-green-500/10"
+                      }`}
+                      style={{ animationDelay: `${120 + index * 90}ms` }}
+                    >
+                      <span
+                        className={`block text-lg font-semibold ${chosen ? "" : "text-foreground"}`}
+                      >
+                        {option.daysPerWeek} days a week
+                      </span>
+                      <span
+                        className={`mt-0.5 block text-sm ${chosen ? "text-white/85" : "text-foreground opacity-60"}`}
+                      >
+                        {option.hint}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <p className="mt-6 text-sm text-foreground opacity-70">
+                {planDays
+                  ? `Your week will need ${planDays} different ${
+                      planDays === 1 ? "day" : "days"
+                    }.`
+                  : "Choose how many days a week."}{" "}
+                Prices and what is included are on the{" "}
+                <Link
+                  href="/plans"
+                  className="text-green-600 underline-offset-2 hover:underline dark:text-green-400"
+                >
+                  plans page
+                </Link>
+                . You can change this whenever the family needs it.
+              </p>
+
+              <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
+                <button
+                  type="button"
+                  onClick={() => goTo(0, -1)}
+                  className="inline-flex items-center gap-2 rounded-xl border border-card-border px-5 py-3 font-semibold transition hover:border-green-500"
+                >
+                  <ArrowLeft size={16} /> Back
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleContinue(2)}
+                  disabled={planDays === 0}
                   className="group inline-flex items-center gap-2 rounded-xl bg-green-500 px-6 py-3 font-semibold text-white transition-all duration-200 hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Continue
@@ -415,10 +593,18 @@ export default function StudentOnboardingPage() {
             </>
           ) : (
             <>
-              <h1 className="text-3xl font-bold">When could you take a lesson?</h1>
+              <h1 className="text-3xl font-bold">
+                When could you take a lesson?
+              </h1>
               <p className="mt-2 text-lg text-foreground opacity-75">
-                Tap every two-hour window that usually works for you. Drag across
-                the grid to select a run of times.
+                Tap every hour that usually works for you. A {planDays}-day week
+                needs at least {planDays} different days, so offer more if you
+                can — the academy matches them against your teacher&rsquo;s
+                clock.
+                <span className="hidden sm:inline">
+                  {" "}
+                  Drag across the grid to select a run of times.
+                </span>
               </p>
 
               <div className="mt-6 flex flex-wrap items-center gap-3 text-sm">
@@ -432,7 +618,17 @@ export default function StudentOnboardingPage() {
                       : "bg-foreground/10 text-foreground opacity-60"
                   }`}
                 >
-                  {selected.size} {selected.size === 1 ? "time" : "times"} selected
+                  {selected.size} {selected.size === 1 ? "time" : "times"}{" "}
+                  selected
+                </span>
+                <span
+                  className={`rounded-full border px-3 py-1.5 font-semibold transition-colors ${
+                    timesFitPlan
+                      ? "border-green-500 text-green-700 dark:text-green-400"
+                      : "border-card-border text-foreground opacity-60"
+                  }`}
+                >
+                  {offeredDays} of {planDays} days free
                 </span>
                 {selected.size > 0 && (
                   <button
@@ -459,10 +655,24 @@ export default function StudentOnboardingPage() {
                 nothing else after this.
               </p>
 
+              {offeredDays < planDays && (
+                <p
+                  role="status"
+                  className="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200"
+                >
+                  Your plan is {planDays} {planDays === 1 ? "day" : "days"} a
+                  week and you have offered {offeredDays}{" "}
+                  {offeredDays === 1 ? "day" : "days"}. Add{" "}
+                  {planDays - offeredDays} more{" "}
+                  {planDays - offeredDays === 1 ? "day" : "days"}, or go back
+                  and pick a smaller plan.
+                </p>
+              )}
+
               <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
                 <button
                   type="button"
-                  onClick={() => goTo(0, -1)}
+                  onClick={() => goTo(1, -1)}
                   className="inline-flex items-center gap-2 rounded-xl border border-card-border px-5 py-3 font-semibold transition hover:border-green-500"
                 >
                   <ArrowLeft size={16} /> Back

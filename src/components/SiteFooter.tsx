@@ -5,6 +5,7 @@ import { sortedBlogPosts } from "@/lib/blog";
 const COURSE_LINKS = [
   { href: "/courses", label: "All courses" },
   { href: "/courses/quran-for-kids", label: "Quran for kids" },
+  { href: "/plans", label: "Plans and pricing" },
 ];
 
 const ACADEMY_LINKS = [
@@ -114,10 +115,7 @@ export function SiteFooter() {
 
         <div className="mt-12 flex flex-col gap-3 border-t border-[#e7eee3] pt-6 text-xs text-[#7a8a80] dark:border-card-border dark:text-foreground/50 md:flex-row md:items-center md:justify-between">
           <p>&copy; {new Date().getFullYear()} Ana Quran Academy.</p>
-          <p>
-            English-speaking students in the US, UK, Canada, Australia, and
-            beyond.
-          </p>
+          <p>English-speaking students worldwide, wherever they live.</p>
         </div>
       </div>
     </footer>

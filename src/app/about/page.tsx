@@ -14,6 +14,7 @@ import {
 
 import { JsonLd } from "@/components/JsonLd";
 import { SiteFooter } from "@/components/SiteFooter";
+import { SignUpCta } from "@/components/SignUpCta";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -90,7 +91,7 @@ const faqs = [
   {
     question: "Do I need to live in a particular country?",
     answer:
-      "Website registration is currently open to students in the United States, United Kingdom, Canada, Australia, New Zealand, and Ireland. You need an internet connection and a suitable device, and lesson times depend on teacher availability in your time zone. If you live elsewhere, contact us and we will tell you what is possible.",
+      "No. Registration is open from anywhere, and what qualifies a student is following the lesson in English. You need an internet connection and a suitable device, and lesson times depend on teacher availability in your time zone.",
   },
   {
     question: "Are lessons taught in English?",
@@ -153,12 +154,10 @@ export default function AboutPage() {
             in English, from their own homes.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/signup"
-              className="registration-cta inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
-            >
-              Start with a free trial <ArrowRight size={18} />
-            </Link>
+            <SignUpCta
+              label="Start with a free trial"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
+            />
             <Link
               href="/contact"
               className="inline-flex items-center justify-center rounded-2xl border border-[#cedacd] bg-white/70 px-6 py-3.5 text-base font-semibold text-[#244c40] transition hover:bg-white dark:border-[#3a5a7a] dark:bg-white/10 dark:text-foreground dark:hover:bg-white/15"
@@ -176,15 +175,15 @@ export default function AboutPage() {
               Where we teach
             </p>
             <h2 className="mt-4 text-3xl font-bold tracking-tight text-[#173b35] dark:text-foreground sm:text-4xl">
-              One academy, English-speaking students in six countries.
+              One academy, English-speaking students wherever they live.
             </h2>
           </div>
           <div className="space-y-5 leading-8 text-[#5d726a] dark:text-foreground/70">
             <p>
               We are an online-first academy, not a local school tied to one
-              city. Website registration is currently open to the United States,
-              the United Kingdom, Canada, Australia, New Zealand, and Ireland.
-              If you live elsewhere, contact us and we will tell you what is
+              city. Students join from wherever they live, and what qualifies a
+              student is following the lesson in English. If you are unsure
+              whether we can help, contact us and we will tell you what is
               possible.
             </p>
             <p>
@@ -392,12 +391,11 @@ export default function AboutPage() {
             lesson.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <Link
-              href="/signup"
-              className="registration-cta rounded-xl bg-[#e4c18e] px-6 py-3.5 font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"
-            >
-              Get started
-            </Link>
+            <SignUpCta
+              label="Get started"
+              withArrow={false}
+              className="rounded-xl bg-[#e4c18e] px-6 py-3.5 font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"
+            />
             <Link
               href="/contact"
               className="rounded-xl border border-white/30 px-6 py-3.5 font-semibold text-white transition hover:bg-white/10"

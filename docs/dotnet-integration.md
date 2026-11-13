@@ -58,7 +58,9 @@ That guard only covers writes, so accounts created before it can still hold an a
 
 Treat a name as absent, never as a string to re-check: no client should test for `@`, and `??` (not `||`) is the right operator, since `null` is what arrives.
 
-The API prefers the `x-registration-country` header over the request body. Middleware sets that header from the hosting provider's geo data and mirrors the value to the `academy-country` cookie, which the browser reads before submitting. Web CTAs carry `registration-cta` and are hidden by a pre-paint script, and `/signup` redirects to `/registration-unavailable` outside the allowlist. Mobile has no IP geolocation, so it passes the device locale's region and treats it as a UX hint only.
+Registration is open worldwide: no country blocks account creation. Middleware still resolves the visitor's country from the hosting provider's geo header, mirrors it to the `academy-country` cookie that the browser reads before submitting, and overwrites `x-registration-country` on `/api/auth/register` and `/api/auth/otp/verify` so the value the API receives is edge-derived rather than client-supplied — the API records nothing from it today. Mobile has no IP geolocation, so it passes the device locale's region and treats it as a UX hint only.
+
+`GET /plans` reads that same geo header itself. For the countries listed in `PRICING_HIDDEN_COUNTRIES` (`src/lib/plans.ts`, currently `EG`) the page renders with no figures, no prices in metadata, and no `Offer` structured data; everyone else sees the prices. This is a deterrent, not a control — a VPN or a rewritten cookie gets around it.
 
 Password reset is anonymous and email-based. `POST /api/auth/password/request` takes `{ "email" }` and always answers `202` with a generic message (no account enumeration); the code expires after 15 minutes and resend is throttled to one per minute. In Development it returns `devCode` (`8888` by default). `POST /api/auth/password/reset` takes `{ "email", "code", "newPassword" }`, returns `204`, and invalidates existing sessions; an invalid or expired code returns `401`. Both return `503` when SMTP is not configured, so production needs `Email__Enabled=true`, `Email__SmtpHost`, `Email__SmtpPort`, `Email__Username`, `Email__Password`, and `Email__From`.
 
@@ -201,6 +203,15 @@ Each directory item is `{ "teacher": { ...UserDto }, "slots": [ ...WeeklyRuleDto
 | GET    | `/api/teacher-student-assignments`      | List assignments                                      |
 | POST   | `/api/teacher-student-assignments`      | Assign `{ "teacherId": "uuid", "studentId": "uuid" }` |
 | DELETE | `/api/teacher-student-assignments/{id}` | Deactivate assignment                                 |
+| GET    | `/api/admin/students/pending`           | Every active student with their onboarding answers    |
+| GET    | `/api/student/onboarding`               | The student's setup answers; an empty body when they have none |
+| PUT    | `/api/student/onboarding`               | Save the wizard: the four levels, `daysPerWeek`, `weeklySlots`, `completed` |
+| PATCH  | `/api/student/plan`                     | Record `{ "daysPerWeek": 2 }` — one of `2`, `3`, `4`, `5` |
+| POST   | `/api/admin/students/{id}/weekly-lessons` | Book `{ "ruleIds": ["uuid"] }` and assign that teacher |
+
+`GET /api/admin/students/pending` is the assignment desk's whole input. It returns one row per active student — including students who already have a teacher, so the desk can sort them — shaped `{ studentId, studentName, email, registeredAt, onboarding, hasTeacher, teacherName, weeklyLessons }`. `onboarding` is the same `StudentOnboardingDto` the student reads back from `GET /api/student/onboarding`, or `null` when they never opened setup; its `weeklySlots` are the student's own preferences in the student's zone, never bookings. `weeklyLessons` lists the student's active weekly series (`{ id, dayOfWeek, startsAtTime, endsAtTime, timeZoneId }`) on their teacher's clock — the desk re-reads each one on the student's clock to mark which offered windows already have a lesson. Rows come back longest-waiting first.
+
+`StudentOnboardingDto` also carries `planDaysPerWeek`: the tier the student asked for, or `0` when they never chose. The wizard asks for it as its own step and sends it with the rest of the application — `PUT /api/student/onboarding` takes `daysPerWeek` (`2 | 3 | 4 | 5`, or `null` mid-wizard) — while `PATCH /api/student/plan` (`StudentOnly`) with `{ "daysPerWeek": 2 | 3 | 4 | 5 }` changes it later from `/plans`. Both reject anything else with `400 { "errors": { "daysPerWeek": [...] } }`, and both refuse a tier the offered week cannot hold: a finished application must cover at least `planDaysPerWeek` different weekdays, and a `PATCH` from a student who has already offered times must not outgrow them (`"A 4-day plan needs at least 4 different days."`). Mid-wizard partial saves are exempt, so the desk can see an application still being filled in. It is a wish, not a subscription — no payment, invoice, or price reads it — and a save never clears it, so a student can choose a tier before or after finishing their answers. The desk shows it as a `Plan: N days a week` chip, with `M booked · K to place` once the student has lessons, and a line under the confirm button saying whether the rules just chosen fill that plan.
 
 A student has at most one active teacher at a time; the API enforces this and reassignment replaces the previous active assignment.
 
@@ -221,6 +232,7 @@ A student has at most one active teacher at a time; the API enforces this and re
 
 | Method | Endpoint                                                              | Purpose                                                  |
 | ------ | --------------------------------------------------------------------- | -------------------------------------------------------- |
+| GET    | `/api/admin/teachers/availability-rules`                              | Every active teacher's weekly rules in one list          |
 | GET    | `/api/admin/teachers/{teacherId}/availability-rules`                  | List that teacher's weekly rules                         |
 | POST   | `/api/admin/teachers/{teacherId}/availability-rules`                  | Publish weekly rules on the teacher's behalf             |
 | POST   | `/api/admin/teachers/{teacherId}/availability-rules/{ruleId}/release` | End every active series booked on this rule              |
@@ -293,6 +305,8 @@ Approving an application creates an active `teacher` account (with a random inte
 It creates one rule per weekday and returns `201` with the created `WeeklyRuleDto` list. It returns `400 { "message": "..." }` when no weekday is given, the end time is not after the start time, the window is not 30, 45, or 60 minutes, the time zone is unknown, or the hours overlap an existing rule. Deleting an unbooked rule returns `204`; a rule referenced by a series or a pending change request returns `409`.
 
 `GET /api/teacher/availability-rules` returns the same `WeeklyRuleDto` list, with `status` reflecting whether a student has booked each rule.
+
+`GET /api/admin/teachers/availability-rules` is the bulk form for the assignment desk: one flat `WeeklyRuleDto[]` covering every **active** teacher, each row carrying its `teacherId`, with `status` limited to `available` or `booked` (no student is in scope, so `yours` never appears). Teachers who publish nothing simply have no rows. The desk groups the list by `teacherId`, takes the first rule's `timeZoneId` as that teacher's clock, and counts how many of the waiting student's offered windows overlap at least one `available` rule — the overlap is tested in the teacher's zone, never the admin's.
 
 ### Open student offers (first teacher books)
 
@@ -535,7 +549,9 @@ The student credit ledger (`LessonCreditTransactions`) is append-only and idempo
 
 Every lesson-related notice — no-show incidents, excuse requests, late-cancellation reviews, reminders, and report-due notices — carries `link = /lesson/{id}` and a body naming both participants, the lesson date and time, and what happened. `/lesson/{id}` exists on both clients and is admin-readable, so an admin tapping a notice lands directly on that lesson's room and operations panel. Push payloads repeat the same value in `data.link`, which the mobile app routes on tap; local reminders still route through `data.lessonId`.
 
-A notification row is stored once and read by both clients, so `link` always uses the mobile app's flat routes (`/schedule`, `/book`, `/people`, `/payments`, `/earnings`, `/lesson/{id}`, `/admin/lesson-ops`) — never a role-prefixed web path. The web app nests the same screens per role and translates the flat paths in `resolveNotificationHref` (`src/services/notification.service.ts`); add an entry there whenever a notice starts pointing at a new screen. Teachers have no lesson-request screen on either client, so request notices send them to `/schedule`.
+A completed student setup is the one non-lesson event that rings staff. `PUT /api/student/onboarding` with `completed: true` writes `Student waiting for a teacher` (`kind = request`, `link = /people/assign`) to every admin while that student has no active assignment. Every later save by the same unassigned student writes `Student updated their application`, so the desk is told about the new answers instead of working from the first submission. The dedupe key is per save (`student-waiting:{studentId}:{savedAt}:admin:{adminId}`), never per student. The body carries the application itself: the four levels and the earliest weekly window they offered, named in the student's own zone, so an admin reading the bell already knows who this is and what they can take. On web the link resolves to `/admin/assignments`; on mobile it opens the assign screen.
+
+A notification row is stored once and read by both clients, so `link` always uses the mobile app's flat routes (`/schedule`, `/book`, `/people`, `/people/assign`, `/payments`, `/earnings`, `/lesson/{id}`, `/admin/lesson-ops`) — never a role-prefixed web path. The web app nests the same screens per role and translates the flat paths in `resolveNotificationHref` (`src/services/notification.service.ts`); add an entry there whenever a notice starts pointing at a new screen. Teachers have no lesson-request screen on either client, so request notices send them to `/schedule`.
 
 ### Schema and client routes
 

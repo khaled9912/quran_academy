@@ -10,6 +10,9 @@ type Props = {
   label: string;
   className: string;
   withArrow?: boolean;
+  arrowSize?: number;
+  /** Runs before the visitor leaves, so a marketing page can keep what they picked. */
+  onClick?: () => void;
 };
 
 /**
@@ -17,19 +20,23 @@ type Props = {
  * pages using it are prerendered for search engines, so they cannot read the
  * session server-side: everyone starts on the public invitation and swaps to
  * their own dashboard once the cached identity arrives. Sending a signed-in
- * visitor to /signup instead lands a visitor outside the registering countries
- * on /registration-unavailable, which is a dead end for someone who already has
- * an account.
+ * visitor to /signup is a dead end for someone who already has an account.
  */
-export function SignUpCta({ label, className, withArrow = true }: Props) {
+export function SignUpCta({
+  label,
+  className,
+  withArrow = true,
+  arrowSize = 18,
+  onClick,
+}: Props) {
   const { isAuthenticated, role } = useAuth();
   const href = isAuthenticated && role ? ROLE_DASHBOARDS[role] : "/signup";
   const signedIn = href !== "/signup";
 
   return (
-    <Link href={href} className={className}>
+    <Link href={href} className={className} onClick={onClick}>
       {signedIn ? "Go to my dashboard" : label}
-      {withArrow ? <ArrowRight size={18} /> : null}
+      {withArrow ? <ArrowRight size={arrowSize} /> : null}
     </Link>
   );
 }

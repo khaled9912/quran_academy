@@ -31,6 +31,9 @@ const signupSchema = z.object({
 
 type Mode = "email" | "phone";
 
+const englishRequiredMessage =
+  "Please confirm the student can follow a lesson taught in English.";
+
 const SignUpPage = () => {
   const { applySession } = useAuth();
   const { showToast } = useToast();
@@ -49,6 +52,9 @@ const SignUpPage = () => {
   const [codeSent, setCodeSent] = useState(false);
   const [devCode, setDevCode] = useState<string | null>(null);
   const [phoneLoading, setPhoneLoading] = useState(false);
+
+  const [englishConfirmed, setEnglishConfirmed] = useState(false);
+  const [englishError, setEnglishError] = useState("");
 
   const switchMode = (next: Mode) => {
     setMode(next);
@@ -69,6 +75,11 @@ const SignUpPage = () => {
         parsed.error.issues[0]?.message ?? "Please fix the form.",
         "error"
       );
+      return;
+    }
+
+    if (!englishConfirmed) {
+      setEnglishError(englishRequiredMessage);
       return;
     }
 
@@ -104,6 +115,10 @@ const SignUpPage = () => {
   const handleSendCode = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (phoneLoading) return;
+    if (!englishConfirmed) {
+      setEnglishError(englishRequiredMessage);
+      return;
+    }
     if (!fullName.trim()) {
       showToast("Please enter your full name.", "error");
       return;
@@ -192,6 +207,45 @@ const SignUpPage = () => {
   const inputClass =
     "w-full rounded-xl border border-card-border bg-background px-4 py-3 text-foreground focus:outline-none focus:border-green-500";
 
+  const englishDisclaimer = (
+    <div>
+      <label
+        htmlFor="english-confirmed"
+        className={`flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition ${
+          englishConfirmed
+            ? "border-green-500 bg-green-500/10"
+            : englishError
+              ? "border-red-400"
+              : "border-card-border"
+        }`}
+      >
+        <input
+          id="english-confirmed"
+          type="checkbox"
+          checked={englishConfirmed}
+          onChange={(event) => {
+            setEnglishConfirmed(event.target.checked);
+            setEnglishError("");
+          }}
+          className="mt-0.5 h-4 w-4 shrink-0 accent-green-600"
+        />
+        <span className="text-sm">
+          Every class is taught in English. I confirm the student can follow a
+          lesson in English.{" "}
+          <span className="text-red-500 dark:text-red-400">*</span>
+        </span>
+      </label>
+      {englishError && (
+        <p
+          role="alert"
+          className="mt-2 text-xs font-semibold text-red-700 dark:text-red-300"
+        >
+          {englishError}
+        </p>
+      )}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center py-24 px-4 font-sans">
       <div className="w-full max-w-md bg-card-bg border border-card-border rounded-3xl p-8 shadow-xl">
@@ -276,6 +330,7 @@ const SignUpPage = () => {
                 At least 8 characters and at least one digit (0-9).
               </p>
             </div>
+            {englishDisclaimer}
             <button
               type="submit"
               disabled={loading}
@@ -329,6 +384,7 @@ const SignUpPage = () => {
                 We will send a one-time code by WhatsApp or SMS.
               </p>
             </div>
+            {englishDisclaimer}
             <button
               type="submit"
               disabled={phoneLoading}

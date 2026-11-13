@@ -10,6 +10,7 @@ export const navigationConfig: Record<string, NavLink[]> = {
     { label: "Home", href: "/" },
     { label: "About", href: "/about" },
     { label: "Courses", href: "/courses" },
+    { label: "Plans", href: "/plans" },
     { label: "Blog", href: "/blog" },
     { label: "How it works", href: "/#how-it-works" },
     { label: "Contact", href: "/contact" },

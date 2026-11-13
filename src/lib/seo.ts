@@ -17,7 +17,7 @@ export const IS_PREVIEW_DEPLOYMENT =
   process.env.VERCEL_ENV !== "production";
 export const SITE_SHORT_NAME = "Ana Quran";
 export const SITE_DESCRIPTION =
-  "Learn Quran online one-to-one with Ana Quran Academy. Quran, Tajweed, memorization, and Arabic lessons taught in English, for students in the US, UK, Canada, Australia, New Zealand, and Ireland.";
+  "Learn Quran online one-to-one with Ana Quran Academy. Quran, Tajweed, memorization, and Arabic lessons taught in English, for English-speaking students worldwide.";
 export const SITE_TITLE = "Ana Quran Academy | Learn Quran Online in English";
 
 export const SITE_KEYWORDS = [

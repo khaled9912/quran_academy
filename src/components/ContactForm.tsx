@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, type FieldErrors } from "react-hook-form";
 import { ApiError, backendFetch } from "@/lib/backend-client";
+import { useAuth } from "@/providers/auth-provider";
 import { useToast } from "@/providers/toast-provider";
 import { reportUnexpectedError } from "@/lib/sentry";
+import type { UserProfile } from "@/types/user";
 
 interface ContactFormValues {
   name: string;
@@ -25,11 +27,30 @@ const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
 const inputClass =
   "p-2 border border-card-border rounded bg-card-bg text-foreground focus:outline-none focus:border-green-500";
 
+const profileName = (user: UserProfile | null) =>
+  user?.fullName?.trim() || user?.full_name?.trim() || "";
+
 const ContactForm = () => {
-  const { register, handleSubmit, reset } = useForm<ContactFormValues>();
+  const { user } = useAuth();
+  const { register, handleSubmit, reset, setValue, getValues } =
+    useForm<ContactFormValues>({
+      defaultValues: {
+        name: profileName(user),
+        email: user?.email ?? "",
+        message: "",
+      },
+    });
   const { showToast } = useToast();
 
   const [loading, setLoading] = useState(false);
+
+  // The session is restored after this first paints, so a signed-in visitor's
+  // details can arrive late. Fill only what they have not started typing.
+  useEffect(() => {
+    const name = profileName(user);
+    if (name && !getValues("name")) setValue("name", name);
+    if (user?.email && !getValues("email")) setValue("email", user.email);
+  }, [user, getValues, setValue]);
 
   const onSubmit = async (data: ContactFormValues) => {
     setLoading(true);
@@ -38,7 +59,11 @@ const ContactForm = () => {
         method: "POST",
         body: JSON.stringify(data),
       });
-      reset();
+      reset({
+        name: profileName(user),
+        email: user?.email ?? "",
+        message: "",
+      });
       showToast(
         "Thank you! Your message has been sent successfully.",
         "success"

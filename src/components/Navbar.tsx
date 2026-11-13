@@ -271,7 +271,7 @@ const Navbar = () => {
                   Login
                 </button>
               </Link>
-              <Link href="/signup" className="registration-cta">
+              <Link href="/signup">
                 <button className="rounded-xl bg-[#f1d1a1] px-4 py-2 text-sm font-semibold text-[#173d3f] transition hover:bg-[#f6d9a8]">
                   Start a free trial
                 </button>
