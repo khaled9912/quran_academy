@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { Check, Loader2 } from "lucide-react";
 
 import { SignUpCta } from "@/components/SignUpCta";
@@ -59,6 +60,12 @@ function StudentPlanChoice({
     queryFn: getMyOnboarding,
   });
   const chosen = onboardingQuery.data?.planDaysPerWeek ?? 0;
+  const offeredDays = new Set(
+    (onboardingQuery.data?.weeklySlots ?? []).map((slot) => slot.dayOfWeek)
+  ).size;
+  // A week that only holds two days cannot carry a four-day plan. Before setup
+  // there are no times to measure, so the choice is free and setup enforces it.
+  const shortBy = offeredDays > 0 ? daysPerWeek - offeredDays : 0;
 
   const mutation = useMutation({
     mutationFn: choosePlanForStudent,
@@ -77,27 +84,44 @@ function StudentPlanChoice({
 
   const isChosen = chosen === daysPerWeek;
   const isSaving = mutation.isPending && mutation.variables === daysPerWeek;
+  const isShort = shortBy > 0 && !isChosen;
 
   return (
-    <button
-      type="button"
-      disabled={isChosen || isSaving}
-      onClick={() => mutation.mutate(daysPerWeek)}
-      className={`${className} disabled:cursor-default disabled:opacity-80`}
-    >
-      {isChosen ? (
-        <>
-          <Check size={16} />
-          Your plan
-        </>
-      ) : isSaving ? (
-        <>
-          <Loader2 size={16} className="animate-spin" />
-          Saving…
-        </>
-      ) : (
-        "Choose this plan"
+    <>
+      <button
+        type="button"
+        disabled={isChosen || isSaving || isShort}
+        onClick={() => mutation.mutate(daysPerWeek)}
+        className={`${className} disabled:cursor-not-allowed disabled:opacity-60`}
+      >
+        {isChosen ? (
+          <>
+            <Check size={16} />
+            Your plan
+          </>
+        ) : isSaving ? (
+          <>
+            <Loader2 size={16} className="animate-spin" />
+            Saving…
+          </>
+        ) : (
+          "Choose this plan"
+        )}
+      </button>
+      {isShort && (
+        <p className="mt-2 text-xs leading-5 text-[#7a5a1d] dark:text-amber-300">
+          Your saved times cover {offeredDays}{" "}
+          {offeredDays === 1 ? "day" : "days"}, and this plan needs{" "}
+          {daysPerWeek}.{" "}
+          <Link
+            href="/student/onboarding"
+            className="font-semibold underline underline-offset-2"
+          >
+            Offer more days
+          </Link>{" "}
+          first.
+        </p>
       )}
-    </button>
+    </>
   );
 }

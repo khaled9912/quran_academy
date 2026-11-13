@@ -15,11 +15,20 @@ export type StudentOnboarding = {
   islamicStudiesLevel: string;
   arabicLevel: string;
   timeZoneId: string;
-  /** Days a week they asked for on /plans. Zero means they never chose. */
+  /** Days a week they asked for. Zero means they never chose. */
   planDaysPerWeek: number;
   weeklySlots: StudentWeeklyPreference[];
   completedAt: string | null;
   updatedAt: string;
+};
+
+/** A repeating weekly lesson the student already has, on their teacher's clock. */
+export type StudentWeeklyLesson = {
+  id: string;
+  dayOfWeek: number;
+  startsAtTime: string;
+  endsAtTime: string;
+  timeZoneId: string;
 };
 
 export type OnboardingDraft = {
@@ -28,6 +37,8 @@ export type OnboardingDraft = {
   islamicStudiesLevel: StudentLevel | "";
   arabicLevel: StudentLevel | "";
   timeZoneId: string;
+  /** Omitted as null until the student answers the plan question. */
+  daysPerWeek: number | null;
   weeklySlots: { dayOfWeek: number; startsAtTime: string; endsAtTime: string }[];
   completed: boolean;
 };
@@ -41,4 +52,6 @@ export type PendingStudent = {
   onboarding: StudentOnboarding | null;
   hasTeacher: boolean;
   teacherName: string | null;
+  /** The repeating lessons this student already has — what still needs filling. */
+  weeklyLessons: StudentWeeklyLesson[];
 };

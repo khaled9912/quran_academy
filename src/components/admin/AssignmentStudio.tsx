@@ -17,6 +17,7 @@ import { WEEKDAY_SHORT, formatWeeklyTimeRange } from "@/lib/utils";
 import { timeZoneLabel, toViewerWeeklyTime } from "@/lib/weekly-time";
 import type {
   PendingStudent,
+  StudentWeeklyLesson,
   StudentWeeklyPreference,
 } from "@/types/onboarding";
 import type { WeeklyRule } from "@/types/scheduling";
@@ -49,6 +50,16 @@ const overlaps = (a: WeekWindow, b: WeekWindow) =>
   minutesOf(a.startsAtTime) < minutesOf(b.endsAtTime) &&
   minutesOf(b.startsAtTime) < minutesOf(a.endsAtTime);
 
+/**
+ * Whether a lesson the student already has lands inside an hour they offered.
+ * The lesson is on the teacher's clock and the offer on the student's, so the
+ * lesson is read on the student's clock first.
+ */
+const lessonCovers = (
+  lesson: StudentWeeklyLesson,
+  slot: StudentWeeklyPreference
+) => overlaps(toViewerWeeklyTime(lesson, slot.timeZoneId), slot);
+
 const byWeek = (rules: WeeklyRule[]) =>
   [...rules].sort(
     (a, b) =>
@@ -61,6 +72,20 @@ const windowLabel = (rule: WeeklyRule) =>
     rule.startsAtTime,
     rule.endsAtTime
   )}`;
+
+/** What the number of rules being ticked means for the plan the student asked for. */
+const planProgress = (planDays: number, booked: number, chosen: number) => {
+  const needed = Math.max(0, planDays - booked);
+  if (needed === 0)
+    return `Their ${planDays}-day plan is already booked in full.`;
+  if (chosen === 0)
+    return `Their plan still needs ${needed} more weekly ${needed === 1 ? "lesson" : "lessons"}.`;
+  if (chosen < needed)
+    return `${chosen} chosen here, ${needed - chosen} more to fill their ${planDays}-day plan.`;
+  return chosen === needed
+    ? `That fills their ${planDays}-day plan.`
+    : `That is ${chosen - needed} more than their plan holds.`;
+};
 
 const daysAgo = (iso: string) => {
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
@@ -293,7 +318,10 @@ export function AssignmentStudio() {
         <div className="space-y-4">
           {waiting.map((student) => {
             const slots = student.onboarding?.weeklySlots ?? [];
+            const lessons = student.weeklyLessons ?? [];
             const planDays = student.onboarding?.planDaysPerWeek ?? 0;
+            // How many weekly lessons this plan still needs, before this booking.
+            const stillNeeded = Math.max(0, planDays - lessons.length);
             const isOpen = openId === student.studentId;
             return (
               <article
@@ -333,21 +361,42 @@ export function AssignmentStudio() {
                       <div className="mt-3 flex flex-wrap gap-2">
                         {planDays > 0 && (
                           <span className="rounded-full border border-green-500/60 bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-700 dark:text-green-300">
-                            Wants {planDays}{" "}
-                            {planDays === 1 ? "day" : "days"} a week
+                            Plan: {planDays} {planDays === 1 ? "day" : "days"} a
+                            week
+                            {lessons.length > 0 &&
+                              ` · ${lessons.length} booked`}
+                            {stillNeeded > 0 && ` · ${stillNeeded} to place`}
                           </span>
                         )}
-                        {slots.map((slot) => (
-                          <span
-                            key={slot.id}
-                            className="rounded-full border border-card-border px-3 py-1 text-xs font-semibold"
-                          >
-                            {preferenceLabel(slot)}{" "}
-                            <span className="font-normal opacity-70">
-                              {timeZoneLabel(slot.timeZoneId)}
+                        {slots.map((slot) => {
+                          // Whether an hour they offered already carries a lesson.
+                          const filled = lessons.some((lesson) =>
+                            lessonCovers(lesson, slot)
+                          );
+                          return (
+                            <span
+                              key={slot.id}
+                              className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+                                filled
+                                  ? "border-green-600/60 bg-green-500/10 text-green-700 dark:text-green-300"
+                                  : "border-card-border"
+                              }`}
+                            >
+                              {preferenceLabel(slot)}{" "}
+                              <span className="font-normal opacity-70">
+                                {timeZoneLabel(slot.timeZoneId)}
+                              </span>
+                              <span
+                                className={`ml-2 font-normal ${filled ? "opacity-80" : "opacity-60"}`}
+                              >
+                                {/* Before the first lesson there is nothing to
+                    tell the filled hours apart from the empty ones. */}
+                                {lessons.length > 0 &&
+                                  (filled ? "has a lesson" : "needs a time")}
+                              </span>
                             </span>
-                          </span>
-                        ))}
+                          );
+                        })}
                       </div>
                     ) : null}
                     {slots.length === 0 && (
@@ -566,6 +615,17 @@ export function AssignmentStudio() {
                     <p className="mt-3 text-sm text-foreground opacity-70">
                       Both get a notice as soon as you confirm.
                     </p>
+                    {planDays > 0 && (
+                      <p
+                        className={`mt-2 text-sm font-semibold ${
+                          stillNeeded === 0
+                            ? "text-green-700 dark:text-green-300"
+                            : "text-amber-700 dark:text-amber-300"
+                        }`}
+                      >
+                        {planProgress(planDays, lessons.length, ruleIds.length)}
+                      </p>
+                    )}
                   </div>
                 )}
               </article>
