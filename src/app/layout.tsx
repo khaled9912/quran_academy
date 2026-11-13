@@ -104,13 +104,15 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/logo-ana-quran-mark.svg?v=1", type: "image/svg+xml" },
-      { url: "/favicon.ico", sizes: "48x48" },
+      // A raster first: Google's site-icon crawler does not render SVG, so an
+      // SVG listed ahead of the PNG is an icon it can end up discarding.
       {
         url: "/icon-192.png?v=2026-11-06-2",
         sizes: "192x192",
         type: "image/png",
       },
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/logo-ana-quran-mark.svg?v=1", type: "image/svg+xml" },
     ],
     shortcut: "/favicon.ico",
     apple: "/apple-icon.png?v=2026-11-06-2",
