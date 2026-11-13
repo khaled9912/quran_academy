@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { headers } from "next/headers";
 import {
   CheckCircle2,
   Clock,
@@ -20,21 +19,10 @@ import {
   LESSON_MINUTES,
   perClassUsd,
   plans,
-  PRICING_HIDDEN_COUNTRIES,
   usd,
   type Plan,
 } from "@/lib/plans";
-import { registrationCountryFromHeaders } from "@/lib/registration";
-
-/**
- * Prices are hidden from the countries where the academy recruits its teachers.
- * The geo header comes from the hosting provider, so this is a deterrent rather
- * than a control: a VPN or a rewritten cookie gets around it.
- */
-async function pricingHidden() {
-  const country = registrationCountryFromHeaders(await headers());
-  return country !== null && PRICING_HIDDEN_COUNTRIES.includes(country);
-}
+import { pricingHidden } from "@/lib/pricing-visibility";
 
 const inclusions = [
   {
@@ -249,40 +237,36 @@ export default async function PlansPage() {
         </h2>
         <p className="mt-4 max-w-2xl text-[#5d726a] dark:text-foreground/70">
           {hidden
-            ? "All four plans include the same teaching. Your monthly fee is confirmed after your free first lesson, once we know the schedule your family needs."
+            ? "Classes run in blocks of 30 minutes, from two to five days a week, with the same teacher kept every week. Your monthly fee is confirmed after your free first lesson, once we know the schedule your family needs."
             : "Prices are in US dollars and cover a full month of classes. The more days you choose, the lower each class costs."}
         </p>
 
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {plans.map((plan) => (
-            <article
-              key={plan.id}
-              className={`relative flex flex-col rounded-3xl border bg-white/80 p-6 dark:bg-white/5 ${
-                plan.popular
-                  ? "border-[#1d5145] shadow-[0_18px_38px_rgba(29,81,69,0.16)] dark:border-green-500"
-                  : "border-[#e2e8dc] dark:border-card-border"
-              }`}
-            >
-              {plan.popular && (
-                <span className="absolute -top-3 left-6 rounded-full bg-[#1d5145] px-3 py-1 text-xs font-bold uppercase tracking-wider text-white dark:bg-green-600">
-                  Most chosen
-                </span>
-              )}
+        {!hidden && (
+          <>
+            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {plans.map((plan) => (
+                <article
+                  key={plan.id}
+                  className={`relative flex flex-col rounded-3xl border bg-white/80 p-6 dark:bg-white/5 ${
+                    plan.popular
+                      ? "border-[#1d5145] shadow-[0_18px_38px_rgba(29,81,69,0.16)] dark:border-green-500"
+                      : "border-[#e2e8dc] dark:border-card-border"
+                  }`}
+                >
+                  {plan.popular && (
+                    <span className="absolute -top-3 left-6 rounded-full bg-[#1d5145] px-3 py-1 text-xs font-bold uppercase tracking-wider text-white dark:bg-green-600">
+                      Most chosen
+                    </span>
+                  )}
 
-              <h3 className="text-xl font-bold text-[#123c35] dark:text-white">
-                {plan.daysPerWeek} days a week
-              </h3>
-              <p className="mt-1 text-sm text-[#7a8a80] dark:text-foreground/50">
-                {plan.classesPerMonth} classes per month
-              </p>
-
-              <div className="mt-6 min-h-20">
-                {hidden ? (
-                  <p className="text-sm font-semibold leading-6 text-[#244c40] dark:text-foreground/80">
-                    Fee confirmed after your free lesson
+                  <h3 className="text-xl font-bold text-[#123c35] dark:text-white">
+                    {plan.daysPerWeek} days a week
+                  </h3>
+                  <p className="mt-1 text-sm text-[#7a8a80] dark:text-foreground/50">
+                    {plan.classesPerMonth} classes per month
                   </p>
-                ) : (
-                  <>
+
+                  <div className="mt-6 min-h-20">
                     <p className="text-4xl font-black tracking-[-0.03em] text-[#123c35] dark:text-white">
                       {usd(plan.priceUsd)}
                       <span className="ml-1 text-base font-semibold text-[#7a8a80] dark:text-foreground/50">
@@ -292,26 +276,24 @@ export default async function PlansPage() {
                     <p className="mt-2 text-sm text-[#5d726a] dark:text-foreground/70">
                       {usd(perClassUsd(plan))} per {LESSON_MINUTES}-minute class
                     </p>
-                  </>
-                )}
-              </div>
+                  </div>
 
-              <PlanChoiceCta
-                daysPerWeek={plan.daysPerWeek}
-                label="Book a free lesson"
-                arrowSize={16}
-                className="mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
-              />
-            </article>
-          ))}
-        </div>
+                  <PlanChoiceCta
+                    daysPerWeek={plan.daysPerWeek}
+                    label="Book a free lesson"
+                    arrowSize={16}
+                    className="mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
+                  />
+                </article>
+              ))}
+            </div>
 
-        {!hidden && (
-          <p className="mt-6 text-sm text-[#7a8a80] dark:text-foreground/50">
-            Longer 45 and 60-minute classes are available by arrangement.
-            Mention it when you book your free lesson and we will confirm the
-            price with you.
-          </p>
+            <p className="mt-6 text-sm text-[#7a8a80] dark:text-foreground/50">
+              Longer 45 and 60-minute classes are available by arrangement.
+              Mention it when you book your free lesson and we will confirm the
+              price with you.
+            </p>
+          </>
         )}
       </section>
 

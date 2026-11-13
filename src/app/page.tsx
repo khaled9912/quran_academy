@@ -17,16 +17,13 @@ import {
 } from "lucide-react";
 
 import { SignUpCta } from "@/components/SignUpCta";
+import { PlanChoiceCta } from "@/components/PlanChoiceCta";
 import { SiteFooter } from "@/components/SiteFooter";
 import { BlogCard } from "@/components/blog/BlogCard";
 import { getBlogPost, type BlogPost } from "@/lib/blog";
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_TITLE } from "@/lib/seo";
-import {
-  LESSON_MINUTES,
-  perClassUsd,
-  plans,
-  usd,
-} from "@/lib/plans";
+import { LESSON_MINUTES, perClassUsd, plans, usd } from "@/lib/plans";
+import { pricingHidden } from "@/lib/pricing-visibility";
 
 // Curated by what a first-time visitor needs, not by publish date: the
 // getting-started guide, the Tajweed guide, and the parents' guide.
@@ -99,7 +96,8 @@ const benefits = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const hidden = await pricingHidden();
   return (
     <main className="overflow-hidden bg-[#f3efe8] text-[#173b35] dark:bg-background dark:text-foreground">
       <section className="relative isolate">
@@ -372,63 +370,74 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-20">
-        <div className="rounded-[2rem] border border-[#dce6d8] bg-white px-7 py-10 shadow-sm dark:border-card-border dark:bg-card-bg md:px-10">
-          <div className="flex flex-wrap items-end justify-between gap-5">
-            <div>
-              <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#a7773e] dark:text-amber-300">
-                Weekly plans
-              </p>
-              <h2 className="mt-3 text-2xl font-bold tracking-tight text-[#173b35] dark:text-foreground sm:text-3xl">
-                {usd(plans[0].priceUsd)} to {usd(plans[plans.length - 1].priceUsd)}{" "}
-                a month
-              </h2>
-              <p className="mt-3 max-w-xl leading-7 text-[#6b7c73] dark:text-foreground/70">
-                One-to-one {LESSON_MINUTES}-minute classes with the same teacher
-                every week. Choose two to five days, pay after the month, and
-                only for lessons that actually took place.
-              </p>
-            </div>
-            <Link
-              href="/plans"
-              className="inline-flex items-center gap-2 rounded-xl font-semibold text-[#1d5144] hover:gap-3 dark:text-green-400"
-            >
-              See all plans and what is included <ArrowRight size={18} />
-            </Link>
-          </div>
-
-          <ul className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {plans.map((plan) => (
-              <li
-                key={plan.id}
-                className={`rounded-2xl border px-5 py-4 ${
-                  plan.popular
-                    ? "border-[#1d5145] bg-[#f2f7f1] dark:border-green-500 dark:bg-green-500/10"
-                    : "border-[#e2e8dc] bg-[#f7faf5] dark:border-card-border dark:bg-white/5"
-                }`}
+      {!hidden && (
+        <section className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-20">
+          <div className="rounded-[2rem] border border-[#dce6d8] bg-white px-7 py-10 shadow-sm dark:border-card-border dark:bg-card-bg md:px-10">
+            <div className="flex flex-wrap items-end justify-between gap-5">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#a7773e] dark:text-amber-300">
+                  Weekly plans
+                </p>
+                <h2 className="mt-3 text-2xl font-bold tracking-tight text-[#173b35] dark:text-foreground sm:text-3xl">
+                  {`${usd(plans[0].priceUsd)} to ${usd(plans[plans.length - 1].priceUsd)} a month`}
+                </h2>
+                <p className="mt-3 max-w-xl leading-7 text-[#6b7c73] dark:text-foreground/70">
+                  One-to-one {LESSON_MINUTES}-minute classes with the same
+                  teacher every week. Choose two to five days, pay after the
+                  month, and only for lessons that actually took place.
+                </p>
+              </div>
+              <Link
+                href="/plans"
+                className="inline-flex items-center gap-2 rounded-xl font-semibold text-[#1d5144] hover:gap-3 dark:text-green-400"
               >
-                <p className="text-sm font-bold text-[#24483b] dark:text-foreground">
-                  {plan.daysPerWeek} days a week
-                  {plan.popular && (
-                    <span className="ml-2 rounded-full bg-[#1d5145] px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-white dark:bg-green-600">
-                      Most chosen
+                See all plans and what is included <ArrowRight size={18} />
+              </Link>
+            </div>
+
+            <ul className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {plans.map((plan) => (
+                <li
+                  key={plan.id}
+                  className={`flex flex-col rounded-2xl border px-5 py-4 ${
+                    plan.popular
+                      ? "border-[#1d5145] bg-[#f2f7f1] dark:border-green-500 dark:bg-green-500/10"
+                      : "border-[#e2e8dc] bg-[#f7faf5] dark:border-card-border dark:bg-white/5"
+                  }`}
+                >
+                  <p className="text-sm font-bold text-[#24483b] dark:text-foreground">
+                    {plan.daysPerWeek} days a week
+                    {plan.popular && (
+                      <span className="ml-2 rounded-full bg-[#1d5145] px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-wider text-white dark:bg-green-600">
+                        Most chosen
+                      </span>
+                    )}
+                  </p>
+                  <p className="mt-2 text-2xl font-black tracking-[-0.03em] text-[#123c35] dark:text-white">
+                    {usd(plan.priceUsd)}
+                    <span className="ml-1 text-sm font-semibold text-[#7a8a80] dark:text-foreground/50">
+                      /month
                     </span>
-                  )}
-                </p>
-                <p className="mt-2 text-2xl font-black tracking-[-0.03em] text-[#123c35] dark:text-white">
-                  {usd(plan.priceUsd)}
-                  <span className="ml-1 text-sm font-semibold text-[#7a8a80] dark:text-foreground/50">
-                    /month
-                  </span>
-                </p>
-                <p className="mt-1 text-sm text-[#6b7c73] dark:text-foreground/70">
-                  {plan.classesPerMonth} classes · {usd(perClassUsd(plan))} each
-                </p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
+                  </p>
+                  <p className="mt-1 text-sm text-[#6b7c73] dark:text-foreground/70">
+                    {plan.classesPerMonth} classes · {usd(perClassUsd(plan))}{" "}
+                    each
+                  </p>
+
+                  <div className="mt-auto pt-4">
+                    <PlanChoiceCta
+                      daysPerWeek={plan.daysPerWeek}
+                      label="Start with this plan"
+                      arrowSize={16}
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#1d4e47] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
+                    />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
       <section className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-20">
         <div className="flex flex-wrap items-end justify-between gap-4">
