@@ -73,18 +73,30 @@ const windowLabel = (rule: WeeklyRule) =>
     rule.endsAtTime
   )}`;
 
-/** What the number of rules being ticked means for the plan the student asked for. */
-const planProgress = (planDays: number, booked: number, chosen: number) => {
+/**
+ * What the rules ticked in this panel mean for the plan the student asked for.
+ * Nothing chosen is not a verdict — the chips above already mark which offered
+ * hours still need a time — so the line only speaks once there is a booking to
+ * judge.
+ */
+const planProgress = (
+  planDays: number,
+  booked: number,
+  chosen: number
+): { text: string; complete: boolean } | null => {
+  if (chosen === 0 || planDays === 0) return null;
   const needed = Math.max(0, planDays - booked);
-  if (needed === 0)
-    return `Their ${planDays}-day plan is already booked in full.`;
-  if (chosen === 0)
-    return `Their plan still needs ${needed} more weekly ${needed === 1 ? "lesson" : "lessons"}.`;
   if (chosen < needed)
-    return `${chosen} chosen here, ${needed - chosen} more to fill their ${planDays}-day plan.`;
-  return chosen === needed
-    ? `That fills their ${planDays}-day plan.`
-    : `That is ${chosen - needed} more than their plan holds.`;
+    return {
+      text: `${chosen} booked here, ${needed - chosen} more to fill their ${planDays}-day plan.`,
+      complete: false,
+    };
+  if (chosen === needed)
+    return { text: `That fills their ${planDays}-day plan.`, complete: true };
+  return {
+    text: `That is ${chosen - needed} more than their ${planDays}-day plan holds.`,
+    complete: false,
+  };
 };
 
 const daysAgo = (iso: string) => {
@@ -322,6 +334,11 @@ export function AssignmentStudio() {
             const planDays = student.onboarding?.planDaysPerWeek ?? 0;
             // How many weekly lessons this plan still needs, before this booking.
             const stillNeeded = Math.max(0, planDays - lessons.length);
+            const progress = planProgress(
+              planDays,
+              lessons.length,
+              ruleIds.length
+            );
             const isOpen = openId === student.studentId;
             return (
               <article
@@ -615,15 +632,15 @@ export function AssignmentStudio() {
                     <p className="mt-3 text-sm text-foreground opacity-70">
                       Both get a notice as soon as you confirm.
                     </p>
-                    {planDays > 0 && (
+                    {progress && (
                       <p
                         className={`mt-2 text-sm font-semibold ${
-                          stillNeeded === 0
+                          progress.complete
                             ? "text-green-700 dark:text-green-300"
                             : "text-amber-700 dark:text-amber-300"
                         }`}
                       >
-                        {planProgress(planDays, lessons.length, ruleIds.length)}
+                        {progress.text}
                       </p>
                     )}
                   </div>

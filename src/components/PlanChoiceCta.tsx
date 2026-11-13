@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Check, Loader2 } from "lucide-react";
 
 import { SignUpCta } from "@/components/SignUpCta";
+import { clearPlanChoice, rememberPlanChoice } from "@/lib/plan-choice";
 import {
   choosePlanForStudent,
   getMyOnboarding,
@@ -36,12 +37,21 @@ export function PlanChoiceCta({
   className,
   arrowSize,
 }: Props) {
-  const { role } = useAuth();
+  const { role, isAuthenticated } = useAuth();
 
   return role === "student" ? (
     <StudentPlanChoice daysPerWeek={daysPerWeek} className={className} />
   ) : (
-    <SignUpCta label={label} className={className} arrowSize={arrowSize} />
+    <SignUpCta
+      label={label}
+      className={className}
+      arrowSize={arrowSize}
+      onClick={
+        // A visitor who does not have an account yet cannot have a plan on
+        // record, so the tier travels with them to setup instead.
+        isAuthenticated ? undefined : () => rememberPlanChoice(daysPerWeek)
+      }
+    />
   );
 }
 
@@ -70,6 +80,7 @@ function StudentPlanChoice({
   const mutation = useMutation({
     mutationFn: choosePlanForStudent,
     onSuccess: (saved) => {
+      clearPlanChoice();
       queryClient.setQueryData(["onboarding", "student"], saved);
       showToast(
         `Noted: ${saved.planDaysPerWeek} days a week. We will confirm your weekly time with you.`,

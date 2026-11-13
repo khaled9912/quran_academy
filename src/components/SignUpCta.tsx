@@ -11,6 +11,8 @@ type Props = {
   className: string;
   withArrow?: boolean;
   arrowSize?: number;
+  /** Runs before the visitor leaves, so a marketing page can keep what they picked. */
+  onClick?: () => void;
 };
 
 /**
@@ -25,13 +27,14 @@ export function SignUpCta({
   className,
   withArrow = true,
   arrowSize = 18,
+  onClick,
 }: Props) {
   const { isAuthenticated, role } = useAuth();
   const href = isAuthenticated && role ? ROLE_DASHBOARDS[role] : "/signup";
   const signedIn = href !== "/signup";
 
   return (
-    <Link href={href} className={className}>
+    <Link href={href} className={className} onClick={onClick}>
       {signedIn ? "Go to my dashboard" : label}
       {withArrow ? <ArrowRight size={arrowSize} /> : null}
     </Link>

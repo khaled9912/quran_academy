@@ -25,6 +25,7 @@ import {
 } from "@/services/onboarding.service";
 import { getAssignedWeeklyAvailability } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
+import { clearPlanChoice, readPlanChoice } from "@/lib/plan-choice";
 import { reportUnexpectedError } from "@/lib/sentry";
 import { getViewerTimeZone, timeZoneLabel } from "@/lib/weekly-time";
 import { plans } from "@/lib/plans";
@@ -121,9 +122,17 @@ export default function StudentOnboardingPage() {
   // Resume wherever the student stopped rather than replaying step one.
   const hydrated = useRef(false);
   useEffect(() => {
-    const saved = onboardingQuery.data;
-    if (!saved || hydrated.current) return;
+    if (onboardingQuery.isLoading || hydrated.current) return;
     hydrated.current = true;
+    const saved = onboardingQuery.data;
+    // A tier tapped on /plans is the student's first answer, so setup opens
+    // with it already chosen — before an account exists it is kept on the
+    // device, and afterwards it comes back from the academy's own record.
+    const tappedOnPlans = readPlanChoice();
+    if (!saved) {
+      setPlanDays(tappedOnPlans);
+      return;
+    }
     setLevels({
       quranLevel: saved.quranLevel as StudentLevel,
       tajweedLevel: saved.tajweedLevel as StudentLevel,
@@ -131,14 +140,14 @@ export default function StudentOnboardingPage() {
       arabicLevel: saved.arabicLevel as StudentLevel,
     });
     setSelected(keysFromPreferences(saved.weeklySlots));
-    setPlanDays(saved.planDaysPerWeek ?? 0);
+    setPlanDays(saved.planDaysPerWeek || tappedOnPlans);
     if (saved.completedAt) return;
     // Resume at the first question still unanswered, so a student who only ever
     // said how often they want to learn is not sent back through the levels.
     if (SUBJECTS.some((subject) => !saved[subject.key])) setStep(0);
     else if (!saved.planDaysPerWeek) setStep(1);
     else setStep(2);
-  }, [onboardingQuery.data]);
+  }, [onboardingQuery.data, onboardingQuery.isLoading]);
 
   useEffect(
     () => () => {
@@ -198,15 +207,28 @@ export default function StudentOnboardingPage() {
   );
 
   const handleContinue = async (next: number) => {
-    if (step === 0 && !levelsComplete) return;
-    if (step === 1 && planDays === 0) return;
+    // A jump across the header checks every question it steps over, not just
+    // the one on screen.
+    if (next > 0 && !levelsComplete) return;
+    if (next > 1 && planDays === 0) return;
     // A partial save keeps the answers on record if the student closes the tab.
     try {
       await saveMyOnboarding(draft(false));
+      clearPlanChoice();
     } catch (error) {
       reportUnexpectedError(error);
     }
     goTo(next, 1);
+  };
+
+  /** Back is always free; forward goes through the same save as Continue. */
+  const stepTo = (next: number) => {
+    if (next === step) return;
+    if (next > step) {
+      void handleContinue(next);
+      return;
+    }
+    goTo(next, -1);
   };
 
   const handleSubmit = async () => {
@@ -214,6 +236,7 @@ export default function StudentOnboardingPage() {
     setSaving(true);
     try {
       await saveMyOnboarding(draft(true));
+      clearPlanChoice();
       queryClient.setQueryData(["onboarding", "student"], {
         ...(onboardingQuery.data ?? {}),
         ...draft(true),
@@ -314,38 +337,55 @@ export default function StudentOnboardingPage() {
 
         <div className="mb-8">
           <div className="flex items-center gap-3">
-            {STEP_LABELS.map((label, index) => (
-              <div key={label} className="flex flex-1 items-center gap-3">
-                <span
-                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all duration-300 ${
-                    index < step
-                      ? "bg-green-500 text-white"
-                      : index === step
-                        ? "bg-green-500/15 text-green-700 ring-2 ring-green-500 dark:text-green-400"
-                        : "bg-foreground/10 text-foreground opacity-50"
-                  }`}
-                >
-                  {index < step ? <Check size={14} /> : index + 1}
-                </span>
-                <span
-                  className={`text-sm font-semibold transition-colors duration-300 ${
-                    index === step
-                      ? "text-foreground"
-                      : "text-foreground opacity-50"
-                  }`}
-                >
-                  {label}
-                </span>
-                {index < STEP_LABELS.length - 1 && (
-                  <span className="relative h-1 flex-1 overflow-hidden rounded-full bg-foreground/10">
+            {STEP_LABELS.map((label, index) => {
+              // Any step already answered is one tap away; a later question
+              // stays out of reach until the one before it has an answer.
+              const reachable =
+                index <= step ||
+                (levelsComplete && (index === 1 || planDays > 0));
+              return (
+                <div key={label} className="flex flex-1 items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => stepTo(index)}
+                    disabled={!reachable}
+                    aria-current={index === step ? "step" : undefined}
+                    className={`flex items-center gap-3 ${
+                      reachable ? "hover:opacity-80" : "cursor-not-allowed"
+                    }`}
+                  >
                     <span
-                      className="absolute inset-y-0 left-0 rounded-full bg-green-500 transition-all duration-500 ease-out"
-                      style={{ width: step > index ? "100%" : "0%" }}
-                    />
-                  </span>
-                )}
-              </div>
-            ))}
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all duration-300 ${
+                        index < step
+                          ? "bg-green-500 text-white"
+                          : index === step
+                            ? "bg-green-500/15 text-green-700 ring-2 ring-green-500 dark:text-green-400"
+                            : "bg-foreground/10 text-foreground opacity-50"
+                      }`}
+                    >
+                      {index < step ? <Check size={14} /> : index + 1}
+                    </span>
+                    <span
+                      className={`text-sm font-semibold transition-colors duration-300 ${
+                        index === step
+                          ? "text-foreground"
+                          : "text-foreground opacity-50"
+                      }`}
+                    >
+                      {label}
+                    </span>
+                  </button>
+                  {index < STEP_LABELS.length - 1 && (
+                    <span className="relative h-1 flex-1 overflow-hidden rounded-full bg-foreground/10">
+                      <span
+                        className="absolute inset-y-0 left-0 rounded-full bg-green-500 transition-all duration-500 ease-out"
+                        style={{ width: step > index ? "100%" : "0%" }}
+                      />
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -514,6 +554,11 @@ export default function StudentOnboardingPage() {
               </div>
 
               <p className="mt-6 text-sm text-foreground opacity-70">
+                {planDays
+                  ? `Your week will need ${planDays} different ${
+                      planDays === 1 ? "day" : "days"
+                    }.`
+                  : "Choose how many days a week."}{" "}
                 Prices and what is included are on the{" "}
                 <Link
                   href="/plans"
@@ -525,11 +570,13 @@ export default function StudentOnboardingPage() {
               </p>
 
               <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
-                <p className="text-sm text-foreground opacity-70">
-                  {planDays
-                    ? `Your week will need ${planDays} different days.`
-                    : "Choose how many days a week."}
-                </p>
+                <button
+                  type="button"
+                  onClick={() => goTo(0, -1)}
+                  className="inline-flex items-center gap-2 rounded-xl border border-card-border px-5 py-3 font-semibold transition hover:border-green-500"
+                >
+                  <ArrowLeft size={16} /> Back
+                </button>
                 <button
                   type="button"
                   onClick={() => void handleContinue(2)}

@@ -86,6 +86,14 @@ html {
   background-color: var(--background);
 }
 
+/* PasswordField carries its own reveal toggle in the right-hand corner. The
+   browser paints one there too, so a password box can end up with two eyes —
+   ours always, the native one only while the field is still a password. */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
