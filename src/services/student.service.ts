@@ -19,3 +19,6 @@ export const createStudent = (input: CreateStudentInput) =>
     method: "POST",
     body: JSON.stringify(input),
   });
+
+export const getStudent = (id: string) =>
+  backendFetch<Student>(`/api/students/${encodeURIComponent(id)}`);

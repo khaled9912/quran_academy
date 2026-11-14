@@ -16,7 +16,8 @@ export const signUp = (
   fullName: string,
   email: string,
   password: string,
-  country?: string
+  country?: string,
+  phone?: string
 ) =>
   backendFetch<AuthResponse>("/api/auth/register", {
     method: "POST",
@@ -25,6 +26,7 @@ export const signUp = (
       email,
       password,
       ...(country ? { country } : {}),
+      ...(phone ? { phone } : {}),
     }),
   });
 

@@ -222,8 +222,8 @@ export default function AdminTeacherAvailabilityPage() {
                 : ""}
             </h1>
             <p className="mt-2 text-foreground/70">
-              Announce weekly times on behalf of this teacher. Students book
-              them instantly.
+              Announce weekly times on behalf of this teacher. The academy
+              schedules its students against them.
             </p>
           </div>
           <button

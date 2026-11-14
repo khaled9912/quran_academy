@@ -19,6 +19,7 @@ export const navigationConfig: Record<string, NavLink[]> = {
     { label: "Dashboard", href: "/student/dashboard" },
     { label: "My schedule", href: "/schedule" },
     { label: "Payments", href: "/student/payments" },
+    { label: "Agreement", href: "/policy", inMore: true },
     { label: "Profile", href: "/profile" },
   ],
   teacher: [
@@ -26,6 +27,7 @@ export const navigationConfig: Record<string, NavLink[]> = {
     { label: "Availability", href: "/teacher/availability" },
     { label: "Schedule", href: "/teacher/schedule" },
     { label: "Earnings", href: "/teacher/payments" },
+    { label: "Agreement", href: "/policy", inMore: true },
     { label: "Profile", href: "/profile" },
   ],
   admin: [

@@ -28,6 +28,20 @@ export default function manifest(): MetadataRoute.Manifest {
         type: "image/png",
         purpose: "any",
       },
+      // Android shapes the installed icon as a circle or squircle; the maskable
+      // pair keeps the mark inside the 80% safe zone so nothing gets cropped.
+      {
+        src: "/icon-maskable-192.png?v=2026-11-14",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "maskable",
+      },
+      {
+        src: "/icon-maskable-512.png?v=2026-11-14",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
     ],
   };
 }

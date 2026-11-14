@@ -21,6 +21,10 @@ const RING_WINDOW_MS = 90_000;
 
 const TITLE_PREFIX = "Calling: ";
 
+/** An auto-ring is the monitor calling, not the participant named on the row. */
+const callerLabel = (call: LessonCall) =>
+  call.origin === "auto" ? "The academy" : call.callerName;
+
 /** How often to look for a ring when no socket is delivering the `calls` scope. */
 const RING_POLL_MS = 20_000;
 
@@ -58,7 +62,7 @@ export function LessonRingProvider({
     rung.current.add(fresh.id);
     setRinging(fresh);
     showBrowserNotice(
-      `${fresh.callerName} is calling you`,
+      `${callerLabel(fresh)} is calling you`,
       "Open the lesson room to answer.",
       `/lesson/${fresh.lessonId}`
     );
@@ -68,7 +72,7 @@ export function LessonRingProvider({
     if (!ringing) return;
     startRinger();
     const original = document.title;
-    const caller = `${TITLE_PREFIX}${ringing.callerName} · ${original}`;
+    const caller = `${TITLE_PREFIX}${callerLabel(ringing)} · ${original}`;
     let showingCaller = true;
     const flash = setInterval(() => {
       showingCaller = !showingCaller;

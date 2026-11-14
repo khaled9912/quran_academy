@@ -390,7 +390,7 @@ function StudentReviewSection({
         Rate this lesson
       </h2>
       <p className="mt-2 text-sm text-foreground opacity-70">
-        Your rating helps other students choose a teacher.
+        Your rating helps the academy keep teaching quality up.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-5 space-y-5">

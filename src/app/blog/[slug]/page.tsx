@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, BookOpen, Clock3 } from "lucide-react";
 import { BlogCard } from "@/components/blog/BlogCard";
 import { JsonLd } from "@/components/JsonLd";
 import { SiteFooter } from "@/components/SiteFooter";
-import { SignUpCta } from "@/components/SignUpCta";
+import { EnrolCta } from "@/components/EnrolCta";
 import {
   BLOG_AUTHOR,
   formatBlogDate,
@@ -273,7 +273,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                 with a free trial lesson.
               </p>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <SignUpCta
+                <EnrolCta
                   label="Start with a free trial"
                   withArrow={false}
                   className="rounded-xl bg-[#e4c18e] px-5 py-3 text-center text-sm font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"

@@ -60,6 +60,8 @@ const PROTECTED_PREFIXES = [
   "/schedule",
   "/student-dashboard",
   "/lesson",
+  // The agreement page belongs to whichever role is signed in, like the room.
+  "/policy",
   "/teachers",
 ];
 

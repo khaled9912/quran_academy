@@ -27,6 +27,7 @@ import { useAuth } from "@/providers/auth-provider";
 import { useStudentDashboard } from "@/features/students/hooks/useStudentDashboard";
 import { PendingAssignment } from "@/components/student/PendingAssignment";
 import { TimeZoneNote } from "@/components/student/TimeZoneNote";
+import { PolicyPrompt } from "@/components/PolicyPrompt";
 import { startsInLabel } from "@/lib/utils";
 import {
   getViewerTimeZone,
@@ -203,6 +204,8 @@ const StudentDashboard = () => {
             <RefreshCw size={16} /> Refresh
           </button>
         </div>
+
+        <PolicyPrompt />
 
         {queryError && (
           <p

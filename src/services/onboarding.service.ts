@@ -12,9 +12,9 @@ export const saveMyOnboarding = (draft: OnboardingDraft) =>
   });
 
 /**
- * The plan a student wants, recorded from /plans. Nothing is billed from it —
- * the fee still comes from the lessons that took place — but the assignment
- * desk reads it next to their weekly hours.
+ * The plan a student wants, recorded from /plans. It is what the month's bill is
+ * priced from, and the assignment desk reads it next to their weekly hours — but
+ * nothing is charged until a month has ended with classes in it.
  */
 export const choosePlanForStudent = (daysPerWeek: number) =>
   backendFetch<StudentOnboarding>("/api/student/plan", {

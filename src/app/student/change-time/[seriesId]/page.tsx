@@ -391,7 +391,7 @@ export default function ChangeWeeklyTimePage() {
                 Ending this weekly time cancels every future lesson with{" "}
                 {series.teacherName}, not just the next one. Your teacher is
                 told and the time opens up for other students. Lessons you have
-                already taken, and your credits, are unaffected.
+                already taken are unaffected.
               </p>
               <button
                 type="button"

@@ -74,8 +74,8 @@ export default function TeacherSchedulePage() {
       const outcome = result?.preview?.outcome;
       showToast(
         outcome === "late_cancelled_by_teacher"
-          ? "Lesson cancelled. The academy was notified for review and the student's credit was restored."
-          : "Lesson cancelled. The student was notified and their lesson credit was restored.",
+          ? "Lesson cancelled. The academy was notified for review and the lesson does not count against the student."
+          : "Lesson cancelled. The student was notified and the lesson does not count against them.",
         "success"
       );
       await queryClient.invalidateQueries({ queryKey: ["lessons"] });
@@ -329,7 +329,7 @@ export default function TeacherSchedulePage() {
                               onClick={() => {
                                 if (
                                   window.confirm(
-                                    "Cancel this lesson? The academy cancellation policy applies and the student is notified. Late cancellations are reviewed and restore one lesson credit."
+                                    "Cancel this lesson? The academy cancellation policy applies and the student is notified. Late cancellations are reviewed by the academy."
                                   )
                                 ) {
                                   cancelMutation.mutate(lesson.id);

@@ -2,6 +2,7 @@
 
 import type { CountryCode } from "libphonenumber-js";
 import { SelectField } from "@/components/ui/select-field";
+import { FieldError } from "@/components/ui/field-error";
 import {
   countries,
   countryByCode,
@@ -90,12 +91,17 @@ export function PhoneInput({
           onChange={(event) => onChange(normalizeNational(event.target.value))}
           placeholder="Mobile number"
           disabled={disabled}
+          aria-invalid={error ? true : undefined}
           className={`w-full min-w-0 flex-1 rounded-xl border bg-background px-4 py-3 text-foreground focus:outline-none focus:border-green-500 ${
             error ? "border-red-400" : "border-card-border"
           }`}
         />
       </div>
-      <p className="mt-2 text-xs text-foreground opacity-70">{hint}</p>
+      {error ? (
+        <FieldError message={error} />
+      ) : (
+        <p className="mt-2 text-xs text-foreground opacity-70">{hint}</p>
+      )}
     </div>
   );
 }

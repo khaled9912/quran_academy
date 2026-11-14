@@ -29,6 +29,7 @@ import { clearPlanChoice, readPlanChoice } from "@/lib/plan-choice";
 import { reportUnexpectedError } from "@/lib/sentry";
 import { getViewerTimeZone, timeZoneLabel } from "@/lib/weekly-time";
 import { plans } from "@/lib/plans";
+import { PolicyPrompt } from "@/components/PolicyPrompt";
 import type { StudentLevel } from "@/types/onboarding";
 
 const LEVELS: { value: StudentLevel; label: string; hint: string }[] = [
@@ -334,6 +335,8 @@ export default function StudentOnboardingPage() {
             Step {step + 1} of {STEP_LABELS.length}
           </span>
         </div>
+
+        <PolicyPrompt />
 
         <div className="mb-8">
           <div className="flex items-center gap-3">

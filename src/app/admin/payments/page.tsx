@@ -6,6 +6,7 @@ import { Check, Landmark, Save, X } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useToast } from "@/providers/toast-provider";
 import { ApiError } from "@/lib/backend-client";
+import { PlanPricesDesk } from "@/components/admin/PlanPricesDesk";
 import {
   confirmPaymentClaim,
   getAdminBilling,
@@ -544,6 +545,11 @@ export default function AdminPaymentsPage() {
                   </table>
                 </div>
               ) : null}
+            </section>
+
+            <section className="mt-6 rounded-3xl border border-card-border bg-card-bg p-6">
+              <h2 className="mb-1 text-xl font-semibold">Plan prices</h2>
+              <PlanPricesDesk />
             </section>
 
             <section className="mt-6 rounded-3xl border border-card-border bg-card-bg p-6">

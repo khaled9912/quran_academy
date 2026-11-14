@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 import { SiteFooter } from "@/components/SiteFooter";
-import { SignUpCta } from "@/components/SignUpCta";
+import { EnrolCta } from "@/components/EnrolCta";
 
 import { JsonLd } from "@/components/JsonLd";
 import { absoluteUrl, pageMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
@@ -97,9 +97,9 @@ const steps = [
       "Tell us who is learning and what they would like to study. New students begin with a free trial lesson.",
   },
   {
-    title: "Choose a teacher and weekly times",
+    title: "Get your teacher and weekly times",
     description:
-      "Review teachers and their published availability, then pick weekly times that fit your routine. Times appear in your local time zone.",
+      "Tell us which weekly times suit your routine. The academy matches you with one teacher and sets those times as your recurring lessons, shown in your local time zone.",
   },
   {
     title: "Meet in the live classroom",
@@ -190,7 +190,7 @@ export default function CoursesPage() {
             with a free trial lesson.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <SignUpCta
+            <EnrolCta
               label="Start with a free trial"
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
             />
@@ -273,8 +273,8 @@ export default function CoursesPage() {
                       Fees
                     </dt>
                     <dd className="mt-1 leading-7">
-                      Billed monthly in US dollars by bank transfer. Published
-                      weekly plans are on{" "}
+                      Billed monthly, at the price of the weekly plan you chose,
+                      by card or bank transfer. Published plans are on{" "}
                       <Link href="/plans" className="underline">
                         the plans page
                       </Link>
@@ -412,7 +412,7 @@ export default function CoursesPage() {
             in English.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <SignUpCta
+            <EnrolCta
               label="Get started"
               withArrow={false}
               className="rounded-xl bg-[#e4c18e] px-6 py-3.5 font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"

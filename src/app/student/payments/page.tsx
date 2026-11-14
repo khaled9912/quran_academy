@@ -6,6 +6,7 @@ import { Check, Copy, Landmark, Send } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useToast } from "@/providers/toast-provider";
 import { ApiError } from "@/lib/backend-client";
+import { PlanPayCard } from "@/components/student/PlanPayCard";
 import { getStudentBilling, markPaymentSent } from "@/services/billing.service";
 import type { AcademyBankAccount, StudentBilling } from "@/types/billing";
 
@@ -103,7 +104,10 @@ export default function StudentPaymentsPage() {
         1600
       );
     } catch {
-      showToast("Could not copy. Select the text and copy it manually.", "error");
+      showToast(
+        "Could not copy. Select the text and copy it manually.",
+        "error"
+      );
     }
   };
 
@@ -128,9 +132,14 @@ export default function StudentPaymentsPage() {
         <div className="mb-8">
           <h1 className="mb-2 text-4xl font-bold">Monthly payment</h1>
           <p className="text-lg text-foreground opacity-75">
-            Your completed lessons for the month, the amount due, and the
-            academy&apos;s dollar account to transfer to.
+            Your plan is billed after the month ends. Pay that bill by card, or
+            transfer to the academy&apos;s dollar account. Below are the lessons
+            that made up the month.
           </p>
+        </div>
+
+        <div className="mb-6">
+          <PlanPayCard />
         </div>
 
         {billingQuery.isLoading ? (
@@ -173,7 +182,7 @@ export default function StudentPaymentsPage() {
               <span className="rounded-full bg-green-500/10 px-3 py-1 text-sm font-semibold text-green-700 dark:text-green-400">
                 {billing.lessons.length} lesson
                 {billing.lessons.length === 1 ? "" : "s"} ·{" "}
-                {usd(billing.totalUsd)} due
+                {usd(billing.totalUsd)} {billing.cardPaid ? "of classes" : "due"}
               </span>
               {!billing.monthClosed ? (
                 <span className="text-sm text-foreground opacity-70">
@@ -265,8 +274,9 @@ export default function StudentPaymentsPage() {
                 {bank ? (
                   <>
                     <p className="mb-4 text-sm text-foreground opacity-70">
-                      Transfer {usd(billing.totalUsd)} using your banking app,
-                      then mark the payment as sent below.
+                      {billing.cardPaid
+                        ? "This month is settled by card, so no transfer is needed. The account details are here for another month."
+                        : `Transfer ${usd(billing.totalUsd)} using your banking app, then mark the payment as sent below.`}
                     </p>
                     <dl className="space-y-3 text-sm">
                       {bankFields(bank).map((field) => (
@@ -333,7 +343,12 @@ export default function StudentPaymentsPage() {
 
             <section className="mt-6 rounded-3xl border border-card-border bg-card-bg p-6">
               <h2 className="mb-1 text-xl font-semibold">Payment status</h2>
-              {claim ? (
+              {billing.cardPaid ? (
+                <p className="mt-2 text-sm text-foreground opacity-70">
+                  Paid by card. Nothing more is owed for this month, so there is
+                  no transfer to send or confirm.
+                </p>
+              ) : claim ? (
                 <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <span

@@ -19,6 +19,7 @@ import {
   type EnglishLevel,
 } from "@/types/teacher-application";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { FieldError } from "@/components/ui/field-error";
 import { submitTeacherApplication } from "@/services/teacher-application.service";
 import { ApiError } from "@/lib/backend-client";
 import { useToast } from "@/providers/toast-provider";
@@ -174,7 +175,7 @@ export function TeacherApplicationForm() {
     const nextErrors = validate();
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
-      showToast(Object.values(nextErrors)[0], "error");
+      showToast("Please fix the highlighted fields and try again.", "error");
       return;
     }
 
@@ -254,6 +255,7 @@ export function TeacherApplicationForm() {
               errors.fullName ? "border-red-400" : ""
             }`}
           />
+          <FieldError message={errors.fullName} />
         </div>
 
         <div>
@@ -268,6 +270,7 @@ export function TeacherApplicationForm() {
             autoComplete="email"
             className={`${inputClass} ${errors.email ? "border-red-400" : ""}`}
           />
+          <FieldError message={errors.email} />
         </div>
 
         <div className="sm:col-span-2">
@@ -314,6 +317,7 @@ export function TeacherApplicationForm() {
               );
             })}
           </div>
+          <FieldError message={errors.subjects} />
         </div>
 
         <div className="sm:col-span-2">
@@ -352,6 +356,7 @@ export function TeacherApplicationForm() {
               );
             })}
           </div>
+          <FieldError message={errors.englishLevel} />
         </div>
 
         <div>
@@ -374,6 +379,7 @@ export function TeacherApplicationForm() {
               errors.experienceYears ? "border-red-400" : ""
             }`}
           />
+          <FieldError message={errors.experienceYears} />
         </div>
 
         <div>
@@ -393,6 +399,7 @@ export function TeacherApplicationForm() {
               errors.availabilityNote ? "border-red-400" : ""
             }`}
           />
+          <FieldError message={errors.availabilityNote} />
         </div>
 
         <div className="sm:col-span-2">
@@ -410,6 +417,7 @@ export function TeacherApplicationForm() {
               errors.bio ? "border-red-400" : ""
             }`}
           />
+          <FieldError message={errors.bio} />
           <div className="mt-2 flex items-center justify-between text-xs opacity-70">
             <span>20 to 2000 characters.</span>
             <span>{bio.length}/2000</span>
@@ -460,6 +468,7 @@ export function TeacherApplicationForm() {
               />
             </label>
           )}
+          <FieldError message={errors.cv} />
           <p className="mt-2 text-xs opacity-60">
             Your CV is only visible to academy administrators.
           </p>
@@ -512,6 +521,7 @@ export function TeacherApplicationForm() {
               />
             </label>
           )}
+          <FieldError message={errors.intro} />
           <p className="mt-2 text-xs opacity-60">
             Optional: record a 1–2 minute voice note on your phone introducing
             yourself, then upload it here. Only academy administrators can
@@ -567,6 +577,7 @@ export function TeacherApplicationForm() {
               />
             </label>
           )}
+          <FieldError message={errors.quran} />
           <p className="mt-2 text-xs opacity-60">
             Required: record 1–2 minutes of your Quran recitation and upload it
             here. Only academy administrators can access it.

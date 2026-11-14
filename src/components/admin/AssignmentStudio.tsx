@@ -75,17 +75,23 @@ const windowLabel = (rule: WeeklyRule) =>
 
 /**
  * What the rules ticked in this panel mean for the plan the student asked for.
- * Nothing chosen is not a verdict — the chips above already mark which offered
- * hours still need a time — so the line only speaks once there is a booking to
- * judge.
+ * It judges the confirm button, so it speaks whenever that button would book
+ * the wrong number of weekly lessons — including when nothing is ticked yet.
  */
 const planProgress = (
   planDays: number,
   booked: number,
   chosen: number
 ): { text: string; complete: boolean } | null => {
-  if (chosen === 0 || planDays === 0) return null;
+  if (planDays === 0) return null;
   const needed = Math.max(0, planDays - booked);
+  if (chosen === 0)
+    return needed === 0
+      ? null
+      : {
+          text: `Their ${planDays}-day plan still needs ${needed} weekly ${needed === 1 ? "lesson" : "lessons"} — tick the times to fill it.`,
+          complete: false,
+        };
   if (chosen < needed)
     return {
       text: `${chosen} booked here, ${needed - chosen} more to fill their ${planDays}-day plan.`,
@@ -339,6 +345,8 @@ export function AssignmentStudio() {
               lessons.length,
               ruleIds.length
             );
+            // A plan is only on record once every weekly lesson in it has a time.
+            const planUnfilled = progress !== null && !progress.complete;
             const isOpen = openId === student.studentId;
             return (
               <article
@@ -614,7 +622,9 @@ export function AssignmentStudio() {
 
                     <button
                       type="button"
-                      disabled={!teacherId || bookMutation.isPending}
+                      disabled={
+                        !teacherId || planUnfilled || bookMutation.isPending
+                      }
                       onClick={() => bookMutation.mutate(student)}
                       className="mt-5 inline-flex items-center gap-2 rounded-xl bg-green-500 px-5 py-2.5 font-semibold text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
                     >

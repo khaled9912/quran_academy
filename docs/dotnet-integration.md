@@ -47,7 +47,9 @@ For production, prefer a same-origin reverse proxy so the API's HttpOnly session
 
 ### Registration eligibility
 
-Public self-service registration is limited to `US`, `GB`, `CA`, `AU`, `NZ`, and `IE`. `POST /api/auth/register` takes `{ "fullName", "email", "password", "country"? }` and returns `403` with the eligibility message for other countries. `POST /api/auth/otp/verify` accepts the same optional `country`; the check only applies when it would create a new account, so existing students can sign in from anywhere.
+Student enrolment is closed in the countries listed in `RESTRICTED_COUNTRIES` (`src/lib/plans.ts`, currently `EG`). The web edge resolves the visitor's country from the hosting geo header, mirrors it to the `academy-country` cookie, and overwrites `x-registration-country` on `/api/auth/register` and `/api/auth/otp/verify` so the value the API reads is edge-derived rather than client-supplied. `POST /api/auth/register` returns `403 { message }` when that header names a restricted country. `POST /api/auth/otp/verify` applies the same check only in the branch that creates an account, so an account that already exists keeps signing in from anywhere — the gate closes new places, not sessions. When `phone` is present on register it is normalized to E.164 and stored with `PhoneNumberConfirmed=false`; an invalid or already-used number returns a `phone` validation error, so a student who registers by email can still be reachable by mobile.
+
+On the web the same gate hides the surfaces: middleware redirects an anonymous restricted visitor from `/plans`, `/signup`, and `/register` to `/not-available` (a noindex page that points at `/teach` and WhatsApp), every marketing page renders its sign-up CTA through `EnrolCta`, which returns nothing for a restricted visitor, and the navbar and menu drop the "Start a free trial" link from the `academy-country` cookie. A signed-in account is never redirected, so an enrolled student keeps their plan pages. `/teach` stays open: recruiting teachers in these countries is the reason the gate exists.
 
 `fullName` must be a person's name: anywhere a name is accepted from a non-staff caller (register, OTP signup, `PATCH /api/profile`, `POST /api/teacher-applications`) it is rejected with a `fullName` validation error when it contains `@`, so an email address cannot end up as the name every other participant sees.
 
@@ -58,9 +60,9 @@ That guard only covers writes, so accounts created before it can still hold an a
 
 Treat a name as absent, never as a string to re-check: no client should test for `@`, and `??` (not `||`) is the right operator, since `null` is what arrives.
 
-Registration is open worldwide: no country blocks account creation. Middleware still resolves the visitor's country from the hosting provider's geo header, mirrors it to the `academy-country` cookie that the browser reads before submitting, and overwrites `x-registration-country` on `/api/auth/register` and `/api/auth/otp/verify` so the value the API receives is edge-derived rather than client-supplied — the API records nothing from it today. Mobile has no IP geolocation, so it passes the device locale's region and treats it as a UX hint only.
+Mobile has no IP geolocation in front of the API, so app traffic carries no `x-registration-country` header and the API treats a missing header as unrestricted: the gate is enforced on web today, and the app's signup stays open until the app is given a country signal of its own.
 
-Student pricing is gated in one place: `pricingHidden()` (`src/lib/pricing-visibility.ts`) reads that same geo header, and both `/` and `/plans` call it. For the countries listed in `PRICING_HIDDEN_COUNTRIES` (`src/lib/plans.ts`, currently `EG`) the homepage renders no plans strip at all, `/plans` renders no plan tiers, and neither page carries the figures in its copy, metadata or `Offer` structured data. Everyone else sees the plans with prices. Both pages are therefore server-rendered per request, not prerendered. This is a deterrent, not a control: the signal is the visitor's IP as the edge sees it, so a VPN, a private-relay exit abroad, or a rewritten cookie gets around it. No browser-side check can beat a VPN — the only signals that survive one are things the visitor hands over later (the dial code of a phone that actually receives the OTP, the payment rail), and those belong to signup, not to an anonymous marketing page.
+Prices are part of the same gate: `restrictedVisitor()` (`src/lib/pricing-visibility.ts`) reads the geo header, and both `/` and `/plans` call it. For the countries in `RESTRICTED_COUNTRIES` the homepage renders no plans strip at all, `/plans` renders no plan tiers, and neither page carries the figures in its copy, metadata or `Offer` structured data. Everyone else sees the plans with prices. Both pages are therefore server-rendered per request, not prerendered. This is a deterrent, not a control: the signal is the visitor's IP as the edge sees it, so a VPN, a private-relay exit abroad, or a rewritten cookie gets around it. No browser-side check can beat a VPN — the only signals that survive one are things the visitor hands over later (the dial code of a phone that actually receives the OTP, the payment rail), and those belong to signup, not to an anonymous marketing page.
 
 Password reset is anonymous and email-based. `POST /api/auth/password/request` takes `{ "email" }` and always answers `202` with a generic message (no account enumeration); the code expires after 15 minutes and resend is throttled to one per minute. In Development it returns `devCode` (`8888` by default). `POST /api/auth/password/reset` takes `{ "email", "code", "newPassword" }`, returns `204`, and invalidates existing sessions; an invalid or expired code returns `401`. Both return `503` when SMTP is not configured, so production needs `Email__Enabled=true`, `Email__SmtpHost`, `Email__SmtpPort`, `Email__Username`, `Email__Password`, and `Email__From`.
 
@@ -198,6 +200,7 @@ Each directory item is `{ "teacher": { ...UserDto }, "slots": [ ...WeeklyRuleDto
 | Method | Endpoint                                | Purpose                                               |
 | ------ | --------------------------------------- | ----------------------------------------------------- |
 | GET    | `/api/students`                         | Admin list; teacher-scoped list if policy permits     |
+| GET    | `/api/students/{id}`                    | One student: admins and the student themself get contact fields, an assigned teacher gets names only |
 | POST   | `/api/students`                         | Admin creates a student account                       |
 | GET    | `/api/teachers`                         | Admin list                                            |
 | GET    | `/api/teacher-student-assignments`      | List assignments                                      |
@@ -211,7 +214,7 @@ Each directory item is `{ "teacher": { ...UserDto }, "slots": [ ...WeeklyRuleDto
 
 `GET /api/admin/students/pending` is the assignment desk's whole input. It returns one row per active student — including students who already have a teacher, so the desk can sort them — shaped `{ studentId, studentName, email, registeredAt, onboarding, hasTeacher, teacherName, weeklyLessons }`. `onboarding` is the same `StudentOnboardingDto` the student reads back from `GET /api/student/onboarding`, or `null` when they never opened setup; its `weeklySlots` are the student's own preferences in the student's zone, never bookings. `weeklyLessons` lists the student's active weekly series (`{ id, dayOfWeek, startsAtTime, endsAtTime, timeZoneId }`) on their teacher's clock — the desk re-reads each one on the student's clock to mark which offered windows already have a lesson. Rows come back longest-waiting first.
 
-`StudentOnboardingDto` also carries `planDaysPerWeek`: the tier the student asked for, or `0` when they never chose. The wizard asks for it as its own step and sends it with the rest of the application — `PUT /api/student/onboarding` takes `daysPerWeek` (`2 | 3 | 4 | 5`, or `null` mid-wizard) — while `PATCH /api/student/plan` (`StudentOnly`) with `{ "daysPerWeek": 2 | 3 | 4 | 5 }` changes it later from `/plans`. Both reject anything else with `400 { "errors": { "daysPerWeek": [...] } }`, and both refuse a tier the offered week cannot hold: a finished application must cover at least `planDaysPerWeek` different weekdays, and a `PATCH` from a student who has already offered times must not outgrow them (`"A 4-day plan needs at least 4 different days."`). Mid-wizard partial saves are exempt, so the desk can see an application still being filled in. It is a wish, not a subscription — no payment, invoice, or price reads it — and a save never clears it, so a student can choose a tier before or after finishing their answers. The desk shows it as a `Plan: N days a week` chip, with `M booked · K to place` once the student has lessons, and a line under the confirm button saying whether the rules just chosen fill that plan.
+`StudentOnboardingDto` also carries `planDaysPerWeek`: the tier the student asked for, or `0` when they never chose. The wizard asks for it as its own step and sends it with the rest of the application — `PUT /api/student/onboarding` takes `daysPerWeek` (`2 | 3 | 4 | 5`, or `null` mid-wizard) — while `PATCH /api/student/plan` (`StudentOnly`) with `{ "daysPerWeek": 2 | 3 | 4 | 5 }` changes it later from `/plans`. Both reject anything else with `400 { "errors": { "daysPerWeek": [...] } }`, and both refuse a tier the offered week cannot hold: a finished application must cover at least `planDaysPerWeek` different weekdays, and a `PATCH` from a student who has already offered times must not outgrow them (`"A 4-day plan needs at least 4 different days."`). Mid-wizard partial saves are exempt, so the desk can see an application still being filled in. It is a wish, not a subscription — no card is ever charged for it — but it is what the month is billed at: the invoice price comes from the `PlanPrices` row for this tier, so a student with `planDaysPerWeek = 0` has nothing to pay yet and `/student/payments` says so. A save never clears it, so a student can choose a tier before or after finishing their answers. The desk shows it as a `Plan: N days a week` chip, with `M booked · K to place` once the student has lessons, and a line under the confirm button saying whether the rules just chosen fill that plan.
 
 A student has at most one active teacher at a time; the API enforces this and reassignment replaces the previous active assignment.
 
@@ -271,6 +274,22 @@ The student scheduling endpoints derive the student identity from the authentica
 `POST /api/teacher-applications` is anonymous and takes `multipart/form-data` with the fields `fullName`, `email`, `phoneNumber` (E.164), repeated `subjects` values (`quran`, `tajweed`, `islamic_studies`, `arabic`), `englishLevel` (`beginner`, `intermediate`, `advanced`, `fluent`), `experienceYears`, `bio`, `availabilityNote`, `cv`, `quran`, and `intro`. The CV must be PDF, DOC, or DOCX, at most 2 MB, and its magic bytes are checked. The Quran recitation is required and the intro recording is optional; both must be MP3, M4A, WAV, OGG, WebM, MP4, or MOV, at most 20 MB each, also magic-byte checked. Only one `pending` application per email is allowed. Applications and file bytes live in separate tables (`TeacherApplications`, `TeacherApplicationCvs`, `TeacherApplicationQuranRecordings`, `TeacherApplicationIntros`) so list queries never load the files, which are only fetched on demand through the `/cv`, `/quran`, and `/intro` endpoints. There is no automated deletion of applications.
 
 Approving an application creates an active `teacher` account (with a random internal password) and issues a 15-minute set-password code. If SMTP is configured, the code is emailed with `SendTeacherInviteCodeAsync`; otherwise the `PATCH` response returns `inviteCode` so an admin can share it. If the email already belongs to an account, approval returns `409` and leaves the application pending. Rejecting requires a reason of 3–500 characters.
+
+## Signed agreements
+
+| Method | Endpoint                | Purpose                                                    |
+| ------ | ----------------------- | ---------------------------------------------------------- |
+| GET    | `/api/policy/{key}`     | Public document text: `{ key, version, language, title, summary, clauses[] }` |
+| GET    | `/api/policy/state`     | `{ required, accepted, document, acceptedAt }` for the caller's role |
+| POST   | `/api/policy/accept`    | `{ policyKey, version, clauseIds[] }` → `{ policyKey, version, acceptedAt, clauseIds }` |
+
+`key` is `teacher` (Arabic, 9 clauses) or `parent` (English, 9 clauses, signed on the student account). `language` decides text direction: render `document` right-to-left when it is `ar`. Admin and support get `required: false` and the FE page says there is nothing to sign.
+
+The clause bodies arrive **already filled**. The templates in `PolicyCatalog.cs` hold `{freeCancelHours}`, `{teacherNoticeHours}` and `{noShowGraceMinutes}` tokens, which the API replaces with the live `AcademyPolicy` row on every read, and `version` is a SHA-256 fingerprint of that filled text rather than a hand-maintained counter. Clients must render what they are given and send back exactly the `version` they were served — never cache a document across a policy change, and never compare a version to a constant. Editing a cancellation window on `/admin/lesson-ops` therefore changes the agreement wording and invalidates every stored signature at once.
+
+The FE sends exactly the clause ids it rendered. `404` unknown key, `409` with `currentVersion` when the page held an older version (re-fetch state and start again), `422` when a clause is unticked (`missing[]`) or an id is not in the document, `403` when the document belongs to another role. Re-accepting the same version is idempotent and returns the original `acceptedAt`.
+
+Until the current version is on file, the API refuses the account's first real action with `428` — announcing availability, finishing student onboarding, or joining a lesson room. `backendFetch` turns that into the message "Accept the academy agreement before continuing.", and `PolicyPrompt` puts a "Review and accept" card to `/policy` on both dashboards and in the onboarding wizard.
 
 ## Weekly scheduling workflow
 
@@ -400,7 +419,7 @@ This is one backend-authoritative system shared by web and mobile. The clients n
 
 ### Policy
 
-One `AcademyPolicies` row (id `1`) drives every decision. Defaults: student/teacher free-cancel window 24 hours, no-show grace 10 minutes, reschedule reply deadline 12 hours, one student grace cancellation per Cairo month, student warning at 3 strikes, student admin review at 4, teacher admin review at 2, trial no-show threshold 2, and `payScheduledDurationWhenAttended = true`.
+One `AcademyPolicies` row (id `1`) drives every decision. Defaults: student/teacher free-cancel window 12 hours, no-show grace 10 minutes, reschedule reply deadline 12 hours, one student grace cancellation per Cairo month, student warning at 3 strikes, student admin review at 4, teacher admin review at 2, trial no-show threshold 2, and `payScheduledDurationWhenAttended = true`.
 
 | Method | Endpoint             | Role  | Purpose                                       |
 | ------ | -------------------- | ----- | --------------------------------------------- |
@@ -518,7 +537,7 @@ subscriptions are deleted by the sender when the push service answers 404/410.
 
 Three independent teacher-hour values are stored per lesson: `actualAttendanceMinutes` from intervals, `proposedPayableMinutes` (actual, or the full scheduled time when the policy pays scheduled duration and both sides attended), and admin `approvedPayableMinutes`. Approval status is `pending`, `approved`, `adjusted`, `rejected`, or `not_applicable`, with the auditor and adjustment reason recorded.
 
-The student credit ledger (`LessonCreditTransactions`) is append-only and idempotent per lesson/outcome; it is an audit trail, not a second wallet. Monthly USD/EGP billing remains the existing claims/rates system. Reliability events feed warning/review thresholds and an admin queue. Salary periods aggregate minutes, penalties, cancellations, and no-shows per teacher and month; the final EGP amount stays manual (no automatic transfer), and `status` moves `open` → `reviewed` → `paid`.
+The student credit ledger (`LessonCreditTransactions`) is append-only and idempotent per lesson/outcome; it is an audit trail, not a second wallet, and no billing rail reads it. Render `creditEffect` as whether the lesson counts against the student's record — never as a credit the family holds, spends, or loses. `GET /api/student/credits` exists but no client shows a family balance; the admin ledger and `credits/adjust` are the only views of it. Monthly USD/EGP billing remains the existing claims/rates system. Reliability events feed warning/review thresholds and an admin queue. Salary periods aggregate minutes, penalties, cancellations, and no-shows per teacher and month; the final EGP amount stays manual (no automatic transfer), and `status` moves `open` → `reviewed` → `paid`.
 
 ### Admin operations
 
@@ -703,14 +722,45 @@ Each month has a student statement (USD) and a teacher earnings summary (EGP). M
 - A student's trial lesson appears on the statement with amount `0`; the teacher is still paid the normal EGP rate for it.
 - One claim per student and month (`pending`, `confirmed`, `rejected`). Only closed months with a total above zero can be claimed; a confirmed or pending claim blocks a new one, while a rejected claim can be re-submitted and returns to `pending`.
 - Claim lesson count and USD amount are frozen when the claim is created, so later rate changes do not rewrite a submitted statement.
-- `canClaim` on the student response is the single source of truth for showing the "I've sent the payment" action.
+- `canClaim` on the student response is the single source of truth for showing the "I've sent the payment" action. It is false for a month already settled by card, which the response also reports as `cardPaid`.
 - Teacher and student responses are role-scoped: the API derives the user id from the session, never from a query parameter.
 
 The web pages are `/student/payments`, `/teacher/payments`, and `/admin/payments`; the mobile app mirrors the first two as `/payments` and `/earnings`.
 
+## Card checkout (web only)
+
+A month is billed at the flat plan price, held entirely server-side. The frontend never computes, edits, or confirms an amount.
+
+| Method | Endpoint | Role | Purpose |
+| --- | --- | --- | --- |
+| GET | `/api/pricing?currency=&country=` | public | `{ currency, currencies[], plans[{ daysPerWeek, classesPerMonth, monthlyAmount }], cardCheckout, freeCancelHours, teacherNoticeHours, noShowGraceMinutes }` |
+| GET | `/api/student/payments/invoice?month=&currency=` | student | `{ month, daysPerWeek, currency, amount, invoice? }` — the last month that has ended, or its bill |
+| POST | `/api/student/payments/invoice` | student | `{ currency? }` only. Returns the same view with `invoice` filled in |
+| POST | `/api/student/payments/invoice/{invoiceId}/checkout` | student | `{ invoiceId, transactionId, clientSecret, publishableKey, providerReference, currency, amount }` |
+| GET | `/api/student/payments/attempt/{transactionId}/status` | student | `{ invoiceId, invoiceStatus, paid, providerStatus, providerReached }` |
+
+`src/lib/pricing.ts` (server side, used by `/` and `/plans`) and `src/services/pricing.service.ts` + `src/services/payment.service.ts` (client side) are the only places these are called; `src/components/CardCheckout.tsx` mounts the Stripe frame and `src/components/student/PlanPayCard.tsx` owns the month.
+
+- **`cardCheckout` decides whether a Pay button exists.** It is false until the host has Stripe keys *and* a complete price set in that currency, so a page never advertises a payment it cannot take. Render no card affordance when it is false — the transfer-and-claim path below stays the way that month is paid.
+- **No page holds a price of its own.** `/plans` and the landing page render `plans[].monthlyAmount` through `money()`; a tier with no row in the resolved currency is simply absent from the list.
+- **The rule numbers are public too.** `freeCancelHours`, `teacherNoticeHours` and `noShowGraceMinutes` are the same `AcademyPolicy` values the signed agreements are filled from, and `/api/pricing` returns them even when the visitor's prices are hidden — the rules still bind them. `getLessonRules()` in `src/lib/pricing.ts` reads them for the public FAQ, which must interpolate them instead of typing a window into copy; the shipped defaults apply only when the API cannot be reached.
+- **The month is the one that has ended.** `view.month` is the last closed month in Cairo time and the screen labels it, never "this month". Asking for the ongoing month answers `400`, and a month whose classes were all cancelled quotes `amount: 0` — `PlanPayCard` reads `daysPerWeek === 0` as "no plan on record" and `amount === 0` as "nothing is due for {month} yet".
+- **One rail per month.** The billing view carries `cardPaid`; when it is true the transfer panel says the month is settled by card instead of inviting a transfer, because `canClaim` is false and the claim route would refuse. The reverse holds server-side too: a month with a transfer pending or confirmed cannot open a card checkout.
+- **Currency is chosen by the server.** The student's `?currency=` pick wins, then the country from the geo header or the `academy-country` cookie, then the academy default. An incomplete pick is ignored, not guessed at — a stale switcher link quietly shows USD rather than a number the API would refuse to bill.
+- **A redirect back from Stripe is not payment.** `?session_id=` in the URL only makes the screen poll the status endpoint sooner. `paid` comes from that endpoint (which re-reads the provider) or the webhook, and `invoice.status === "paid"` is the only thing that may change the UI.
+- **Poll, don't hope.** Ask `/attempt/{id}/status` every 5 seconds while a checkout is open, and stop when the invoice is paid. The tracked attempt is the ticket just returned, or else the `pending` attempt already on the invoice — that is how a tab closed mid-payment resumes.
+- **One checkout per month.** Re-opening checkout for a live attempt returns the same `transactionId`; the amount on the returned ticket is the invoice's, so display it rather than a locally remembered figure.
+- Amounts are decimal major units in JSON (`44.00`), never cents; `money()` in `src/lib/plans.ts` is the only formatter.
+- Failures need no extra handling in the components: `backendFetch` already raises a toast for a 4xx product message (`"This month is already paid."`), and `PlanPayCard` deliberately adds its own generic line only when the failure is *not* an `ApiError`, so a student never sees the same sentence twice and never sees infrastructure wording.
+- Prices stay hidden from visitors geolocated to Egypt on both public pages, exactly as before; that check gates the price list, so no card button appears either.
+
+The admin routes behind this are on `/admin/payments`: the plan prices have a desk panel (`src/components/admin/PlanPricesDesk.tsx`, through `getPlanPrices`/`savePlanPrice` in `src/services/payment.service.ts`). `GET /api/admin/payments/prices` answers `{ tiers[], currencies[], prices[] }` so the panel can only offer what the server can honour, and a `PUT` returns `openInvoicesUsingOldPrice` — bills already out keep the figure they were issued at. The invoices, transactions, refunds and callback log still have no screen.
+
 ## Error contract
 
 Prefer RFC 7807 Problem Details. Common status codes: `400` validation, `401` unauthenticated, `403` forbidden, `404` missing resource, `409` slot/assignment/scheduling conflict, `429` rate limit or sign-in lockout. The frontend displays `title`, `detail`, or `message` when available.
+
+`428` is the unsigned-agreement refusal and carries its own JSON body, not Problem Details: `{"code":"policy_acceptance_required","policyKey":"teacher","version":1693859204,"message":"Accept the teacher agreement before continuing.","link":"/policy"}`. `version` is an opaque fingerprint of the rendered text, not a counter — send it back unchanged and never compare it to a constant. Both clients map it to a generic line through `statusMessage`; the prompt card is what routes the user, not the error.
 
 Sign-in failures put the sentence in `detail`, never in `title` — `backend-client.ts` and the mobile `api/client.ts` both treat `detail`/`message` as product copy and treat `title` as infrastructure wording, so a message that belongs in `title` is silently replaced by the client's generic line.
 
@@ -731,9 +781,10 @@ The account lock lasts three minutes and lifts by itself; a correct password dur
 - `/teachers`, `/teachers/{id}` — authenticated students only; anonymous visitors are redirected to `/login`, other roles to their dashboard
 - `/profile` — student/teacher/admin profile: name, email, mobile, photo, and class-report history
 - `/notifications` — in-app notification feed (bookings, reminders, requests, payments, system)
-- `/student/dashboard`, `/student/availability`, `/student/teachers/{id}`, `/student/change-time/{seriesId}`, `/student/payments`, `/schedule`, `/lesson/{id}` — student overview, teacher directory with unlimited weekly multi-select, self-service weekly time change, monthly payment statement, recurring schedule, and post-lesson recap/review
+- `/policy` — the agreement the signed-in role must tick and accept; open to every role, and the document is whichever one the API assigns to it
+- `/student/dashboard`, `/student/availability`, `/student/teachers/{id}`, `/student/change-time/{seriesId}`, `/student/payments`, `/schedule`, `/lesson/{id}` — student overview, teacher directory with unlimited weekly multi-select, self-service weekly time change, this month's card bill plus the monthly payment statement, recurring schedule, and post-lesson recap/review
 - `/teacher/dashboard`, `/teacher/availability`, `/teacher/schedule`, `/teacher/payments` — teacher tools: announce weekly rules, see the weekly bookings, submit reports, and review monthly EGP earnings with payout details. Teachers have no lesson-request or approval screens.
-- `/admin/dashboard`, `/admin/change-requests`, `/admin/students`, `/admin/teachers`, `/admin/teachers/{id}/availability`, `/admin/teacher-applications`, `/admin/assignments`, `/admin/lessons`, `/admin/lesson-ops`, `/admin/payments`, `/admin/transcripts`, `/admin/support` — admin tools; `/admin/change-requests` is the read-only history of the weekly times students moved, `/admin/lesson-ops` is the live day monitor plus review queues, salary review, and the lesson policy, and `/admin/payments` holds the USD account, per-teacher rates, and student claim reviews
+- `/admin/dashboard`, `/admin/change-requests`, `/admin/students`, `/admin/teachers`, `/admin/teachers/{id}/availability`, `/admin/teacher-applications`, `/admin/assignments`, `/admin/lessons`, `/admin/lesson-ops`, `/admin/payments`, `/admin/transcripts`, `/admin/support` — admin tools; `/admin/change-requests` is the read-only history of the weekly times students moved, `/admin/lesson-ops` is the live day monitor plus review queues, salary review, and the lesson policy, and `/admin/payments` holds the USD account, the plan prices per currency, per-teacher rates, and student claim reviews
 - `/support/transcripts`, `/support/transcripts/{id}`, `/support/weekly` — support reviewers (also reachable by admins): queue, transcript plus rubric review, and the weekly per-teacher digest
 
 The landing page is implemented in `src/app/page.tsx`. Feature screens are App Router `page.tsx` files; do not add a `pages/` directory.

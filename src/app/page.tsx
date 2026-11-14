@@ -16,14 +16,15 @@ import {
   Users,
 } from "lucide-react";
 
-import { SignUpCta } from "@/components/SignUpCta";
+import { EnrolCta } from "@/components/EnrolCta";
 import { PlanChoiceCta } from "@/components/PlanChoiceCta";
 import { SiteFooter } from "@/components/SiteFooter";
 import { BlogCard } from "@/components/blog/BlogCard";
 import { getBlogPost, type BlogPost } from "@/lib/blog";
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_TITLE } from "@/lib/seo";
-import { LESSON_MINUTES, perClassUsd, plans, usd } from "@/lib/plans";
-import { pricingHidden } from "@/lib/pricing-visibility";
+import { LESSON_MINUTES, currencyName, money, perClass } from "@/lib/plans";
+import { getPriceList, pricedTiers } from "@/lib/pricing";
+import { restrictedVisitor } from "@/lib/pricing-visibility";
 
 // Curated by what a first-time visitor needs, not by publish date: the
 // getting-started guide, the Tajweed guide, and the parents' guide.
@@ -57,21 +58,21 @@ export const metadata: Metadata = {
 const steps = [
   {
     number: "01",
-    title: "Meet your teacher",
+    title: "Tell us your level and times",
     description:
-      "We connect each student with a dedicated teacher who understands their goals and learning pace.",
+      "Create an account, set the level for each subject, and give us the weekly times that suit your family.",
   },
   {
     number: "02",
-    title: "Choose your weekly times",
+    title: "The academy assigns your teacher",
     description:
-      "See each teacher’s weekly schedule and pick the times that fit your routine — as many as you need.",
+      "We match your level and your times with one dedicated teacher, then set your weekly lessons around them.",
   },
   {
     number: "03",
     title: "Learn one-to-one every week",
     description:
-      "Your times lock in instantly and repeat every week. Join each lesson online, starting with a trial.",
+      "The same teacher at the same weekly time, shown in your own time zone — starting with a free trial lesson.",
   },
 ];
 
@@ -86,7 +87,7 @@ const benefits = [
     icon: CalendarDays,
     title: "Flexible scheduling",
     description:
-      "Pick your teacher’s weekly times. Booking is instant and repeats every week.",
+      "Give us the weekly times that fit your routine; your lessons repeat at those times every week.",
   },
   {
     icon: ShieldCheck,
@@ -97,7 +98,13 @@ const benefits = [
 ];
 
 export default async function HomePage() {
-  const hidden = await pricingHidden();
+  const hidden = await restrictedVisitor();
+  const pricing = hidden ? null : await getPriceList();
+  const tiers = pricedTiers(pricing);
+  const amounts = tiers.map((tier) => tier.monthlyAmount);
+  const cheapest = Math.min(...amounts);
+  const dearest = Math.max(...amounts);
+
   return (
     <main className="overflow-hidden bg-[#f3efe8] text-[#173b35] dark:bg-background dark:text-foreground">
       <section className="relative isolate">
@@ -127,7 +134,7 @@ export default async function HomePage() {
               teachers in one-to-one online lessons, taught in English.
             </p>
             <div className="mt-8 flex w-full flex-col gap-3 sm:mt-9 sm:flex-row">
-              <SignUpCta
+              <EnrolCta
                 label="Start learning"
                 className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500 sm:w-auto"
               />
@@ -317,7 +324,7 @@ export default async function HomePage() {
                 From your first sign-up to your next lesson, we make it easy to
                 stay connected and keep learning.
               </p>
-              <SignUpCta
+              <EnrolCta
                 label="Create your student account"
                 className="mt-7 inline-flex items-center gap-2 font-semibold text-[#1d5144] hover:gap-3 dark:text-green-400"
               />
@@ -370,21 +377,21 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {!hidden && (
+      {pricing && amounts.length > 0 && (
         <section className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-20">
           <div className="rounded-[2rem] border border-[#dce6d8] bg-white px-7 py-10 shadow-sm dark:border-card-border dark:bg-card-bg md:px-10">
             <div className="flex flex-wrap items-end justify-between gap-5">
               <div>
                 <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#a7773e] dark:text-amber-300">
-                  Weekly plans
+                  Weekly plans · {currencyName(pricing.currency)}
                 </p>
                 <h2 className="mt-3 text-2xl font-bold tracking-tight text-[#173b35] dark:text-foreground sm:text-3xl">
-                  {`${usd(plans[0].priceUsd)} to ${usd(plans[plans.length - 1].priceUsd)} a month`}
+                  {`${money(cheapest, pricing.currency)} to ${money(dearest, pricing.currency)} a month`}
                 </h2>
                 <p className="mt-3 max-w-xl leading-7 text-[#6b7c73] dark:text-foreground/70">
                   One-to-one {LESSON_MINUTES}-minute classes with the same
-                  teacher every week. Choose two to five days, pay after the
-                  month, and only for lessons that actually took place.
+                  teacher every week. Choose two to five days, pay once the
+                  month has ended, and only for months that had classes in them.
                 </p>
               </div>
               <Link
@@ -396,7 +403,7 @@ export default async function HomePage() {
             </div>
 
             <ul className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {plans.map((plan) => (
+              {tiers.map((plan) => (
                 <li
                   key={plan.id}
                   className={`flex flex-col rounded-2xl border px-5 py-4 ${
@@ -414,13 +421,17 @@ export default async function HomePage() {
                     )}
                   </p>
                   <p className="mt-2 text-2xl font-black tracking-[-0.03em] text-[#123c35] dark:text-white">
-                    {usd(plan.priceUsd)}
+                    {money(plan.monthlyAmount, pricing.currency)}
                     <span className="ml-1 text-sm font-semibold text-[#7a8a80] dark:text-foreground/50">
                       /month
                     </span>
                   </p>
                   <p className="mt-1 text-sm text-[#6b7c73] dark:text-foreground/70">
-                    {plan.classesPerMonth} classes · {usd(perClassUsd(plan))}{" "}
+                    {plan.classesPerMonth} classes ·{" "}
+                    {money(
+                      perClass(plan.monthlyAmount, plan.classesPerMonth),
+                      pricing.currency
+                    )}{" "}
                     each
                   </p>
 
@@ -491,7 +502,7 @@ export default async function HomePage() {
             your learning journey.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <SignUpCta
+            <EnrolCta
               label="Get started"
               withArrow={false}
               className="rounded-xl bg-[#e4c18e] px-6 py-3.5 font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"

@@ -7,8 +7,11 @@ import { ApiError } from "@/lib/backend-client";
 import { reportUnexpectedError } from "@/lib/sentry";
 import { useToast } from "@/providers/toast-provider";
 import { PasswordField } from "@/components/ui/password-field";
+import { FieldError } from "@/components/ui/field-error";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const mismatchMessage = "The new passwords do not match.";
 
 type Step = "request" | "reset" | "done";
 
@@ -21,9 +24,23 @@ export default function ForgotPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [devCode, setDevCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const clearFieldError = (field: string) =>
+    setFieldErrors((current) =>
+      current[field] ? { ...current, [field]: "" } : current
+    );
 
   const inputClass =
     "w-full rounded-xl border border-card-border bg-background px-4 py-3 text-foreground focus:outline-none focus:border-green-500";
+
+  const fieldClass = (field: string, message = fieldErrors[field]) =>
+    `${inputClass} ${message ? "border-red-400" : ""}`;
+
+  // Derived, so a wrong confirmation is reported while it is still being typed.
+  const confirmError =
+    fieldErrors.confirmPassword ||
+    (confirmPassword && newPassword !== confirmPassword ? mismatchMessage : "");
 
   const handleRequest = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -31,9 +48,10 @@ export default function ForgotPasswordPage() {
 
     const address = email.trim();
     if (!emailRegex.test(address)) {
-      showToast("Please enter a valid email address.", "error");
+      setFieldErrors({ email: "Please enter a valid email address." });
       return;
     }
+    setFieldErrors({});
 
     setLoading(true);
     try {
@@ -56,18 +74,20 @@ export default function ForgotPasswordPage() {
     if (loading) return;
 
     const trimmedCode = code.trim();
-    if (!/^\d{4,8}$/.test(trimmedCode)) {
-      showToast("Enter the numeric code from the email.", "error");
+    const invalid: Record<string, string> = {};
+    if (!/^\d{4,8}$/.test(trimmedCode))
+      invalid.code = "Enter the numeric code from the email.";
+    if (newPassword.length < 8)
+      invalid.newPassword = "Choose a new password of at least 8 characters.";
+    if (!confirmPassword) invalid.confirmPassword = "Confirm the new password.";
+    else if (newPassword !== confirmPassword)
+      invalid.confirmPassword = mismatchMessage;
+
+    if (Object.keys(invalid).length) {
+      setFieldErrors(invalid);
       return;
     }
-    if (newPassword.length < 8) {
-      showToast("Choose a new password of at least 8 characters.", "error");
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      showToast("The new passwords do not match.", "error");
-      return;
-    }
+    setFieldErrors({});
 
     setLoading(true);
     try {
@@ -107,11 +127,16 @@ export default function ForgotPasswordPage() {
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                    clearFieldError("email");
+                  }}
                   required
                   autoComplete="email"
-                  className={inputClass}
+                  aria-invalid={fieldErrors.email ? true : undefined}
+                  className={fieldClass("email")}
                 />
+                <FieldError message={fieldErrors.email} />
               </div>
               <button
                 type="submit"
@@ -144,12 +169,15 @@ export default function ForgotPasswordPage() {
                   autoComplete="one-time-code"
                   maxLength={8}
                   value={code}
-                  onChange={(event) =>
-                    setCode(event.target.value.replace(/\D/g, ""))
-                  }
+                  onChange={(event) => {
+                    setCode(event.target.value.replace(/\D/g, ""));
+                    clearFieldError("code");
+                  }}
                   required
-                  className={`${inputClass} tracking-[0.4em]`}
+                  aria-invalid={fieldErrors.code ? true : undefined}
+                  className={`${fieldClass("code")} tracking-[0.4em]`}
                 />
+                <FieldError message={fieldErrors.code} />
                 <p className="mt-2 text-xs text-foreground opacity-70">
                   Sent to {email}.
                 </p>
@@ -170,12 +198,18 @@ export default function ForgotPasswordPage() {
                 <PasswordField
                   id="new-password"
                   value={newPassword}
-                  onChange={(event) => setNewPassword(event.target.value)}
+                  onChange={(event) => {
+                    setNewPassword(event.target.value);
+                    clearFieldError("newPassword");
+                    clearFieldError("confirmPassword");
+                  }}
                   autoComplete="new-password"
                   required
                   minLength={8}
-                  className={inputClass}
+                  aria-invalid={fieldErrors.newPassword ? true : undefined}
+                  className={fieldClass("newPassword")}
                 />
+                <FieldError message={fieldErrors.newPassword} />
               </div>
               <div>
                 <label
@@ -187,12 +221,17 @@ export default function ForgotPasswordPage() {
                 <PasswordField
                   id="confirm-password"
                   value={confirmPassword}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  onChange={(event) => {
+                    setConfirmPassword(event.target.value);
+                    clearFieldError("confirmPassword");
+                  }}
                   autoComplete="new-password"
                   required
                   minLength={8}
-                  className={inputClass}
+                  aria-invalid={confirmError ? true : undefined}
+                  className={fieldClass("confirmPassword", confirmError)}
                 />
+                <FieldError message={confirmError} />
               </div>
               <button
                 type="submit"

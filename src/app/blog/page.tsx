@@ -5,7 +5,7 @@ import { ArrowRight, BookOpen, Clock3 } from "lucide-react";
 import { BlogCard } from "@/components/blog/BlogCard";
 import { JsonLd } from "@/components/JsonLd";
 import { SiteFooter } from "@/components/SiteFooter";
-import { SignUpCta } from "@/components/SignUpCta";
+import { EnrolCta } from "@/components/EnrolCta";
 import { formatBlogDate, sortedBlogPosts, type BlogPost } from "@/lib/blog";
 import { absoluteUrl, pageMetadata, SITE_URL } from "@/lib/seo";
 
@@ -150,7 +150,7 @@ export default function BlogPage() {
             lessons and scheduling in your time zone.
           </p>
           <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
-            <SignUpCta
+            <EnrolCta
               label="Start with a free trial"
               withArrow={false}
               className="rounded-xl bg-[#1d4e47] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"

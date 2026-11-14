@@ -10,12 +10,14 @@ import { useAuth } from "@/providers/auth-provider";
 import { navigationConfig } from "@/constants/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { NotificationsBell } from "@/components/NotificationsBell";
+import { useRestrictedVisitor } from "@/hooks/use-restricted-visitor";
 
 const LINK_GAP_PX = 8; // matches the gap-2 between nav links
 
 const Navbar = () => {
   const { role, profile, logout, isAuthenticated } = useAuth();
   const pathname = usePathname();
+  const restricted = useRestrictedVisitor();
   const [moreOpen, setMoreOpen] = useState(false);
   const [foldedCount, setFoldedCount] = useState(0);
   const moreWrapper = useRef<HTMLDivElement>(null);
@@ -102,6 +104,31 @@ const Navbar = () => {
     setMoreOpen(false);
   }, [pathname]);
 
+  // The measurement pass above is an estimate: web fonts, browser zoom and
+  // late-rendered labels all change real widths after it has run. Any chip that
+  // still sticks out of the row folds into "More", so the links can never paint
+  // over the account cluster.
+  useEffect(() => {
+    const row = linksRow.current;
+    if (!row) return;
+
+    const chips = Array.from(row.children).filter(
+      (child) => child.getAttribute("aria-hidden") !== "true"
+    );
+    const last = chips[chips.length - 1] as HTMLElement | undefined;
+    if (!last) return;
+
+    if (
+      last.getBoundingClientRect().right <=
+      row.getBoundingClientRect().right + 1
+    )
+      return;
+
+    setFoldedCount((count) =>
+      Math.min(count + 1, Math.max(candidateLinks.length - 1, 0))
+    );
+  }, [foldedCount, candidateLinks.length, role, pathname]);
+
   useEffect(() => {
     if (!moreOpen) return;
     const onPointerDown = (event: PointerEvent) => {
@@ -125,22 +152,30 @@ const Navbar = () => {
         <Link
           href="/"
           aria-label="Ana Quran home"
-          className="flex items-center"
+          className="flex items-center gap-3"
         >
           <img
-            src="/logo-ana-quran.svg?v=2026-11-06-1"
-            alt="Ana Quran logo"
-            width={40}
-            height={56}
-            className="navbar-brand-logo h-16 w-auto dark:hidden"
+            src="/logo-ana-quran-mark.svg?v=2026-11-07-1"
+            alt=""
+            width={34}
+            height={48}
+            className="navbar-brand-logo h-10 w-auto dark:hidden"
           />
           <img
-            src="/logo-ana-quran-light.svg?v=2026-11-06-1"
-            alt="Ana Quran logo"
-            width={40}
-            height={56}
-            className="navbar-brand-logo hidden h-16 w-auto dark:block"
+            src="/logo-ana-quran-mark-light.svg?v=2026-11-07-1"
+            alt=""
+            width={34}
+            height={48}
+            className="navbar-brand-logo hidden h-10 w-auto dark:block"
           />
+          <span className="flex flex-col leading-none">
+            <span className="text-[1.05rem] font-extrabold tracking-[-0.02em]">
+              Ana Quran
+            </span>
+            <span className="mt-1 text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-[var(--nav-text-muted)]">
+              Academy
+            </span>
+          </span>
         </Link>
         <div className="flex items-center gap-2">
           <WhatsAppButton className="h-9 w-9" />
@@ -271,11 +306,13 @@ const Navbar = () => {
                   Login
                 </button>
               </Link>
-              <Link href="/signup">
-                <button className="rounded-xl bg-[#f1d1a1] px-4 py-2 text-sm font-semibold text-[#173d3f] transition hover:bg-[#f6d9a8]">
-                  Start a free trial
-                </button>
-              </Link>
+              {!restricted && (
+                <Link href="/signup">
+                  <button className="rounded-xl bg-[#f1d1a1] px-4 py-2 text-sm font-semibold text-[#173d3f] transition hover:bg-[#f6d9a8]">
+                    Start a free trial
+                  </button>
+                </Link>
+              )}
             </>
           ) : (
             <>

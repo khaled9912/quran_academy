@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
@@ -60,6 +60,13 @@ const websiteSchema = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   applicationName: SITE_NAME,
+  // iOS ignores the web manifest; these metas are what make a home-screen icon
+  // open as a standalone app instead of a browser tab.
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: SITE_SHORT_NAME,
+  },
   title: {
     default: SITE_TITLE,
     template: `%s | ${SITE_NAME}`,
@@ -117,6 +124,10 @@ export const metadata: Metadata = {
     shortcut: "/favicon.ico",
     apple: "/apple-icon.png?v=2026-11-06-2",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#1d4e47",
 };
 
 export default function RootLayout({

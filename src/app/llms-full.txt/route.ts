@@ -48,14 +48,14 @@ Programs are adapted to each student's level and goals. Availability varies by t
 
 ## Teachers
 
-Teachers apply with their experience and CV, and every application is reviewed before onboarding. Approved teachers publish their weekly availability, and students book open times instantly. Our teaching team is based in Egypt.
+Teachers apply with their experience and CV, and every application is reviewed before onboarding. Approved teachers publish their weekly availability, and the academy assigns each student one teacher and sets their weekly lessons. Our teaching team is based in Egypt.
 
 ## Fees and payment
 
 - New students start with a free trial lesson
-- After the trial, lessons are billed monthly in US dollars (USD) by bank transfer
+- After the trial, each month is billed once it has ended, at the price of the weekly plan you chose
 - Published weekly plans cover 30-minute classes from two to five days a week — see /plans for the current figures
-- Students claim each month's payment in their account; the academy confirms it
+- Card payments settle automatically; a bank transfer is marked as sent in the student's account and confirmed by the academy
 - Currency conversion or bank fees, if any, are set by the student's bank
 
 ## Who it is for
@@ -86,11 +86,11 @@ Yes. A new student's first lesson is a free trial. After that, lessons are bille
 
 ### How much do lessons cost?
 
-Weekly plans are published at /plans: 30-minute one-to-one classes, two to five days a week, billed monthly in US dollars (USD). Longer 45 and 60-minute lessons are arranged with the academy.
+Weekly plans are published at /plans: 30-minute one-to-one classes, two to five days a week, billed monthly after the month has ended. Longer 45 and 60-minute lessons are arranged with the academy.
 
 ### How are lessons scheduled?
 
-Each teacher publishes weekly availability. Students choose the times that fit their routine, and the booking repeats weekly. Times are shown in the student's local time zone.
+You give the academy the weekly times that suit you. The academy assigns one teacher, sets the weekly lessons from that teacher's published availability, and the lessons then repeat weekly. Times are shown in the student's local time zone, and a weekly lesson can be moved to another time the same teacher has published.
 
 ### Is there a physical campus?
 

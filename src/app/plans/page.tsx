@@ -15,14 +15,10 @@ import { PlanChoiceCta } from "@/components/PlanChoiceCta";
 import { SignUpCta } from "@/components/SignUpCta";
 import { SiteFooter } from "@/components/SiteFooter";
 import { absoluteUrl, pageMetadata, SITE_NAME, SITE_URL } from "@/lib/seo";
-import {
-  LESSON_MINUTES,
-  perClassUsd,
-  plans,
-  usd,
-  type Plan,
-} from "@/lib/plans";
-import { pricingHidden } from "@/lib/pricing-visibility";
+import { LESSON_MINUTES, currencyName, money, perClass } from "@/lib/plans";
+import { getPriceList, getLessonRules, pricedTiers } from "@/lib/pricing";
+import type { LessonRules, PriceList } from "@/types/pricing";
+import { restrictedVisitor } from "@/lib/pricing-visibility";
 
 const inclusions = [
   {
@@ -57,36 +53,43 @@ const inclusions = [
   },
 ];
 
-const faqs = [
+/**
+ * The answers the page shows and the structured data repeats, built per render
+ * from what this host actually runs. A page must not promise a card button this
+ * host cannot open, name a currency it would not bill in, or quote a
+ * cancellation window the rule row does not enforce.
+ */
+const questions = (pricing: PriceList | null, rules: LessonRules) => [
   {
     question: "How long is each class?",
-    answer:
-      "Every plan on this page is a series of 30-minute classes. If your family needs 45 or 60 minutes, say so when you book your free lesson and we will arrange it with your teacher.",
+    answer: `Every plan on this page is a series of ${LESSON_MINUTES}-minute classes. If your family needs 45 or 60 minutes, say so when you book your free lesson and we will arrange it with your teacher.`,
   },
   {
     question: "When do I pay?",
     answer:
-      "After the month, not before it. You are billed only for lessons that actually took place, and you can see each one in your account before you pay.",
+      "Once the month has ended, never before it starts. Your account lists the classes that made up the month before you pay anything, and a month with no classes in it is not billed at all.",
   },
   {
     question: "How do I pay?",
-    answer:
-      "By bank transfer in US dollars. You copy the academy's account details from your payments page and send the month's total.",
+    answer: pricing?.cardCheckout
+      ? `By card on your payments page, in ${currencyName(
+          pricing.currency
+        )}. The card charge is your plan's price for the closed month. Card details go into Stripe, the payment company, and never into this site. Your family can instead send a bank transfer: your payments page shows the academy's dollar account and the amount for the classes that took place, you mark it sent and we confirm it.`
+      : "By bank transfer to the academy's dollar account. Your payments page shows the account details and the amount for the classes that took place in the closed month. You send it, mark it as sent, and we confirm it.",
   },
   {
     question: "Can I cancel a lesson?",
-    answer:
-      "Yes, free of charge up to 24 hours before it starts. Inside 24 hours the lesson is still counted, because your teacher has already set the time aside for you. Once a month, a late cancellation is excused.",
+    answer: `Yes, free of charge up to ${rules.freeCancelHours} hours before it starts. A cancellation inside those hours is recorded against you, because your teacher has already set the time aside. Your teacher or the academy can still propose a make-up time, and it is booked when you accept it. One late cancellation each month is excused on your record.`,
   },
   {
     question: "What if my teacher cancels?",
     answer:
-      "You lose nothing. The lesson is credited back to you and you can book a make-up time.",
+      "Nothing is counted against you. The class is recorded as your teacher's cancellation, they can propose a make-up time for it, and repeated short-notice cancellations are reviewed by the academy.",
   },
   {
     question: "Can I change or stop my plan?",
     answer:
-      "Yes. There is no contract term and nothing to cancel. Pick the days a week you want on this page whenever it changes, and you are only ever billed for the lessons that actually took place.",
+      "Yes. There is no contract term and nothing to cancel. Pick the days a week you want on this page whenever it changes, and you only ever pay for the months that actually had classes in them.",
   },
   {
     question: "Is the first lesson really free?",
@@ -95,21 +98,24 @@ const faqs = [
   },
   {
     question: "Are there any other fees?",
-    answer:
-      "No sign-up fee and no charge for materials. The monthly plan price is the whole cost, apart from lessons cancelled inside 24 hours as described above.",
+    answer: `No sign-up fee and no charge for materials. One month's plan price is the whole cost for that month. A class you cancel inside ${rules.freeCancelHours} hours still counts as one of the classes you paid for, as above.`,
   },
 ];
 
 export async function generateMetadata(): Promise<Metadata> {
-  const hidden = await pricingHidden();
+  const hidden = await restrictedVisitor();
+  const pricing = hidden ? null : await getPriceList();
+  const cheapest = pricing
+    ? Math.min(...pricing.plans.map((plan) => plan.monthlyAmount))
+    : 0;
 
   return pageMetadata({
     title: hidden
       ? "Plans and Weekly Schedules"
       : "Online Quran Class Plans and Prices",
-    description: hidden
-      ? "One-to-one online Quran classes in English, 30 minutes each, from two to five days a week. Your monthly fee is confirmed after your free first lesson."
-      : "Online Quran class plans from $38 a month: one-to-one lessons in English, 30 minutes each, two to five days a week. Pay after the month, and start with a free first lesson.",
+    description: cheapest
+      ? `Online Quran class plans from ${money(cheapest, pricing!.currency)} a month: one-to-one lessons in English, ${LESSON_MINUTES} minutes each, two to five days a week. Pay after the month, and start with a free first lesson.`
+      : `Online Quran class plans: one-to-one lessons in English, ${LESSON_MINUTES} minutes each, two to five days a week. Your monthly fee is confirmed after your free first lesson.`,
     path: "/plans",
     keywords: hidden
       ? ["online Quran classes", "one-to-one Quran lessons"]
@@ -124,10 +130,16 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 
-const priceLine = (plan: Plan) => `${usd(plan.priceUsd)} per month`;
-
-export default async function PlansPage() {
-  const hidden = await pricingHidden();
+export default async function PlansPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ currency?: string }>;
+}) {
+  const hidden = await restrictedVisitor();
+  const pricing = hidden
+    ? null
+    : await getPriceList((await searchParams).currency);
+  const faqs = questions(pricing, await getLessonRules());
   const url = absoluteUrl("/plans");
 
   const breadcrumbSchema = {
@@ -154,27 +166,34 @@ export default async function PlansPage() {
     })),
   };
 
+  // A tier carries a figure only when the server has a price for it, in the
+  // currency this visitor would be billed in.
+  const tiers = pricedTiers(pricing);
+
+  // Only reached when there is a tier to price, so the fallback is unreachable.
+  const currency = pricing?.currency ?? "USD";
+
   // Prices are deliberately absent from structured data when the visitor's
   // country is gated, so the figures do not surface through search results.
-  const planSchemas = hidden
-    ? undefined
-    : {
+  const planSchemas = tiers.length
+    ? {
         "@context": "https://schema.org",
         "@type": "ItemList",
-        itemListElement: plans.map((plan, index) => ({
+        itemListElement: tiers.map((plan, index) => ({
           "@type": "ListItem",
           position: index + 1,
           item: {
             "@type": "Offer",
             name: `${plan.daysPerWeek} days a week`,
             description: `${plan.classesPerMonth} one-to-one ${LESSON_MINUTES}-minute Quran classes per month.`,
-            price: plan.priceUsd.toFixed(2),
-            priceCurrency: "USD",
+            price: plan.monthlyAmount.toFixed(2),
+            priceCurrency: currency,
             url,
             availability: "https://schema.org/InStock",
           },
         })),
-      };
+      }
+    : undefined;
 
   return (
     <main className="overflow-hidden bg-[#f3efe8] text-[#173b35] dark:bg-background dark:text-foreground">
@@ -236,15 +255,22 @@ export default async function PlansPage() {
           Weekly plans
         </h2>
         <p className="mt-4 max-w-2xl text-[#5d726a] dark:text-foreground/70">
-          {hidden
-            ? "Classes run in blocks of 30 minutes, from two to five days a week, with the same teacher kept every week. Your monthly fee is confirmed after your free first lesson, once we know the schedule your family needs."
-            : "Prices are in US dollars and cover a full month of classes. The more days you choose, the lower each class costs."}
+          {pricing
+            ? `Prices are shown in ${currencyName(pricing.currency)} and cover a full month of classes. The more days you choose, the lower each class costs.`
+            : `Classes run in blocks of ${LESSON_MINUTES} minutes, from two to five days a week, with the same teacher kept every week. Your monthly fee is confirmed after your free first lesson, once we know the schedule your family needs.`}
         </p>
 
-        {!hidden && (
+        {pricing && pricing.currencies.length > 1 && (
+          <CurrencySwitcher
+            currencies={pricing.currencies}
+            current={pricing.currency}
+          />
+        )}
+
+        {tiers.length > 0 && (
           <>
             <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {plans.map((plan) => (
+              {tiers.map((plan) => (
                 <article
                   key={plan.id}
                   className={`relative flex flex-col rounded-3xl border bg-white/80 p-6 dark:bg-white/5 ${
@@ -268,13 +294,17 @@ export default async function PlansPage() {
 
                   <div className="mt-6 min-h-20">
                     <p className="text-4xl font-black tracking-[-0.03em] text-[#123c35] dark:text-white">
-                      {usd(plan.priceUsd)}
+                      {money(plan.monthlyAmount, currency)}
                       <span className="ml-1 text-base font-semibold text-[#7a8a80] dark:text-foreground/50">
                         /month
                       </span>
                     </p>
                     <p className="mt-2 text-sm text-[#5d726a] dark:text-foreground/70">
-                      {usd(perClassUsd(plan))} per {LESSON_MINUTES}-minute class
+                      {money(
+                        perClass(plan.monthlyAmount, plan.classesPerMonth),
+                        currency
+                      )}{" "}
+                      per {LESSON_MINUTES}-minute class
                     </p>
                   </div>
 
@@ -366,5 +396,49 @@ export default async function PlansPage() {
 
       <SiteFooter />
     </main>
+  );
+}
+
+/**
+ * Prices for more than one currency sit behind one word: which currency the
+ * card is charged in. This states the choice rather than inferring it, and the
+ * figure a switcher shows is the figure an invoice would be issued for, because
+ * both come from the same server lookup.
+ */
+function CurrencySwitcher({
+  currencies,
+  current,
+}: {
+  currencies: string[];
+  current: string;
+}) {
+  return (
+    <nav
+      aria-label="Price currency"
+      className="mt-8 flex flex-wrap items-center gap-2"
+    >
+      <span className="mr-1 text-sm font-semibold uppercase tracking-wider text-[#7a8a80] dark:text-foreground/50">
+        Show prices in
+      </span>
+      {currencies.map((code) =>
+        code === current ? (
+          <span
+            key={code}
+            aria-current="true"
+            className="rounded-full bg-[#1d4e47] px-4 py-2 text-sm font-bold text-white dark:bg-green-600"
+          >
+            {code}
+          </span>
+        ) : (
+          <Link
+            key={code}
+            href={`/plans?currency=${encodeURIComponent(code)}`}
+            className="rounded-full border border-[#cedacd] bg-white/70 px-4 py-2 text-sm font-semibold text-[#244c40] transition hover:bg-white dark:border-[#3a5a7a] dark:bg-white/10 dark:text-foreground dark:hover:bg-white/15"
+          >
+            {code}
+          </Link>
+        )
+      )}
+    </nav>
   );
 }

@@ -36,18 +36,31 @@ self.addEventListener("push", (event) => {
   // A lesson call is the one notice that should stay on screen until it is
   // dealt with, and replaces the previous unanswered ring instead of stacking.
   const urgent = data.urgent === true;
+  // The sender counts the reader's unread notices, so the installed app's icon
+  // can carry the same number the in-app bell does — with no tab open to ask.
+  const badge = typeof data.badge === "number" ? data.badge : null;
 
   event.waitUntil(
-    self.registration.showNotification(title, {
-      body,
-      icon: ICON,
-      badge: ICON,
-      tag: typeof data.tag === "string" ? data.tag : "ana-quran",
-      renotify: urgent,
-      requireInteraction: urgent,
-      vibrate: urgent ? [500, 400, 500, 400, 500] : undefined,
-      data: { link: typeof data.link === "string" ? data.link : null },
-    })
+    (async () => {
+      await self.registration.showNotification(title, {
+        body,
+        icon: ICON,
+        badge: ICON,
+        tag: typeof data.tag === "string" ? data.tag : "ana-quran",
+        renotify: urgent,
+        requireInteraction: urgent,
+        vibrate: urgent ? [500, 400, 500, 400, 500] : undefined,
+        data: { link: typeof data.link === "string" ? data.link : null },
+      });
+      if (badge === null || !("setAppBadge" in navigator)) return;
+      try {
+        if (badge > 0) await navigator.setAppBadge(badge);
+        else await navigator.clearAppBadge();
+      } catch {
+        // Badging is refused while no app is installed; the notification itself
+        // already landed.
+      }
+    })()
   );
 });
 

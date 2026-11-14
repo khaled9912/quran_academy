@@ -16,6 +16,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { FieldError } from "@/components/ui/field-error";
 import { Avatar } from "@/components/ui/avatar";
 import { ApiError } from "@/lib/backend-client";
 import { DEFAULT_COUNTRY, splitE164, toE164 } from "@/lib/countries";
@@ -82,6 +83,23 @@ export default function ProfilePage() {
   const [stepUpCode, setStepUpCode] = useState("");
   const [codeSentTo, setCodeSentTo] = useState("");
   const [sendingCode, setSendingCode] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [phoneError, setPhoneError] = useState("");
+
+  const clearFieldError = (field: string) =>
+    setFieldErrors((current) =>
+      current[field] ? { ...current, [field]: "" } : current
+    );
+
+  const fieldClass = (field: string, message = fieldErrors[field]) =>
+    `${inputClass} ${message ? "border-red-400" : ""}`;
+
+  const mismatchMessage = "The new passwords do not match.";
+  // Derived, so a wrong confirmation is reported while it is still being typed.
+  const confirmError =
+    fieldErrors.confirm ||
+    (confirmPassword && newPassword !== confirmPassword ? mismatchMessage : "");
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const saveMutation = useMutation({
@@ -145,6 +163,7 @@ export default function ProfilePage() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
+      setFieldErrors({});
       showToast(
         "Your password has been changed. Other devices were signed out.",
         "success"
@@ -212,7 +231,7 @@ export default function ProfilePage() {
     const trimmedEmail = email.trim();
 
     if (hasStoredEmail && !trimmedEmail) {
-      showToast("Enter the email address for your account.", "error");
+      setFieldErrors({ email: "Enter the email address for your account." });
       return;
     }
 
@@ -222,12 +241,15 @@ export default function ProfilePage() {
     });
 
     if (!parsed.success) {
-      showToast(
-        parsed.error.issues[0]?.message ?? "Please fix the form.",
-        "error"
-      );
+      const next: Record<string, string> = {};
+      for (const issue of parsed.error.issues) {
+        const field = String(issue.path[0] ?? "");
+        if (field && !next[field]) next[field] = issue.message;
+      }
+      setFieldErrors(next);
       return;
     }
+    setFieldErrors({});
 
     const input: UpdateProfileInput = { fullName: parsed.data.fullName };
     if (parsed.data.email) input.email = parsed.data.email;
@@ -236,12 +258,10 @@ export default function ProfilePage() {
     if (typedPhone || hasStoredPhone) {
       const e164 = toE164(typedPhone, country);
       if (!e164) {
-        showToast(
-          "Enter a valid mobile number for the selected country.",
-          "error"
-        );
+        setPhoneError("Enter a valid mobile number for the selected country.");
         return;
       }
+      setPhoneError("");
       input.phoneNumber = e164;
     }
 
@@ -277,22 +297,20 @@ export default function ProfilePage() {
     event.preventDefault();
     if (passwordMutation.isPending) return;
 
-    if (!currentPassword) {
-      showToast("Enter your current password.", "error");
+    const invalid: Record<string, string> = {};
+    if (!currentPassword) invalid.current = "Enter your current password.";
+    if (newPassword.length < 8)
+      invalid.new = "Choose a new password of at least 8 characters.";
+    else if (newPassword === currentPassword)
+      invalid.new = "Choose a password different from your current one.";
+    if (!confirmPassword) invalid.confirm = "Confirm the new password.";
+    else if (newPassword !== confirmPassword) invalid.confirm = mismatchMessage;
+
+    if (Object.keys(invalid).length) {
+      setFieldErrors(invalid);
       return;
     }
-    if (newPassword.length < 8) {
-      showToast("Choose a new password of at least 8 characters.", "error");
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      showToast("The new passwords do not match.", "error");
-      return;
-    }
-    if (newPassword === currentPassword) {
-      showToast("Choose a password different from your current one.", "error");
-      return;
-    }
+    setFieldErrors({});
 
     passwordMutation.mutate({ currentPassword, newPassword });
   };
@@ -400,12 +418,17 @@ export default function ProfilePage() {
                   <input
                     id="fullName"
                     value={fullName}
-                    onChange={(event) => setFullName(event.target.value)}
+                    onChange={(event) => {
+                      setFullName(event.target.value);
+                      clearFieldError("fullName");
+                    }}
                     autoComplete="name"
                     required
-                    className={`${inputClass} pl-11`}
+                    aria-invalid={fieldErrors.fullName ? true : undefined}
+                    className={`${fieldClass("fullName")} pl-11`}
                   />
                 </div>
+                <FieldError message={fieldErrors.fullName} />
               </div>
 
               <div>
@@ -424,13 +447,18 @@ export default function ProfilePage() {
                     id="email"
                     type="email"
                     value={email}
-                    onChange={(event) => setEmail(event.target.value)}
+                    onChange={(event) => {
+                      setEmail(event.target.value);
+                      clearFieldError("email");
+                    }}
                     autoComplete="email"
                     required={hasStoredEmail}
                     placeholder="you@example.com"
-                    className={`${inputClass} pl-11`}
+                    aria-invalid={fieldErrors.email ? true : undefined}
+                    className={`${fieldClass("email")} pl-11`}
                   />
                 </div>
+                <FieldError message={fieldErrors.email} />
                 <p className="mt-2 text-xs text-foreground opacity-60">
                   Also used for email sign-in.
                 </p>
@@ -446,10 +474,17 @@ export default function ProfilePage() {
                 <PhoneInput
                   id="profile-phone"
                   country={country}
-                  onCountryChange={setCountry}
+                  onCountryChange={(next) => {
+                    setCountry(next);
+                    setPhoneError("");
+                  }}
                   value={phone}
-                  onChange={setPhone}
+                  onChange={(next) => {
+                    setPhone(next);
+                    setPhoneError("");
+                  }}
                   disabled={busy}
+                  error={phoneError}
                 />
                 <p className="mt-2 text-xs text-foreground opacity-60">
                   Used for one-time sign-in codes. Changing it requires
@@ -565,11 +600,16 @@ export default function ProfilePage() {
               <PasswordField
                 id="current-password"
                 value={currentPassword}
-                onChange={(event) => setCurrentPassword(event.target.value)}
+                onChange={(event) => {
+                  setCurrentPassword(event.target.value);
+                  clearFieldError("current");
+                }}
                 autoComplete="current-password"
                 required
-                className={inputClass}
+                aria-invalid={fieldErrors.current ? true : undefined}
+                className={fieldClass("current")}
               />
+              <FieldError message={fieldErrors.current} />
             </div>
             <div>
               <label
@@ -581,12 +621,18 @@ export default function ProfilePage() {
               <PasswordField
                 id="new-password"
                 value={newPassword}
-                onChange={(event) => setNewPassword(event.target.value)}
+                onChange={(event) => {
+                  setNewPassword(event.target.value);
+                  clearFieldError("new");
+                  clearFieldError("confirm");
+                }}
                 autoComplete="new-password"
                 required
                 minLength={8}
-                className={inputClass}
+                aria-invalid={fieldErrors.new ? true : undefined}
+                className={fieldClass("new")}
               />
+              <FieldError message={fieldErrors.new} />
             </div>
             <div>
               <label
@@ -598,12 +644,17 @@ export default function ProfilePage() {
               <PasswordField
                 id="confirm-password"
                 value={confirmPassword}
-                onChange={(event) => setConfirmPassword(event.target.value)}
+                onChange={(event) => {
+                  setConfirmPassword(event.target.value);
+                  clearFieldError("confirm");
+                }}
                 autoComplete="new-password"
                 required
                 minLength={8}
-                className={inputClass}
+                aria-invalid={confirmError ? true : undefined}
+                className={fieldClass("confirm", confirmError)}
               />
+              <FieldError message={confirmError} />
             </div>
 
             <div className="md:col-span-3">

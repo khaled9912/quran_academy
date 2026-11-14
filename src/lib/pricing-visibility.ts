@@ -1,17 +1,16 @@
 import { headers } from "next/headers";
 
-import { PRICING_HIDDEN_COUNTRIES } from "@/lib/plans";
 import { registrationCountryFromHeaders } from "@/lib/registration";
+import { isRestrictedCountry } from "@/lib/restricted-country";
 
 /**
- * Whether this visitor must be shown plans without figures. Prices are hidden
- * from the countries where the academy recruits its teachers.
+ * Whether this visitor is in a country the academy does not sell to: no prices,
+ * no plans page, no student sign-up.
  *
  * The geo header comes from the hosting provider, so this is a deterrent rather
  * than a control: a VPN, or a relay that exits outside the country, gets around
- * it. Search engines crawl from elsewhere and see the priced pages.
+ * it. Search engines crawl from elsewhere and see the full pages.
  */
-export async function pricingHidden() {
-  const country = registrationCountryFromHeaders(await headers());
-  return country !== null && PRICING_HIDDEN_COUNTRIES.includes(country);
+export async function restrictedVisitor() {
+  return isRestrictedCountry(registrationCountryFromHeaders(await headers()));
 }
