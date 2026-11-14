@@ -188,6 +188,7 @@ export default function AdminTeachersPage() {
           </div>
           <form
             onSubmit={handleSubmit}
+            autoComplete="off"
             className="grid grid-cols-1 md:grid-cols-3 gap-4"
           >
             <div>
@@ -201,6 +202,7 @@ export default function AdminTeachersPage() {
                 id="teacher-name"
                 value={fullName}
                 onChange={(event) => setFullName(event.target.value)}
+                autoComplete="off"
                 required
                 className={inputClass}
               />
@@ -217,6 +219,7 @@ export default function AdminTeachersPage() {
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
+                autoComplete="off"
                 required
                 className={inputClass}
               />
@@ -232,6 +235,7 @@ export default function AdminTeachersPage() {
                 id="teacher-password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
+                autoComplete="new-password"
                 required
                 minLength={8}
                 className={inputClass}
@@ -274,6 +278,7 @@ export default function AdminTeachersPage() {
                     {editingId === teacher.id ? (
                       <form
                         onSubmit={saveEdit}
+                        autoComplete="off"
                         className="grid grid-cols-1 md:grid-cols-3 gap-4"
                       >
                         <div>
@@ -289,6 +294,7 @@ export default function AdminTeachersPage() {
                             onChange={(event) =>
                               setEditName(event.target.value)
                             }
+                            autoComplete="off"
                             required
                             className={inputClass}
                           />
@@ -307,6 +313,7 @@ export default function AdminTeachersPage() {
                             onChange={(event) =>
                               setEditEmail(event.target.value)
                             }
+                            autoComplete="off"
                             required
                             className={inputClass}
                           />
@@ -324,6 +331,7 @@ export default function AdminTeachersPage() {
                             onChange={(event) =>
                               setEditPassword(event.target.value)
                             }
+                            autoComplete="new-password"
                             className={inputClass}
                           />
                         </div>

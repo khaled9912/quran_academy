@@ -34,7 +34,6 @@ const SCOPE_QUERY_KEYS: Record<string, string[][]> = {
     ["admin-lesson-ops"],
     ["admin-lesson-ops-detail"],
     ["profile", "reports"],
-    ["student", "credits"],
     ["teacher-profile"],
   ],
   admin: [

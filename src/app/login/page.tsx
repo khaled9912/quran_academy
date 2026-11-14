@@ -10,7 +10,9 @@ import { useAuth } from "@/providers/auth-provider";
 import { useToast } from "@/providers/toast-provider";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { PasswordField } from "@/components/ui/password-field";
+import { FieldError } from "@/components/ui/field-error";
 import { DEFAULT_COUNTRY, countryByCode, toE164 } from "@/lib/countries";
+import { useRestrictedVisitor } from "@/hooks/use-restricted-visitor";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -18,12 +20,19 @@ type Mode = "email" | "phone";
 
 const LoginPage = () => {
   const { applySession } = useAuth();
+  const restricted = useRestrictedVisitor();
   const { showToast } = useToast();
   const [mode, setMode] = useState<Mode>("email");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const clearFieldError = (field: string) =>
+    setFieldErrors((current) =>
+      current[field] ? { ...current, [field]: "" } : current
+    );
 
   const [country, setCountry] = useState(DEFAULT_COUNTRY);
   const [phone, setPhone] = useState("");
@@ -38,6 +47,7 @@ const LoginPage = () => {
 
   const switchMode = (next: Mode) => {
     setMode(next);
+    setFieldErrors({});
   };
 
   const handleEmailSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -47,18 +57,17 @@ const LoginPage = () => {
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
 
-    if (!trimmedEmail) {
-      showToast("Please enter your email address.", "error");
+    const invalid: Record<string, string> = {};
+    if (!trimmedEmail) invalid.email = "Please enter your email address.";
+    else if (!emailRegex.test(trimmedEmail))
+      invalid.email = "Please enter a valid email address.";
+    if (!trimmedPassword) invalid.password = "Please enter your password.";
+
+    if (Object.keys(invalid).length) {
+      setFieldErrors(invalid);
       return;
     }
-    if (!emailRegex.test(trimmedEmail)) {
-      showToast("Please enter a valid email address.", "error");
-      return;
-    }
-    if (!trimmedPassword) {
-      showToast("Please enter your password.", "error");
-      return;
-    }
+    setFieldErrors({});
 
     setLoading(true);
     try {
@@ -94,7 +103,6 @@ const LoginPage = () => {
         selected?.name ?? "the selected country"
       }${selected ? ` (${selected.dial})` : ""}.`;
       setPhoneError(invalidMessage);
-      showToast(invalidMessage, "error");
       return;
     }
     setPhoneError("");
@@ -123,21 +131,22 @@ const LoginPage = () => {
   const handleVerifyCode = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (phoneLoading) return;
-    if (!/^\d{4,8}$/.test(code.trim())) {
-      showToast("Enter the numeric code you received.", "error");
-      return;
-    }
-    if (needsName && !phoneName.trim()) {
-      showToast(
-        "Enter your full name to finish creating your account.",
-        "error"
-      );
+    const invalid: Record<string, string> = {};
+    if (!/^\d{4,8}$/.test(code.trim()))
+      invalid.code = "Enter the numeric code you received.";
+    if (needsName && !phoneName.trim())
+      invalid.phoneName =
+        "Enter your full name to finish creating your account.";
+
+    if (Object.keys(invalid).length) {
+      setFieldErrors(invalid);
       return;
     }
     if (!sentTo) {
       showToast("Request a new code to continue.", "error");
       return;
     }
+    setFieldErrors({});
     setPhoneLoading(true);
     try {
       const result = await verifyOtp(
@@ -176,10 +185,14 @@ const LoginPage = () => {
     setDevCode(null);
     setSentTo("");
     setPhoneError("");
+    setFieldErrors({});
   };
 
   const inputClass =
     "w-full rounded-xl border border-card-border bg-background px-4 py-3 text-foreground focus:outline-none focus:border-green-500";
+
+  const fieldClass = (field: string) =>
+    `${inputClass} ${fieldErrors[field] ? "border-red-400" : ""}`;
 
   return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center py-24 px-4 font-sans">
@@ -219,11 +232,16 @@ const LoginPage = () => {
                 id="email"
                 type="email"
                 value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                onChange={(event) => {
+                  setEmail(event.target.value);
+                  clearFieldError("email");
+                }}
                 required
                 autoComplete="email"
-                className={inputClass}
+                aria-invalid={fieldErrors.email ? true : undefined}
+                className={fieldClass("email")}
               />
+              <FieldError message={fieldErrors.email} />
             </div>
 
             <div>
@@ -244,11 +262,16 @@ const LoginPage = () => {
               <PasswordField
                 id="password"
                 value={password}
-                onChange={(event) => setPassword(event.target.value)}
+                onChange={(event) => {
+                  setPassword(event.target.value);
+                  clearFieldError("password");
+                }}
                 required
                 autoComplete="current-password"
-                className={inputClass}
+                aria-invalid={fieldErrors.password ? true : undefined}
+                className={fieldClass("password")}
               />
+              <FieldError message={fieldErrors.password} />
             </div>
 
             <button
@@ -315,12 +338,15 @@ const LoginPage = () => {
                 autoComplete="one-time-code"
                 maxLength={8}
                 value={code}
-                onChange={(event) =>
-                  setCode(event.target.value.replace(/\D/g, ""))
-                }
+                onChange={(event) => {
+                  setCode(event.target.value.replace(/\D/g, ""));
+                  clearFieldError("code");
+                }}
                 required
-                className={`${inputClass} tracking-[0.4em]`}
+                aria-invalid={fieldErrors.code ? true : undefined}
+                className={`${fieldClass("code")} tracking-[0.4em]`}
               />
+              <FieldError message={fieldErrors.code} />
               <p className="mt-2 text-xs text-foreground opacity-70">
                 Sent to {sentTo}.
               </p>
@@ -343,11 +369,16 @@ const LoginPage = () => {
                 <input
                   id="phone-name"
                   value={phoneName}
-                  onChange={(event) => setPhoneName(event.target.value)}
+                  onChange={(event) => {
+                    setPhoneName(event.target.value);
+                    clearFieldError("phoneName");
+                  }}
                   required
                   autoComplete="name"
-                  className={inputClass}
+                  aria-invalid={fieldErrors.phoneName ? true : undefined}
+                  className={fieldClass("phoneName")}
                 />
+                <FieldError message={fieldErrors.phoneName} />
               </div>
             )}
 
@@ -372,15 +403,17 @@ const LoginPage = () => {
           </form>
         )}
 
-        <div className="mt-8 text-center text-sm text-foreground opacity-75">
-          New here?{" "}
-          <Link
-            href="/signup"
-            className="font-semibold text-green-500 dark:text-green-400 hover:underline"
-          >
-            Create account
-          </Link>
-        </div>
+        {!restricted && (
+          <div className="mt-8 text-center text-sm text-foreground opacity-75">
+            New here?{" "}
+            <Link
+              href="/signup"
+              className="font-semibold text-green-500 dark:text-green-400 hover:underline"
+            >
+              Create account
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

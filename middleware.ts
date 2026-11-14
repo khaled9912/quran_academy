@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { RESTRICTED_COUNTRIES } from "@/lib/plans";
 import {
   REGISTRATION_COOKIE,
   registrationCountryFromHeaders,
@@ -13,13 +14,20 @@ const PUBLIC_PATHS = [
   "/contact",
   "/blog",
   "/teach",
+  "/not-available",
 ];
 const AUTH_PATHS = ["/login", "/signup", "/register", "/forgot-password"];
 // Any signed-in role may open these; the API decides what each one sees. The
 // lesson room is joined by teachers and students, and staff may enter as
 // support, so the role gate below must not bounce them to a dashboard.
-const ANY_ROLE_PATHS = [/^\/lesson(\/|$)/];
-const REGISTRATION_API_PATHS = ["/api/auth/register", "/api/auth/otp/verify"];
+// The agreement page is the same: the API hands out the document for the role.
+const ANY_ROLE_PATHS = [/^\/lesson(\/|$)/, /^\/policy$/];
+const REGISTRATION_API_PATHS = [
+  "/api/auth/register",
+  "/api/auth/otp/verify",
+];
+// Where a visitor from a closed country is sent instead of opening a place.
+const CLOSED_PATHS = ["/plans", "/signup", "/register"];
 
 const ROLE_DASHBOARDS: Record<string, string> = {
   super_admin: "/super-admin/dashboard",
@@ -30,8 +38,15 @@ const ROLE_DASHBOARDS: Record<string, string> = {
 };
 
 const ROLE_PATHS: Record<string, RegExp[]> = {
-  super_admin: [/^\/super-admin(\/|$)/, /^\/admin(\/|$)/, /^\/support(\/|$)/],
-  admin: [/^\/admin(\/|$)/, /^\/support(\/|$)/],
+  // Staff open the public teacher profile from the lesson recap, so it has to
+  // survive the role routing below.
+  super_admin: [
+    /^\/super-admin(\/|$)/,
+    /^\/admin(\/|$)/,
+    /^\/support(\/|$)/,
+    /^\/teachers(\/|$)/,
+  ],
+  admin: [/^\/admin(\/|$)/, /^\/support(\/|$)/, /^\/teachers(\/|$)/],
   support: [/^\/support(\/|$)/],
   teacher: [/^\/teacher(\/|$)/],
   student: [
@@ -93,6 +108,17 @@ export function middleware(req: NextRequest) {
 
   const token = req.cookies.get("academy-auth")?.value;
   const role = getRoleFromCookie(req);
+
+  // New enrolment is closed in restricted countries. A signed-in account keeps
+  // its pages: the gate stops places being opened, not people being served.
+  if (
+    country &&
+    RESTRICTED_COUNTRIES.includes(country) &&
+    !token &&
+    CLOSED_PATHS.includes(pathname)
+  ) {
+    return NextResponse.redirect(new URL("/not-available", req.url));
+  }
 
   // 1. Always allow public and auth pages. Auth pages must stay reachable even
   // when a stale cookie exists; the AuthProvider redirects to the role
@@ -158,10 +184,12 @@ export const config = {
     "/teachers/:path*",
     "/schedule",
     "/lesson/:path*",
+    "/policy",
     "/login",
     "/signup",
     "/register",
     "/forgot-password",
+    "/not-available",
     "/api/auth/register",
     "/api/auth/otp/verify",
   ],

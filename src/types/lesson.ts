@@ -246,7 +246,7 @@ export interface LessonCall {
   calleeId: string;
   calleeName: string;
   calleeRole: string;
-  /** room: a participant pressed it | monitor: staff pressed it */
+  /** room: a participant pressed it | monitor: staff pressed it | auto: the lesson monitor fired it */
   origin: string;
   /** not_joined | left | absent */
   calleeStatus: string;

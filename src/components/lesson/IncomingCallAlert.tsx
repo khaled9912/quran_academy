@@ -23,6 +23,10 @@ const calledAt = (value: string) =>
  */
 export function IncomingCallAlert({ call, onDismiss }: Props) {
   const link = `/lesson/${call.lessonId}`;
+  // An auto-ring is fired by the monitor; naming the other participant would
+  // claim they pressed the call button.
+  const auto = call.origin === "auto";
+  const caller = auto ? "The academy" : call.callerName;
   return (
     <div className="pointer-events-none fixed inset-x-0 top-4 z-[2000] flex justify-center px-4">
       <div
@@ -34,13 +38,15 @@ export function IncomingCallAlert({ call, onDismiss }: Props) {
             <PhoneCall size={20} />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="font-semibold">{call.callerName} is calling you</p>
+            <p className="font-semibold">{caller} is calling you</p>
             <p className="text-xs opacity-60">
-              {call.callerRole === "teacher"
-                ? "Your teacher"
-                : call.callerRole === "student"
-                  ? "Your student"
-                  : "The academy"}{" "}
+              {auto
+                ? "Your lesson has started"
+                : call.callerRole === "teacher"
+                  ? "Your teacher"
+                  : call.callerRole === "student"
+                    ? "Your student"
+                    : "The academy"}{" "}
               · called {calledAt(call.createdAt)}
             </p>
           </div>

@@ -14,7 +14,7 @@ import {
 
 import { JsonLd } from "@/components/JsonLd";
 import { SiteFooter } from "@/components/SiteFooter";
-import { SignUpCta } from "@/components/SignUpCta";
+import { EnrolCta } from "@/components/EnrolCta";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -71,9 +71,9 @@ const steps = [
       "Tell us who is learning and what you would like to study. New students begin with a free trial lesson.",
   },
   {
-    title: "Choose a teacher and weekly times",
+    title: "Get your teacher and weekly times",
     description:
-      "Review teachers and their published availability, then pick the weekly times that fit your routine. Times are shown in your local time zone.",
+      "Tell us which weekly times suit your routine. The academy matches you with one teacher and sets those times as your recurring lessons, shown in your local time zone.",
   },
   {
     title: "Meet in the live classroom",
@@ -110,7 +110,7 @@ const faqs = [
   {
     question: "How are fees handled?",
     answer:
-      "Lesson fees depend on the teacher's rate and the lesson length, and are billed monthly in US dollars (USD) by bank transfer. Your bank may apply its own conversion or transfer fees.",
+      "You choose a plan of two to five days a week and pay for the month after it ends, never before. The bill is your plan's monthly price, settled by card on your payments page, or by bank transfer to the academy's dollar account for the classes that took place. Your bank may apply its own conversion or transfer fees.",
   },
   {
     question: "Does the academy have local branches?",
@@ -154,7 +154,7 @@ export default function AboutPage() {
             in English, from their own homes.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <SignUpCta
+            <EnrolCta
               label="Start with a free trial"
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#1d4e47] px-6 py-3.5 text-base font-semibold text-white shadow-[0_12px_22px_rgba(29,78,71,0.18)] transition hover:-translate-y-0.5 hover:bg-[#173f39] dark:bg-green-600 dark:hover:bg-green-500"
             />
@@ -286,7 +286,8 @@ export default function AboutPage() {
             <p className="mt-5 leading-7 text-[#6b7c73] dark:text-foreground/70">
               Teachers apply with their experience and CV, and every application
               is reviewed before onboarding. Approved teachers publish their
-              weekly availability, and students book open times instantly.
+              weekly availability, and the academy assigns each student one
+              teacher and sets their weekly lessons.
             </p>
             <ul className="mt-6 space-y-3 text-[#4f675c] dark:text-foreground/70">
               {[
@@ -327,8 +328,10 @@ export default function AboutPage() {
                   Currency
                 </dt>
                 <dd className="mt-1 leading-7">
-                  Lesson fees are shown and billed monthly in US dollars (USD)
-                  by bank transfer. Your bank may apply its own conversion or
+                  Fees are billed monthly, in the currency your payments page
+                  offers: by card at your plan&apos;s monthly price, or by bank
+                  transfer to the academy&apos;s dollar account for the classes
+                  that took place. Your bank may apply its own conversion or
                   transfer fees.
                 </dd>
               </div>
@@ -337,9 +340,9 @@ export default function AboutPage() {
                   Time zones
                 </dt>
                 <dd className="mt-1 leading-7">
-                  Your schedule is displayed in your local time zone, and lesson
-                  times are chosen from each teacher&apos;s published weekly
-                  availability.
+                  Your schedule is displayed in your local time zone, and the
+                  academy sets your weekly lessons from the times your assigned
+                  teacher publishes.
                 </dd>
               </div>
             </dl>
@@ -391,7 +394,7 @@ export default function AboutPage() {
             lesson.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <SignUpCta
+            <EnrolCta
               label="Get started"
               withArrow={false}
               className="rounded-xl bg-[#e4c18e] px-6 py-3.5 font-semibold text-[#24483b] transition hover:bg-[#efd1a4]"

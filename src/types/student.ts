@@ -5,5 +5,7 @@ export interface Student {
   email: string;
   isActive?: boolean;
   grade?: string;
+  phoneNumber?: string | null;
+  avatarUrl?: string | null;
   enrolledCourseIds?: string[];
 }

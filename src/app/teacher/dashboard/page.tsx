@@ -9,6 +9,7 @@ import { isReportDue } from "@/lib/lesson-feedback";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 import { laterLessons, todayLessons } from "@/lib/lesson-window";
 import { NextUpLessons } from "@/components/NextUpLessons";
+import { PolicyPrompt } from "@/components/PolicyPrompt";
 import {
   weekdayLabel,
   formatWeeklyTimeRange,
@@ -100,6 +101,8 @@ export default function TeacherDashboardPage() {
             Your weekly lessons, announced times, and class reports.
           </p>
         </div>
+
+        <PolicyPrompt />
 
         {failed && (
           <p
@@ -321,7 +324,8 @@ export default function TeacherDashboardPage() {
           >
             <h2 className="text-xl font-semibold mb-2">Manage availability</h2>
             <p className="text-foreground opacity-75">
-              Announce the weekly times students can book instantly.
+              Announce the weekly times you can teach. The academy schedules
+              lessons against them.
             </p>
           </Link>
           <Link

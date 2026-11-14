@@ -164,9 +164,9 @@ function CreditSummary({ preview }: { preview: CancellationPreview }) {
   }
   const parts: string[] = [];
   if (preview.creditEffect === "deduct") {
-    parts.push("One lesson credit will be deducted.");
+    parts.push("This lesson will be counted against the student's record.");
   } else if (preview.creditEffect === "restore") {
-    parts.push("One lesson credit will be restored to the student.");
+    parts.push("This lesson will not be counted against the student.");
   }
   if (preview.teacherPayableMinutes > 0) {
     parts.push(
@@ -307,7 +307,6 @@ function CancellationSection({
       void queryClient.invalidateQueries({
         queryKey: ["lesson-ops", lesson.id],
       });
-      void queryClient.invalidateQueries({ queryKey: ["student", "credits"] });
     },
     onError: (failure) =>
       showToast(
@@ -359,16 +358,16 @@ function CancellationSection({
             </div>
             <div>
               <dt className="text-xs font-bold uppercase tracking-[.14em] opacity-60">
-                Credit
+                On record
               </dt>
               <dd>
                 {outcome === "late_cancellation" ||
                 outcome === "student_no_show"
-                  ? "One credit deducted"
+                  ? "Counted against the student"
                   : outcome === "free_cancellation" ||
                       outcome === "grace_cancellation"
-                    ? "No credit change"
-                    : "One credit restored"}
+                    ? "Nothing counted"
+                    : "Not counted against the student"}
               </dd>
             </div>
           </dl>
@@ -415,7 +414,7 @@ function CancellationSection({
           {preview.usedGrace
             ? " Your free grace cancellation for this month is being used."
             : preview.creditEffect === "deduct"
-              ? " One lesson credit will be deducted."
+              ? " This will be counted against your record."
               : ""}
         </p>
       )}
@@ -862,7 +861,11 @@ function AttendanceSection({
   const summary = operations.attendance;
   const hours = operations.hours;
   const calls = operations.calls ?? [];
-  const mine = calls.filter((entry) => entry.callerId === viewerId);
+  // Auto-rings name the other participant as caller but were not their press,
+  // so they never count against the manual cooldown or the per-lesson budget.
+  const mine = calls.filter(
+    (entry) => entry.callerId === viewerId && entry.origin !== "auto"
+  );
   const lastMine = mine[0];
   const coolingForMs = lastMine
     ? CALL_COOLDOWN_MS - (now - Date.parse(lastMine.createdAt))
@@ -897,6 +900,16 @@ function AttendanceSection({
     inCallWindow &&
     participant.status !== "joined" &&
     (isStaff || (isParticipant && participant.userId !== viewerId));
+
+  // Only these two roles open a profile: the API answers /api/students/{id}
+  // for admins and the student themself, so a support link lands on a 403.
+  const canOpenProfiles = role === "admin" || role === "super_admin";
+  const profileHref = (participant: AttendanceParticipant) => {
+    if (!canOpenProfiles) return null;
+    return participant.role === "teacher"
+      ? `/teachers/${participant.userId}`
+      : `/admin/students/${lesson.studentId ?? participant.userId}`;
+  };
   return (
     <Section
       title="Attendance"
@@ -911,79 +924,96 @@ function AttendanceSection({
         Recorded by the lesson room itself, from real join and leave times.
       </p>
       <div className="space-y-3">
-        {summary.participants.map((participant) => (
-          <div
-            key={participant.userId}
-            className="rounded-2xl border border-card-border bg-background p-4"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="font-semibold">
-                {participant.name}{" "}
-                <span className="text-xs font-normal capitalize opacity-60">
-                  ({participant.role})
-                </span>
-              </p>
+        {summary.participants.map((participant) => {
+          const href = profileHref(participant);
+          const name = (
+            <>
+              {participant.name}{" "}
+              <span className="text-xs font-normal capitalize opacity-60">
+                ({participant.role})
+              </span>
+            </>
+          );
+          return (
+            <div
+              key={participant.userId}
+              className="rounded-2xl border border-card-border bg-background p-4"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="font-semibold">
+                  {href ? (
+                    <Link
+                      href={href}
+                      className="hover:text-green-700 hover:underline dark:hover:text-green-400"
+                    >
+                      {name}
+                    </Link>
+                  ) : (
+                    name
+                  )}
+                </p>
               <span className="rounded-full bg-green-500/10 px-3 py-1 text-xs font-semibold text-green-700 dark:text-green-400">
                 {minutesLabel(participant.totalSeconds)}
               </span>
-            </div>
-            <p className="mt-1 text-xs text-foreground opacity-70">
-              {participant.status === "not_joined"
-                ? "Did not join"
-                : participant.status === "absent"
-                  ? "Recorded absent"
-                  : participant.status === "joined"
-                    ? "In the room now"
-                    : "Left the room"}
-              {participant.joinedLate && " · joined late"}
-              {participant.leftEarly && " · left early"}
-              {participant.reconnectionCount > 0 &&
-                ` · ${participant.reconnectionCount} reconnection${
-                  participant.reconnectionCount === 1 ? "" : "s"
-                }`}
-            </p>
-            {participant.firstJoinedAt && (
-              <p className="mt-1 text-xs text-foreground opacity-60">
-                First joined {dateTime(participant.firstJoinedAt)}
-                {participant.lastLeftAt
-                  ? ` · last left ${dateTime(participant.lastLeftAt)}`
-                  : ""}
+              </div>
+              <p className="mt-1 text-xs text-foreground opacity-70">
+                {participant.status === "not_joined"
+                  ? "Did not join"
+                  : participant.status === "absent"
+                    ? "Recorded absent"
+                    : participant.status === "joined"
+                      ? "In the room now"
+                      : "Left the room"}
+                {participant.joinedLate && " · joined late"}
+                {participant.leftEarly && " · left early"}
+                {participant.reconnectionCount > 0 &&
+                  ` · ${participant.reconnectionCount} reconnection${
+                    participant.reconnectionCount === 1 ? "" : "s"
+                  }`}
               </p>
-            )}
-            {ringable(participant) && (
-              <button
-                type="button"
-                disabled={
-                  coolingForMs > 0 ||
-                  mine.length >= CALLS_PER_LESSON ||
-                  call.isPending
-                }
-                onClick={() => call.mutate(participant.role)}
-                title={
-                  coolingForMs > 0
-                    ? "Wait a moment before calling again"
+              {participant.firstJoinedAt && (
+                <p className="mt-1 text-xs text-foreground opacity-60">
+                  First joined {dateTime(participant.firstJoinedAt)}
+                  {participant.lastLeftAt
+                    ? ` · last left ${dateTime(participant.lastLeftAt)}`
+                    : ""}
+                </p>
+              )}
+              {ringable(participant) && (
+                <button
+                  type="button"
+                  disabled={
+                    coolingForMs > 0 ||
+                    mine.length >= CALLS_PER_LESSON ||
+                    call.isPending
+                  }
+                  onClick={() => call.mutate(participant.role)}
+                  title={
+                    coolingForMs > 0
+                      ? "Wait a moment before calling again"
+                      : mine.length >= CALLS_PER_LESSON
+                        ? "You have used the three calls allowed for this lesson"
+                        : `Sends a loud call to ${participant.name}`
+                  }
+                  className="mt-2 inline-flex items-center gap-2 rounded-xl border border-card-border px-3 py-1.5 text-xs font-semibold hover:border-green-500 disabled:opacity-50"
+                >
+                  {call.isPending && call.variables === participant.role ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <PhoneCall size={14} />
+                  )}
+                  {coolingForMs > 0
+                    ? `Wait ${Math.ceil(coolingForMs / 1000)} s`
                     : mine.length >= CALLS_PER_LESSON
-                      ? "You have used the three calls allowed for this lesson"
-                      : `Sends a loud call to ${participant.name}`
-                }
-                className="mt-2 inline-flex items-center gap-2 rounded-xl border border-card-border px-3 py-1.5 text-xs font-semibold hover:border-green-500 disabled:opacity-50"
-              >
-                {call.isPending && call.variables === participant.role ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  <PhoneCall size={14} />
-                )}
-                {coolingForMs > 0
-                  ? `Wait ${Math.ceil(coolingForMs / 1000)} s`
-                  : mine.length >= CALLS_PER_LESSON
-                    ? "Call limit reached"
-                    : participant.role === "teacher"
-                      ? "Call the teacher"
-                      : "Call the student"}
-              </button>
-            )}
-          </div>
-        ))}
+                      ? "Call limit reached"
+                      : participant.role === "teacher"
+                        ? "Call the teacher"
+                        : "Call the student"}
+                </button>
+              )}
+            </div>
+          );
+        })}
       </div>
       {hours && (
         <dl className="grid gap-2 rounded-2xl border border-card-border bg-background p-4 sm:grid-cols-2">
@@ -1022,8 +1052,10 @@ function AttendanceSection({
         <div className="rounded-2xl border border-card-border bg-background p-4 text-xs text-foreground opacity-70">
           {calls.slice(0, 3).map((entry) => (
             <p key={entry.id}>
-              {entry.callerName} called {entry.calleeName} ·{" "}
-              {dateTime(entry.createdAt)}
+              {entry.origin === "auto"
+                ? `The academy auto-called ${entry.calleeName}`
+                : `${entry.callerName} called ${entry.calleeName}`}{" "}
+              · {dateTime(entry.createdAt)}
             </p>
           ))}
         </div>
@@ -1105,8 +1137,8 @@ function ExcuseSection({
         <>
           <p className="text-foreground opacity-70">
             If illness, a family emergency, or a technical problem caused this,
-            ask the academy to review it. An approved excuse restores the lesson
-            credit.
+            ask the academy to review it. An approved excuse clears the lesson
+            from your record.
           </p>
           <form
             onSubmit={(event) => {

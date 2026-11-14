@@ -1,13 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { UserCheck, UserMinus } from "lucide-react";
-import { getTeachers } from "@/services/teacher.service";
-import { getStudents } from "@/services/student.service";
+import { UserMinus } from "lucide-react";
 import {
-  assignStudentToTeacher,
   getTeacherStudentAssignments,
   removeTeacherStudentAssignment,
 } from "@/services/assignment.service";
@@ -15,7 +11,6 @@ import { ApiError } from "@/lib/backend-client";
 import { useAuth } from "@/providers/auth-provider";
 import { useToast } from "@/providers/toast-provider";
 import { AssignmentStudio } from "@/components/admin/AssignmentStudio";
-import { SelectField } from "@/components/ui/select-field";
 
 const queryError = (error: unknown, fallback: string) =>
   error instanceof Error ? error.message : fallback;
@@ -26,64 +21,16 @@ export default function AdminAssignmentsPage() {
   const canManage = role === "admin" || role === "super_admin";
   const queryClient = useQueryClient();
 
-  const teachersQuery = useQuery({
-    queryKey: ["teachers"],
-    queryFn: () => getTeachers(),
-    enabled: canManage,
-  });
-  const studentsQuery = useQuery({
-    queryKey: ["students"],
-    queryFn: () => getStudents(),
-    enabled: canManage,
-  });
   const assignmentsQuery = useQuery({
     queryKey: ["teacher-student-assignments"],
     queryFn: getTeacherStudentAssignments,
     enabled: canManage,
   });
 
-  const [teacherId, setTeacherId] = useState("");
-  const [studentId, setStudentId] = useState("");
-
-  const teachers = teachersQuery.data ?? [];
-  const students = studentsQuery.data ?? [];
   const assignments = assignmentsQuery.data ?? [];
   const activeAssignments = assignments.filter(
     (assignment) => assignment.status === "active"
   );
-
-  const currentTeacherByStudent = new Map(
-    activeAssignments.map((assignment) => [
-      assignment.studentId,
-      assignment.teacherName ?? "a teacher",
-    ])
-  );
-
-  const listError =
-    teachersQuery.error ?? studentsQuery.error ?? assignmentsQuery.error;
-
-  const assignMutation = useMutation({
-    mutationFn: () => assignStudentToTeacher(teacherId, studentId),
-    onSuccess: async (assignment) => {
-      showToast(
-        `${assignment.studentName ?? "Student"} is now assigned to ${assignment.teacherName ?? "the teacher"}.`,
-        "success"
-      );
-      setTeacherId("");
-      setStudentId("");
-      await queryClient.invalidateQueries({
-        queryKey: ["teacher-student-assignments"],
-      });
-    },
-    onError: (mutationError) => {
-      if (!(mutationError instanceof ApiError)) {
-        showToast(
-          queryError(mutationError, "Unable to create the assignment."),
-          "error"
-        );
-      }
-    },
-  });
 
   const removeMutation = useMutation({
     mutationFn: (id: string) => removeTeacherStudentAssignment(id),
@@ -103,16 +50,6 @@ export default function AdminAssignmentsPage() {
     },
   });
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (assignMutation.isPending) return;
-    if (!teacherId || !studentId) {
-      showToast("Choose both a teacher and a student.", "error");
-      return;
-    }
-    assignMutation.mutate();
-  };
-
   if (!canManage) {
     return (
       <main className="mx-auto max-w-4xl px-5 py-16">
@@ -120,8 +57,6 @@ export default function AdminAssignmentsPage() {
       </main>
     );
   }
-
-  const listsLoading = teachersQuery.isLoading || studentsQuery.isLoading;
 
   return (
     <div className="min-h-screen bg-background text-foreground pt-24 pb-16">
@@ -141,112 +76,6 @@ export default function AdminAssignmentsPage() {
         </div>
 
         <AssignmentStudio />
-
-        <section className="mb-10 rounded-3xl border border-card-border bg-card-bg p-6 md:p-8">
-          <div className="mb-5 flex items-center gap-3">
-            <UserCheck className="text-green-600 dark:text-green-400" />
-            <h2 className="text-2xl font-semibold">Assign a student</h2>
-          </div>
-
-          {listError && (
-            <p
-              role="alert"
-              className="mb-5 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
-            >
-              {queryError(
-                listError,
-                "Unable to load teachers, students, or assignments."
-              )}
-            </p>
-          )}
-
-          <form
-            onSubmit={handleSubmit}
-            className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-4 items-end"
-          >
-            <div>
-              <label
-                htmlFor="assignment-teacher"
-                className="block text-sm font-semibold mb-2"
-              >
-                Teacher
-              </label>
-              <SelectField
-                id="assignment-teacher"
-                value={teacherId}
-                onChange={setTeacherId}
-                placeholder={
-                  teachersQuery.isLoading
-                    ? "Loading teachers…"
-                    : "Choose a teacher"
-                }
-                disabled={listsLoading}
-                options={teachers.map((teacher) => ({
-                  value: teacher.id,
-                  label: teacher.fullName ?? teacher.name ?? teacher.email,
-                }))}
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="assignment-student"
-                className="block text-sm font-semibold mb-2"
-              >
-                Student
-              </label>
-              <SelectField
-                id="assignment-student"
-                value={studentId}
-                onChange={setStudentId}
-                placeholder={
-                  studentsQuery.isLoading
-                    ? "Loading students…"
-                    : "Choose a student"
-                }
-                disabled={listsLoading}
-                options={students.map((student) => {
-                  const currentTeacher = currentTeacherByStudent.get(
-                    student.id
-                  );
-                  return {
-                    value: student.id,
-                    label: `${student.fullName ?? student.name ?? student.email}${currentTeacher ? ` — with ${currentTeacher}` : ""}`,
-                  };
-                })}
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={assignMutation.isPending || listsLoading}
-              className="rounded-xl bg-green-500 px-6 py-3 font-semibold text-white transition hover:bg-green-600 disabled:opacity-50"
-            >
-              {assignMutation.isPending ? "Assigning…" : "Assign"}
-            </button>
-          </form>
-
-          {!listsLoading && !teachers.length && !listError && (
-            <p className="mt-4 text-sm text-foreground opacity-70">
-              No teachers yet.{" "}
-              <Link
-                href="/admin/teachers"
-                className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-400 underline"
-              >
-                Create a teacher first.
-              </Link>
-            </p>
-          )}
-          {!listsLoading && !students.length && !listError && (
-            <p className="mt-4 text-sm text-foreground opacity-70">
-              No students yet.{" "}
-              <Link
-                href="/admin/students"
-                className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-400 underline"
-              >
-                Create a student first.
-              </Link>
-            </p>
-          )}
-        </section>
 
         <section>
           <h2 className="text-2xl font-semibold mb-4">Active assignments</h2>

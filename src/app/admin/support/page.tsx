@@ -124,6 +124,7 @@ export default function AdminSupportPage() {
 
         <form
           onSubmit={handleSubmit}
+          autoComplete="off"
           className="mb-8 rounded-3xl border border-card-border bg-card-bg p-6"
         >
           <h2 className="mb-4 text-lg font-semibold">Add a reviewer</h2>
@@ -133,7 +134,7 @@ export default function AdminSupportPage() {
               placeholder="Full name"
               value={fullName}
               onChange={(event) => setFullName(event.target.value)}
-              autoComplete="name"
+              autoComplete="off"
             />
             <input
               className={inputClass}
@@ -141,7 +142,7 @@ export default function AdminSupportPage() {
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              autoComplete="email"
+              autoComplete="off"
             />
             <PasswordField
               className={inputClass}

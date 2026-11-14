@@ -47,21 +47,33 @@ export function SiteFooter() {
       <div className="mx-auto max-w-7xl px-5 py-14 md:px-8 md:py-16">
         <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(3,1fr)] md:gap-8">
           <div>
-            <Link href="/" aria-label="Ana Quran Academy home">
+            <Link
+              href="/"
+              aria-label="Ana Quran Academy home"
+              className="flex items-center gap-3"
+            >
               <img
-                src="/logo-ana-quran.svg?v=2026-11-06-1"
-                alt="Ana Quran Academy"
-                width={57}
-                height={80}
-                className="h-16 w-auto dark:hidden"
+                src="/logo-ana-quran-mark.svg?v=2026-11-07-1"
+                alt=""
+                width={34}
+                height={48}
+                className="h-12 w-auto dark:hidden"
               />
               <img
-                src="/logo-ana-quran-light.svg?v=2026-11-06-1"
-                alt="Ana Quran Academy"
-                width={57}
-                height={80}
-                className="hidden h-16 w-auto dark:block"
+                src="/logo-ana-quran-mark-light.svg?v=2026-11-07-1"
+                alt=""
+                width={34}
+                height={48}
+                className="hidden h-12 w-auto dark:block"
               />
+              <span className="flex flex-col leading-none">
+                <span className="text-[1.05rem] font-extrabold tracking-[-0.02em] text-[#123c35] dark:text-white">
+                  Ana Quran
+                </span>
+                <span className="mt-1 text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-[#718078] dark:text-foreground/60">
+                  Academy
+                </span>
+              </span>
             </Link>
             <p className="mt-5 max-w-sm text-sm leading-6 text-[#718078] dark:text-foreground/60">
               One-to-one online Quran, Tajweed, memorization, Arabic, and

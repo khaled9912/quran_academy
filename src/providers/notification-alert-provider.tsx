@@ -15,6 +15,7 @@ import {
   primeNotificationSound,
 } from "@/lib/notification-sounder";
 import { showDesktopAlert } from "@/lib/notification-tray";
+import { syncAppBadge } from "@/lib/app-badge";
 import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 
 /**
@@ -43,6 +44,13 @@ export function NotificationAlertProvider({
   useEffect(() => {
     primeNotificationSound();
   }, []);
+
+  // The installed app's icon mirrors the bell: the same unread count the feed
+  // reports, cleared the moment the reader signs out or catches it all read.
+  const unread = isAuthenticated ? (feed.data?.unread ?? 0) : 0;
+  useEffect(() => {
+    void syncAppBadge(unread);
+  }, [unread]);
 
   useEffect(() => {
     if (!isAuthenticated) {

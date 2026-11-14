@@ -55,6 +55,9 @@ const statusMessage = (status: number): string => {
     return "The server took too long to respond. Please try again.";
   if (status === 429)
     return "Too many attempts. Please wait a moment and try again.";
+  // The API refuses an unsigned account's first real action until the agreement
+  // page has stored the current version.
+  if (status === 428) return "Accept the academy agreement before continuing.";
   if (status === 500) return "The server reported an error. Please try again.";
   if (status === 502 || status === 503 || status === 504)
     return "The service is temporarily unavailable. Please try again in a moment.";

@@ -5,11 +5,13 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useAuth } from "@/providers/auth-provider";
 import { navigationConfig } from "@/constants/navigation";
+import { useRestrictedVisitor } from "@/hooks/use-restricted-visitor";
 
 const Menu = () => {
   const [open, setOpen] = useState(false);
   const { role, logout, isAuthenticated } = useAuth();
   const pathname = usePathname();
+  const restricted = useRestrictedVisitor();
 
   const links =
     isAuthenticated && role && navigationConfig[role]
@@ -62,14 +64,16 @@ const Menu = () => {
               >
                 Login
               </Link>
-              <Link
-                href="/signup"
-                onClick={() => setOpen(false)}
-                aria-current={isActiveLink("/signup") ? "page" : undefined}
-                className={linkClassName("/signup")}
-              >
-                Start a free trial
-              </Link>
+              {!restricted && (
+                <Link
+                  href="/signup"
+                  onClick={() => setOpen(false)}
+                  aria-current={isActiveLink("/signup") ? "page" : undefined}
+                  className={linkClassName("/signup")}
+                >
+                  Start a free trial
+                </Link>
+              )}
             </>
           ) : (
             <button onClick={logout} className="menu-item-button">

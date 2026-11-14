@@ -31,7 +31,7 @@ English-speaking children and adults, including beginners and families. Registra
 ## How learning works
 
 - One teacher and one student in every lesson
-- Weekly lesson times chosen from each teacher's published availability
+- The academy assigns one teacher and sets the weekly times from that teacher's published availability
 - Lessons of 30, 45, or 60 minutes
 - Live online classroom, joined from a browser or the mobile app
 - Scheduling is shown in the student's local time zone
@@ -39,7 +39,7 @@ English-speaking children and adults, including beginners and families. Registra
 ## Fees
 
 - The first lesson is a free trial for new students
-- After the trial, lessons are billed monthly in US dollars (USD) by bank transfer
+- After the trial, each month is billed once it has ended, at the price of the weekly plan you chose, by card or bank transfer
 - Published weekly plans cover 30-minute one-to-one classes from two to five days a week: [Plans](${SITE_URL}/plans)
 
 ## Courses

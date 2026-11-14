@@ -652,7 +652,7 @@ function LessonCallHost({
           onApiReady={handleApiReady}
         />
         <img
-          src="/logo-ana-quran.svg?v=2026-11-06-1"
+          src="/logo-ana-quran-mark.svg?v=2026-11-07-1"
           alt="Ana Quran"
           className={`pointer-events-none absolute left-3 top-3 z-10 w-auto drop-shadow-[0_1px_6px_rgba(0,0,0,0.65)] ${
             expanded ? "h-12 sm:h-16" : "h-8"

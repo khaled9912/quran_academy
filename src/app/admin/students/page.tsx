@@ -15,15 +15,36 @@ import {
   deactivateManagedUser,
   updateManagedUser,
 } from "@/services/admin-user.service";
+import { getPendingStudents } from "@/services/onboarding.service";
 import { useAuth } from "@/providers/auth-provider";
 import { useToast } from "@/providers/toast-provider";
 import { ApiError } from "@/lib/backend-client";
 import { SelectField } from "@/components/ui/select-field";
 import { PasswordField } from "@/components/ui/password-field";
+import { FieldError } from "@/components/ui/field-error";
 import { GRADE_OPTIONS } from "@/lib/grades";
 
 const inputClass =
   "w-full rounded-xl border border-card-border bg-background px-4 py-3 text-foreground focus:outline-none focus:border-green-500";
+
+const mismatchMessage = "The passwords do not match.";
+
+// Both run on every keystroke, so a wrong confirmation is reported as it is
+// typed. The create form always needs a password; the edit form only does when
+// the admin means to change it.
+const temporaryPasswordError = (password: string, confirm: string) =>
+  !confirm
+    ? "Confirm the temporary password."
+    : confirm === password
+      ? ""
+      : mismatchMessage;
+
+const newPasswordError = (password: string, confirm: string) => {
+  if (!password && !confirm) return "";
+  if (!password) return "Enter the new password in both fields.";
+  if (!confirm) return "Confirm the new password.";
+  return confirm === password ? "" : mismatchMessage;
+};
 
 export default function AdminStudentsPage() {
   const { role } = useAuth();
@@ -45,16 +66,39 @@ export default function AdminStudentsPage() {
     queryFn: getTeacherStudentAssignments,
     enabled: canManage,
   });
+  // The plan each student asked for and how much of it is already placed.
+  const pendingQuery = useQuery({
+    queryKey: ["students", "pending"],
+    queryFn: getPendingStudents,
+    enabled: canManage,
+  });
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordChecked, setPasswordChecked] = useState(false);
   const [grade, setGrade] = useState("");
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editPassword, setEditPassword] = useState("");
+  const [editConfirmPassword, setEditConfirmPassword] = useState("");
+  const [editPasswordChecked, setEditPasswordChecked] = useState(false);
+
+  const createConfirmError =
+    passwordChecked || confirmPassword
+      ? temporaryPasswordError(password, confirmPassword)
+      : "";
+
+  const editConfirmError =
+    editPasswordChecked || editConfirmPassword
+      ? newPasswordError(editPassword, editConfirmPassword)
+      : "";
+
+  const errorClass = (message: string) =>
+    `${inputClass} ${message ? "border-red-400" : ""}`;
 
   const createMutation = useMutation({
     mutationFn: createStudent,
@@ -66,6 +110,8 @@ export default function AdminStudentsPage() {
       setFullName("");
       setEmail("");
       setPassword("");
+      setConfirmPassword("");
+      setPasswordChecked(false);
       setGrade("");
       await queryClient.invalidateQueries({ queryKey: ["students"] });
     },
@@ -178,6 +224,10 @@ export default function AdminStudentsPage() {
       );
       return;
     }
+    if (temporaryPasswordError(password, confirmPassword)) {
+      setPasswordChecked(true);
+      return;
+    }
     createMutation.mutate({
       fullName: fullName.trim(),
       email: email.trim(),
@@ -191,6 +241,8 @@ export default function AdminStudentsPage() {
     setEditName(name);
     setEditEmail(studentEmail);
     setEditPassword("");
+    setEditConfirmPassword("");
+    setEditPasswordChecked(false);
   };
 
   const saveEdit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -202,6 +254,10 @@ export default function AdminStudentsPage() {
     }
     if (editPassword && editPassword.length < 8) {
       showToast("A new password must be at least 8 characters.", "error");
+      return;
+    }
+    if (newPasswordError(editPassword, editConfirmPassword)) {
+      setEditPasswordChecked(true);
       return;
     }
     updateMutation.mutate({
@@ -217,6 +273,17 @@ export default function AdminStudentsPage() {
     (assignmentsQuery.data ?? [])
       .filter((assignment) => assignment.status === "active")
       .map((assignment) => [assignment.studentId, assignment])
+  );
+  const planByStudent = new Map(
+    (pendingQuery.data ?? [])
+      .filter((student) => (student.onboarding?.planDaysPerWeek ?? 0) > 0)
+      .map((student) => [
+        student.studentId,
+        {
+          days: student.onboarding?.planDaysPerWeek ?? 0,
+          booked: student.weeklyLessons.length,
+        },
+      ])
   );
 
   if (!canManage) {
@@ -250,6 +317,7 @@ export default function AdminStudentsPage() {
           </div>
           <form
             onSubmit={handleSubmit}
+            autoComplete="off"
             className="grid grid-cols-1 md:grid-cols-2 gap-4"
           >
             <div>
@@ -263,6 +331,7 @@ export default function AdminStudentsPage() {
                 id="student-name"
                 value={fullName}
                 onChange={(event) => setFullName(event.target.value)}
+                autoComplete="off"
                 required
                 className={inputClass}
               />
@@ -279,6 +348,7 @@ export default function AdminStudentsPage() {
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
+                autoComplete="off"
                 required
                 className={inputClass}
               />
@@ -294,10 +364,30 @@ export default function AdminStudentsPage() {
                 id="student-password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
+                autoComplete="new-password"
                 required
                 minLength={8}
                 className={inputClass}
               />
+            </div>
+            <div>
+              <label
+                htmlFor="student-password-confirm"
+                className="block text-sm font-semibold mb-2"
+              >
+                Confirm temporary password
+              </label>
+              <PasswordField
+                id="student-password-confirm"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                autoComplete="new-password"
+                required
+                minLength={8}
+                aria-invalid={createConfirmError ? true : undefined}
+                className={errorClass(createConfirmError)}
+              />
+              <FieldError message={createConfirmError} />
             </div>
             <div>
               <label
@@ -359,6 +449,13 @@ export default function AdminStudentsPage() {
                 const savingAssignment =
                   assignmentMutation.isPending &&
                   assignmentMutation.variables?.studentId === student.id;
+                // A plan is placed only when every weekly lesson in it has a
+                // time, and that booking lives in the assignment desk.
+                const plan = planByStudent.get(student.id);
+                const planNote =
+                  !assignment && plan && plan.booked < plan.days
+                    ? `their ${plan.days}-day plan has ${plan.booked} of ${plan.days} weekly lessons booked.`
+                    : "";
                 return (
                   <div
                     key={student.id}
@@ -367,6 +464,7 @@ export default function AdminStudentsPage() {
                     {editingId === student.id ? (
                       <form
                         onSubmit={saveEdit}
+                        autoComplete="off"
                         className="grid grid-cols-1 md:grid-cols-3 gap-4"
                       >
                         <div>
@@ -382,6 +480,7 @@ export default function AdminStudentsPage() {
                             onChange={(event) =>
                               setEditName(event.target.value)
                             }
+                            autoComplete="off"
                             required
                             className={inputClass}
                           />
@@ -400,6 +499,7 @@ export default function AdminStudentsPage() {
                             onChange={(event) =>
                               setEditEmail(event.target.value)
                             }
+                            autoComplete="off"
                             required
                             className={inputClass}
                           />
@@ -417,8 +517,28 @@ export default function AdminStudentsPage() {
                             onChange={(event) =>
                               setEditPassword(event.target.value)
                             }
+                            autoComplete="new-password"
                             className={inputClass}
                           />
+                        </div>
+                        <div>
+                          <label
+                            htmlFor={`edit-password-confirm-${student.id}`}
+                            className="block text-sm font-semibold mb-2"
+                          >
+                            Confirm new password
+                          </label>
+                          <PasswordField
+                            id={`edit-password-confirm-${student.id}`}
+                            value={editConfirmPassword}
+                            onChange={(event) =>
+                              setEditConfirmPassword(event.target.value)
+                            }
+                            autoComplete="new-password"
+                            aria-invalid={editConfirmError ? true : undefined}
+                            className={errorClass(editConfirmError)}
+                          />
+                          <FieldError message={editConfirmError} />
                         </div>
                         <div className="md:col-span-3 flex gap-2">
                           <button
@@ -463,7 +583,9 @@ export default function AdminStudentsPage() {
                               size="sm"
                               className="min-w-[10rem] flex-1 sm:flex-none sm:min-w-[12rem]"
                               value={assignment?.teacherId ?? ""}
-                              disabled={!active || savingAssignment}
+                              disabled={
+                                !active || savingAssignment || !!planNote
+                              }
                               onChange={(value) => {
                                 assignmentMutation.mutate({
                                   studentId: student.id,
@@ -490,6 +612,17 @@ export default function AdminStudentsPage() {
                               </span>
                             )}
                           </div>
+                          {planNote && (
+                            <p className="mt-2 text-sm font-semibold text-amber-800 dark:text-amber-300">
+                              <Link
+                                href="/admin/assignments"
+                                className="underline underline-offset-2"
+                              >
+                                Open the assignment desk
+                              </Link>{" "}
+                              — {planNote}
+                            </p>
+                          )}
                           {teachersQuery.error && (
                             <p className="mt-2 text-sm text-red-700 dark:text-red-300">
                               {teachersQuery.error instanceof Error
