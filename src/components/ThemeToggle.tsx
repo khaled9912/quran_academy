@@ -9,8 +9,10 @@ type ThemeToggleProps = {
 
 export function ThemeToggle({ className = "" }: ThemeToggleProps) {
   const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme === "dark" || savedTheme === "light") {
       setTheme(savedTheme);
@@ -24,10 +26,11 @@ export function ThemeToggle({ className = "" }: ThemeToggleProps) {
   }, []);
 
   useEffect(() => {
+    if (!mounted) return;
     document.documentElement.dataset.theme = theme;
     document.documentElement.style.colorScheme = theme;
     localStorage.setItem("theme", theme);
-  }, [theme]);
+  }, [mounted, theme]);
 
   return (
     <button

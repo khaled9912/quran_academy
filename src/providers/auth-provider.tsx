@@ -97,15 +97,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     getCachedProfileSnapshot,
     getCachedProfileServerSnapshot
   );
-  const [profile, setProfile] = useState<UserProfile | null>(cachedProfile);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const effectiveProfile = profile ?? cachedProfile;
   const profileRef = useRef<UserProfile | null>(effectiveProfile);
   profileRef.current = effectiveProfile;
 
+  // Keep the first render consistent between server and browser, even when a
+  // cached session exists in localStorage or when the app is opened through a
+  // tunnel/phone origin.
+  useEffect(() => {
+    setProfile(cachedProfile);
+  }, [cachedProfile]);
+
   // Only a protected page without a cached identity has to wait for the API.
-  const [isLoading, setIsLoading] = useState(
-    () => !cachedProfile && isProtectedPath(initialPathRef.current)
-  );
+  const [isLoading, setIsLoading] = useState(false);
+  useEffect(() => {
+    setIsLoading(!cachedProfile && isProtectedPath(initialPathRef.current));
+  }, [cachedProfile]);
   // A cached identity means the session can restore in the background without
   // holding the page, even while isLoading is still true.
   const authPending = isLoading && !effectiveProfile;
