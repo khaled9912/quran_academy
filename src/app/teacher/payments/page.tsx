@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Save, Wallet } from "lucide-react";
+import { TeacherAgreementGate } from "@/components/TeacherAgreementGate";
 import { useAuth } from "@/providers/auth-provider";
 import { useToast } from "@/providers/toast-provider";
 import { ApiError } from "@/lib/backend-client";
@@ -86,173 +87,175 @@ export default function TeacherPaymentsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pt-24 pb-16 text-foreground">
-      <div className="mx-auto max-w-6xl px-4 md:px-8 lg:px-16">
-        <div className="mb-8">
-          <h1 className="mb-2 text-4xl font-bold">Monthly earnings</h1>
-          <p className="text-lg text-foreground opacity-75">
-            Your completed lessons for the month, what the academy will pay you,
-            and where to send the transfer.
-          </p>
-        </div>
-
-        {billingQuery.isLoading ? (
-          <p className="text-foreground opacity-70">Loading your earnings…</p>
-        ) : billingQuery.isError ? (
-          <div className="rounded-2xl border border-red-300 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-red-800 dark:text-red-300">
-            {billingQuery.error instanceof Error
-              ? billingQuery.error.message
-              : "Unable to load your earnings."}
-            <button
-              type="button"
-              onClick={() => void billingQuery.refetch()}
-              className="ml-3 underline"
-            >
-              Try again
-            </button>
+    <TeacherAgreementGate>
+      <div className="min-h-screen bg-background pt-24 pb-16 text-foreground">
+        <div className="mx-auto max-w-6xl px-4 md:px-8 lg:px-16">
+          <div className="mb-8">
+            <h1 className="mb-2 text-4xl font-bold">Monthly earnings</h1>
+            <p className="text-lg text-foreground opacity-75">
+              Your completed lessons for the month, what the academy will pay you,
+              and where to send the transfer.
+            </p>
           </div>
-        ) : billing ? (
-          <>
-            <div className="mb-6 flex flex-wrap items-center gap-3">
-              <label htmlFor="earnings-month" className="text-sm font-semibold">
-                Month
-              </label>
-              <select
-                id="earnings-month"
-                value={billing.month}
-                onChange={(event) => setMonth(event.target.value)}
-                className="rounded-xl border border-card-border bg-background px-4 py-2.5 text-foreground focus:border-green-500 focus:outline-none"
+
+          {billingQuery.isLoading ? (
+            <p className="text-foreground opacity-70">Loading your earnings…</p>
+          ) : billingQuery.isError ? (
+            <div className="rounded-2xl border border-red-300 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 p-4 text-red-800 dark:text-red-300">
+              {billingQuery.error instanceof Error
+                ? billingQuery.error.message
+                : "Unable to load your earnings."}
+              <button
+                type="button"
+                onClick={() => void billingQuery.refetch()}
+                className="ml-3 underline"
               >
-                {billing.months.map((entry) => (
-                  <option key={entry.month} value={entry.month}>
-                    {monthLabel(entry.month)}
-                    {entry.month === billing.months[0]?.month &&
-                    !billing.monthClosed
-                      ? " (in progress)"
-                      : ""}
-                  </option>
-                ))}
-              </select>
-              <span className="rounded-full bg-green-500/10 px-3 py-1 text-sm font-semibold text-green-700 dark:text-green-400">
-                {billing.lessons.length} lesson
-                {billing.lessons.length === 1 ? "" : "s"} ·{" "}
-                {egp(billing.totalEgp)}
-              </span>
-              <span className="text-sm text-foreground opacity-70">
-                {billing.payoutPerLessonEgp > 0
-                  ? `${egp(billing.payoutPerLessonEgp)} per lesson`
-                  : "Payout rate not set yet"}
-              </span>
+                Try again
+              </button>
             </div>
-
-            {billing.payoutPerLessonEgp <= 0 ? (
-              <div className="mb-6 rounded-2xl border border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-4 text-amber-900 dark:text-amber-300">
-                The academy has not set your per-lesson rate yet, so this
-                summary shows 0. Contact the academy if this looks wrong.
+          ) : billing ? (
+            <>
+              <div className="mb-6 flex flex-wrap items-center gap-3">
+                <label htmlFor="earnings-month" className="text-sm font-semibold">
+                  Month
+                </label>
+                <select
+                  id="earnings-month"
+                  value={billing.month}
+                  onChange={(event) => setMonth(event.target.value)}
+                  className="rounded-xl border border-card-border bg-background px-4 py-2.5 text-foreground focus:border-green-500 focus:outline-none"
+                >
+                  {billing.months.map((entry) => (
+                    <option key={entry.month} value={entry.month}>
+                      {monthLabel(entry.month)}
+                      {entry.month === billing.months[0]?.month &&
+                      !billing.monthClosed
+                        ? " (in progress)"
+                        : ""}
+                    </option>
+                  ))}
+                </select>
+                <span className="rounded-full bg-green-500/10 px-3 py-1 text-sm font-semibold text-green-700 dark:text-green-400">
+                  {billing.lessons.length} lesson
+                  {billing.lessons.length === 1 ? "" : "s"} ·{" "}
+                  {egp(billing.totalEgp)}
+                </span>
+                <span className="text-sm text-foreground opacity-70">
+                  {billing.payoutPerLessonEgp > 0
+                    ? `${egp(billing.payoutPerLessonEgp)} per lesson`
+                    : "Payout rate not set yet"}
+                </span>
               </div>
-            ) : null}
 
-            {!billing.hasPayoutDetails ? (
-              <div className="mb-6 rounded-2xl border border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-4 text-amber-900 dark:text-amber-300">
-                Add at least one payout method below so the academy can transfer
-                your earnings.
-              </div>
-            ) : null}
+              {billing.payoutPerLessonEgp <= 0 ? (
+                <div className="mb-6 rounded-2xl border border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-4 text-amber-900 dark:text-amber-300">
+                  The academy has not set your per-lesson rate yet, so this
+                  summary shows 0. Contact the academy if this looks wrong.
+                </div>
+              ) : null}
 
-            <div className="grid gap-6 lg:grid-cols-5">
-              <section className="rounded-3xl border border-card-border bg-card-bg p-6 lg:col-span-3">
-                <h2 className="mb-1 text-xl font-semibold">
-                  {monthLabel(billing.month)}
-                </h2>
-                <p className="mb-5 text-sm text-foreground opacity-70">
-                  Lessons marked completed in this month. Trial lessons are paid
-                  to you as usual.
-                </p>
+              {!billing.hasPayoutDetails ? (
+                <div className="mb-6 rounded-2xl border border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-4 text-amber-900 dark:text-amber-300">
+                  Add at least one payout method below so the academy can transfer
+                  your earnings.
+                </div>
+              ) : null}
 
-                {billing.lessons.length === 0 ? (
-                  <p className="text-foreground opacity-70">
-                    No completed lessons in this month.
+              <div className="grid gap-6 lg:grid-cols-5">
+                <section className="rounded-3xl border border-card-border bg-card-bg p-6 lg:col-span-3">
+                  <h2 className="mb-1 text-xl font-semibold">
+                    {monthLabel(billing.month)}
+                  </h2>
+                  <p className="mb-5 text-sm text-foreground opacity-70">
+                    Lessons marked completed in this month. Trial lessons are paid
+                    to you as usual.
                   </p>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                      <thead className="border-b border-card-border text-foreground opacity-60">
-                        <tr>
-                          <th className="py-2 pr-4 font-semibold">Date</th>
-                          <th className="py-2 pr-4 font-semibold">Student</th>
-                          <th className="py-2 pr-4 font-semibold">Lesson</th>
-                          <th className="py-2 text-right font-semibold">
-                            Payout
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {billing.lessons.map((lesson) => (
-                          <tr
-                            key={lesson.id}
-                            className="border-b border-card-border/60 last:border-0"
-                          >
-                            <td className="py-3 pr-4">
-                              {lessonDate(lesson.startsAt)}
+
+                  {billing.lessons.length === 0 ? (
+                    <p className="text-foreground opacity-70">
+                      No completed lessons in this month.
+                    </p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-sm">
+                        <thead className="border-b border-card-border text-foreground opacity-60">
+                          <tr>
+                            <th className="py-2 pr-4 font-semibold">Date</th>
+                            <th className="py-2 pr-4 font-semibold">Student</th>
+                            <th className="py-2 pr-4 font-semibold">Lesson</th>
+                            <th className="py-2 text-right font-semibold">
+                              Payout
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {billing.lessons.map((lesson) => (
+                            <tr
+                              key={lesson.id}
+                              className="border-b border-card-border/60 last:border-0"
+                            >
+                              <td className="py-3 pr-4">
+                                {lessonDate(lesson.startsAt)}
+                              </td>
+                              <td className="py-3 pr-4">
+                                {lesson.studentName || "Student"}
+                              </td>
+                              <td className="py-3 pr-4 text-foreground opacity-70">
+                                {lesson.isTrial
+                                  ? "Trial lesson"
+                                  : new Date(lesson.startsAt).toLocaleTimeString(
+                                      undefined,
+                                      {
+                                        hour: "numeric",
+                                        minute: "2-digit",
+                                        hour12: true,
+                                      }
+                                    )}
+                              </td>
+                              <td className="py-3 text-right font-semibold">
+                                {egp(lesson.amount)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot>
+                          <tr>
+                            <td
+                              colSpan={3}
+                              className="pt-4 text-right font-semibold"
+                            >
+                              Total
                             </td>
-                            <td className="py-3 pr-4">
-                              {lesson.studentName || "Student"}
-                            </td>
-                            <td className="py-3 pr-4 text-foreground opacity-70">
-                              {lesson.isTrial
-                                ? "Trial lesson"
-                                : new Date(lesson.startsAt).toLocaleTimeString(
-                                    undefined,
-                                    {
-                                      hour: "numeric",
-                                      minute: "2-digit",
-                                      hour12: true,
-                                    }
-                                  )}
-                            </td>
-                            <td className="py-3 text-right font-semibold">
-                              {egp(lesson.amount)}
+                            <td className="pt-4 text-right text-lg font-bold">
+                              {egp(billing.totalEgp)}
                             </td>
                           </tr>
-                        ))}
-                      </tbody>
-                      <tfoot>
-                        <tr>
-                          <td
-                            colSpan={3}
-                            className="pt-4 text-right font-semibold"
-                          >
-                            Total
-                          </td>
-                          <td className="pt-4 text-right text-lg font-bold">
-                            {egp(billing.totalEgp)}
-                          </td>
-                        </tr>
-                      </tfoot>
-                    </table>
-                  </div>
-                )}
+                        </tfoot>
+                      </table>
+                    </div>
+                  )}
 
-                {!billing.monthClosed ? (
-                  <p className="mt-4 text-sm text-foreground opacity-60">
-                    This month is still in progress; the total will grow as more
-                    lessons complete.
-                  </p>
-                ) : null}
-              </section>
+                  {!billing.monthClosed ? (
+                    <p className="mt-4 text-sm text-foreground opacity-60">
+                      This month is still in progress; the total will grow as more
+                      lessons complete.
+                    </p>
+                  ) : null}
+                </section>
 
-              <aside className="rounded-3xl border border-card-border bg-card-bg p-6 lg:col-span-2">
-                <h2 className="mb-1 flex items-center gap-2 text-xl font-semibold">
-                  <Wallet size={20} />
-                  Payout details
-                </h2>
-                <PayoutForm key={billing.month} billing={billing} />
-              </aside>
-            </div>
-          </>
-        ) : null}
+                <aside className="rounded-3xl border border-card-border bg-card-bg p-6 lg:col-span-2">
+                  <h2 className="mb-1 flex items-center gap-2 text-xl font-semibold">
+                    <Wallet size={20} />
+                    Payout details
+                  </h2>
+                  <PayoutForm key={billing.month} billing={billing} />
+                </aside>
+              </div>
+            </>
+          ) : null}
+        </div>
       </div>
-    </div>
+    </TeacherAgreementGate>
   );
 }
 
