@@ -10,6 +10,7 @@ import { LIVE_SYNC_INTERVAL } from "@/lib/query-client";
 import { laterLessons, todayLessons } from "@/lib/lesson-window";
 import { NextUpLessons } from "@/components/NextUpLessons";
 import { PolicyPrompt } from "@/components/PolicyPrompt";
+import { TeacherAgreementGate } from "@/components/TeacherAgreementGate";
 import {
   weekdayLabel,
   formatWeeklyTimeRange,
@@ -93,252 +94,256 @@ export default function TeacherDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground pt-24 pb-16">
-      <div className="max-w-6xl mx-auto px-4 md:px-8 lg:px-16">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Teacher Dashboard</h1>
-          <p className="text-lg text-foreground opacity-75">
-            Your weekly lessons, announced times, and class reports.
-          </p>
-        </div>
+    <TeacherAgreementGate>
+      <div className="min-h-screen bg-background text-foreground pt-24 pb-16">
+        <div className="max-w-6xl mx-auto px-4 md:px-8 lg:px-16">
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold mb-2">Teacher Dashboard</h1>
+            <p className="text-lg text-foreground opacity-75">
+              Your weekly lessons, announced times, and class reports.
+            </p>
+          </div>
 
-        <PolicyPrompt />
+          <div className="mb-8">
+            <PolicyPrompt />
+          </div>
 
-        {failed && (
-          <p
-            role="status"
-            className="mb-6 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm"
-          >
-            Some of your data could not be loaded. Check the API connection and
-            try refreshing.
-          </p>
-        )}
+          {failed && (
+            <p
+              role="status"
+              className="mb-6 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm"
+            >
+              Some of your data could not be loaded. Check the API connection and
+              try refreshing.
+            </p>
+          )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          {metrics.map((metric) => {
-            const card = (
-              <>
-                <p className="text-sm uppercase text-foreground opacity-70 mb-2">
-                  {metric.title}
-                </p>
-                <p className="text-3xl font-semibold text-green-600 dark:text-green-400">
-                  {metric.loading ? (
-                    <span className="inline-block h-8 w-10 animate-pulse rounded-lg bg-foreground/10 align-middle" />
-                  ) : (
-                    metric.value
-                  )}
-                </p>
-              </>
-            );
-            const className =
-              "rounded-3xl border border-card-border bg-card-bg p-6";
-            return metric.href ? (
-              <Link
-                key={metric.title}
-                href={metric.href}
-                className={`${className} transition hover:border-amber-400`}
-              >
-                {card}
-              </Link>
-            ) : (
-              <div key={metric.title} className={className}>
-                {card}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            {metrics.map((metric) => {
+              const card = (
+                <>
+                  <p className="text-sm uppercase text-foreground opacity-70 mb-2">
+                    {metric.title}
+                  </p>
+                  <p className="text-3xl font-semibold text-green-600 dark:text-green-400">
+                    {metric.loading ? (
+                      <span className="inline-block h-8 w-10 animate-pulse rounded-lg bg-foreground/10 align-middle" />
+                    ) : (
+                      metric.value
+                    )}
+                  </p>
+                </>
+              );
+              const className =
+                "rounded-3xl border border-card-border bg-card-bg p-6";
+              return metric.href ? (
+                <Link
+                  key={metric.title}
+                  href={metric.href}
+                  className={`${className} transition hover:border-amber-400`}
+                >
+                  {card}
+                </Link>
+              ) : (
+                <div key={metric.title} className={className}>
+                  {card}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <section className="rounded-3xl border border-card-border bg-card-bg p-6">
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <h2 className="text-xl font-semibold">Today&apos;s lessons</h2>
+                <Link
+                  href="/teacher/schedule"
+                  className="text-sm font-semibold text-green-600 dark:text-green-400 hover:underline"
+                >
+                  Full schedule →
+                </Link>
               </div>
-            );
-          })}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <section className="rounded-3xl border border-card-border bg-card-bg p-6">
-            <div className="flex items-center justify-between gap-3 mb-4">
-              <h2 className="text-xl font-semibold">Today&apos;s lessons</h2>
-              <Link
-                href="/teacher/schedule"
-                className="text-sm font-semibold text-green-600 dark:text-green-400 hover:underline"
-              >
-                Full schedule →
-              </Link>
-            </div>
-            {lessonsQuery.isLoading ? (
-              <div className="space-y-3">
-                {[0, 1].map((row) => (
-                  <div
-                    key={row}
-                    className="h-20 animate-pulse rounded-2xl bg-foreground/10"
-                  />
-                ))}
-              </div>
-            ) : todays.length ? (
-              <div className="space-y-3">
-                {todays.map((lesson) => {
-                  const countdown =
-                    lesson.status === "scheduled"
-                      ? startsInLabel(lesson.startsAt, now)
-                      : null;
-                  return (
+              {lessonsQuery.isLoading ? (
+                <div className="space-y-3">
+                  {[0, 1].map((row) => (
                     <div
-                      key={lesson.id}
+                      key={row}
+                      className="h-20 animate-pulse rounded-2xl bg-foreground/10"
+                    />
+                  ))}
+                </div>
+              ) : todays.length ? (
+                <div className="space-y-3">
+                  {todays.map((lesson) => {
+                    const countdown =
+                      lesson.status === "scheduled"
+                        ? startsInLabel(lesson.startsAt, now)
+                        : null;
+                    return (
+                      <div
+                        key={lesson.id}
+                        className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-card-border p-4"
+                      >
+                        <div>
+                          <p className="font-semibold">
+                            {dateTime(lesson.startsAt)}
+                          </p>
+                          {countdown ? (
+                            <p className="mt-1 text-sm font-semibold text-green-600 dark:text-green-400">
+                              {countdown}
+                            </p>
+                          ) : null}
+                          <p className="mt-1 text-sm text-foreground opacity-70">
+                            Student: {lesson.studentName ?? "Assigned student"}
+                          </p>
+                        </div>
+                        <Link
+                          href={`/lesson/${lesson.id}`}
+                          className="rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
+                        >
+                          Join lesson
+                        </Link>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-foreground opacity-70">
+                  No lessons today. Your next one is listed below.
+                </p>
+              )}
+              <NextUpLessons lessons={nextUp} perspective="teacher" />
+            </section>
+
+            <section className="rounded-3xl border border-card-border bg-card-bg p-6">
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <h2 className="text-xl font-semibold">Weekly times</h2>
+                <Link
+                  href="/teacher/availability"
+                  className="text-sm font-semibold text-green-600 dark:text-green-400 hover:underline"
+                >
+                  Manage →
+                </Link>
+              </div>
+              {rulesQuery.isLoading ? (
+                <div className="space-y-3">
+                  {[0, 1, 2].map((row) => (
+                    <div
+                      key={row}
+                      className="h-16 animate-pulse rounded-2xl bg-foreground/10"
+                    />
+                  ))}
+                </div>
+              ) : rules.length ? (
+                <div className="space-y-3">
+                  {rules.slice(0, 5).map((rule) => (
+                    <div
+                      key={rule.id}
                       className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-card-border p-4"
                     >
                       <div>
                         <p className="font-semibold">
-                          {dateTime(lesson.startsAt)}
+                          {weekdayLabel(rule.dayOfWeek)} ·{" "}
+                          {formatWeeklyTimeRange(
+                            rule.startsAtTime,
+                            rule.endsAtTime
+                          )}
                         </p>
-                        {countdown ? (
-                          <p className="mt-1 text-sm font-semibold text-green-600 dark:text-green-400">
-                            {countdown}
-                          </p>
-                        ) : null}
                         <p className="mt-1 text-sm text-foreground opacity-70">
-                          Student: {lesson.studentName ?? "Assigned student"}
+                          Repeats weekly · {rule.timeZoneId.replaceAll("_", " ")}
                         </p>
                       </div>
-                      <Link
-                        href={`/lesson/${lesson.id}`}
-                        className="rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600"
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                          rule.status === "available"
+                            ? "bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300"
+                            : "bg-sky-100 dark:bg-sky-500/15 text-sky-800 dark:text-sky-300"
+                        }`}
                       >
-                        Join lesson
-                      </Link>
+                        {rule.status === "available" ? "Open" : "Booked"}
+                      </span>
                     </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="text-foreground opacity-70">
-                No lessons today. Your next one is listed below.
-              </p>
-            )}
-            <NextUpLessons lessons={nextUp} perspective="teacher" />
-          </section>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-foreground opacity-70">
+                  No weekly times announced yet.{" "}
+                  <Link
+                    href="/teacher/availability"
+                    className="font-semibold text-green-600 dark:text-green-400 hover:underline"
+                  >
+                    Announce your availability
+                  </Link>{" "}
+                  so students can book.
+                </p>
+              )}
+            </section>
+          </div>
 
-          <section className="rounded-3xl border border-card-border bg-card-bg p-6">
-            <div className="flex items-center justify-between gap-3 mb-4">
-              <h2 className="text-xl font-semibold">Weekly times</h2>
-              <Link
-                href="/teacher/availability"
-                className="text-sm font-semibold text-green-600 dark:text-green-400 hover:underline"
-              >
-                Manage →
-              </Link>
-            </div>
-            {rulesQuery.isLoading ? (
-              <div className="space-y-3">
-                {[0, 1, 2].map((row) => (
-                  <div
-                    key={row}
-                    className="h-16 animate-pulse rounded-2xl bg-foreground/10"
-                  />
-                ))}
+          {reportsDue.length > 0 && (
+            <section className="mt-6 rounded-3xl border border-amber-200 bg-amber-50/70 p-6 dark:border-amber-500/30 dark:bg-amber-500/10">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div>
+                  <h2 className="text-xl font-semibold">Class reports due</h2>
+                  <p className="mt-1 text-sm text-foreground opacity-70">
+                    Every finished lesson needs a class summary and student
+                    feedback.
+                  </p>
+                </div>
+                <Link
+                  href="/teacher/schedule?filter=reports"
+                  className="text-sm font-semibold text-green-700 hover:underline dark:text-green-400"
+                >
+                  Open schedule →
+                </Link>
               </div>
-            ) : rules.length ? (
               <div className="space-y-3">
-                {rules.slice(0, 5).map((rule) => (
+                {reportsDue.slice(0, 5).map((lesson) => (
                   <div
-                    key={rule.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-card-border p-4"
+                    key={lesson.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 dark:border-amber-500/30 bg-white/70 p-4 dark:bg-white/5"
                   >
                     <div>
-                      <p className="font-semibold">
-                        {weekdayLabel(rule.dayOfWeek)} ·{" "}
-                        {formatWeeklyTimeRange(
-                          rule.startsAtTime,
-                          rule.endsAtTime
-                        )}
-                      </p>
+                      <p className="font-semibold">{dateTime(lesson.startsAt)}</p>
                       <p className="mt-1 text-sm text-foreground opacity-70">
-                        Repeats weekly · {rule.timeZoneId.replaceAll("_", " ")}
+                        Student: {lesson.studentName ?? "Assigned student"}
                       </p>
                     </div>
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                        rule.status === "available"
-                          ? "bg-green-100 dark:bg-green-500/15 text-green-800 dark:text-green-300"
-                          : "bg-sky-100 dark:bg-sky-500/15 text-sky-800 dark:text-sky-300"
-                      }`}
+                    <Link
+                      href={`/lesson/${lesson.id}`}
+                      className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-600"
                     >
-                      {rule.status === "available" ? "Open" : "Booked"}
-                    </span>
+                      Write report
+                    </Link>
                   </div>
                 ))}
               </div>
-            ) : (
-              <p className="text-foreground opacity-70">
-                No weekly times announced yet.{" "}
-                <Link
-                  href="/teacher/availability"
-                  className="font-semibold text-green-600 dark:text-green-400 hover:underline"
-                >
-                  Announce your availability
-                </Link>{" "}
-                so students can book.
+            </section>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <Link
+              href="/teacher/availability"
+              className="rounded-3xl border border-card-border bg-card-bg p-6 hover:border-green-500 transition"
+            >
+              <h2 className="text-xl font-semibold mb-2">Manage availability</h2>
+              <p className="text-foreground opacity-75">
+                Announce the weekly times you can teach. The academy schedules
+                lessons against them.
               </p>
-            )}
-          </section>
-        </div>
-
-        {reportsDue.length > 0 && (
-          <section className="mt-6 rounded-3xl border border-amber-200 bg-amber-50/70 p-6 dark:border-amber-500/30 dark:bg-amber-500/10">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <div>
-                <h2 className="text-xl font-semibold">Class reports due</h2>
-                <p className="mt-1 text-sm text-foreground opacity-70">
-                  Every finished lesson needs a class summary and student
-                  feedback.
-                </p>
-              </div>
-              <Link
-                href="/teacher/schedule?filter=reports"
-                className="text-sm font-semibold text-green-700 hover:underline dark:text-green-400"
-              >
-                Open schedule →
-              </Link>
-            </div>
-            <div className="space-y-3">
-              {reportsDue.slice(0, 5).map((lesson) => (
-                <div
-                  key={lesson.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 dark:border-amber-500/30 bg-white/70 p-4 dark:bg-white/5"
-                >
-                  <div>
-                    <p className="font-semibold">{dateTime(lesson.startsAt)}</p>
-                    <p className="mt-1 text-sm text-foreground opacity-70">
-                      Student: {lesson.studentName ?? "Assigned student"}
-                    </p>
-                  </div>
-                  <Link
-                    href={`/lesson/${lesson.id}`}
-                    className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-600"
-                  >
-                    Write report
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-          <Link
-            href="/teacher/availability"
-            className="rounded-3xl border border-card-border bg-card-bg p-6 hover:border-green-500 transition"
-          >
-            <h2 className="text-xl font-semibold mb-2">Manage availability</h2>
-            <p className="text-foreground opacity-75">
-              Announce the weekly times you can teach. The academy schedules
-              lessons against them.
-            </p>
-          </Link>
-          <Link
-            href="/teacher/schedule"
-            className="rounded-3xl border border-card-border bg-card-bg p-6 hover:border-green-500 transition"
-          >
-            <h2 className="text-xl font-semibold mb-2">Teaching schedule</h2>
-            <p className="text-foreground opacity-75">
-              Review confirmed lessons and cancel a lesson if needed.
-            </p>
-          </Link>
+            </Link>
+            <Link
+              href="/teacher/schedule"
+              className="rounded-3xl border border-card-border bg-card-bg p-6 hover:border-green-500 transition"
+            >
+              <h2 className="text-xl font-semibold mb-2">Teaching schedule</h2>
+              <p className="text-foreground opacity-75">
+                Review confirmed lessons and cancel a lesson if needed.
+              </p>
+            </Link>
+          </div>
         </div>
       </div>
-    </div>
+    </TeacherAgreementGate>
   );
 }

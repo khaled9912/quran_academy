@@ -140,7 +140,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className={inter.className}>
+      <body className={inter.className} suppressHydrationWarning>
         <JsonLd data={organizationSchema} />
         <JsonLd data={websiteSchema} />
         <Providers>

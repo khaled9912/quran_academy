@@ -8,14 +8,19 @@ const backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL ?? "").replace(
 // A sleeping or unreachable API must not leave the UI waiting forever.
 const REQUEST_TIMEOUT_MS = 30_000;
 
+let sameOriginHintLogged = false;
+
 const getBackendBaseUrl = () => {
   if (!backendUrl) {
-    const message =
-      "NEXT_PUBLIC_BACKEND_URL is missing. Set it in FE/.env.local for local dev or in your deployment environment for preview/prod.";
-    if (process.env.NODE_ENV !== "production") {
-      throw new Error(message);
+    // Empty means same-origin: the /api rewrite in next.config.mjs proxies to
+    // API_ORIGIN, which is how production runs and how device tunnels reach
+    // the API through the frontend origin.
+    if (!sameOriginHintLogged) {
+      sameOriginHintLogged = true;
+      console.error(
+        "NEXT_PUBLIC_BACKEND_URL is empty; calling the API same-origin through the /api proxy."
+      );
     }
-    console.error(message);
     return "";
   }
 

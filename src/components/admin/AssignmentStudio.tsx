@@ -67,6 +67,26 @@ const byWeek = (rules: WeeklyRule[]) =>
       a.startsAtTime.localeCompare(b.startsAtTime)
   );
 
+const teacherMatchesForStudent = (
+  teacherRules: WeeklyRule[],
+  studentSlots: StudentWeeklyPreference[]
+) => {
+  if (!studentSlots.length) return [];
+  const teacherZone = teacherRules[0]?.timeZoneId;
+  const offers = offersInTeacherClock(studentSlots, teacherZone);
+  return byWeek(
+    teacherRules.filter((rule) => {
+      if (rule.status !== "available") return false;
+      return offers.some(
+        (offer) =>
+          rule.dayOfWeek === offer.dayOfWeek &&
+          minutesOf(rule.startsAtTime) < minutesOf(offer.endsAtTime) &&
+          minutesOf(offer.startsAtTime) < minutesOf(rule.endsAtTime)
+      );
+    })
+  );
+};
+
 const windowLabel = (rule: WeeklyRule) =>
   `${WEEKDAY_SHORT[rule.dayOfWeek]} ${formatWeeklyTimeRange(
     rule.startsAtTime,
@@ -232,15 +252,15 @@ export function AssignmentStudio() {
     teachers
       .map((teacher) => {
         const published = byWeek(rulesByTeacher.get(teacher.id) ?? []);
-        const offers = offersInTeacherClock(slots, published[0]?.timeZoneId);
         const open = published.filter((rule) => rule.status === "available");
+        const covered = slots.filter(
+          (slot) => teacherMatchesForStudent(open, [slot]).length > 0
+        ).length;
         return {
           teacher,
           published,
-          covered: offers.filter((offer) =>
-            open.some((rule) => overlaps(rule, offer))
-          ).length,
-          total: offers.length,
+          covered,
+          total: slots.length,
         };
       })
       .sort(
@@ -345,9 +365,11 @@ export function AssignmentStudio() {
               lessons.length,
               ruleIds.length
             );
+            const isOpen = openId === student.studentId;
+            const currentTeacherMatches =
+              teacherId && isOpen ? teacherMatchesForStudent(rules, slots) : [];
             // A plan is only on record once every weekly lesson in it has a time.
             const planUnfilled = progress !== null && !progress.complete;
-            const isOpen = openId === student.studentId;
             return (
               <article
                 key={student.studentId}
@@ -473,8 +495,9 @@ export function AssignmentStudio() {
                             {rankTeachers(slots).map(
                               ({ teacher, published, covered, total }) => {
                                 const chosen = teacherId === teacher.id;
-                                const open = published.filter(
-                                  (rule) => rule.status === "available"
+                                const open = teacherMatchesForStudent(
+                                  published,
+                                  slots
                                 );
                                 return (
                                   <li key={teacher.id}>
@@ -534,41 +557,6 @@ export function AssignmentStudio() {
                         )}
                       </div>
                       <div>
-                        {teacherZone && slots.length > 0 && (
-                          <div className="mb-4">
-                            <p className="text-xs font-semibold uppercase tracking-wide text-foreground opacity-60">
-                              Their hours on the {timeZoneLabel(teacherZone)}{" "}
-                              clock
-                            </p>
-                            <div className="mt-2 flex flex-wrap gap-2">
-                              {offersInTeacherClock(slots, teacherZone).map(
-                                (offer) => (
-                                  <span
-                                    key={`${offer.dayOfWeek}-${offer.startsAtTime}`}
-                                    className="rounded-full border border-card-border px-3 py-1 text-xs font-semibold"
-                                  >
-                                    {WEEKDAY_SHORT[offer.dayOfWeek]}{" "}
-                                    {formatWeeklyTimeRange(
-                                      offer.startsAtTime,
-                                      offer.endsAtTime
-                                    )}
-                                    {!offer.sameZone && (
-                                      <span className="ml-2 font-normal opacity-70">
-                                        {WEEKDAY_SHORT[offer.sourceDayOfWeek]}{" "}
-                                        {formatWeeklyTimeRange(
-                                          offer.sourceStartsAtTime,
-                                          offer.sourceEndsAtTime
-                                        )}{" "}
-                                        in{" "}
-                                        {timeZoneLabel(offer.sourceTimeZoneId)}
-                                      </span>
-                                    )}
-                                  </span>
-                                )
-                              )}
-                            </div>
-                          </div>
-                        )}
                         {!teacherId ? (
                           <p className="text-sm text-foreground opacity-70">
                             Choose a teacher to see their open weekly times.
@@ -578,43 +566,36 @@ export function AssignmentStudio() {
                             <Loader2 size={15} className="animate-spin" />
                             Loading their times…
                           </p>
-                        ) : rules.length === 0 ? (
+                        ) : currentTeacherMatches.length === 0 ? (
                           <p className="text-sm text-foreground opacity-70">
-                            This teacher has no weekly times published yet.
+                            This teacher has no weekly times that match the student.
                           </p>
                         ) : (
                           <div className="flex flex-wrap gap-2">
-                            {rules.map((rule) => {
-                              const chosen = ruleIds.includes(rule.id);
-                              const taken = rule.status !== "available";
-                              return (
-                                <button
-                                  key={rule.id}
-                                  type="button"
-                                  aria-pressed={chosen}
-                                  disabled={taken}
-                                  onClick={() => toggleRule(rule.id)}
-                                  className={`rounded-xl border px-3 py-2 text-sm font-semibold transition ${
-                                    chosen
-                                      ? "border-green-600 bg-green-500/15 text-green-700 dark:text-green-300"
-                                      : taken
-                                        ? "cursor-not-allowed border-card-border opacity-40"
+                            {currentTeacherMatches
+                              .filter((rule) => rule.status === "available")
+                              .map((rule) => {
+                                const chosen = ruleIds.includes(rule.id);
+                                return (
+                                  <button
+                                    key={rule.id}
+                                    type="button"
+                                    aria-pressed={chosen}
+                                    onClick={() => toggleRule(rule.id)}
+                                    className={`rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+                                      chosen
+                                        ? "border-green-600 bg-green-500/15 text-green-700 dark:text-green-300"
                                         : "border-card-border hover:border-green-500"
-                                  }`}
-                                >
-                                  {WEEKDAY_SHORT[rule.dayOfWeek]}{" "}
-                                  {formatWeeklyTimeRange(
-                                    rule.startsAtTime,
-                                    rule.endsAtTime
-                                  )}
-                                  {taken && (
-                                    <span className="ml-2 text-xs font-normal opacity-70">
-                                      taken
-                                    </span>
-                                  )}
-                                </button>
-                              );
-                            })}
+                                    }`}
+                                  >
+                                    {WEEKDAY_SHORT[rule.dayOfWeek]}{" "}
+                                    {formatWeeklyTimeRange(
+                                      rule.startsAtTime,
+                                      rule.endsAtTime
+                                    )}
+                                  </button>
+                                );
+                              })}
                           </div>
                         )}
                       </div>

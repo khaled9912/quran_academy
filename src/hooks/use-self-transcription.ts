@@ -28,8 +28,8 @@ export function useSelfTranscription(options: {
   latest.current = options;
   const [Engine, setEngine] = useState<SpeechConstructor | null>(null);
   const [supported, setSupported] = useState<boolean | null>(null);
-  const [consent, setConsentState] = useState(false);
-  const consentRef = useRef(false);
+  const [consent, setConsentState] = useState(true);
+  const consentRef = useRef(true);
   const [api, setApi] = useState<JitsiExternalApi | null>(null);
   const apiRef = useRef<JitsiExternalApi | null>(null);
   const [joinedAt, setJoinedAt] = useState<number | null>(null);

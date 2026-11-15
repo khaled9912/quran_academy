@@ -26,7 +26,7 @@ import type { WeeklyRule } from "@/types/scheduling";
 
 const DAY_ORDER = [6, 0, 1, 2, 3, 4, 5];
 const DEFAULT_DAYS = [6, 0, 1, 2, 3, 4];
-const DURATIONS = [30, 45, 60] as const;
+const DURATIONS = [30] as const;
 type DurationMinutes = (typeof DURATIONS)[number];
 
 const minutesOf = (value: string) => {
@@ -56,7 +56,7 @@ export default function AdminTeacherAvailabilityPage() {
 
   const [days, setDays] = useState<number[]>(DEFAULT_DAYS);
   const [start, setStart] = useState("17:00");
-  const [duration, setDuration] = useState<DurationMinutes>(60);
+  const [duration, setDuration] = useState<DurationMinutes>(30);
   const [timeZoneOverride, setTimeZoneOverride] = useState("");
   const end = addMinutes(start, duration);
 

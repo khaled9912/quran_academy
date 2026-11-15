@@ -7,6 +7,8 @@
   },
   "scripts": {
     "dev": "NEXT_TURBOPACK=0 next dev",
+    "dev:local": "NEXT_TURBOPACK=0 next dev",
+    "dev:ngrok": "bash scripts/run-local-ngrok.sh",
     "build": "next build",
     "typecheck": "tsc --noEmit",
     "start": "next start",

@@ -17,10 +17,7 @@ import { Minimize2, PenLine, PhoneOff } from "lucide-react";
 import { JitsiRoom } from "@/components/JitsiRoom";
 import { LeaveLessonDialog } from "@/components/lesson/LeaveLessonDialog";
 import { LessonPenOverlay } from "@/components/lesson/LessonPenOverlay";
-import {
-  SelfTranscriptionConsent,
-  SelfTranscriptionControls,
-} from "@/components/lesson/SelfTranscriptionControls";
+import { SelfTranscriptionControls } from "@/components/lesson/SelfTranscriptionControls";
 import { StudentConcernReport } from "@/components/lesson/StudentConcernReport";
 import { useSelfTranscription } from "@/hooks/use-self-transcription";
 import { useAuth } from "@/providers/auth-provider";
@@ -637,15 +634,7 @@ function LessonCallHost({
           room={call.room}
           displayName={call.displayName}
           flags={flags}
-          transcriptionConsent={
-            participant && flags.transcription ? (
-              <SelfTranscriptionConsent
-                consent={transcription.consent}
-                supported={transcription.supported}
-                onChange={transcription.setConsent}
-              />
-            ) : null
-          }
+          transcriptionConsent={null}
           onClose={onHangup}
           onJoined={handleJoined}
           onLeft={onLeft}

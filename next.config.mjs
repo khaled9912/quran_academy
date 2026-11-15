@@ -12,6 +12,14 @@ const isPreviewDeployment =
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  allowedDevOrigins: [
+    "*",
+    "localhost",
+    "127.0.0.1",
+    "0.0.0.0",
+    "*.ngrok-free.dev",
+    "*.ngrok.io",
+  ],
   turbopack: {
     root: __dirname,
   },
