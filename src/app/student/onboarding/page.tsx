@@ -336,10 +336,11 @@ export default function StudentOnboardingPage() {
           </span>
         </div>
 
-        <PolicyPrompt />
+        <div className="space-y-4">
+          <PolicyPrompt />
 
-        <div className="mb-8">
-          <div className="flex items-center gap-3">
+          <div className="pt-1">
+            <div className="flex items-center gap-3">
             {STEP_LABELS.map((label, index) => {
               // Any step already answered is one tap away; a later question
               // stays out of reach until the one before it has an answer.
@@ -389,11 +390,12 @@ export default function StudentOnboardingPage() {
                 </div>
               );
             })}
+            </div>
           </div>
         </div>
 
         <div
-          className={`rounded-3xl border border-card-border bg-card-bg p-6 md:p-10 ${stepClass}`}
+          className={`mt-6 rounded-3xl border border-card-border bg-card-bg p-6 md:p-10 ${stepClass}`}
         >
           {onboardingQuery.isLoading ? (
             <div className="space-y-4">

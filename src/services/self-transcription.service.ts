@@ -411,9 +411,11 @@ export class SelfTranscriptionSession {
       (state) => {
         this.uploadState = state;
         if (this.closed) return;
-        if (state !== "ok") {
+        if (state === "halted") {
           this.abortRecognition();
-          this.publish(state === "halted" ? "blocked" : "retrying");
+          this.publish("blocked");
+        } else if (state === "retrying") {
+          this.publish("retrying");
         } else this.reconcile();
       }
     );

@@ -102,7 +102,9 @@ export default function TeacherDashboardPage() {
           </p>
         </div>
 
-        <PolicyPrompt />
+        <div className="mb-8">
+          <PolicyPrompt />
+        </div>
 
         {failed && (
           <p
