@@ -13,16 +13,7 @@ import {
   Moon,
   ScrollText,
 } from "lucide-react";
-import {
-  AvailabilityGrid,
-  keysFromPreferences,
-  slotKey,
-  slotsFromKeys,
-} from "@/components/student/AvailabilityGrid";
-import {
-  getMyOnboarding,
-  saveMyOnboarding,
-} from "@/services/onboarding.service";
+import { getMyOnboarding, saveMyOnboarding } from "@/services/onboarding.service";
 import { getAssignedWeeklyAvailability } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
 import { clearPlanChoice, readPlanChoice } from "@/lib/plan-choice";
@@ -30,6 +21,7 @@ import { reportUnexpectedError } from "@/lib/sentry";
 import { getViewerTimeZone, timeZoneLabel } from "@/lib/weekly-time";
 import { plans } from "@/lib/plans";
 import { PolicyPrompt } from "@/components/PolicyPrompt";
+import { WEEKDAY_SHORT, formatTimeOfDay } from "@/lib/utils";
 import type { StudentLevel } from "@/types/onboarding";
 
 const LEVELS: { value: StudentLevel; label: string; hint: string }[] = [
@@ -84,9 +76,29 @@ const PLAN_OPTIONS = plans.map((plan) => ({
   hint: `${plan.classesPerMonth} classes a month`,
 }));
 
-/** How many different weekdays a set of offered hours covers. */
-const distinctDays = (keys: Iterable<string>) =>
-  new Set(Array.from(keys, (key) => key.split("|")[0])).size;
+const DAY_ORDER: number[] = [6, 0, 1, 2, 3, 4, 5];
+const STUDENT_DURATION_MINUTES = 30;
+
+const minutesOf = (value: string) => {
+  const [hours, minutes] = value.split(":").map(Number);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return NaN;
+  return hours * 60 + minutes;
+};
+
+const addMinutes = (value: string, minutes: number) => {
+  const total = minutesOf(value) + minutes;
+  if (!Number.isFinite(total)) return "";
+  const hours = `${Math.floor(total / 60) % 24}`.padStart(2, "0");
+  const rest = `${total % 60}`.padStart(2, "0");
+  return `${hours}:${rest}`;
+};
+
+const buildStudentWeeklySlots = (days: number[], startsAtTime: string) =>
+  days.map((dayOfWeek) => ({
+    dayOfWeek,
+    startsAtTime,
+    endsAtTime: addMinutes(startsAtTime, STUDENT_DURATION_MINUTES),
+  }));
 
 export default function StudentOnboardingPage() {
   const router = useRouter();
@@ -103,12 +115,16 @@ export default function StudentOnboardingPage() {
     islamicStudiesLevel: "",
     arabicLevel: "",
   });
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selectedDays, setSelectedDays] = useState<number[]>([]);
+  const [preferredStart, setPreferredStart] = useState("17:00");
   const [planDays, setPlanDays] = useState(0);
   const [saving, setSaving] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
   const swapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
+  const endTime = useMemo(
+    () => addMinutes(preferredStart, STUDENT_DURATION_MINUTES),
+    [preferredStart]
+  );
   const onboardingQuery = useQuery({
     queryKey: ["onboarding", "student"],
     queryFn: getMyOnboarding,
@@ -140,7 +156,8 @@ export default function StudentOnboardingPage() {
       islamicStudiesLevel: saved.islamicStudiesLevel as StudentLevel,
       arabicLevel: saved.arabicLevel as StudentLevel,
     });
-    setSelected(keysFromPreferences(saved.weeklySlots));
+    setSelectedDays(Array.from(new Set(saved.weeklySlots.map((slot) => slot.dayOfWeek))));
+    if (saved.weeklySlots.length > 0) setPreferredStart(saved.weeklySlots[0].startsAtTime);
     setPlanDays(saved.planDaysPerWeek || tappedOnPlans);
     if (saved.completedAt) return;
     // Resume at the first question still unanswered, so a student who only ever
@@ -173,7 +190,7 @@ export default function StudentOnboardingPage() {
   );
 
   const levelsComplete = SUBJECTS.every((subject) => levels[subject.key]);
-  const offeredDays = useMemo(() => distinctDays(selected), [selected]);
+  const offeredDays = selectedDays.length;
   // The week has to be able to hold the plan they asked for.
   const timesFitPlan = planDays > 0 && offeredDays >= planDays;
   const canFinish = levelsComplete && timesFitPlan;
@@ -184,14 +201,21 @@ export default function StudentOnboardingPage() {
     Boolean(assignedQuery.data?.teacher) ||
     Boolean(onboardingQuery.data?.completedAt);
 
-  const toggleSlot = useCallback((key: string, next: boolean) => {
-    setSelected((current) => {
-      const updated = new Set(current);
-      if (next) updated.add(key);
-      else updated.delete(key);
-      return updated;
-    });
-  }, []);
+  const toggleDay = (day: number) => {
+    setSelectedDays((current) =>
+      current.includes(day)
+        ? current.filter((value) => value !== day)
+        : [...current, day]
+    );
+  };
+
+  const summary = selectedDays.length
+    ? `${selectedDays
+        .slice()
+        .sort((a, b) => DAY_ORDER.indexOf(a) - DAY_ORDER.indexOf(b))
+        .map((day) => WEEKDAY_SHORT[day])
+        .join(", ")} · ${formatTimeOfDay(preferredStart)} – ${formatTimeOfDay(endTime)}`
+    : "Choose the days you could take a lesson.";
 
   const draft = useCallback(
     (completed: boolean) => ({
@@ -201,10 +225,10 @@ export default function StudentOnboardingPage() {
       arabicLevel: levels.arabicLevel,
       timeZoneId: viewerTimeZone,
       daysPerWeek: planDays || null,
-      weeklySlots: slotsFromKeys(selected),
+      weeklySlots: buildStudentWeeklySlots(selectedDays, preferredStart),
       completed,
     }),
-    [levels, planDays, selected, viewerTimeZone]
+    [levels, planDays, preferredStart, selectedDays, viewerTimeZone]
   );
 
   const handleContinue = async (next: number) => {
@@ -242,7 +266,7 @@ export default function StudentOnboardingPage() {
         ...(onboardingQuery.data ?? {}),
         ...draft(true),
         planDaysPerWeek: planDays,
-        weeklySlots: slotsFromKeys(selected).map((slot, index) => ({
+        weeklySlots: buildStudentWeeklySlots(selectedDays, preferredStart).map((slot, index) => ({
           id: String(index),
           ...slot,
           timeZoneId: viewerTimeZone,
@@ -602,14 +626,9 @@ export default function StudentOnboardingPage() {
                 When could you take a lesson?
               </h1>
               <p className="mt-2 text-lg text-foreground opacity-75">
-                Tap every hour that usually works for you. A {planDays}-day week
-                needs at least {planDays} different days, so offer more if you
-                can — the academy matches them against your teacher&rsquo;s
-                clock.
-                <span className="hidden sm:inline">
-                  {" "}
-                  Drag across the grid to select a run of times.
-                </span>
+                Pick the weekdays and start time that usually work for you. Each
+                weekly window is a 30-minute lesson, and the academy uses this to
+                match you with a suitable teacher.
               </p>
 
               <div className="mt-6 flex flex-wrap items-center gap-3 text-sm">
@@ -618,12 +637,12 @@ export default function StudentOnboardingPage() {
                 </span>
                 <span
                   className={`rounded-full px-3 py-1.5 font-semibold transition-colors ${
-                    selected.size
+                    selectedDays.length
                       ? "bg-green-500 text-white"
                       : "bg-foreground/10 text-foreground opacity-60"
                   }`}
                 >
-                  {selected.size} {selected.size === 1 ? "time" : "times"}{" "}
+                  {selectedDays.length} {selectedDays.length === 1 ? "day" : "days"}{" "}
                   selected
                 </span>
                 <span
@@ -635,10 +654,10 @@ export default function StudentOnboardingPage() {
                 >
                   {offeredDays} of {planDays} days free
                 </span>
-                {selected.size > 0 && (
+                {selectedDays.length > 0 && (
                   <button
                     type="button"
-                    onClick={() => setSelected(new Set())}
+                    onClick={() => setSelectedDays([])}
                     className="text-foreground opacity-60 underline-offset-2 hover:text-green-600 hover:underline dark:hover:text-green-400"
                   >
                     Clear
@@ -646,12 +665,89 @@ export default function StudentOnboardingPage() {
                 )}
               </div>
 
-              <div className="mt-6 rounded-2xl border border-card-border bg-background p-4">
-                <AvailabilityGrid
-                  selected={selected}
-                  onToggle={toggleSlot}
-                  disabled={saving}
-                />
+              <div className="mt-6 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+                <div className="rounded-3xl border border-card-border bg-card-bg p-5 shadow-sm">
+                  <fieldset>
+                    <legend className="text-sm font-semibold">Days</legend>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {DAY_ORDER.map((day) => {
+                        const chosen = selectedDays.includes(day);
+                        return (
+                          <button
+                            key={day}
+                            type="button"
+                            aria-pressed={chosen}
+                            onClick={() => toggleDay(day)}
+                            className={`rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+                              chosen
+                                ? "border-green-700 bg-green-500/15 text-green-900 dark:border-green-400 dark:text-green-300"
+                                : "border-card-border bg-background text-foreground/60 hover:border-green-500"
+                            }`}
+                          >
+                            {WEEKDAY_SHORT[day]}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </fieldset>
+
+                  <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                    <label className="block text-sm font-semibold">
+                      Starts at
+                      <input
+                        type="time"
+                        value={preferredStart}
+                        onChange={(event) => setPreferredStart(event.target.value)}
+                        className="mt-2 w-full rounded-xl border border-card-border bg-background px-3 py-3 font-normal text-foreground outline-none focus:border-green-500"
+                      />
+                    </label>
+
+                    <div className="rounded-2xl border border-card-border bg-background p-3">
+                      <p className="text-sm font-semibold">Length</p>
+                      <div className="mt-2 inline-flex rounded-xl border border-green-700 bg-green-500/15 px-3 py-2 text-sm font-semibold text-green-900 dark:border-green-400 dark:text-green-300">
+                        30 minutes
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 rounded-xl bg-green-500/10 p-4 text-sm">
+                    <p className="font-semibold">{summary}</p>
+                    <p className="mt-1 text-xs text-foreground/60">
+                      Repeats every week · times are in {zoneHint}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-card-border bg-card-bg p-5 shadow-sm">
+                  <h2 className="text-xl font-bold">Your preferred lesson window</h2>
+                  {selectedDays.length ? (
+                    <div className="mt-4 space-y-3">
+                      {selectedDays
+                        .slice()
+                        .sort((a, b) => DAY_ORDER.indexOf(a) - DAY_ORDER.indexOf(b))
+                        .map((day) => (
+                          <div
+                            key={day}
+                            className="flex items-center justify-between gap-3 rounded-2xl border border-card-border bg-background p-3"
+                          >
+                            <div>
+                              <p className="font-semibold">{WEEKDAY_SHORT[day]}</p>
+                              <p className="text-sm text-foreground/60">
+                                {formatTimeOfDay(preferredStart)} – {formatTimeOfDay(endTime)}
+                              </p>
+                            </div>
+                            <span className="rounded-full bg-green-500/10 px-2.5 py-1 text-xs font-semibold text-green-700 dark:text-green-300">
+                              30 min
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <p className="mt-4 rounded-xl border border-dashed border-card-border p-8 text-center text-sm text-foreground/60">
+                      Choose the weekday(s) and start time that fit your family.
+                    </p>
+                  )}
+                </div>
               </div>
 
               <p className="mt-4 text-sm text-foreground opacity-70">
