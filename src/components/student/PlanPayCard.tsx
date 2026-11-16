@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, CreditCard, Loader2 } from "lucide-react";
@@ -46,8 +46,6 @@ export function PlanPayCard() {
 
   // A stable identity: CardCheckout re-runs its mount effect whenever a prop
   // changes, and an inline arrow would restart the payment form on every render.
-  const dismissTicket = useCallback(() => setTicket(null), []);
-
   const country = registrationCountryFromDocument();
 
   // The public price list answers two things this screen cannot decide for
@@ -267,7 +265,6 @@ export function PlanPayCard() {
               <CardCheckout
                 publishableKey={ticket.publishableKey}
                 clientSecret={ticket.clientSecret}
-                onFailed={dismissTicket}
               />
             </div>
           ) : null}

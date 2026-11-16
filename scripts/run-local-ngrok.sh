@@ -47,14 +47,19 @@ echo "Starting local Postgres for the API..."
   exit 1
 }
 
-# Ensure only one ngrok tunnel remains for the frontend port.
+# Ensure only one ngrok tunnel remains for the frontend and backend ports.
 if pgrep -f "ngrok http ${FRONTEND_PORT}" >/dev/null 2>&1; then
   pkill -f "ngrok http ${FRONTEND_PORT}" || true
 fi
+if pgrep -f "ngrok http ${BACKEND_PORT}" >/dev/null 2>&1; then
+  pkill -f "ngrok http ${BACKEND_PORT}" || true
+fi
 
-ngrok http "$FRONTEND_PORT" --log=stdout > /tmp/academy-ngrok.log 2>&1 &
-NGROK_PID=$!
-trap 'kill $NGROK_PID 2>/dev/null || true; kill $(jobs -p) 2>/dev/null || true' EXIT
+ngrok http "$FRONTEND_PORT" --log=stdout > /tmp/academy-ngrok-frontend.log 2>&1 &
+NGROK_FRONTEND_PID=$!
+ngrok http "$BACKEND_PORT" --log=stdout > /tmp/academy-ngrok-backend.log 2>&1 &
+NGROK_BACKEND_PID=$!
+trap 'kill $NGROK_FRONTEND_PID $NGROK_BACKEND_PID 2>/dev/null || true; kill $(jobs -p) 2>/dev/null || true' EXIT
 
 for _ in $(seq 1 60); do
   if curl -fsS http://localhost:4040/api/tunnels >/tmp/academy-ngrok-tunnels.json 2>/dev/null; then
@@ -63,7 +68,7 @@ for _ in $(seq 1 60); do
   sleep 1
 done
 
-TUNNEL_URL="$(python3 - <<'PY'
+python3 - <<'PY'
 import json
 import sys
 import urllib.request
@@ -74,33 +79,87 @@ try:
 except Exception:
     raise SystemExit(1)
 
+front = None
+back = None
 for tunnel in data.get('tunnels', []):
-    public_url = tunnel.get('public_url')
-    if tunnel.get('proto') == 'https' and public_url:
-        print(public_url)
-        raise SystemExit(0)
-    if public_url:
-        print(public_url)
-        raise SystemExit(0)
+    addr = tunnel.get('config', {}).get('addr') or tunnel.get('addr') or ''
+    public = tunnel.get('public_url')
+    if not public:
+        continue
+    if 'localhost:3000' in addr or ':3000' in addr:
+        front = public
+    if 'localhost:5001' in addr or ':5001' in addr:
+        back = public
 
-raise SystemExit(1)
+if not front:
+    for tunnel in data.get('tunnels', []):
+        public = tunnel.get('public_url')
+        if public:
+            front = public
+            break
+if not back:
+    for tunnel in data.get('tunnels', []):
+        public = tunnel.get('public_url')
+        if public:
+            back = public
+            break
+if not front or not back:
+    raise SystemExit(1)
+print(f"FRONTEND={front}")
+print(f"BACKEND={back}")
 PY
-)" || {
-  echo "Unable to detect an ngrok tunnel for port ${FRONTEND_PORT}."
-  echo "Check that ngrok is installed and running: ngrok http ${FRONTEND_PORT}"
-  exit 1
-}
+
+readarray -t TUNNEL_LINES < <(python3 - <<'PY'
+import json
+import urllib.request
+try:
+    with urllib.request.urlopen('http://localhost:4040/api/tunnels', timeout=5) as response:
+        data = json.load(response)
+except Exception:
+    raise SystemExit(1)
+front = None
+back = None
+for tunnel in data.get('tunnels', []):
+    addr = tunnel.get('config', {}).get('addr') or tunnel.get('addr') or ''
+    public = tunnel.get('public_url')
+    if not public:
+        continue
+    if 'localhost:3000' in addr or ':3000' in addr:
+        front = public
+    if 'localhost:5001' in addr or ':5001' in addr:
+        back = public
+if not front:
+    for tunnel in data.get('tunnels', []):
+        public = tunnel.get('public_url')
+        if public:
+            front = public
+            break
+if not back:
+    for tunnel in data.get('tunnels', []):
+        public = tunnel.get('public_url')
+        if public:
+            back = public
+            break
+if not front or not back:
+    raise SystemExit(1)
+print(f"{front}\n{back}")
+PY
+)
+
+TUNNEL_URL="${TUNNEL_LINES[0]}"
+BACKEND_TUNNEL_URL="${TUNNEL_LINES[1]}"
 
 export NEXT_PUBLIC_SITE_URL="$TUNNEL_URL"
 export NEXT_PUBLIC_BACKEND_URL=""
+export NEXT_PUBLIC_REALTIME_URL="$BACKEND_TUNNEL_URL"
 export API_ORIGIN="http://localhost:${BACKEND_PORT}"
-export AllowedOrigins="http://localhost:${FRONTEND_PORT},${TUNNEL_URL}"
+export AllowedOrigins="http://localhost:${FRONTEND_PORT},${TUNNEL_URL},http://localhost:${BACKEND_PORT},${BACKEND_TUNNEL_URL}"
 
 cd "$BACKEND_DIR"
-ASPNETCORE_ENVIRONMENT=Development AllowedOrigins="$AllowedOrigins" dotnet run --project src/Academy.Api/Academy.Api.csproj --urls "http://localhost:${BACKEND_PORT}" &
+ASPNETCORE_ENVIRONMENT=Development AllowedOrigins="$AllowedOrigins" Realtime__PublicUrl="$BACKEND_TUNNEL_URL" dotnet run --project src/Academy.Api/Academy.Api.csproj --urls "http://localhost:${BACKEND_PORT}" &
 BACKEND_PID=$!
 
-trap 'kill $NGROK_PID 2>/dev/null || true; kill $BACKEND_PID 2>/dev/null || true; kill $(jobs -p) 2>/dev/null || true' EXIT
+trap 'kill $NGROK_FRONTEND_PID $NGROK_BACKEND_PID 2>/dev/null || true; kill $BACKEND_PID 2>/dev/null || true; kill $(jobs -p) 2>/dev/null || true' EXIT
 
 echo ""
 echo "Local frontend: http://localhost:${FRONTEND_PORT}"
@@ -118,4 +177,4 @@ echo "Login API URL:     ${TUNNEL_URL}/api/auth/login"
 echo ""
 
 cd "$ROOT_DIR"
-NEXT_PUBLIC_SITE_URL="$TUNNEL_URL" NEXT_PUBLIC_BACKEND_URL="" API_ORIGIN="http://localhost:${BACKEND_PORT}" npm run dev -- --hostname 0.0.0.0 --port "$FRONTEND_PORT"
+NEXT_PUBLIC_SITE_URL="$TUNNEL_URL" NEXT_PUBLIC_BACKEND_URL="" NEXT_PUBLIC_REALTIME_URL="$BACKEND_TUNNEL_URL" API_ORIGIN="http://localhost:${BACKEND_PORT}" npm run dev -- --hostname 0.0.0.0 --port "$FRONTEND_PORT"
