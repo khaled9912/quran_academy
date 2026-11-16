@@ -58,6 +58,8 @@ export interface CheckoutTicket {
   providerReference: string;
   currency: string;
   amount: number;
+  /** When Stripe stops accepting this session; null from an older server. */
+  expiresAt: string | null;
 }
 
 export interface PaymentStatus {

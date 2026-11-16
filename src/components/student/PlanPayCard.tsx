@@ -29,6 +29,9 @@ const monthLabel = (month: string) =>
 /** How often the screen asks the server whether the card payment landed. */
 const STATUS_POLL_MS = 5_000;
 
+/** Swap the checkout out this long before Stripe stops accepting it. */
+const REFRESH_MARGIN_MS = 60_000;
+
 /**
  * The bill for the last month that has ended, and the card payment against it.
  *
@@ -43,6 +46,7 @@ export function PlanPayCard() {
   const queryClient = useQueryClient();
   const [ticket, setTicket] = useState<CheckoutTicket | null>(null);
   const announced = useRef<Set<string>>(new Set());
+  const refreshing = useRef(false);
 
   // A stable identity: CardCheckout re-runs its mount effect whenever a prop
   // changes, and an inline arrow would restart the payment form on every render.
@@ -118,6 +122,69 @@ export function PlanPayCard() {
       }
     },
   });
+
+  // Stripe refuses a confirmation past the session's expiry, and the embedded
+  // form reports that as a vague "you may have paid" error inside its own
+  // iframe. Re-open the checkout before that moment — the server retires the
+  // expired attempt and hands back a fresh session — and again when a slept
+  // tab wakes up past it, so the form a student returns to is always payable.
+  useEffect(() => {
+    if (!ticket?.expiresAt) return;
+    const expiresAt = Date.parse(ticket.expiresAt);
+    if (Number.isNaN(expiresAt)) return;
+    const invoiceId = ticket.invoiceId;
+    let timer: number | undefined;
+    let disposed = false;
+
+    const refresh = async () => {
+      if (refreshing.current || disposed) return;
+      refreshing.current = true;
+      try {
+        const next = await openCheckout(invoiceId);
+        if (!disposed) setTicket(next);
+      } catch (error) {
+        if (disposed) return;
+        if (error instanceof ApiError) {
+          // Paid, claimed by a transfer, or refused: the invoice query re-reads
+          // the truth, and the pay button or the paid badge returns on its own.
+          setTicket(null);
+          void queryClient.invalidateQueries({ queryKey: ["payments"] });
+        } else {
+          // A network hiccup must not tear down a form that may still be live.
+          reportUnexpectedError(error);
+          timer = window.setTimeout(() => void refresh(), 30_000);
+        }
+      } finally {
+        refreshing.current = false;
+      }
+    };
+
+    const left = expiresAt - Date.now();
+    // Comfortably before expiry while there is time; just after it otherwise,
+    // when the server must retire the old session before issuing a new one.
+    const delay =
+      left > REFRESH_MARGIN_MS + 5_000
+        ? left - REFRESH_MARGIN_MS
+        : Math.max(left + 5_000, 5_000);
+    timer = window.setTimeout(() => void refresh(), delay);
+
+    const onVisibility = () => {
+      if (
+        document.visibilityState === "visible" &&
+        Date.now() > expiresAt - REFRESH_MARGIN_MS
+      ) {
+        window.clearTimeout(timer);
+        void refresh();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      disposed = true;
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [ticket, queryClient]);
 
   // No card path on this host: the transfer panel below is how the month is
   // paid, and a button that cannot take money belongs on no screen.
