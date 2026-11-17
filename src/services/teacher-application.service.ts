@@ -1,5 +1,7 @@
 import { backendBlobFetch, backendFetch } from "@/lib/backend-client";
 import type {
+  FinishOnboardingResult,
+  ProposeMeetingSlotsResult,
   ReviewTeacherApplicationInput,
   ReviewTeacherApplicationResult,
   SubmitTeacherApplicationInput,
@@ -59,4 +61,16 @@ export const downloadTeacherApplicationIntro = (id: string) =>
 export const downloadTeacherApplicationQuran = (id: string) =>
   backendBlobFetch(
     `/api/admin/teacher-applications/${encodeURIComponent(id)}/quran`
+  );
+
+export const proposeMeetingSlots = (id: string, slots: string[]) =>
+  backendFetch<ProposeMeetingSlotsResult>(
+    `/api/admin/teacher-applications/${encodeURIComponent(id)}/meeting-slots`,
+    { method: "POST", body: JSON.stringify({ slots }) }
+  );
+
+export const finishTeacherOnboarding = (id: string) =>
+  backendFetch<FinishOnboardingResult>(
+    `/api/admin/teacher-applications/${encodeURIComponent(id)}/finish-onboarding`,
+    { method: "POST" }
   );

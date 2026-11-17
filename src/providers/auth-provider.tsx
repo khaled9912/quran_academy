@@ -62,6 +62,7 @@ const PROTECTED_PREFIXES = [
   "/lesson",
   // The agreement page belongs to whichever role is signed in, like the room.
   "/policy",
+  "/onboarding/meeting",
   "/teachers",
 ];
 
@@ -73,7 +74,7 @@ const isProtectedPath = (pathname: string) =>
 function syncRoleCookie(role: UserRole | null) {
   if (typeof document === "undefined") return;
   // Keep the routing hint alive for as long as the 7-day auth cookie, otherwise
-  // middleware would send a still-authenticated user back to /login.
+  // the proxy would send a still-authenticated user back to /login.
   document.cookie = role
     ? `user-role=${encodeURIComponent(role)}; Path=/; Max-Age=604800; SameSite=Lax`
     : "user-role=; Path=/; Max-Age=0; SameSite=Lax";
@@ -117,6 +118,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // A cached identity means the session can restore in the background without
   // holding the page, even while isLoading is still true.
   const authPending = isLoading && !effectiveProfile;
+  // The first hydration commit has no identity yet (server snapshot is null);
+  // redirects must wait until the restore attempt has actually settled.
+  const [restoreSettled, setRestoreSettled] = useState(false);
 
   /** Single entry point for every session change (restore, login, logout). */
   const applySession = useCallback(
@@ -173,6 +177,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       !isProtectedPath(initialPathRef.current)
     ) {
       setIsLoading(false);
+      setRestoreSettled(true);
       return;
     }
 
@@ -194,7 +199,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (active && !profileRef.current) applySession(null);
       })
       .finally(() => {
-        if (active) setIsLoading(false);
+        if (active) {
+          setIsLoading(false);
+          setRestoreSettled(true);
+        }
       });
     return () => {
       active = false;
@@ -234,7 +242,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Centralized redirects: pages never redirect themselves, so a session
   // restore and a login submit can never race into a redirect loop.
   useEffect(() => {
-    if (authPending) return;
+    if (authPending || !restoreSettled) return;
     if (hasRedirected.current) return;
 
     if (effectiveProfile) {
@@ -247,7 +255,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!isProtectedPath(pathname)) return;
     hasRedirected.current = true;
     router.replace("/login");
-  }, [authPending, effectiveProfile, pathname, router]);
+  }, [authPending, restoreSettled, effectiveProfile, pathname, router]);
 
   const logout = async () => {
     try {

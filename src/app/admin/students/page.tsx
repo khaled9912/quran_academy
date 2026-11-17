@@ -13,6 +13,7 @@ import {
 } from "@/services/assignment.service";
 import {
   deactivateManagedUser,
+  deleteManagedUser,
   updateManagedUser,
 } from "@/services/admin-user.service";
 import { getPendingStudents } from "@/services/onboarding.service";
@@ -86,6 +87,10 @@ export default function AdminStudentsPage() {
   const [editPassword, setEditPassword] = useState("");
   const [editConfirmPassword, setEditConfirmPassword] = useState("");
   const [editPasswordChecked, setEditPasswordChecked] = useState(false);
+  const [confirming, setConfirming] = useState<{
+    id: string;
+    action: "deactivate" | "delete";
+  } | null>(null);
 
   const createConfirmError =
     passwordChecked || confirmPassword
@@ -157,9 +162,10 @@ export default function AdminStudentsPage() {
         ? deactivateManagedUser(id)
         : updateManagedUser(id, { isActive: true }),
     onSuccess: async (_, variables) => {
+      setConfirming(null);
       showToast(
         variables.isActive
-          ? "Student deactivated. Their assignment was removed."
+          ? "Student deactivated. Sign-in is blocked; their bookings are kept."
           : "Student reactivated.",
         "success"
       );
@@ -171,6 +177,26 @@ export default function AdminStudentsPage() {
     onError: (mutationError) => {
       if (!(mutationError instanceof ApiError)) {
         showToast("Unable to change the student status.", "error");
+      }
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteManagedUser(id),
+    onSuccess: async () => {
+      setConfirming(null);
+      showToast(
+        "Student deleted. Their booked lessons were released and the teacher's weekly times are open again.",
+        "success"
+      );
+      await queryClient.invalidateQueries({ queryKey: ["students"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["teacher-student-assignments"],
+      });
+    },
+    onError: (mutationError) => {
+      if (!(mutationError instanceof ApiError)) {
+        showToast("Unable to delete the student.", "error");
       }
     },
   });
@@ -306,7 +332,9 @@ export default function AdminStudentsPage() {
           </Link>
           <h1 className="text-4xl font-bold mb-2">Students</h1>
           <p className="text-lg text-foreground opacity-75">
-            Create, edit, and deactivate student accounts.
+            Create, edit, deactivate or delete student accounts. Deleting
+            releases their booked lessons and frees the teacher&apos;s weekly
+            times.
           </p>
         </div>
 
@@ -443,12 +471,22 @@ export default function AdminStudentsPage() {
           ) : studentsQuery.data?.length ? (
             <div className="space-y-4">
               {studentsQuery.data.map((student) => {
-                const active = student.isActive !== false;
+                const deleted = Boolean(student.deletedAt);
+                const active = student.isActive !== false && !deleted;
                 const name = student.fullName ?? student.name;
                 const assignment = activeAssignmentByStudent.get(student.id);
                 const savingAssignment =
                   assignmentMutation.isPending &&
                   assignmentMutation.variables?.studentId === student.id;
+                const statusBusy =
+                  statusMutation.isPending &&
+                  statusMutation.variables?.id === student.id;
+                const deleteBusy =
+                  deleteMutation.isPending &&
+                  deleteMutation.variables === student.id;
+                const rowBusy = statusBusy || deleteBusy;
+                const rowConfirm =
+                  confirming?.id === student.id ? confirming : null;
                 // A plan is placed only when every weekly lesson in it has a
                 // time, and that booking lives in the assignment desk.
                 const plan = planByStudent.get(student.id);
@@ -560,125 +598,210 @@ export default function AdminStudentsPage() {
                         </div>
                       </form>
                     ) : (
-                      <div className="flex flex-wrap items-center justify-between gap-4">
-                        <div>
-                          <p className="text-xl font-semibold">{name}</p>
-                          <p className="text-foreground opacity-75">
-                            {student.email}
-                          </p>
-                          {student.grade && (
-                            <p className="mt-1 text-sm text-foreground opacity-60">
-                              Grade: {student.grade}
+                      <div className="space-y-4">
+                        <div className="flex flex-wrap items-center justify-between gap-4">
+                          <div>
+                            <p className="text-xl font-semibold">{name}</p>
+                            <p className="text-foreground opacity-75">
+                              {student.email}
                             </p>
-                          )}
-                          <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-                            <label
-                              htmlFor={`student-teacher-${student.id}`}
-                              className="font-semibold opacity-80"
-                            >
-                              Teacher
-                            </label>
-                            <SelectField
-                              id={`student-teacher-${student.id}`}
-                              size="sm"
-                              className="min-w-[10rem] flex-1 sm:flex-none sm:min-w-[12rem]"
-                              value={assignment?.teacherId ?? ""}
-                              disabled={
-                                !active || savingAssignment || !!planNote
-                              }
-                              onChange={(value) => {
-                                assignmentMutation.mutate({
-                                  studentId: student.id,
-                                  teacherId: value,
-                                });
-                              }}
-                              options={[
-                                { value: "", label: "Unassigned" },
-                                ...teachers.map((teacher) => ({
-                                  value: teacher.id,
-                                  label:
-                                    teacher.fullName ??
-                                    teacher.name ??
-                                    teacher.email,
-                                })),
-                              ]}
-                            />
-                            {savingAssignment && (
-                              <span className="opacity-60">Saving…</span>
-                            )}
-                            {!active && (
-                              <span className="text-amber-800 dark:text-amber-300 opacity-80">
-                                Reactivate to assign a teacher.
-                              </span>
-                            )}
-                          </div>
-                          {planNote && (
-                            <p className="mt-2 text-sm font-semibold text-amber-800 dark:text-amber-300">
-                              <Link
-                                href="/admin/assignments"
-                                className="underline underline-offset-2"
-                              >
-                                Open the assignment desk
-                              </Link>{" "}
-                              — {planNote}
-                            </p>
-                          )}
-                          {teachersQuery.error && (
-                            <p className="mt-2 text-sm text-red-700 dark:text-red-300">
-                              {teachersQuery.error instanceof Error
-                                ? teachersQuery.error.message
-                                : "Unable to load teachers."}
-                            </p>
-                          )}
-                          {!teachersQuery.isLoading &&
-                            !teachersQuery.error &&
-                            !teachers.length && (
-                              <p className="mt-2 text-sm opacity-70">
-                                No teachers yet.{" "}
-                                <Link
-                                  href="/admin/teachers"
-                                  className="text-green-600 dark:text-green-400 underline"
-                                >
-                                  Create a teacher
-                                </Link>{" "}
-                                to assign one.
+                            {student.grade && (
+                              <p className="mt-1 text-sm text-foreground opacity-60">
+                                Grade: {student.grade}
                               </p>
                             )}
+                            {!deleted && (
+                              <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+                                <label
+                                  htmlFor={`student-teacher-${student.id}`}
+                                  className="font-semibold opacity-80"
+                                >
+                                  Teacher
+                                </label>
+                                <SelectField
+                                  id={`student-teacher-${student.id}`}
+                                  size="sm"
+                                  className="min-w-[10rem] flex-1 sm:flex-none sm:min-w-[12rem]"
+                                  value={assignment?.teacherId ?? ""}
+                                  disabled={
+                                    !active || savingAssignment || !!planNote
+                                  }
+                                  onChange={(value) => {
+                                    assignmentMutation.mutate({
+                                      studentId: student.id,
+                                      teacherId: value,
+                                    });
+                                  }}
+                                  options={[
+                                    { value: "", label: "Unassigned" },
+                                    ...teachers.map((teacher) => ({
+                                      value: teacher.id,
+                                      label:
+                                        teacher.fullName ??
+                                        teacher.name ??
+                                        teacher.email,
+                                    })),
+                                  ]}
+                                />
+                                {savingAssignment && (
+                                  <span className="opacity-60">Saving…</span>
+                                )}
+                                {!active && (
+                                  <span className="text-amber-800 dark:text-amber-300 opacity-80">
+                                    Reactivate to assign a teacher.
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            {!deleted && planNote && (
+                              <p className="mt-2 text-sm font-semibold text-amber-800 dark:text-amber-300">
+                                <Link
+                                  href="/admin/assignments"
+                                  className="underline underline-offset-2"
+                                >
+                                  Open the assignment desk
+                                </Link>{" "}
+                                — {planNote}
+                              </p>
+                            )}
+                            {teachersQuery.error && (
+                              <p className="mt-2 text-sm text-red-700 dark:text-red-300">
+                                {teachersQuery.error instanceof Error
+                                  ? teachersQuery.error.message
+                                  : "Unable to load teachers."}
+                              </p>
+                            )}
+                            {!deleted &&
+                              !teachersQuery.isLoading &&
+                              !teachersQuery.error &&
+                              !teachers.length && (
+                                <p className="mt-2 text-sm opacity-70">
+                                  No teachers yet.{" "}
+                                  <Link
+                                    href="/admin/teachers"
+                                    className="text-green-600 dark:text-green-400 underline"
+                                  >
+                                    Create a teacher
+                                  </Link>{" "}
+                                  to assign one.
+                                </p>
+                              )}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span
+                              className={`rounded-full px-3 py-1 text-sm font-semibold ${deleted ? "bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-300" : active ? "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400" : "bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300"}`}
+                            >
+                              {deleted
+                                ? "Deleted"
+                                : active
+                                  ? "Active"
+                                  : "Deactivated"}
+                            </span>
+                            {deleted ? (
+                              <button
+                                onClick={() =>
+                                  statusMutation.mutate({
+                                    id: student.id,
+                                    isActive: false,
+                                  })
+                                }
+                                disabled={rowBusy}
+                                className="rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600 disabled:opacity-50"
+                              >
+                                {statusBusy ? "Restoring…" : "Restore"}
+                              </button>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    setConfirming(null);
+                                    startEdit(student.id, name, student.email);
+                                  }}
+                                  disabled={rowBusy}
+                                  className="inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2 text-sm font-semibold hover:border-green-500 disabled:opacity-50"
+                                >
+                                  <Pencil size={15} /> Edit
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    active
+                                      ? setConfirming({
+                                          id: student.id,
+                                          action: "deactivate",
+                                        })
+                                      : statusMutation.mutate({
+                                          id: student.id,
+                                          isActive: false,
+                                        })
+                                  }
+                                  disabled={rowBusy}
+                                  className={`rounded-xl px-4 py-2 text-sm font-semibold transition disabled:opacity-50 ${active ? "border border-amber-300 dark:border-amber-500/30 text-amber-700 dark:text-amber-300 hover:bg-amber-500 hover:text-white" : "bg-green-500 text-white hover:bg-green-600"}`}
+                                >
+                                  {statusBusy
+                                    ? active
+                                      ? "Deactivating…"
+                                      : "Reactivating…"
+                                    : active
+                                      ? "Deactivate"
+                                      : "Reactivate"}
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    setConfirming({
+                                      id: student.id,
+                                      action: "delete",
+                                    })
+                                  }
+                                  disabled={rowBusy}
+                                  className="rounded-xl border border-red-300 dark:border-red-500/30 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 transition hover:bg-red-500 hover:text-white disabled:opacity-50"
+                                >
+                                  {deleteBusy ? "Deleting…" : "Delete"}
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span
-                            className={`rounded-full px-3 py-1 text-sm font-semibold ${active ? "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400" : "bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300"}`}
+                        {rowConfirm && (
+                          <div
+                            role="alert"
+                            className={`rounded-2xl border p-4 text-sm ${rowConfirm.action === "delete" ? "border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300" : "border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300"}`}
                           >
-                            {active ? "Active" : "Inactive"}
-                          </span>
-                          <button
-                            onClick={() =>
-                              startEdit(student.id, name, student.email)
-                            }
-                            className="inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2 text-sm font-semibold hover:border-green-500"
-                          >
-                            <Pencil size={15} /> Edit
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (
-                                !active ||
-                                window.confirm(
-                                  "Deactivate this student? Their assignment and open requests will be removed."
-                                )
-                              ) {
-                                statusMutation.mutate({
-                                  id: student.id,
-                                  isActive: active,
-                                });
-                              }
-                            }}
-                            disabled={statusMutation.isPending}
-                            className={`rounded-xl px-4 py-2 text-sm font-semibold transition disabled:opacity-50 ${active ? "border border-red-300 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white" : "bg-green-500 text-white hover:bg-green-600"}`}
-                          >
-                            {active ? "Deactivate" : "Reactivate"}
-                          </button>
-                        </div>
+                            <p className="font-semibold">
+                              {rowConfirm.action === "delete"
+                                ? "Delete this student? Their booked lessons will be released and their teacher's weekly times open up again."
+                                : "Deactivate this student? Sign-in is blocked, but their lessons, assignment and weekly times stay booked."}
+                            </p>
+                            <div className="mt-3 flex gap-2">
+                              <button
+                                onClick={() =>
+                                  rowConfirm.action === "delete"
+                                    ? deleteMutation.mutate(student.id)
+                                    : statusMutation.mutate({
+                                        id: student.id,
+                                        isActive: true,
+                                      })
+                                }
+                                disabled={rowBusy}
+                                className={`rounded-xl px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 ${rowConfirm.action === "delete" ? "bg-red-500 hover:bg-red-600" : "bg-amber-500 hover:bg-amber-600"}`}
+                              >
+                                {rowBusy
+                                  ? rowConfirm.action === "delete"
+                                    ? "Deleting…"
+                                    : "Deactivating…"
+                                  : rowConfirm.action === "delete"
+                                    ? "Yes, delete"
+                                    : "Yes, deactivate"}
+                              </button>
+                              <button
+                                onClick={() => setConfirming(null)}
+                                disabled={rowBusy}
+                                className="rounded-xl border border-card-border px-4 py-2 text-sm font-semibold disabled:opacity-50"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

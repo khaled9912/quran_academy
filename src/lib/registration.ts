@@ -50,7 +50,7 @@ export function registrationCountryFromCookie(
   return normalizeRegistrationCountry(match?.[1]);
 }
 
-/** Browser-side read of the cookie set by middleware on the first request. */
+/** Browser-side read of the cookie set by the proxy on the first request. */
 export function registrationCountryFromDocument(): string | null {
   if (typeof document === "undefined") return null;
   return registrationCountryFromCookie(document.cookie);

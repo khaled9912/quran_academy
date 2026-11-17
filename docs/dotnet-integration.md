@@ -49,7 +49,7 @@ For production, prefer a same-origin reverse proxy so the API's HttpOnly session
 
 Student enrolment is closed in the countries listed in `RESTRICTED_COUNTRIES` (`src/lib/plans.ts`, currently `EG`). The web edge resolves the visitor's country from the hosting geo header, mirrors it to the `academy-country` cookie, and overwrites `x-registration-country` on `/api/auth/register` and `/api/auth/otp/verify` so the value the API reads is edge-derived rather than client-supplied. `POST /api/auth/register` returns `403 { message }` when that header names a restricted country. `POST /api/auth/otp/verify` applies the same check only in the branch that creates an account, so an account that already exists keeps signing in from anywhere — the gate closes new places, not sessions. When `phone` is present on register it is normalized to E.164 and stored with `PhoneNumberConfirmed=false`; an invalid or already-used number returns a `phone` validation error, so a student who registers by email can still be reachable by mobile.
 
-On the web the same gate hides the surfaces: middleware redirects an anonymous restricted visitor from `/plans`, `/signup`, and `/register` to `/not-available` (a noindex page that points at `/teach` and WhatsApp), every marketing page renders its sign-up CTA through `EnrolCta`, which returns nothing for a restricted visitor, and the navbar and menu drop the "Start a free trial" link from the `academy-country` cookie. A signed-in account is never redirected, so an enrolled student keeps their plan pages. `/teach` stays open: recruiting teachers in these countries is the reason the gate exists.
+On the web the same gate hides the surfaces: the proxy redirects an anonymous restricted visitor from `/plans`, `/signup`, and `/register` to `/not-available` (a noindex page that points at `/teach` and WhatsApp), every marketing page renders its sign-up CTA through `EnrolCta`, which returns nothing for a restricted visitor, and the navbar and menu drop the "Start a free trial" link from the `academy-country` cookie. A signed-in account is never redirected, so an enrolled student keeps their plan pages. `/teach` stays open: recruiting teachers in these countries is the reason the gate exists.
 
 `fullName` must be a person's name: anywhere a name is accepted from a non-staff caller (register, OTP signup, `PATCH /api/profile`, `POST /api/teacher-applications`) it is rejected with a `fullName` validation error when it contains `@`, so an email address cannot end up as the name every other participant sees.
 
@@ -227,9 +227,22 @@ A student has at most one active teacher at a time; the API enforces this and re
 | POST   | `/api/admin/users`      | Create a `teacher` (or `student`) account                    |
 | GET    | `/api/teachers/{id}`    | Teacher detail (used by the admin weekly-times screen)       |
 | PATCH  | `/api/admin/users/{id}` | Update `{ "fullName"?, "email"?, "password"?, "isActive"? }` |
-| DELETE | `/api/admin/users/{id}` | Deactivate a teacher/student account                         |
+| DELETE | `/api/admin/users/{id}` | Delete a teacher/student/support account and release bookings |
 
-`PATCH`/`DELETE` apply only to teacher and student accounts and return `409` for a duplicate email or when an account still has upcoming lessons. Deactivation is soft (`isActive=false`): lesson history is preserved, active assignments are removed, and future unused availability slots/rules stop being bookable. Deactivated users cannot log in and `GET /api/auth/me` returns `401`.
+`PATCH`/`DELETE` apply only to teacher, student and support accounts. `PATCH` returns `409` for a duplicate email.
+
+**Deactivate is a pause.** `PATCH { "isActive": false }` blocks sign-in and kills every existing session (security stamp rotation), but lessons, weekly series and assignments stay booked. `DeletedAt` stays `null`.
+
+**Delete is a release.** `DELETE` works even when the account has booked lessons. It is still soft — lesson history keeps its owners — but it sets `isActive=false` plus a `deletedAt` timestamp, rotates the security stamp, and cascades:
+
+- every active weekly series touching the account is ended;
+- future scheduled lessons are cancelled with `cancellationOutcome = "series_ended"` (series lessons) or `"admin_cancelled"` (one-offs); no credit rows or teacher pay move, mirroring the series-end flow;
+- pending reschedule requests on those lessons are cancelled and pending lesson requests are rejected, releasing their slots;
+- active assignments are closed, so a deleted teacher's students reappear on `GET /api/admin/students/pending` with `hasTeacher=false`, their weekly preferences intact;
+- a deleted teacher's future *available* one-off slots are removed; their weekly rules read as `available` again because rule status derives from active series;
+- the other side of each released booking gets a notification + email from the academy ("Your teacher was removed" / "Student removed").
+
+`PATCH { "isActive": true }` restores a deleted account (`deletedAt` back to `null`); released bookings stay released. The user DTO now carries `deletedAt`, and the admin screens show three states: Active, Deactivated, Deleted (deleted rows offer only Restore).
 
 ### Admin availability management
 
@@ -273,7 +286,21 @@ The student scheduling endpoints derive the student identity from the authentica
 
 `POST /api/teacher-applications` is anonymous and takes `multipart/form-data` with the fields `fullName`, `email`, `phoneNumber` (E.164), repeated `subjects` values (`quran`, `tajweed`, `islamic_studies`, `arabic`), `englishLevel` (`beginner`, `intermediate`, `advanced`, `fluent`), `experienceYears`, `bio`, `availabilityNote`, `cv`, `quran`, and `intro`. The CV must be PDF, DOC, or DOCX, at most 2 MB, and its magic bytes are checked. The Quran recitation is required and the intro recording is optional; both must be MP3, M4A, WAV, OGG, WebM, MP4, or MOV, at most 20 MB each, also magic-byte checked. Only one `pending` application per email is allowed. Applications and file bytes live in separate tables (`TeacherApplications`, `TeacherApplicationCvs`, `TeacherApplicationQuranRecordings`, `TeacherApplicationIntros`) so list queries never load the files, which are only fetched on demand through the `/cv`, `/quran`, and `/intro` endpoints. There is no automated deletion of applications.
 
-Approving an application creates an active `teacher` account (with a random internal password) and issues a 15-minute set-password code. If SMTP is configured, the code is emailed with `SendTeacherInviteCodeAsync`; otherwise the `PATCH` response returns `inviteCode` so an admin can share it. If the email already belongs to an account, approval returns `409` and leaves the application pending. Rejecting requires a reason of 3–500 characters.
+Approving an application is a status change only — **no account is created**. The teacher account is created later, when an admin finishes onboarding after the intro meeting (see below). Approval still returns `409` when the email already belongs to an account. An approved application can be rejected (with a 3–500 character reason) right up until the account exists; after that the review is final. The review response is `{ application }`. The application DTO carries `teacherId` (null until onboarding finishes), `meetingSlots`, `meetingStartsAt`, `meetingEndsAt`, and `onboardedAt`.
+
+## Teacher onboarding (intro meeting)
+
+| Method | Endpoint                                                        | Purpose                                                          |
+| ------ | --------------------------------------------------------------- | ---------------------------------------------------------------- |
+| POST   | `/api/admin/teacher-applications/{id}/meeting-slots`             | Propose 1–3 future UTC ISO slots `{ "slots": ["..."] }` → `{ application, emailed, pickerUrl }` |
+| POST   | `/api/admin/teacher-applications/{id}/finish-onboarding`         | After the meeting: creates + links the teacher account → `{ application, inviteEmailed, inviteCode }` |
+| GET    | `/api/onboarding/{token}`                                        | Public invite: `{ fullName, slots[], meetingStartsAt, meetingEndsAt, picked, expiresAt }` |
+| POST   | `/api/onboarding/{token}/pick`                                   | Public pick `{ "slot": "..." }` → `{ meetingStartsAt, meetingEndsAt, joinUrl }` |
+| GET    | `/api/onboarding/meeting`                                        | Caller's booked meeting; staff pass `?applicationId={id}` → `{ applicationId, room, startsAt, endsAt, counterpartName, onboardedAt }` |
+
+Pipeline: approve → admin proposes up to 3 slots (distinct, at least 5 minutes in the future) → the API emails a single-use picker link (`/onboarding/{token}`, 256-bit token stored as a SHA-256 hash, valid 7 days, cleared on pick) → the applicant picks one slot without signing in → a fixed 30-minute meeting is booked in the Jitsi room `anaquran-onboarding-{applicationId}`. The applicant has **no account yet**: their confirmation email and the pick response carry a direct Jitsi room URL built from the API's `Jitsi:Domain` config (compose `JITSI_DOMAIN`, default `meet.jit.si`; must match the FE's `NEXT_PUBLIC_JITSI_DOMAIN`). Staff join through the signed-in web page `/onboarding/meeting?applicationId=`. The reviewing admin gets a notification and email; the applicant gets email only.
+
+Finish onboarding requires a booked meeting (`409` otherwise) and creates the teacher account in a transaction: random internal password, `teacher` role, `teacherId` + `onboardedAt` on the application, a 15-minute set-password code emailed with `SendTeacherInviteCodeAsync` (or returned as `inviteCode` when SMTP is unset), and a welcome notification. Only then does the teacher appear in directories and become assignable. The teacher signs the academy agreement at first sign-in like any teacher (the usual `428` gate). When SMTP is unset at the propose step, `pickerUrl` is returned for manual delivery. The public endpoints are anonymous and rate-limited with the shared `otp` policy; an unknown or expired token is `404`, a slot outside the offered set is `400` (`slot` validation error), and an already-picked link or a slot in the past is `409`.
 
 ## Signed agreements
 
@@ -689,7 +716,7 @@ The `support` role is read-only outside reviews: it can open the transcript endp
 - **Workspace capture fields**: `captures` (`role`, `lastStatus`, `firstSeenAt`, `lastSeenAt`, `lastSegmentAt`, `segmentCount`, `expected` per participant), `coverageReasons` (`unsupported_device` / `no_transcript`), `retentionDays: 30`, and each segment's `source` (`client` for self-ingest, `server` for the relay).
 - **Audit**: every workspace or transcript read writes a `TranscriptAccessLogs` row (`lessonId`, `userId`, `accessedAt`). There is no UI for the log yet; query it directly when an access audit is needed.
 - **Weekly digest**: groups submitted reviews by teacher for the week, with rubric averages, follow-up actions, and the lessons still unreviewed or only drafted. This is the artifact the support lead reviews at the end of the week.
-- **Accounts**: admins create support reviewers from `/admin/support` (`POST /api/admin/users` with `role: "support"`), list them with `GET /api/admin/support-users`, and deactivate/reactivate them through the existing `PATCH`/`DELETE /api/admin/users/{id}` endpoints.
+- **Accounts**: admins create support reviewers from `/admin/support` (`POST /api/admin/users` with `role: "support"`), list them with `GET /api/admin/support-users`, and deactivate/reactivate them through `PATCH /api/admin/users/{id}` (`isActive`).
 
 The frontend mirrors the API: `/support/transcripts` is the queue, `/support/transcripts/{id}` is the transcript plus rubric, and `/support/weekly` is the digest. Admins reach the same pages from the navigation.
 

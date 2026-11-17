@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Signature } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -28,11 +27,11 @@ export function TeacherAgreementGate({
   const blocked = role === "teacher" && required && !accepted;
   const pending = role === "teacher" && (query.isPending || query.isLoading || !query.data);
 
+  // Only a confirmed missing acceptance redirects; while the query is still
+  // pending an already-signed teacher must not be bounced to /policy.
   useEffect(() => {
-    if (role === "teacher" && (blocked || pending)) {
-      router.replace("/policy");
-    }
-  }, [blocked, pending, role, router]);
+    if (blocked) router.replace("/policy");
+  }, [blocked, router]);
 
   if (role !== "teacher") return <>{children}</>;
 
@@ -50,25 +49,4 @@ export function TeacherAgreementGate({
   if (blocked) return null;
 
   return <>{children}</>;
-
-  return (
-    <main className="mx-auto flex min-h-[60vh] max-w-3xl items-center justify-center px-5 py-16 text-foreground">
-      <div className="w-full rounded-3xl border border-amber-300 bg-amber-500/10 p-8 shadow-sm">
-        <p className="text-sm font-bold uppercase tracking-[.18em] text-amber-700 dark:text-amber-300">
-          Action required
-        </p>
-        <h1 className="mt-3 text-3xl font-bold">Accept the academy agreement</h1>
-        <p className="mt-3 text-foreground/75">
-          You cannot access the teacher portal until the agreement is reviewed and
-          accepted on the same page.
-        </p>
-        <Link
-          href="/policy"
-          className="mt-6 inline-flex rounded-xl bg-green-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-green-700"
-        >
-          Review and accept
-        </Link>
-      </div>
-    </main>
-  );
 }

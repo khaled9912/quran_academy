@@ -15,6 +15,7 @@ export interface AdminManagedUser {
   email: string;
   role?: string;
   isActive?: boolean;
+  deletedAt?: string | null;
 }
 
 export const updateManagedUser = (id: string, input: AdminUserUpdate) =>
@@ -23,7 +24,11 @@ export const updateManagedUser = (id: string, input: AdminUserUpdate) =>
     body: JSON.stringify(input),
   });
 
+// Deactivation is a pause: sign-in stops, bookings stay. Delete releases them.
 export const deactivateManagedUser = (id: string) =>
+  updateManagedUser(id, { isActive: false });
+
+export const deleteManagedUser = (id: string) =>
   backendFetch<null>(`/api/admin/users/${encodeURIComponent(id)}`, {
     method: "DELETE",
   });

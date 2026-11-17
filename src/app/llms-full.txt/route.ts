@@ -32,7 +32,7 @@ We do not claim a local address, branch, or physical campus in any student's cou
 - Quran reading and recitation: letter recognition, fluency, and confident reading
 - Tajweed: articulation points, pronunciation, and recitation rules
 - Quran memorization: structured Hifz plans with regular review
-- Arabic: reading, vocabulary, and grammar foundations, including Quranic Arabic
+- Arabic: reading, vocabulary, and grammar foundations, including the Arabic of the Quran
 - Islamic studies: core beliefs, practice, and history
 
 Programs are adapted to each student's level and goals. Availability varies by teacher and subject.

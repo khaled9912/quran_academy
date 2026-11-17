@@ -21,7 +21,7 @@ const AUTH_PATHS = ["/login", "/signup", "/register", "/forgot-password"];
 // lesson room is joined by teachers and students, and staff may enter as
 // support, so the role gate below must not bounce them to a dashboard.
 // The agreement page is the same: the API hands out the document for the role.
-const ANY_ROLE_PATHS = [/^\/lesson(\/|$)/, /^\/policy$/];
+const ANY_ROLE_PATHS = [/^\/lesson(\/|$)/, /^\/policy$/, /^\/onboarding\/meeting$/];
 const REGISTRATION_API_PATHS = [
   "/api/auth/register",
   "/api/auth/otp/verify",
@@ -69,7 +69,7 @@ function isPublicPath(pathname: string): boolean {
   );
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Allow static assets
@@ -185,6 +185,7 @@ export const config = {
     "/schedule",
     "/lesson/:path*",
     "/policy",
+    "/onboarding/meeting",
     "/login",
     "/signup",
     "/register",

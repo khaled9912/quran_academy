@@ -6,6 +6,7 @@ export interface Teacher {
   phoneNumber?: string | null;
   avatarUrl?: string | null;
   isActive?: boolean;
+  deletedAt?: string | null;
   subject?: string;
   assignedCourseIds?: string[];
 }
