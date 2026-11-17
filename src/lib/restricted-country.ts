@@ -6,7 +6,7 @@ export const isRestrictedCountry = (country: string | null) =>
 
 /**
  * Browser-side read for chrome that cannot see the request header, e.g. the
- * navbar. Reads the cookie middleware wrote on this visitor's first request.
+ * navbar. Reads the cookie the proxy wrote on this visitor's first request.
  */
 export function restrictedVisitorInBrowser() {
   return isRestrictedCountry(registrationCountryFromDocument());

@@ -44,7 +44,7 @@ const SUBJECTS = [
   {
     key: "tajweedLevel",
     title: "Tajweed",
-    hint: "The rules of how Quranic letters are pronounced.",
+    hint: "The rules of how letters are pronounced in the Quran.",
     icon: ScrollText,
   },
   {

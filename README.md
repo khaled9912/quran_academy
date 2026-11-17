@@ -91,7 +91,7 @@ The API is a separate .NET host (for example `https://your-site.runasp.net`). Ne
 2. Leave `NEXT_PUBLIC_BACKEND_URL` unset or empty.
 3. Redeploy. The browser calls `/api/*` on the frontend origin and `next.config.mjs` rewrites it to the API.
 
-This keeps the `academy-auth` cookie on the frontend domain, so `middleware.ts` can read it and browsers do not treat it as a third-party cookie. Keep `Cookie__SameSite=Lax` on the API, and keep `AllowedOrigins` on the API set to the frontend origin, because proxied POSTs forward the browser's `Origin` header.
+This keeps the `academy-auth` cookie on the frontend domain, so `proxy.ts` can read it and browsers do not treat it as a third-party cookie. Keep `Cookie__SameSite=Lax` on the API, and keep `AllowedOrigins` on the API set to the frontend origin, because proxied POSTs forward the browser's `Origin` header.
 
 ### Real-time updates
 
@@ -108,7 +108,7 @@ Authentication uses a short-lived ticket from `/api/realtime/ticket` (sent with 
 2. On the API set `AllowedOrigins=https://your-frontend.example` and `Cookie__SameSite=None`. HTTPS is required for `Secure` cookies.
 3. Redeploy.
 
-The cookie then belongs to the API domain: `middleware.ts` cannot see it, and Safari or private windows may block it as a third-party cookie.
+The cookie then belongs to the API domain: `proxy.ts` cannot see it, and Safari or private windows may block it as a third-party cookie.
 
 ### Verify
 

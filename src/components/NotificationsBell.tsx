@@ -121,7 +121,7 @@ export const NotificationsBell = () => {
 
       {open ? (
         <div className="fixed inset-x-3 top-[5.5rem] z-50 overflow-hidden rounded-3xl border border-card-border bg-card-bg text-foreground shadow-2xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-3 sm:w-[min(92vw,380px)]">
-          <div className="flex items-center justify-between gap-3 border-b border-card-border px-5 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-card-border px-5 py-4">
             <p className="flex items-center gap-2 text-lg font-semibold">
               Notifications
               {unread > 0 ? (
@@ -130,7 +130,7 @@ export const NotificationsBell = () => {
                 </span>
               ) : null}
             </p>
-            <div className="flex shrink-0 items-center gap-4">
+            <div className="ml-auto flex shrink-0 items-center gap-4">
               {permission === "default" ? (
                 <button
                   type="button"

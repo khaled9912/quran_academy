@@ -27,6 +27,7 @@ import {
   type TeacherApplication,
   type TeacherApplicationStatus,
 } from "@/types/teacher-application";
+import { TeacherOnboardingPanel } from "@/components/admin/TeacherOnboardingPanel";
 
 const statusStyles: Record<TeacherApplicationStatus, string> = {
   pending: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
@@ -83,24 +84,12 @@ export default function AdminTeacherApplicationsPage() {
     onSuccess: async (result) => {
       setRejectingId(null);
       setRejectReason("");
-      if (result.inviteCode) {
-        showToast(
-          `Approved. Invite code: ${result.inviteCode} (valid for 15 minutes). Share it with the teacher so they can set a password.`,
-          "success"
-        );
-      } else if (result.inviteEmailed) {
-        showToast(
-          "Approved. The invitation email was sent to the teacher.",
-          "success"
-        );
-      } else {
-        showToast(
-          result.application.status === "rejected"
-            ? "Application rejected."
-            : "Application approved. Ask the teacher to use Forgot password to get a code.",
-          "success"
-        );
-      }
+      showToast(
+        result.application.status === "rejected"
+          ? "Application rejected."
+          : "Approved. Propose intro meeting times below — the account is created when you finish onboarding.",
+        "success"
+      );
       await queryClient.invalidateQueries({
         queryKey: ["teacher-applications"],
       });
@@ -187,8 +176,9 @@ export default function AdminTeacherApplicationsPage() {
         <div className="mb-8">
           <h1 className="mb-2 text-4xl font-bold">Teacher applications</h1>
           <p className="text-lg text-foreground opacity-75">
-            Review CVs and approve new teachers. Approving creates the teacher
-            account and sends a set-password invite.
+            Review CVs and approve new teachers. Approving starts onboarding:
+            you propose intro meeting times, meet the teacher in an academy
+            room, then finish onboarding to create their account.
           </p>
         </div>
 
@@ -364,38 +354,40 @@ export default function AdminTeacherApplicationsPage() {
                     </button>
 
                     {application.status === "pending" && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            reviewMutation.mutate({
-                              id: application.id,
-                              status: "approved",
-                            })
-                          }
-                          disabled={isReviewing}
-                          className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-60"
-                        >
-                          {isReviewing ? (
-                            <Loader2 size={16} className="animate-spin" />
-                          ) : (
-                            <CheckCircle2 size={16} />
-                          )}
-                          Approve
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setRejectingId((current) =>
-                              current === application.id ? null : application.id
-                            )
-                          }
-                          disabled={isReviewing}
-                          className="inline-flex items-center gap-2 rounded-xl border border-red-400/50 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 transition hover:bg-red-500/10 disabled:opacity-60"
-                        >
-                          <XCircle size={16} /> Reject
-                        </button>
-                      </>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          reviewMutation.mutate({
+                            id: application.id,
+                            status: "approved",
+                          })
+                        }
+                        disabled={isReviewing}
+                        className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-60"
+                      >
+                        {isReviewing ? (
+                          <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                          <CheckCircle2 size={16} />
+                        )}
+                        Approve
+                      </button>
+                    )}
+                    {(application.status === "pending" ||
+                      (application.status === "approved" &&
+                        !application.teacherId)) && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setRejectingId((current) =>
+                            current === application.id ? null : application.id
+                          )
+                        }
+                        disabled={isReviewing}
+                        className="inline-flex items-center gap-2 rounded-xl border border-red-400/50 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 transition hover:bg-red-500/10 disabled:opacity-60"
+                      >
+                        <XCircle size={16} /> Reject
+                      </button>
                     )}
                   </div>
 
@@ -405,6 +397,10 @@ export default function AdminTeacherApplicationsPage() {
                         <CheckCircle2 size={14} /> Teacher account linked
                       </p>
                     )}
+
+                  {application.status === "approved" && (
+                    <TeacherOnboardingPanel application={application} />
+                  )}
 
                   {rejectingId === application.id && (
                     <div className="mt-4 rounded-2xl border border-card-border p-4">

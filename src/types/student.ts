@@ -4,6 +4,7 @@ export interface Student {
   fullName?: string;
   email: string;
   isActive?: boolean;
+  deletedAt?: string | null;
   grade?: string;
   phoneNumber?: string | null;
   avatarUrl?: string | null;

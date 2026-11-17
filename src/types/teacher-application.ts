@@ -36,6 +36,10 @@ export interface TeacherApplication {
   cvFileName: string | null;
   introFileName: string | null;
   quranRecordingFileName: string | null;
+  meetingSlots?: string[];
+  meetingStartsAt?: string | null;
+  meetingEndsAt?: string | null;
+  onboardedAt?: string | null;
 }
 
 export interface SubmitTeacherApplicationInput {
@@ -59,6 +63,16 @@ export interface ReviewTeacherApplicationInput {
 
 export interface ReviewTeacherApplicationResult {
   application: TeacherApplication;
+}
+
+export interface FinishOnboardingResult {
+  application: TeacherApplication;
   inviteEmailed: boolean;
   inviteCode: string | null;
+}
+
+export interface ProposeMeetingSlotsResult {
+  application: TeacherApplication;
+  emailed: boolean;
+  pickerUrl: string | null;
 }

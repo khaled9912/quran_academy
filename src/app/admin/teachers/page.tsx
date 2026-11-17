@@ -7,6 +7,7 @@ import { CalendarPlus, Pencil, UserPlus } from "lucide-react";
 import { createTeacher, getTeachers } from "@/services/teacher.service";
 import {
   deactivateManagedUser,
+  deleteManagedUser,
   updateManagedUser,
 } from "@/services/admin-user.service";
 import { useAuth } from "@/providers/auth-provider";
@@ -36,6 +37,10 @@ export default function AdminTeachersPage() {
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editPassword, setEditPassword] = useState("");
+  const [confirming, setConfirming] = useState<{
+    id: string;
+    action: "deactivate" | "delete";
+  } | null>(null);
 
   const createMutation = useMutation({
     mutationFn: createTeacher,
@@ -91,9 +96,10 @@ export default function AdminTeachersPage() {
         ? deactivateManagedUser(id)
         : updateManagedUser(id, { isActive: true }),
     onSuccess: async (_, variables) => {
+      setConfirming(null);
       showToast(
         variables.isActive
-          ? "Teacher deactivated. Their assignments were removed."
+          ? "Teacher deactivated. Sign-in is blocked; their bookings are kept."
           : "Teacher reactivated.",
         "success"
       );
@@ -105,6 +111,27 @@ export default function AdminTeachersPage() {
     onError: (mutationError) => {
       if (!(mutationError instanceof ApiError)) {
         showToast("Unable to change the teacher status.", "error");
+      }
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteManagedUser(id),
+    onSuccess: async () => {
+      setConfirming(null);
+      showToast(
+        "Teacher deleted. Their booked lessons were released and students are back on the assignment desk.",
+        "success"
+      );
+      await queryClient.invalidateQueries({ queryKey: ["teachers"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["teacher-student-assignments"],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["students"] });
+    },
+    onError: (mutationError) => {
+      if (!(mutationError instanceof ApiError)) {
+        showToast("Unable to delete the teacher.", "error");
       }
     },
   });
@@ -176,8 +203,9 @@ export default function AdminTeachersPage() {
           </Link>
           <h1 className="text-4xl font-bold mb-2">Teachers</h1>
           <p className="text-lg text-foreground opacity-75">
-            Create, edit, deactivate teacher accounts and publish weekly
-            availability on their behalf.
+            Create, edit, deactivate or delete teacher accounts and publish
+            weekly availability on their behalf. Deleting releases their booked
+            lessons.
           </p>
         </div>
 
@@ -269,7 +297,17 @@ export default function AdminTeachersPage() {
           ) : teachersQuery.data?.length ? (
             <div className="space-y-4">
               {teachersQuery.data.map((teacher) => {
-                const active = teacher.isActive !== false;
+                const deleted = Boolean(teacher.deletedAt);
+                const active = teacher.isActive !== false && !deleted;
+                const statusBusy =
+                  statusMutation.isPending &&
+                  statusMutation.variables?.id === teacher.id;
+                const deleteBusy =
+                  deleteMutation.isPending &&
+                  deleteMutation.variables === teacher.id;
+                const rowBusy = statusBusy || deleteBusy;
+                const rowConfirm =
+                  confirming?.id === teacher.id ? confirming : null;
                 return (
                   <div
                     key={teacher.id}
@@ -355,61 +393,143 @@ export default function AdminTeachersPage() {
                         </div>
                       </form>
                     ) : (
-                      <div className="flex flex-wrap items-center justify-between gap-4">
-                        <div>
-                          <p className="text-xl font-semibold">
-                            {teacher.fullName ?? teacher.name}
-                          </p>
-                          <p className="text-foreground opacity-75">
-                            {teacher.email}
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span
-                            className={`rounded-full px-3 py-1 text-sm font-semibold ${active ? "bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300" : "bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300"}`}
-                          >
-                            {active ? "Active" : "Inactive"}
-                          </span>
-                          <button
-                            onClick={() =>
-                              startEdit(
-                                teacher.id,
-                                teacher.fullName ?? teacher.name,
-                                teacher.email
-                              )
-                            }
-                            className="inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2 text-sm font-semibold hover:border-green-500"
-                          >
-                            <Pencil size={15} /> Edit
-                          </button>
-                          {active && (
-                            <Link
-                              href={`/admin/teachers/${teacher.id}/availability`}
-                              className="inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2 text-sm font-semibold hover:border-green-500"
+                      <div className="space-y-4">
+                        <div className="flex flex-wrap items-center justify-between gap-4">
+                          <div>
+                            <p className="text-xl font-semibold">
+                              {teacher.fullName ?? teacher.name}
+                            </p>
+                            <p className="text-foreground opacity-75">
+                              {teacher.email}
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span
+                              className={`rounded-full px-3 py-1 text-sm font-semibold ${deleted ? "bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-300" : active ? "bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300" : "bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300"}`}
                             >
-                              <CalendarPlus size={15} /> Weekly times
-                            </Link>
-                          )}
-                          <button
-                            onClick={() => {
-                              if (
-                                !active ||
-                                window.confirm(
-                                  "Deactivate this teacher? Their assignments and weekly times will be removed."
-                                )
-                              ) {
-                                statusMutation.mutate({
-                                  id: teacher.id,
-                                  isActive: active,
-                                });
-                              }
-                            }}
-                            disabled={statusMutation.isPending}
-                            className={`rounded-xl px-4 py-2 text-sm font-semibold transition disabled:opacity-50 ${active ? "border border-red-300 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white" : "bg-green-500 text-white hover:bg-green-600"}`}
-                          >
-                            {active ? "Deactivate" : "Reactivate"}
-                          </button>
+                              {deleted
+                                ? "Deleted"
+                                : active
+                                  ? "Active"
+                                  : "Deactivated"}
+                            </span>
+                            {deleted ? (
+                              <button
+                                onClick={() =>
+                                  statusMutation.mutate({
+                                    id: teacher.id,
+                                    isActive: false,
+                                  })
+                                }
+                                disabled={rowBusy}
+                                className="rounded-xl bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600 disabled:opacity-50"
+                              >
+                                {statusBusy ? "Restoring…" : "Restore"}
+                              </button>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    setConfirming(null);
+                                    startEdit(
+                                      teacher.id,
+                                      teacher.fullName ?? teacher.name,
+                                      teacher.email
+                                    );
+                                  }}
+                                  disabled={rowBusy}
+                                  className="inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2 text-sm font-semibold hover:border-green-500 disabled:opacity-50"
+                                >
+                                  <Pencil size={15} /> Edit
+                                </button>
+                                {active && (
+                                  <Link
+                                    href={`/admin/teachers/${teacher.id}/availability`}
+                                    className="inline-flex items-center gap-2 rounded-xl border border-card-border px-4 py-2 text-sm font-semibold hover:border-green-500"
+                                  >
+                                    <CalendarPlus size={15} /> Weekly times
+                                  </Link>
+                                )}
+                                <button
+                                  onClick={() =>
+                                    active
+                                      ? setConfirming({
+                                          id: teacher.id,
+                                          action: "deactivate",
+                                        })
+                                      : statusMutation.mutate({
+                                          id: teacher.id,
+                                          isActive: false,
+                                        })
+                                  }
+                                  disabled={rowBusy}
+                                  className={`rounded-xl px-4 py-2 text-sm font-semibold transition disabled:opacity-50 ${active ? "border border-amber-300 dark:border-amber-500/30 text-amber-700 dark:text-amber-300 hover:bg-amber-500 hover:text-white" : "bg-green-500 text-white hover:bg-green-600"}`}
+                                >
+                                  {statusBusy
+                                    ? active
+                                      ? "Deactivating…"
+                                      : "Reactivating…"
+                                    : active
+                                      ? "Deactivate"
+                                      : "Reactivate"}
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    setConfirming({
+                                      id: teacher.id,
+                                      action: "delete",
+                                    })
+                                  }
+                                  disabled={rowBusy}
+                                  className="rounded-xl border border-red-300 dark:border-red-500/30 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 transition hover:bg-red-500 hover:text-white disabled:opacity-50"
+                                >
+                                  {deleteBusy ? "Deleting…" : "Delete"}
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </div>
+                        {rowConfirm && (
+                          <div
+                            role="alert"
+                            className={`rounded-2xl border p-4 text-sm ${rowConfirm.action === "delete" ? "border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-300" : "border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300"}`}
+                          >
+                            <p className="font-semibold">
+                              {rowConfirm.action === "delete"
+                                ? "Delete this teacher? Their booked lessons will be released, their weekly times open up, and their students go back to the assignment desk."
+                                : "Deactivate this teacher? Sign-in is blocked, but their lessons, weekly times and assignments stay booked."}
+                            </p>
+                            <div className="mt-3 flex gap-2">
+                              <button
+                                onClick={() =>
+                                  rowConfirm.action === "delete"
+                                    ? deleteMutation.mutate(teacher.id)
+                                    : statusMutation.mutate({
+                                        id: teacher.id,
+                                        isActive: true,
+                                      })
+                                }
+                                disabled={rowBusy}
+                                className={`rounded-xl px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 ${rowConfirm.action === "delete" ? "bg-red-500 hover:bg-red-600" : "bg-amber-500 hover:bg-amber-600"}`}
+                              >
+                                {rowBusy
+                                  ? rowConfirm.action === "delete"
+                                    ? "Deleting…"
+                                    : "Deactivating…"
+                                  : rowConfirm.action === "delete"
+                                    ? "Yes, delete"
+                                    : "Yes, deactivate"}
+                              </button>
+                              <button
+                                onClick={() => setConfirming(null)}
+                                disabled={rowBusy}
+                                className="rounded-xl border border-card-border px-4 py-2 text-sm font-semibold disabled:opacity-50"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

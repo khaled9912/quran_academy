@@ -34,7 +34,7 @@ Server-side policies: `AdminOnly` (`admin`, `super_admin`), `ReviewerOnly`
 Public registration creates students only. Teacher, admin, and support accounts
 come from an admin operation or an approved `/teach` application.
 
-The browser `user-role` cookie, React `RoleGuard`, `hasPermission`, and Next.js
-middleware are hints, not security boundaries. The API must return `401` for
+The browser `user-role` cookie, React `RoleGuard`, `hasPermission`, and the
+Next.js proxy are hints, not security boundaries. The API must return `401` for
 unauthenticated requests and `403` for forbidden actions, and must scope records
 by the current user.
