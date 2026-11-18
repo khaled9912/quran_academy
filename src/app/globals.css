@@ -344,6 +344,16 @@ body {
   }
 }
 
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(4deg);
+  }
+}
+
 @keyframes breathe {
   0%,
   100% {
@@ -393,6 +403,10 @@ body {
   animation: breathe 1.8s ease-in-out infinite;
 }
 
+.float-slow {
+  animation: float-slow 7s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .step-in,
   .step-out,
@@ -402,7 +416,8 @@ body {
   .pop-in,
   .draw-check,
   .halo,
-  .breathe {
+  .breathe,
+  .float-slow {
     animation: none;
   }
 }

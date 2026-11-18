@@ -47,6 +47,22 @@ export class ApiError extends Error {
   }
 }
 
+/** A mutation attempted with no network that must not be deferred. */
+export class OfflineError extends ApiError {
+  constructor(message: string) {
+    super(message, 0);
+    this.name = "OfflineError";
+  }
+}
+
+/** A mutation stored in the offline outbox instead of being sent. */
+export class OfflineQueuedError extends ApiError {
+  constructor(message: string) {
+    super(message, 0);
+    this.name = "OfflineQueuedError";
+  }
+}
+
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
@@ -100,6 +116,30 @@ export async function backendFetch<T = unknown>(
     headers.set("Content-Type", "application/json");
   headers.set("Accept", "application/json");
   const baseUrl = getBackendBaseUrl();
+  const method = (options.method ?? "GET").toUpperCase();
+  // Offline mutations: the few that stay correct when delayed are stored on
+  // the device and replayed on reconnect; everything else is refused outright
+  // so a stale cancel or payment can never land late.
+  if (
+    method !== "GET" &&
+    typeof navigator !== "undefined" &&
+    !navigator.onLine
+  ) {
+    const { matchQueueable, enqueueOfflineChange } = await import(
+      "@/lib/offline/outbox"
+    );
+    const body = typeof options.body === "string" ? options.body : null;
+    if (matchQueueable(path, method) && (options.body == null || body)) {
+      const { silent } = await enqueueOfflineChange(path, method, body);
+      if (silent) return null as T;
+      throw new OfflineQueuedError(
+        "Saved on this device — it will sync when you're back online."
+      );
+    }
+    const offlineMessage = "You're offline. This action needs a connection.";
+    dispatchToast(offlineMessage);
+    throw new OfflineError(offlineMessage);
+  }
   const timeoutController = new AbortController();
   const timeoutId = setTimeout(
     () => timeoutController.abort(),

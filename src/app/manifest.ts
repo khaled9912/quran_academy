@@ -15,6 +15,29 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#f3efe8",
     theme_color: "#1d4e47",
     categories: ["education"],
+    // Long-press / right-click shortcuts on the installed icon. They are the
+    // three screens a signed-in reader opens most, and each works offline from
+    // the worker's cached answers once visited.
+    shortcuts: [
+      {
+        name: "Schedule",
+        short_name: "Schedule",
+        url: "/schedule",
+        icons: [{ src: "/icon-192.png", sizes: "192x192" }],
+      },
+      {
+        name: "Notifications",
+        short_name: "Notifications",
+        url: "/notifications",
+        icons: [{ src: "/icon-192.png", sizes: "192x192" }],
+      },
+      {
+        name: "Profile",
+        short_name: "Profile",
+        url: "/profile",
+        icons: [{ src: "/icon-192.png", sizes: "192x192" }],
+      },
+    ],
     icons: [
       {
         src: "/icon-192.png?v=2026-11-06-2",

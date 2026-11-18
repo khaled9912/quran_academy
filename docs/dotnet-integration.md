@@ -189,7 +189,7 @@ Each directory item is `{ "teacher": { ...UserDto }, "slots": [ ...WeeklyRuleDto
 }
 ```
 
-`nextStartsAt` is the instant this recurring time happens next in its own time zone (`null` when the teacher's time gives no occurrence in the next two weeks). `timeChangeLeadMinutes` is the academy-wide notice a student must leave a teacher when moving onto a weekly time; `/student/change-time/[seriesId]` hides any rule whose `nextStartsAt` lands inside that window, and the server refuses such a move with `409` if a client offers it anyway.
+`nextStartsAt` is the instant this recurring time happens next in its own time zone (`null` when the teacher's time gives no occurrence in the next two weeks). `timeChangeLeadMinutes` is the academy-wide notice window around a weekly move, and it guards both sides: `/student/change-time/[seriesId]` hides any rule whose `nextStartsAt` lands inside it, and it locks the whole picker while the series' own next lesson is inside it (see `nextLessonStartsAt` below). The server refuses either move with `409` if a client offers it anyway.
 
 `hasLessons` is `false` until the student has ever had a lesson; the frontend uses it to show that the first booking will be a trial. When the student has no assigned teacher, `/api/student/teacher/weekly-availability` returns `{ "teacher": null, "slots": [], "series": [] }`.
 
@@ -385,7 +385,7 @@ A change request moves the series and rebuilds its future lessons in one transac
 
 The startup schema replaces the unique series/start index with `IX_Lessons_SeriesId_StartsAt_Current`, excluding only `series_rescheduled` records. Ordinary cancellations and active occurrences still reserve their series/date. Apply the updated backend schema before using these changes.
 
-Known target conflicts reject the weekly move with `409`. The rule's `nextStartsAt` must also respect `Scheduling__TimeChangeLeadMinutes` (`0` disables this notice window). A conflict discovered while extending the rolling calendar skips that occurrence and records `Weekly lesson not booked` notices, deduped per series/date: participants receive `kind = booking`, `link = /schedule`; admins receive `/admin/lesson-ops` to arrange an alternative.
+Known target conflicts reject the weekly move with `409`. The notice window `Scheduling__TimeChangeLeadMinutes` (`0` disables it) applies to both sides of the move: the target rule's `nextStartsAt` must be outside it, and the series' next scheduled lesson must not be starting soon or in session — inside the window the student attends that class or cancels it through the normal cancellation policy first, so a switch can never vanish a class with no teacher pay and no strike. `GET /api/student/series` returns `nextLessonStartsAt` (the earliest scheduled lesson that has not ended, `null` when none) so both clients can lock the change-time picker during the window; a lesson that has ended but awaits its report does not block the move. A conflict discovered while extending the rolling calendar skips that occurrence and records `Weekly lesson not booked` notices, deduped per series/date: participants receive `kind = booking`, `link = /schedule`; admins receive `/admin/lesson-ops` to arrange an alternative.
 
 A change request returns:
 

@@ -8,7 +8,7 @@ import {
   MessageSquareQuote,
   PencilLine,
 } from "lucide-react";
-import { ApiError } from "@/lib/backend-client";
+import { ApiError, OfflineQueuedError } from "@/lib/backend-client";
 import { useToast } from "@/providers/toast-provider";
 import {
   lessonDateTime,
@@ -115,14 +115,19 @@ function TeacherReportSection({
       void queryClient.invalidateQueries({ queryKey: ["lessons"] });
       void queryClient.invalidateQueries({ queryKey: ["profile", "reports"] });
     },
-    onError: (error) =>
+    onError: (error) => {
+      if (error instanceof OfflineQueuedError) {
+        showToast(error.message, "info");
+        return;
+      }
       showToast(
         errorMessage(
           error,
           "Unable to save the class report. Please try again."
         ),
         "error"
-      ),
+      );
+    },
   });
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -338,11 +343,16 @@ function StudentReviewSection({
       void queryClient.invalidateQueries({ queryKey: ["lessons"] });
       void queryClient.invalidateQueries({ queryKey: ["teachers"] });
     },
-    onError: (error) =>
+    onError: (error) => {
+      if (error instanceof OfflineQueuedError) {
+        showToast(error.message, "info");
+        return;
+      }
       showToast(
         errorMessage(error, "Unable to save your review. Please try again."),
         "error"
-      ),
+      );
+    },
   });
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {

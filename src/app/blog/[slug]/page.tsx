@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, BookOpen, Clock3 } from "lucide-react";
 
 import { BlogCard } from "@/components/blog/BlogCard";
+import { ArticleReader } from "@/components/blog/ArticleReader";
 import { JsonLd } from "@/components/JsonLd";
 import { SiteFooter } from "@/components/SiteFooter";
 import { EnrolCta } from "@/components/EnrolCta";
@@ -67,36 +68,6 @@ export async function generateMetadata({
       images: [image],
     },
   };
-}
-
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
-
-function InlineText({ text }: { text: string }) {
-  const parts = text.split(/(\[[^\]]+\]\([^)]+\))/g);
-
-  return (
-    <>
-      {parts.map((part, index) => {
-        const match = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
-        if (!match) return <span key={index}>{part}</span>;
-
-        return (
-          <Link
-            key={index}
-            href={match[2]}
-            className="font-semibold text-[#1d5145] underline decoration-[#b9cfc2] underline-offset-4 transition hover:decoration-[#1d5145] dark:text-green-400 dark:decoration-green-400/40 dark:hover:decoration-green-400"
-          >
-            {match[1]}
-          </Link>
-        );
-      })}
-    </>
-  );
 }
 
 export default async function BlogPostPage({ params }: PageProps) {
@@ -189,8 +160,18 @@ export default async function BlogPostPage({ params }: PageProps) {
       </div>
 
       <article className="mx-auto max-w-4xl px-5 pb-16 pt-8 md:px-8 md:pb-20">
-        <header className="rounded-[2rem] border border-[#e0e7da] bg-white p-7 shadow-sm dark:border-card-border dark:bg-card-bg md:p-10">
-          <span className="inline-flex rounded-full bg-[#edf3e9] px-3 py-1 text-xs font-semibold text-[#4d7058] dark:bg-green-500/15 dark:text-green-300">
+        <header className="relative overflow-hidden rounded-[2rem] border border-[#e0e7da] bg-white p-7 shadow-sm dark:border-card-border dark:bg-card-bg md:p-10">
+          <svg
+            aria-hidden
+            viewBox="0 0 200 200"
+            className="float-slow pointer-events-none absolute -right-8 -top-10 h-44 w-44 text-[#1d4e47]/10 dark:text-green-300/10"
+            fill="currentColor"
+          >
+            <path d="M140 20a80 80 0 1 0 40 140 90 90 0 0 1-40-140z" />
+            <path d="M160 60l6 14 14 6-14 6-6 14-6-14-14-6 14-6z" />
+          </svg>
+          <div className="breathe pointer-events-none absolute -left-10 bottom-0 h-32 w-32 rounded-full bg-[#e4c18e]/15 dark:bg-amber-300/10" />
+          <span className="relative inline-flex rounded-full bg-[#edf3e9] px-3 py-1 text-xs font-semibold text-[#4d7058] dark:bg-green-500/15 dark:text-green-300">
             {post.category}
           </span>
           <h1 className="mt-5 text-3xl font-black leading-[1.12] tracking-[-0.03em] text-[#123c35] dark:text-white sm:text-4xl md:text-5xl">
@@ -213,56 +194,9 @@ export default async function BlogPostPage({ params }: PageProps) {
           </div>
         </header>
 
-        <div className="mt-10 grid gap-10 md:grid-cols-[1fr_220px] md:items-start">
-          <div className="min-w-0">
-            <div className="space-y-5 text-lg leading-8 text-[#4f675c] dark:text-foreground/75">
-              {post.intro.map((paragraph) => (
-                <p key={paragraph}>
-                  <InlineText text={paragraph} />
-                </p>
-              ))}
-            </div>
+        <ArticleReader post={post} />
 
-            {post.sections.map((section) => {
-              const id = slugify(section.heading);
-
-              return (
-                <section key={section.heading} className="mt-10">
-                  <h2
-                    id={id}
-                    className="scroll-mt-28 text-2xl font-bold leading-snug text-[#173b35] dark:text-foreground"
-                  >
-                    {section.heading}
-                  </h2>
-                  <div className="mt-4 space-y-4 leading-8 text-[#5d726a] dark:text-foreground/70">
-                    {section.paragraphs.map((paragraph) => (
-                      <p key={paragraph}>
-                        <InlineText text={paragraph} />
-                      </p>
-                    ))}
-                  </div>
-                  {section.list && (
-                    <ul className="mt-4 space-y-3 pl-5 text-[#5d726a] dark:text-foreground/70">
-                      {section.list.map((item) => (
-                        <li
-                          key={item}
-                          className="list-disc leading-7 marker:text-[#8ab57d]"
-                        >
-                          <InlineText text={item} />
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  {section.note && (
-                    <p className="mt-5 rounded-2xl border border-[#e7d8bd] bg-[#fbf5e9] p-5 leading-7 text-[#6d5738] dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-100">
-                      <InlineText text={section.note} />
-                    </p>
-                  )}
-                </section>
-              );
-            })}
-
-            <div className="mt-12 rounded-3xl bg-[#1c5145] p-7 text-white md:p-9">
+        <div className="mt-12 rounded-3xl bg-[#1c5145] p-7 text-white md:p-9">
               <div className="flex items-center gap-3">
                 <BookOpen size={24} className="text-[#e4c18e]" aria-hidden />
                 <h2 className="text-2xl font-bold">Learn with a teacher</h2>
@@ -285,29 +219,6 @@ export default async function BlogPostPage({ params }: PageProps) {
                   Ask a question
                 </Link>
               </div>
-            </div>
-          </div>
-
-          <nav
-            aria-label="In this guide"
-            className="hidden rounded-2xl border border-[#e0e7da] bg-white p-5 text-sm dark:border-card-border dark:bg-card-bg md:sticky md:top-28 md:block"
-          >
-            <p className="font-semibold text-[#23483c] dark:text-foreground">
-              In this guide
-            </p>
-            <ul className="mt-3 space-y-2.5 text-[#6b7c73] dark:text-foreground/60">
-              {post.sections.map((section) => (
-                <li key={section.heading}>
-                  <a
-                    href={`#${slugify(section.heading)}`}
-                    className="leading-snug transition hover:text-[#1d5145] dark:hover:text-green-400"
-                  >
-                    {section.heading}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </nav>
         </div>
 
         <div className="mt-12 border-t border-[#e2e8dc] pt-8 dark:border-card-border">

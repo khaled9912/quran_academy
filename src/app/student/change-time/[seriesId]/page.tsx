@@ -58,6 +58,19 @@ export default function ChangeWeeklyTimePage() {
   // Measured from the moment the server answered, which is the instant it
   // worked out each nextStartsAt, so the client clock never enters in.
   const noticeAfter = (teacherQuery.dataUpdatedAt ?? 0) + leadMinutes * 60_000;
+  // The same window protects the class being left: inside it the move is
+  // locked, and the student attends or cancels that lesson through the normal
+  // policy flow first. The API refuses the move either way.
+  const nextLessonStartsAt = series?.nextLessonStartsAt
+    ? new Date(series.nextLessonStartsAt).getTime()
+    : null;
+  const moveLocked =
+    leadMinutes > 0 &&
+    nextLessonStartsAt !== null &&
+    nextLessonStartsAt < (seriesQuery.dataUpdatedAt ?? 0) + leadMinutes * 60_000;
+  const lessonInSession =
+    nextLessonStartsAt !== null &&
+    nextLessonStartsAt <= (seriesQuery.dataUpdatedAt ?? 0);
   const openRules = (teacherQuery.data?.slots ?? []).filter(
     (rule) => rule.status === "available"
   );
@@ -233,6 +246,29 @@ export default function ChangeWeeklyTimePage() {
               />
             </section>
 
+            {moveLocked && (
+              <section className="mt-6 rounded-3xl border border-amber-500/40 bg-amber-500/10 p-6 shadow-sm">
+                <h2 className="text-lg font-bold">
+                  {lessonInSession
+                    ? "Your class is in session"
+                    : "Your next class is starting soon"}
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-foreground/70">
+                  {lessonInSession
+                    ? "Once it ends you can move your weekly time."
+                    : `Your next class starts in under ${leadMinutes} minutes. Attend it or cancel it from your schedule first, then come back to move your weekly time.`}
+                </p>
+                <Link
+                  href="/schedule"
+                  className="mt-4 inline-block rounded-xl border border-card-border bg-card-bg px-4 py-2.5 text-sm font-semibold transition hover:border-green-500"
+                >
+                  Open your schedule
+                </Link>
+              </section>
+            )}
+
+            {!moveLocked && (
+            <>
             <section className="mt-6 rounded-3xl border border-card-border bg-card-bg p-6 shadow-sm">
               <h2 className="text-lg font-bold">Choose a new time</h2>
               {available.length > 0 && (
@@ -381,6 +417,8 @@ export default function ChangeWeeklyTimePage() {
                   the academy are told about it.
                 </p>
               </div>
+            )}
+            </>
             )}
 
             <section className="mt-6 rounded-3xl border border-card-border bg-card-bg p-6 shadow-sm">
