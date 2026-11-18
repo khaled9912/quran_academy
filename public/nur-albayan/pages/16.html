@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نور البيان - صفحة 16</title>
+    <link rel="stylesheet" href="../shared/core.css">
+</head>
+<body class="flex flex-col items-center select-none bg-emerald-50/40">
+    <script>
+        window.PAGE_CONFIG = {
+            title: 'نور البيان',
+            subtitle: 'حركة الكسر — تدريبات على الحركات',
+            lessonNumber: 4,
+            pageNumber: 16,
+            fontType: 'dictation',
+            game3: 'memory'
+        };
+
+        const _themes = ["pink","green","blue","yellow"];
+        const _raw = [
+            [`<span class='c-red'>سَـ</span><span class='c-blue'>ـمِـ</span><span class='c-black'>ـعَ</span>`, "normal"],
+            [`<span class='c-red'>نَـ</span><span class='c-blue'>ـشِـ</span><span class='c-black'>ـطَ</span>`, "speed"],
+            [`<span class='c-red'>حَـ</span><span class='c-blue'>ـمِـ</span><span class='c-black'>ـدَ</span>`, "normal"],
+            [`<span class='c-red'>بَـ</span><span class='c-blue'>ـرِ</span><span class='c-black'>قَ</span>`, "normal"],
+            [`<span class='c-red'>كَـ</span><span class='c-blue'>ـمِـ</span><span class='c-black'>ـهَ</span>`, "danger"],
+            [`<span class='c-red'>عَـ</span><span class='c-blue'>ـقِـ</span><span class='c-black'>ـلَ</span>`, "normal"],
+            [`<span class='c-red'>إِ</span><span class='c-blue'>رَ</span><span class='c-black'>مَ</span>`, "golden"],
+            [`<span class='c-red'>فِـ</span><span class='c-blue'>ـئَـ</span><span class='c-black'>ـةَ</span>`, "normal"],
+            [`<span class='c-red'>مِـ</span><span class='c-blue'>ـئَـ</span><span class='c-black'>ـةَ</span>`, "normal"],
+            [`<span class='c-red'>هِـ</span><span class='c-blue'>ـبَـ</span><span class='c-black'>ـةَ</span>`, "speed"],
+            [`<span class='c-red'>وَ</span><span class='c-blue'>ذَ</span><span class='c-black'>رِ</span>`, "normal"],
+            [`<span class='c-red'>وَ</span><span class='c-blue'>رَ</span><span class='c-black'>قِ</span>`, "normal"],
+            [`<span class='c-red'>صِـ</span><span class='c-blue'>ـفَـ</span><span class='c-black'>ـةَ</span>`, "danger"],
+            [`<span class='c-red'>وَ</span><span class='c-blue'>هِـ</span><span class='c-black'>ـمَ</span>`, "normal"],
+            [`<span class='c-red'>هَـ</span><span class='c-blue'>ـلِـ</span><span class='c-black'>ـعَ</span>`, "golden"],
+            [`<span class='c-red'>دَ</span><span class='c-blue'>لِـ</span><span class='c-black'>ـهَ</span>`, "normal"],
+            [`<span class='c-red'>صَـ</span><span class='c-blue'>ـحِـ</span><span class='c-black'>ـبَـ</span><span class='c-blue'>ـكَ</span>`, "normal"],
+            [`<span class='c-red'>بِـ</span><span class='c-blue'>ـيَـ</span><span class='c-black'>ـدِ</span><span class='c-blue'>كَ</span>`, "speed"],
+            [`<span class='c-red'>قِـ</span><span class='c-blue'>ـبَـ</span><span class='c-black'>ـلَـ</span><span class='c-blue'>ـكَ</span>`, "normal"],
+            [`<span class='c-red'>فَـ</span><span class='c-blue'>ـطَـ</span><span class='c-black'>ـفِـ</span><span class='c-blue'>ـقَ</span>`, "normal"],
+            [`<span class='c-red'>وَ</span><span class='c-blue'>قَـ</span><span class='c-black'>ـعَـ</span><span class='c-blue'>ـتِ</span>`, "danger"],
+            [`<span class='c-red'>فَـ</span><span class='c-blue'>ـفَـ</span><span class='c-black'>ـزِ</span><span class='c-blue'>عَ</span>`, "normal"],
+            [`<span class='c-red'>تَـ</span><span class='c-blue'>ـبِـ</span><span class='c-black'>ـعَـ</span><span class='c-blue'>ـكَ</span>`, "golden"],
+            [`<span class='c-red'>وَ</span><span class='c-blue'>وَ</span><span class='c-black'>رِ</span><span class='c-blue'>ثَ</span>`, "normal"],
+            [`<span class='c-red'>بِـ</span><span class='c-blue'>ـيَـ</span><span class='c-black'>ـدِ</span><span class='c-red'>هِ</span>`, "normal"],
+            [`<span class='c-red'>بِـ</span><span class='c-blue'>ـعِـ</span><span class='c-black'>ـصَـ</span><span class='c-blue'>ـمِ</span>`, "speed"],
+            [`<span class='c-red'>وَ</span><span class='c-blue'>رَ</span><span class='c-black'>ثَـ</span><span class='c-blue'>ـتِ</span>`, "normal"],
+            [`<span class='c-red'>لِـ</span><span class='c-blue'>ـأَ</span><span class='c-black'>هَـ</span><span class='c-red'>ـبَ</span>`, "normal"],
+            [`<span class='c-red'>عَـ</span><span class='c-blue'>ـقِـ</span><span class='c-black'>ـبِـ</span><span class='c-red'>ـهِ</span>`, "danger"],
+            [`<span class='c-red'>لَـ</span><span class='c-blue'>ـحَـ</span><span class='c-black'>ـبِـ</span><span class='c-blue'>ـطَ</span>`, "normal"],
+            [`<span class='c-red'>قَـ</span><span class='c-blue'>ـدَ</span><span class='c-black'>مِـ</span><span class='c-blue'>ـكَ</span>`, "golden"],
+            [`<span class='c-red'>وَ</span><span class='c-blue'>عَـ</span><span class='c-black'>ـنَـ</span><span class='c-blue'>ـتِ</span>`, "normal"]
+        ];
+        const dataset = _raw.map((r,i)=>({html:r[0], t:r[1], theme:_themes[Math.floor(i/4)%4], w: [r[0].replace(/<[^>]+>/g,'').replace(/ـ/g,'')]}));
+    </script>
+    <script src="../shared/core.js"></script>
+</body>
+</html>

@@ -321,7 +321,7 @@ export default function ProfilePage() {
     removeAvatarMutation.isPending;
 
   return (
-    <div className="min-h-screen bg-background text-foreground pt-24 pb-16">
+    <div className="min-h-screen bg-background text-foreground pt-8 pb-16">
       <div className="mx-auto max-w-6xl px-4 md:px-8 lg:px-16">
         <div className="mb-8">
           <p className="text-sm font-bold uppercase tracking-[.18em] text-green-600 dark:text-green-400">

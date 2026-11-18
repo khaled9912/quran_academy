@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نور البيان - صفحة 7</title>
+    <link rel="stylesheet" href="../shared/core.css">
+</head>
+<body class="flex flex-col items-center select-none bg-emerald-50/40">
+    <script>
+        window.PAGE_CONFIG = {
+            title: 'نور البيان',
+            subtitle: 'حركة الفتح — الحروف المتشابهة كتابةً ونطقاً',
+            lessonNumber: 5,
+            pageNumber: 7,
+            fontType: 'dictation',
+            game3: 'memory'
+        };
+
+        const dataset = [
+            // --- السطر الأول: متشابهة كتابة ---
+            { w: "<span class='c-blue'>بَـ</span> <span class='c-red'>-</span> <span class='c-black'>نَـ</span>", theme: "pink", t: "normal" },
+            { w: "<span class='c-blue'>تَـ</span> <span class='c-red'>-</span> <span class='c-black'>يَـ</span>", theme: "pink", t: "normal" },
+            { w: "<span class='c-blue'>ثَـ</span> <span class='c-red'>-</span> <span class='c-black'>شَـ</span>", theme: "pink", t: "speed" },
+            { w: "<span class='c-blue'>جَـ</span> <span class='c-red'>-</span> <span class='c-black'>خَـ</span>", theme: "pink", t: "normal" },
+            { w: "<span class='c-blue'>زَ</span> <span class='c-red'>-</span> <span class='c-black'>رَ</span>", theme: "pink", t: "golden" },
+
+            // --- السطر الثاني: متشابهة كتابة ---
+            { w: "<span class='c-blue'>ذَ</span> <span class='c-red'>-</span> <span class='c-black'>دَ</span>", theme: "pink", t: "normal" },
+            { w: "<span class='c-blue'>ضَـ</span> <span class='c-red'>-</span> <span class='c-black'>صَـ</span>", theme: "pink", t: "danger" },
+            { w: "<span class='c-blue'>ظَـ</span> <span class='c-red'>-</span> <span class='c-black'>طَـ</span>", theme: "pink", t: "normal" },
+            { w: "<span class='c-blue'>غَـ</span> <span class='c-red'>-</span> <span class='c-black'>عَـ</span>", theme: "pink", t: "speed" },
+            { w: "<span class='c-blue'>شَـ</span> <span class='c-red'>-</span> <span class='c-black'>سَـ</span>", theme: "pink", t: "normal" },
+
+            // --- السطر الثالث: متشابهة كتابة ---
+            { w: "<span class='c-blue'>فَـ</span> <span class='c-red'>-</span> <span class='c-black'>قَـ</span>", theme: "yellow", t: "normal" },
+            { w: "<span class='c-blue'>لَ</span> <span class='c-red'>-</span> <span class='c-black'>كَ</span>", theme: "yellow", t: "golden" },
+            { w: "<span class='c-blue'>ةَ</span> <span class='c-red'>-</span> <span class='c-black'>هَ</span>", theme: "yellow", t: "normal" },
+            { w: "<span class='c-blue'>أَ</span> <span class='c-red'>-</span> <span class='c-black'>لَـ</span>", theme: "yellow", t: "speed" },
+            { w: "<span class='c-blue'>عَـ</span> <span class='c-red'>-</span> <span class='c-black'>غَـ</span>", theme: "yellow", t: "normal" },
+
+            // --- السطر الرابع: متشابهة كتابة ---
+            { w: "<span class='c-blue'>ـةَ</span> <span class='c-red'>-</span> <span class='c-black'>ـهَ</span>", theme: "yellow", t: "normal" },
+            { w: "<span class='c-blue'>نَـ</span> <span class='c-red'>-</span> <span class='c-black'>ـذَ</span>", theme: "yellow", t: "danger" },
+            { w: "<span class='c-blue'>ـفـَ</span> <span class='c-red'>-</span> <span class='c-black'>ـغـَ</span>", theme: "yellow", t: "normal" },
+            { w: "<span class='c-blue'>ـعـَ</span> <span class='c-red'>-</span> <span class='c-black'>ـغـَ</span>", theme: "yellow", t: "speed" },
+            { w: "<span class='c-blue'>ءَ</span> <span class='c-red'>-</span> <span class='c-black'>عَـ</span>", theme: "yellow", t: "golden" },
+
+            // --- السطر الخامس: متشابهة نطقاً ---
+            { w: "<span class='c-blue'>قَـ</span> <span class='c-red'>-</span> <span class='c-black'>كَـ</span>", theme: "blue", t: "normal" },
+            { w: "<span class='c-blue'>زَ</span> <span class='c-red'>-</span> <span class='c-black'>ذَ</span>", theme: "blue", t: "speed" },
+            { w: "<span class='c-blue'>ثَـ</span> <span class='c-red'>-</span> <span class='c-black'>سَـ</span>", theme: "blue", t: "normal" },
+            { w: "<span class='c-blue'>ظَـ</span> <span class='c-red'>-</span> <span class='c-black'>ذَ</span>", theme: "blue", t: "danger" },
+            { w: "<span class='c-blue'>ةَ</span> <span class='c-red'>-</span> <span class='c-black'>دَ</span>", theme: "blue", t: "normal" },
+
+            // --- السطر السادس: متشابهة نطقاً ---
+            { w: "<span class='c-blue'>ضَـ</span> <span class='c-red'>-</span> <span class='c-black'>دَ</span>", theme: "blue", t: "golden" },
+            { w: "<span class='c-blue'>سَـ</span> <span class='c-red'>-</span> <span class='c-black'>صَـ</span>", theme: "blue", t: "normal" },
+            { w: "<span class='c-blue'>فَـ</span> <span class='c-red'>-</span> <span class='c-black'>ثَـ</span>", theme: "blue", t: "speed" },
+            { w: "<span class='c-blue'>طَـ</span> <span class='c-red'>-</span> <span class='c-black'>ـةَ</span>", theme: "blue", t: "normal" },
+            { w: "<span class='c-blue'>لَ</span> <span class='c-red'>-</span> <span class='c-black'>رَ</span>", theme: "blue", t: "normal" },
+
+            // --- السطر السابع: متشابهة نطقاً ---
+            { w: "<span class='c-blue'>ظَـ</span> <span class='c-red'>-</span> <span class='c-black'>زَ</span>", theme: "pink", t: "danger" },
+            { w: "<span class='c-blue'>غَـ</span> <span class='c-red'>-</span> <span class='c-black'>خَـ</span>", theme: "pink", t: "normal" },
+            { w: "<span class='c-blue'>عَـ</span> <span class='c-red'>-</span> <span class='c-black'>حَـ</span>", theme: "pink", t: "speed" },
+            { w: "<span class='c-blue'>أَ</span> <span class='c-red'>-</span> <span class='c-black'>ـهـَ</span>", theme: "pink", t: "golden" },
+            { w: "<span class='c-blue'>ذَ</span> <span class='c-red'>-</span> <span class='c-black'>ثَ</span>", theme: "pink", t: "normal" },
+
+            // --- السطر الثامن: مفردة ختامية ---
+            { w: "<span class='c-blue'>ـهَ</span> <span class='c-red'>-</span> <span class='c-black'>حَ</span>", theme: "pink", t: "normal" }
+        ];
+    </script>
+    <script src="../shared/core.js"></script>
+</body>
+</html>

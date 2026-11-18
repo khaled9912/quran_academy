@@ -1,0 +1,190 @@
+/**
+ * Nour Al-Bayan Interactive Platform - Wordwall & Stage Games
+ * Game tabs, 3D rotating boxes, Curtain box theme, Mastery ladder, and card piles.
+ */
+
+.game-tab { transition: all 0.25s var(--ease-bounce); }
+.game-tab.active {
+    background-color: var(--color-primary, #047857) !important;
+    color: #ffffff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(4, 120, 87, 0.3);
+    border-color: var(--color-primary-dark, #065f46);
+}
+
+.wordwall-box { perspective: 1200px; cursor: pointer; }
+.wordwall-box-inner { transition: transform 0.6s var(--ease-standard); transform-style: preserve-3d; }
+.wordwall-box.opened .wordwall-box-inner { transform: rotateY(180deg); }
+.box-front, .box-back {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+.box-back { transform: rotateY(180deg); }
+
+/* Box and Curtain Evaluation Statuses */
+.wordwall-box.status-mastered .box-back {
+    background-color: #ecfdf5 !important;
+    border-color: #34d399 !important;
+    color: #059669 !important;
+}
+.wordwall-box.status-review .box-back {
+    background-color: #fff1f2 !important;
+    border-color: #fb7185 !important;
+    color: #e11d48 !important;
+}
+
+/* Curtain Box Theme */
+.curtain-box { perspective: 1200px; }
+.curtain-bg {
+    background: linear-gradient(135deg, var(--curtain-color, #e11d48) 0%, #881337 100%);
+    box-shadow: inset 0 0 18px rgba(0,0,0,0.35), 0 8px 16px rgba(0,0,0,0.15);
+    position: relative;
+}
+.curtain-drape {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(90deg, transparent 0, transparent 10px, rgba(0,0,0,0.15) 10px, rgba(0,0,0,0.15) 20px);
+    pointer-events: none;
+}
+
+/* Mastery Ladder */
+.ladder-rung {
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.06);
+    user-select: none;
+}
+.scale-102 { transform: scale(1.02); }
+
+.card-pile { position: relative; width: 190px; height: 260px; perspective: 1200px; }
+@media (max-width: 640px) { .card-pile { width: 150px; height: 210px; } }
+.stacked-card {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 1.5rem;
+    transition: all 0.5s var(--ease-bounce);
+    transform-style: preserve-3d;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.18);
+}
+
+.giant-word-overlay {
+    animation: popIn 0.35s var(--ease-bounce) forwards;
+}
+
+.giant-word-overlay .letter-box,
+#ladder-word-display .letter-box {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    max-height: none;
+    min-height: auto;
+    height: auto;
+    padding: 0.25rem;
+    width: 100%;
+    overflow: visible !important;
+}
+
+.giant-word-overlay .segmented-container,
+#ladder-word-display .segmented-container {
+    max-width: 100%;
+    gap: clamp(4px, 1.2vw, 12px);
+    padding: 0.25rem;
+}
+
+.giant-word-overlay .seg-box,
+#ladder-word-display .seg-box {
+    height: auto;
+    min-height: clamp(90px, 16vh, 160px);
+    padding: 0.25rem 0.75rem;
+    font-size: calc(clamp(1.8rem, 4.5vw, 3.6rem) * var(--font-scale-factor, 1));
+}
+
+/* 3D Flip Tiles */
+.flip-tile { perspective: 1200px; cursor: pointer; user-select: none; }
+.flip-tile-inner {
+    transition: transform 0.5s var(--ease-bounce);
+    transform-style: preserve-3d;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+.flip-tile.flipped .flip-tile-inner { transform: rotateY(180deg); }
+.tile-face {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 1.25rem;
+}
+.tile-front {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+.tile-back {
+    transform: rotateY(180deg);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    word-break: break-word;
+    overflow-wrap: break-word;
+    padding: 0.5rem;
+}
+
+/* Honeycomb Matrix (drop-shadow filter for unclipped polygon contours) */
+.honeycomb-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+}
+.hex-cell {
+    position: relative;
+    width: 76px;
+    height: 86px;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    transition: all 0.3s var(--ease-bounce);
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(145deg, #fbbf24 0%, #d97706 100%);
+    filter: drop-shadow(0 4px 6px rgba(217, 119, 6, 0.35));
+}
+@media (min-width: 640px) {
+    .hex-cell { width: 92px; height: 104px; }
+}
+.hex-cell:hover {
+    transform: translateY(-4px) scale(1.08);
+    filter: drop-shadow(0 6px 10px rgba(217, 119, 6, 0.45)) brightness(1.08);
+    z-index: 10;
+}
+.hex-cell.mastered {
+    background: linear-gradient(145deg, #10b981 0%, #047857 100%) !important;
+    filter: drop-shadow(0 4px 8px rgba(4, 120, 87, 0.5)) !important;
+}
+.hex-cell.review {
+    background: linear-gradient(145deg, #f43f5e 0%, #be123c 100%) !important;
+    filter: drop-shadow(0 4px 8px rgba(190, 18, 60, 0.5)) !important;
+}
+
+/* Wheel Spin Center Button Target */
+#spin-btn {
+    width: 72px;
+    height: 72px;
+}
+@media (min-width: 640px) {
+    #spin-btn {
+        width: 88px;
+        height: 88px;
+    }
+}

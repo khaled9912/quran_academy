@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { BookOpen } from "lucide-react";
 import { getLessons } from "@/services/lesson.service";
 import { getMyAvailabilityRules } from "@/services/scheduling.service";
 import { useAuth } from "@/providers/auth-provider";
@@ -95,18 +96,16 @@ export default function TeacherDashboardPage() {
 
   return (
     <TeacherAgreementGate>
-      <div className="min-h-screen bg-background text-foreground pt-24 pb-16">
+      <div className="min-h-screen bg-background text-foreground pt-4 pb-16">
         <div className="max-w-6xl mx-auto px-4 md:px-8 lg:px-16">
-          <div className="mb-8">
+          <div className="mb-4">
             <h1 className="text-4xl font-bold mb-2">Teacher Dashboard</h1>
             <p className="text-lg text-foreground opacity-75">
               Your weekly lessons, announced times, and class reports.
             </p>
           </div>
 
-          <div className="mb-8">
-            <PolicyPrompt />
-          </div>
+          <PolicyPrompt />
 
           {failed && (
             <p
@@ -321,7 +320,7 @@ export default function TeacherDashboardPage() {
             </section>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
             <Link
               href="/teacher/availability"
               className="rounded-3xl border border-card-border bg-card-bg p-6 hover:border-green-500 transition"
@@ -339,6 +338,22 @@ export default function TeacherDashboardPage() {
               <h2 className="text-xl font-semibold mb-2">Teaching schedule</h2>
               <p className="text-foreground opacity-75">
                 Review confirmed lessons and cancel a lesson if needed.
+              </p>
+            </Link>
+            <Link
+              href="/teacher/practice"
+              className="rounded-3xl border border-card-border bg-card-bg p-6 hover:border-green-500 transition"
+            >
+              <div className="mb-2 flex items-center gap-2">
+                <BookOpen
+                  size={20}
+                  className="text-green-600 dark:text-green-400"
+                />
+                <h2 className="text-xl font-semibold">Practice reading</h2>
+              </div>
+              <p className="text-foreground opacity-75">
+                Open the interactive Noor Al-Bayan lessons to demo or assign
+                practice between lessons.
               </p>
             </Link>
           </div>

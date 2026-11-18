@@ -1,0 +1,70 @@
+{
+  "id": "./",
+  "name": "منظومة نور البيان التفاعلية",
+  "short_name": "نور البيان",
+  "description": "المنظومة التعليمية الرقمية الشاملة لضبط قراءة الكلمات والقرآن الكريم",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#064e3b",
+  "theme_color": "#047857",
+  "lang": "ar",
+  "dir": "rtl",
+  "categories": [
+    "education",
+    "books"
+  ],
+  "icons": [
+    {
+      "src": "shared/vendor/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "فهرس الدروس",
+      "short_name": "الرئيسية",
+      "description": "الانتقال إلى فهرس جميع صفحات ودروس نور البيان",
+      "url": "./index.html",
+      "icons": [
+        {
+          "src": "shared/vendor/icon.png",
+          "sizes": "512x512",
+          "type": "image/png",
+          "purpose": "any"
+        }
+      ]
+    },
+    {
+      "name": "بنك الأخطاء التراكمي",
+      "short_name": "بنك الأخطاء",
+      "description": "جلسة تدريب مكثفة لعلاج عثرات الطالب التراكمية",
+      "url": "./pages/remediation.html",
+      "icons": [
+        {
+          "src": "shared/vendor/icon.png",
+          "sizes": "512x512",
+          "type": "image/png",
+          "purpose": "any"
+        }
+      ]
+    },
+    {
+      "name": "أشكال الحروف",
+      "short_name": "الصفحة 6",
+      "description": "تدريب أشكال الحروف في أول ووسط وآخر الكلمة",
+      "url": "./pages/6.html",
+      "icons": [
+        {
+          "src": "shared/vendor/icon.png",
+          "sizes": "512x512",
+          "type": "image/png",
+          "purpose": "any"
+        }
+      ]
+    }
+  ]
+}

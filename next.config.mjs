@@ -63,12 +63,20 @@ const nextConfig = {
     ];
   },
   async rewrites() {
+    // The vendored Noor Al-Bayan PWA precaches "./" (its directory URL), and
+    // Next serves no directory index for public subfolders.
+    const staticRewrites = [
+      { source: "/nur-albayan", destination: "/nur-albayan/index.html" },
+    ];
     // Same-origin proxy to the .NET API: keeps the auth cookie on this domain,
     // so proxy.ts can read it and browsers do not treat it as third-party.
     // Inert unless API_ORIGIN is set at build time.
     const apiOrigin = process.env.API_ORIGIN?.replace(/\/$/, "");
-    if (!apiOrigin) return [];
-    return [{ source: "/api/:path*", destination: `${apiOrigin}/api/:path*` }];
+    if (!apiOrigin) return staticRewrites;
+    return [
+      ...staticRewrites,
+      { source: "/api/:path*", destination: `${apiOrigin}/api/:path*` },
+    ];
   },
 };
 

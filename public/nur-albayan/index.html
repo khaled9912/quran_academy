@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>صفحات نور البيان التفاعلية</title>
+<meta name="description" content="المنظومة التعليمية الرقمية الشاملة لضبط قراءة الكلمات والقرآن الكريم">
+<meta name="keywords" content="نور البيان, القرآن الكريم, تجويد, تعليم القراءة, الحركات, المدود, السكون">
+<meta name="author" content="كمال ياسر">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#047857" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#065f46" media="(prefers-color-scheme: dark)">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+
+<!-- Canonical Link -->
+<link rel="canonical" href="https://kamalyaser31.github.io/nur-albayan-pages/">
+
+<!-- Social Metadata (Open Graph & Twitter Cards) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="صفحات نور البيان التفاعلية">
+<meta property="og:description" content="المنظومة التعليمية الرقمية الشاملة لضبط قراءة الكلمات والقرآن الكريم">
+<meta property="og:url" content="https://kamalyaser31.github.io/nur-albayan-pages/">
+<meta property="og:locale" content="ar_EG">
+<meta property="og:site_name" content="نور البيان">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="صفحات نور البيان التفاعلية">
+<meta name="twitter:description" content="المنظومة التعليمية الرقمية الشاملة لضبط قراءة الكلمات والقرآن الكريم">
+
+<!-- Critical Font Preloading -->
+<link rel="preload" href="shared/vendor/fonts/amiri-bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="shared/vendor/fonts/fredoka-bold.woff2" as="font" type="font/woff2" crossorigin>
+
+<!-- Apple Mobile Web App & PWA Metadata -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="نور البيان">
+<link rel="apple-touch-icon" href="shared/vendor/icon.png">
+<link rel="apple-touch-icon" sizes="192x192" href="shared/vendor/icon.png">
+
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="shared/core.css">
+<script src="shared/contracts.js" defer></script>
+<script src="shared/store.js" defer></script>
+<script src="shared/i18n.js" defer></script>
+<script src="shared/locales/ar.js" defer></script>
+<script src="shared/locales/en.js" defer></script>
+<script src="shared/settings-values.js" defer></script>
+<script src="shared/settings-dialog.js" defer></script>
+<script src="shared/settings.js" defer></script>
+<script src="shared/student-repository.js" defer></script>
+<script src="shared/student-progress.js" defer></script>
+<script src="shared/mistake-bank.js" defer></script>
+<script src="shared/student-backup.js" defer></script>
+<script src="shared/index-progress-view.js" defer></script>
+<script src="shared/student-manager.js" defer></script>
+<script src="shared/roster-views.js" defer></script>
+<script src="shared/student-report.js" defer></script>
+<script src="shared/roster-manager.js" defer></script>
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "EducationalWebSite",
+  "name": "صفحات نور البيان التفاعلية",
+  "description": "المنظومة التعليمية الرقمية الشاملة لضبط قراءة الكلمات والقرآن الكريم",
+  "inLanguage": "ar"
+}
+</script>
+
+<link rel="stylesheet" href="shared/css/index.css">
+</head>
+<body>
+
+<header>
+  <h1 data-i18n="hero_title">صفحات نور البيان التفاعلية</h1>
+  <p data-i18n="hero_subtitle">المنظومة التعليمية الرقمية الشاملة لضبط قراءة الكلمات والقرآن الكريم</p>
+  <div class="header-actions">
+    <div class="stats-pill" id="count">
+      <span aria-hidden="true">📚</span>
+      <span data-i18n="total_lessons_label">إجمالي الدروس: 91 صفحة تفاعلية</span>
+    </div>
+
+    <!-- شريط عرض الطالب الحالي النشط -->
+    <button id="active-student-btn" onclick="rosterManager.open()" class="action-btn active-student-chip" data-i18n-aria="open_roster_btn" aria-label="عرض بيانات الطالب النشط ولوحة الطلاب">
+      <span id="active-student-avatar" class="chip-avatar" aria-hidden="true">👤</span>
+      <span id="active-student-name" class="chip-name" data-i18n="general_session">حصة عامة (ضيف)</span>
+      <span id="active-student-score" class="chip-score">⭐ 0</span>
+    </button>
+
+    <!-- زر إدارة ومتابعة الطلاب -->
+    <button onclick="rosterManager.open()" class="action-btn" data-i18n-aria="open_roster_btn" aria-label="فتح لوحة إدارة ومتابعة الطلاب">
+      <span aria-hidden="true">👥</span>
+      <span data-i18n="roster_btn_text">إدارة الطلاب</span>
+    </button>
+
+    <!-- زر دليل الاستخدام والشرح الشامل -->
+    <a href="guide.html" class="action-btn" data-i18n-aria="guide_nav_btn" aria-label="دليل الاستخدام والشرح الشامل">
+      <span aria-hidden="true">📖</span>
+      <span data-i18n="guide_nav_btn">دليل الاستخدام</span>
+    </a>
+
+    <!-- زر تبديل اللغة -->
+    <button id="lang-switch-btn" onclick="i18n.toggleLocale()" class="action-btn" aria-label="التحويل إلى اللغة الإنجليزية">
+      <span aria-hidden="true">🌐</span>
+      <span id="lang-switch-text">English</span>
+    </button>
+
+    <!-- زر إعدادات المعلم -->
+    <button onclick="settingsManager.open()" class="action-btn" aria-label="فتح نافذة إعدادات المعلم">
+      <span aria-hidden="true">⚙️</span>
+      <span data-i18n="settings_title">إعدادات المعلم</span>
+    </button>
+  </div>
+</header>
+
+<main id="main-content">
+  <!-- LESSONS INDEX NAVIGATION -->
+  <nav aria-label="فهرس صفحات الدروس">
+    <h2 class="sr-only">قائمة صفحات الدروس</h2>
+    <!-- LINKS-START -->
+    <ul class="grid-container" role="list">
+    <li class="stage-heading"><h2 data-i18n="stage_remediation">المعالجة والمراجعة</h2></li>
+    <li class="card-item">
+      <a href="pages/remediation.html" class="lesson-card" aria-label="الصفحة 0: Targeted Remediation (جلسة تدريب بنك الأخطاء)">
+        <div class="card-num" aria-hidden="true">0</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 0</span>
+          <h3 class="card-title">Targeted Remediation (جلسة تدريب بنك الأخطاء)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="stage-heading"><h2 data-i18n="stage_letters">الحروف وأشكالها</h2></li>
+    <li class="card-item">
+      <a href="pages/6.html" class="lesson-card" aria-label="الصفحة 6: Letter Shapes (أشكال الحروف)">
+        <div class="card-num" aria-hidden="true">6</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 6</span>
+          <h3 class="card-title">Letter Shapes (أشكال الحروف)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/7.html" class="lesson-card" aria-label="الصفحة 7: Letters Comparison (مقارنة الحروف)">
+        <div class="card-num" aria-hidden="true">7</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 7</span>
+          <h3 class="card-title">Letters Comparison (مقارنة الحروف)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/8.html" class="lesson-card" aria-label="الصفحة 8: Segmented Letters (الحروف المجزأة)">
+        <div class="card-num" aria-hidden="true">8</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 8</span>
+          <h3 class="card-title">Segmented Letters (الحروف المجزأة)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/9.html" class="lesson-card" aria-label="الصفحة 9: Segmented Letters (الحروف المجزأة)">
+        <div class="card-num" aria-hidden="true">9</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 9</span>
+          <h3 class="card-title">Segmented Letters (الحروف المجزأة)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/10.html" class="lesson-card" aria-label="الصفحة 10: Segmented Letters (الحروف المجزأة)">
+        <div class="card-num" aria-hidden="true">10</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 10</span>
+          <h3 class="card-title">Segmented Letters (الحروف المجزأة)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/11.html" class="lesson-card" aria-label="الصفحة 11: Segmented Letters (الحروف المجزأة)">
+        <div class="card-num" aria-hidden="true">11</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 11</span>
+          <h3 class="card-title">Segmented Letters (الحروف المجزأة)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/12.html" class="lesson-card" aria-label="الصفحة 12: Segmented Letters (الحروف المجزأة)">
+        <div class="card-num" aria-hidden="true">12</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 12</span>
+          <h3 class="card-title">Segmented Letters (الحروف المجزأة)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/13.html" class="lesson-card" aria-label="الصفحة 13: Segmented Letters (الحروف المجزأة)">
+        <div class="card-num" aria-hidden="true">13</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 13</span>
+          <h3 class="card-title">Segmented Letters (الحروف المجزأة)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/14.html" class="lesson-card" aria-label="الصفحة 14: Segmented Letters (الحروف المجزأة)">
+        <div class="card-num" aria-hidden="true">14</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 14</span>
+          <h3 class="card-title">Segmented Letters (الحروف المجزأة)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/15.html" class="lesson-card" aria-label="الصفحة 15: Segmented Letters (الحروف المجزأة)">
+        <div class="card-num" aria-hidden="true">15</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 15</span>
+          <h3 class="card-title">Segmented Letters (الحروف المجزأة)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/16.html" class="lesson-card" aria-label="الصفحة 16: Segmented Letters (الحروف المجزأة)">
+        <div class="card-num" aria-hidden="true">16</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 16</span>
+          <h3 class="card-title">Segmented Letters (الحروف المجزأة)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/17.html" class="lesson-card" aria-label="الصفحة 17: Segmented Letters (الحروف المجزأة)">
+        <div class="card-num" aria-hidden="true">17</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 17</span>
+          <h3 class="card-title">Segmented Letters (الحروف المجزأة)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/18.html" class="lesson-card" aria-label="الصفحة 18: Segmented Letters (الحروف المجزأة)">
+        <div class="card-num" aria-hidden="true">18</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 18</span>
+          <h3 class="card-title">Segmented Letters (الحروف المجزأة)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="stage-heading"><h2 data-i18n="stage_harakat">الحركات والقراءة</h2></li>
+    <li class="card-item">
+      <a href="pages/19.html" class="lesson-card" aria-label="الصفحة 19: Harakat (الضمة • الكسرة • الفتحة)">
+        <div class="card-num" aria-hidden="true">19</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 19</span>
+          <h3 class="card-title">Harakat (الضمة • الكسرة • الفتحة)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/20.html" class="lesson-card" aria-label="الصفحة 20: Harakat Examples (أمثلة الحركات)">
+        <div class="card-num" aria-hidden="true">20</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 20</span>
+          <h3 class="card-title">Harakat Examples (أمثلة الحركات)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/21.html" class="lesson-card" aria-label="الصفحة 21: Mutaharrik Syllables (أمثلة المتحرك)">
+        <div class="card-num" aria-hidden="true">21</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 21</span>
+          <h3 class="card-title">Mutaharrik Syllables (أمثلة المتحرك)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/22.html" class="lesson-card" aria-label="الصفحة 22: Mutaharrik Word Pairs (أمثلة الكلمات المتحركة)">
+        <div class="card-num" aria-hidden="true">22</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 22</span>
+          <h3 class="card-title">Mutaharrik Word Pairs (أمثلة الكلمات المتحركة)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/23.html" class="lesson-card" aria-label="الصفحة 23: Reading Sentences (جمل القراءة)">
+        <div class="card-num" aria-hidden="true">23</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 23</span>
+          <h3 class="card-title">Reading Sentences (جمل القراءة)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="stage-heading"><h2 data-i18n="stage_madd_alif">المد بالألف</h2></li>
+    <li class="card-item">
+      <a href="pages/24.html" class="lesson-card" aria-label="الصفحة 24: Madd Alif Training (تدريب المد بالألف)">
+        <div class="card-num" aria-hidden="true">24</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 24</span>
+          <h3 class="card-title">Madd Alif Training (تدريب المد بالألف)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/25.html" class="lesson-card" aria-label="الصفحة 25: Reading Madd Alif (قراءة كلمات المد بالألف)">
+        <div class="card-num" aria-hidden="true">25</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 25</span>
+          <h3 class="card-title">Reading Madd Alif (قراءة كلمات المد بالألف)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/26.html" class="lesson-card" aria-label="الصفحة 26: Madd Alif Words (كلمات المد بالألف)">
+        <div class="card-num" aria-hidden="true">26</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 26</span>
+          <h3 class="card-title">Madd Alif Words (كلمات المد بالألف)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/27.html" class="lesson-card" aria-label="الصفحة 27: Madd by Alif Khanjariyya (المد بالألف الخنجرية)">
+        <div class="card-num" aria-hidden="true">27</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 27</span>
+          <h3 class="card-title">Madd by Alif Khanjariyya (المد بالألف الخنجرية)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="stage-heading"><h2 data-i18n="stage_madd_yaa">المد بالياء</h2></li>
+    <li class="card-item">
+      <a href="pages/28.html" class="lesson-card" aria-label="الصفحة 28: Madd by Yaa (المد بالياء)">
+        <div class="card-num" aria-hidden="true">28</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 28</span>
+          <h3 class="card-title">Madd by Yaa (المد بالياء)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/29.html" class="lesson-card" aria-label="الصفحة 29: Madd by Yaa Training (تدريب المد بالياء)">
+        <div class="card-num" aria-hidden="true">29</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 29</span>
+          <h3 class="card-title">Madd by Yaa Training (تدريب المد بالياء)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/30.html" class="lesson-card" aria-label="الصفحة 30: Reading Madd by Yaa (قراءة كلمات المد بالياء)">
+        <div class="card-num" aria-hidden="true">30</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 30</span>
+          <h3 class="card-title">Reading Madd by Yaa (قراءة كلمات المد بالياء)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/31.html" class="lesson-card" aria-label="الصفحة 31: Small Sillah Yaa (الياء الصغيرة والصلة)">
+        <div class="card-num" aria-hidden="true">31</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 31</span>
+          <h3 class="card-title">Small Sillah Yaa (الياء الصغيرة والصلة)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/32.html" class="lesson-card" aria-label="الصفحة 32: Short vs Long Vowels (الحركات والمدود)">
+        <div class="card-num" aria-hidden="true">32</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 32</span>
+          <h3 class="card-title">Short vs Long Vowels (الحركات والمدود)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="stage-heading"><h2 data-i18n="stage_madd_waw">المد بالواو والتدريب العام</h2></li>
+    <li class="card-item">
+      <a href="pages/33.html" class="lesson-card" aria-label="الصفحة 33: Madd of Waw (المد بالواو)">
+        <div class="card-num" aria-hidden="true">33</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 33</span>
+          <h3 class="card-title">Madd of Waw (المد بالواو)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/34.html" class="lesson-card" aria-label="الصفحة 34: Madd of Waw Training (تدريب المد بالواو)">
+        <div class="card-num" aria-hidden="true">34</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 34</span>
+          <h3 class="card-title">Madd of Waw Training (تدريب المد بالواو)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/35.html" class="lesson-card" aria-label="الصفحة 35: Small Sillah Waw (الواو الصغيرة والصلة)">
+        <div class="card-num" aria-hidden="true">35</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 35</span>
+          <h3 class="card-title">Small Sillah Waw (الواو الصغيرة والصلة)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/36.html" class="lesson-card" aria-label="الصفحة 36: General Madd Training 1 (تدريبات المدود ١)">
+        <div class="card-num" aria-hidden="true">36</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 36</span>
+          <h3 class="card-title">General Madd Training 1 (تدريبات المدود ١)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/37.html" class="lesson-card" aria-label="الصفحة 37: General Madd Training 2 (تدريبات المدود ٢)">
+        <div class="card-num" aria-hidden="true">37</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 37</span>
+          <h3 class="card-title">General Madd Training 2 (تدريبات المدود ٢)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/38.html" class="lesson-card" aria-label="الصفحة 38: Reading Madd Sentences (قراءة جمل المدود)">
+        <div class="card-num" aria-hidden="true">38</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 38</span>
+          <h3 class="card-title">Reading Madd Sentences (قراءة جمل المدود)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/39.html" class="lesson-card" aria-label="الصفحة 39: Quranic Sukun (السكون القرآني)">
+        <div class="card-num" aria-hidden="true">39</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 39</span>
+          <h3 class="card-title">Quranic Sukun (السكون القرآني)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/40.html" class="lesson-card" aria-label="الصفحة 40: Sukun Quranic Examples 1 (أمثلة السكون القرآنية ١)">
+        <div class="card-num" aria-hidden="true">40</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 40</span>
+          <h3 class="card-title">Sukun Quranic Examples 1 (أمثلة السكون القرآنية ١)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/41.html" class="lesson-card" aria-label="الصفحة 41: Sukun Quranic Examples 2 (أمثلة السكون القرآنية ٢)">
+        <div class="card-num" aria-hidden="true">41</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 41</span>
+          <h3 class="card-title">Sukun Quranic Examples 2 (أمثلة السكون القرآنية ٢)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/42.html" class="lesson-card" aria-label="الصفحة 42: Hamzat Wasl & Moon Lam (ألف الوصل واللام القمرية)">
+        <div class="card-num" aria-hidden="true">42</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 42</span>
+          <h3 class="card-title">Hamzat Wasl & Moon Lam (ألف الوصل واللام القمرية)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/43.html" class="lesson-card" aria-label="الصفحة 43: Sukun Quranic Examples 3 (أمثلة السكون القرآنية ٣)">
+        <div class="card-num" aria-hidden="true">43</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 43</span>
+          <h3 class="card-title">Sukun Quranic Examples 3 (أمثلة السكون القرآنية ٣)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/44.html" class="lesson-card" aria-label="الصفحة 44: Sukun Quranic Sentences (جمل السكون القرآنية)">
+        <div class="card-num" aria-hidden="true">44</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 44</span>
+          <h3 class="card-title">Sukun Quranic Sentences (جمل السكون القرآنية)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/45.html" class="lesson-card" aria-label="الصفحة 45: Sukun Quranic Examples 6 (أمثلة السكون القرآنية ٦)">
+        <div class="card-num" aria-hidden="true">45</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 45</span>
+          <h3 class="card-title">Sukun Quranic Examples 6 (أمثلة السكون القرآنية ٦)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/46.html" class="lesson-card" aria-label="الصفحة 46: Sukun Quranic Examples 7 (أمثلة السكون القرآنية ٧)">
+        <div class="card-num" aria-hidden="true">46</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 46</span>
+          <h3 class="card-title">Sukun Quranic Examples 7 (أمثلة السكون القرآنية ٧)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/47.html" class="lesson-card" aria-label="الصفحة 47: Sukun in Dictation 1 (السكون في الرسم الإملائي ١)">
+        <div class="card-num" aria-hidden="true">47</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 47</span>
+          <h3 class="card-title">Sukun in Dictation 1 (السكون في الرسم الإملائي ١)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/48.html" class="lesson-card" aria-label="الصفحة 48: Sukun Dictation & Sentences (السكون الإملائي وجمل أركان الإسلام)">
+        <div class="card-num" aria-hidden="true">48</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 48</span>
+          <h3 class="card-title">Sukun Dictation & Sentences (السكون الإملائي وجمل أركان الإسلام)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/49.html" class="lesson-card" aria-label="الصفحة 49: Reading Stories (قصتا القرآن ويوم العيد)">
+        <div class="card-num" aria-hidden="true">49</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 49</span>
+          <h3 class="card-title">Reading Stories (قصتا القرآن ويوم العيد)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/50.html" class="lesson-card" aria-label="الصفحة 50: Fatha Tanween (تنوين الفتح • الفتحتان)">
+        <div class="card-num" aria-hidden="true">50</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 50</span>
+          <h3 class="card-title">Fatha Tanween (تنوين الفتح • الفتحتان)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/51.html" class="lesson-card" aria-label="الصفحة 51: Fatha Tanween Training (تدريب تنوين الفتح ٢)">
+        <div class="card-num" aria-hidden="true">51</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 51</span>
+          <h3 class="card-title">Fatha Tanween Training (تدريب تنوين الفتح ٢)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/52.html" class="lesson-card" aria-label="الصفحة 52: Fatha Tanween Sentences (جمل تنوين الفتح القرآنية)">
+        <div class="card-num" aria-hidden="true">52</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 52</span>
+          <h3 class="card-title">Fatha Tanween Sentences (جمل تنوين الفتح القرآنية)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/53.html" class="lesson-card" aria-label="الصفحة 53: Kasra Tanween (تنوين الكسر • الكسرتان)">
+        <div class="card-num" aria-hidden="true">53</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 53</span>
+          <h3 class="card-title">Kasra Tanween (تنوين الكسر • الكسرتان)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/54.html" class="lesson-card" aria-label="الصفحة 54: Kasra Tanween Training (تدريب تنوين الكسر ٢)">
+        <div class="card-num" aria-hidden="true">54</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 54</span>
+          <h3 class="card-title">Kasra Tanween Training (تدريب تنوين الكسر ٢)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/55.html" class="lesson-card" aria-label="الصفحة 55: Kasra Tanween Sentences (جمل تنوين الكسر القرآنية)">
+        <div class="card-num" aria-hidden="true">55</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 55</span>
+          <h3 class="card-title">Kasra Tanween Sentences (جمل تنوين الكسر القرآنية)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/56.html" class="lesson-card" aria-label="الصفحة 56: Damma Tanween (تنوين الضم • الضمتان)">
+        <div class="card-num" aria-hidden="true">56</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 56</span>
+          <h3 class="card-title">Damma Tanween (تنوين الضم • الضمتان)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/57.html" class="lesson-card" aria-label="الصفحة 57: Damma Tanween Training (تدريب تنوين الضم ٢)">
+        <div class="card-num" aria-hidden="true">57</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 57</span>
+          <h3 class="card-title">Damma Tanween Training (تدريب تنوين الضم ٢)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/58.html" class="lesson-card" aria-label="الصفحة 58: Quranic Review 1 (مراجعة أمثلة قرآنية ١)">
+        <div class="card-num" aria-hidden="true">58</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 58</span>
+          <h3 class="card-title">Quranic Review 1 (مراجعة أمثلة قرآنية ١)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/59.html" class="lesson-card" aria-label="الصفحة 59: Quranic Review 2 (مراجعة أمثلة قرآنية ٢)">
+        <div class="card-num" aria-hidden="true">59</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 59</span>
+          <h3 class="card-title">Quranic Review 2 (مراجعة أمثلة قرآنية ٢)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/60.html" class="lesson-card" aria-label="الصفحة 60: Dictation Review 3 (مراجعة الرسم الإملائي والتنوين)">
+        <div class="card-num" aria-hidden="true">60</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 60</span>
+          <h3 class="card-title">Dictation Review 3 (مراجعة الرسم الإملائي والتنوين)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/61.html" class="lesson-card" aria-label="الصفحة 61: Reading Stories 2 (قصتا المسلم والعصفور)">
+        <div class="card-num" aria-hidden="true">61</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 61</span>
+          <h3 class="card-title">Reading Stories 2 (قصتا المسلم والعصفور)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/62.html" class="lesson-card" aria-label="الصفحة 62: Shaddah with Fatha & Alif (الشدة مع الفتح والمد بالألف)">
+        <div class="card-num" aria-hidden="true">62</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 62</span>
+          <h3 class="card-title">Shaddah with Fatha & Alif (الشدة مع الفتح والمد بالألف)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/63.html" class="lesson-card" aria-label="الصفحة 63: Shaddah with Fatha Quranic (الشدة بالفتح • أمثلة قرآنية)">
+        <div class="card-num" aria-hidden="true">63</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 63</span>
+          <h3 class="card-title">Shaddah with Fatha Quranic (الشدة بالفتح • أمثلة قرآنية)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/64.html" class="lesson-card" aria-label="الصفحة 64: Shaddah & Sun Lam (الشدة واللام الشمسية)">
+        <div class="card-num" aria-hidden="true">64</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 64</span>
+          <h3 class="card-title">Shaddah & Sun Lam (الشدة واللام الشمسية)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/65.html" class="lesson-card" aria-label="الصفحة 65: Shaddah Quranic Training 4 (الشدة • أمثلة قرآنية ٤)">
+        <div class="card-num" aria-hidden="true">65</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 65</span>
+          <h3 class="card-title">Shaddah Quranic Training 4 (الشدة • أمثلة قرآنية ٤)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/66.html" class="lesson-card" aria-label="الصفحة 66: Shaddah with Kasra & Yaa (الشدة مع الكسرة والمد بالياء)">
+        <div class="card-num" aria-hidden="true">66</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 66</span>
+          <h3 class="card-title">Shaddah with Kasra & Yaa (الشدة مع الكسرة والمد بالياء)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/67.html" class="lesson-card" aria-label="الصفحة 67: Shaddah with Kasra Quranic (الشدة بالكسر • أمثلة قرآنية)">
+        <div class="card-num" aria-hidden="true">67</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 67</span>
+          <h3 class="card-title">Shaddah with Kasra Quranic (الشدة بالكسر • أمثلة قرآنية)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/68.html" class="lesson-card" aria-label="الصفحة 68: Shaddah with Kasra Quranic 4 (الشدة بالكسر • أمثلة قرآنية ٤)">
+        <div class="card-num" aria-hidden="true">68</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 68</span>
+          <h3 class="card-title">Shaddah with Kasra Quranic 4 (الشدة بالكسر • أمثلة قرآنية ٤)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/69.html" class="lesson-card" aria-label="الصفحة 69: Stories of The Farmer & Adhan (قصتا الفلاح والأذان)">
+        <div class="card-num" aria-hidden="true">69</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 69</span>
+          <h3 class="card-title">Stories of The Farmer & Adhan (قصتا الفلاح والأذان)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="stage-heading"><h2 data-i18n="stage_shaddah_damma">الشدة مع الضمة والتنوين بأنواعه</h2></li>
+    <li class="card-item">
+      <a href="pages/70.html" class="lesson-card" aria-label="الصفحة 70: Shaddah with Damma & Waw (الشدة مع الضمة والمد بالواو)">
+        <div class="card-num" aria-hidden="true">70</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 70</span>
+          <h3 class="card-title">Shaddah with Damma & Waw (الشدة مع الضمة والمد بالواو)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/71.html" class="lesson-card" aria-label="الصفحة 71: Shaddah with Damma Quranic (الشدة بالضم • أمثلة قرآنية)">
+        <div class="card-num" aria-hidden="true">71</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 71</span>
+          <h3 class="card-title">Shaddah with Damma Quranic (الشدة بالضم • أمثلة قرآنية)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/72.html" class="lesson-card" aria-label="الصفحة 72: Shaddah with Damma Quranic 3 (الشدة بالضم • أمثلة قرآنية ٣)">
+        <div class="card-num" aria-hidden="true">72</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 72</span>
+          <h3 class="card-title">Shaddah with Damma Quranic 3 (الشدة بالضم • أمثلة قرآنية ٣)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/73.html" class="lesson-card" aria-label="الصفحة 73: Shaddah Quranic Review 4 (مراجعة الشدة القرآنية ٤)">
+        <div class="card-num" aria-hidden="true">73</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 73</span>
+          <h3 class="card-title">Shaddah Quranic Review 4 (مراجعة الشدة القرآنية ٤)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/74.html" class="lesson-card" aria-label="الصفحة 74: Stories of Allah's Might & Blessings (قصتا عظمة الله ونعم الله)">
+        <div class="card-num" aria-hidden="true">74</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 74</span>
+          <h3 class="card-title">Stories of Allah's Might & Blessings (قصتا عظمة الله ونعم الله)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/75.html" class="lesson-card" aria-label="الصفحة 75: Shaddah with Tanween (الشدة مع التنوين بأنواعه)">
+        <div class="card-num" aria-hidden="true">75</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 75</span>
+          <h3 class="card-title">Shaddah with Tanween (الشدة مع التنوين بأنواعه)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/76.html" class="lesson-card" aria-label="الصفحة 76: Shaddah with Tanween Quranic (الشدة مع التنوين • أمثلة قرآنية)">
+        <div class="card-num" aria-hidden="true">76</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 76</span>
+          <h3 class="card-title">Shaddah with Tanween Quranic (الشدة مع التنوين • أمثلة قرآنية)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="stage-heading"><h2 data-i18n="stage_tajweed_rules">أحكام ترتيل القرآن الكريم</h2></li>
+    <li class="card-item">
+      <a href="pages/77.html" class="lesson-card" aria-label="الصفحة 77: Tajweed: Madd Types 1 (أحكام ترتيل القرآن • أنواع المدود ١)">
+        <div class="card-num" aria-hidden="true">77</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 77</span>
+          <h3 class="card-title">Tajweed: Madd Types 1 (أحكام ترتيل القرآن • أنواع المدود ١)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/78.html" class="lesson-card" aria-label="الصفحة 78: Tajweed: Madd Types 2 (أحكام ترتيل القرآن • أنواع المدود ٢)">
+        <div class="card-num" aria-hidden="true">78</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 78</span>
+          <h3 class="card-title">Tajweed: Madd Types 2 (أحكام ترتيل القرآن • أنواع المدود ٢)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/79.html" class="lesson-card" aria-label="الصفحة 79: Tajweed: Madd Training (أحكام ترتيل القرآن • تدريب المدود)">
+        <div class="card-num" aria-hidden="true">79</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 79</span>
+          <h3 class="card-title">Tajweed: Madd Training (أحكام ترتيل القرآن • تدريب المدود)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/80.html" class="lesson-card" aria-label="الصفحة 80: Tajweed: Izhar & Idgham (النون الساكنة • الإظهار والإدغام)">
+        <div class="card-num" aria-hidden="true">80</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 80</span>
+          <h3 class="card-title">Tajweed: Izhar & Idgham (النون الساكنة • الإظهار والإدغام)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/81.html" class="lesson-card" aria-label="الصفحة 81: Tajweed: Iqlab & Ikhfa (الإقلاب والإخفاء وشواذ النون)">
+        <div class="card-num" aria-hidden="true">81</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 81</span>
+          <h3 class="card-title">Tajweed: Iqlab & Ikhfa (الإقلاب والإخفاء وشواذ النون)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/82.html" class="lesson-card" aria-label="الصفحة 82: Tajweed: Nun & Tanween Training (تدريب النون الساكنة والتنوين)">
+        <div class="card-num" aria-hidden="true">82</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 82</span>
+          <h3 class="card-title">Tajweed: Nun & Tanween Training (تدريب النون الساكنة والتنوين)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/83.html" class="lesson-card" aria-label="الصفحة 83: Tajweed: Meem Sakinah & Shaddah (أحكام الميم الساكنة والمشددة)">
+        <div class="card-num" aria-hidden="true">83</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 83</span>
+          <h3 class="card-title">Tajweed: Meem Sakinah & Shaddah (أحكام الميم الساكنة والمشددة)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/84.html" class="lesson-card" aria-label="الصفحة 84: Tajweed: Comprehensive Review 1 (أحكام الترتيل • مراجعة عامة ١)">
+        <div class="card-num" aria-hidden="true">84</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 84</span>
+          <h3 class="card-title">Tajweed: Comprehensive Review 1 (أحكام الترتيل • مراجعة عامة ١)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/85.html" class="lesson-card" aria-label="الصفحة 85: Tajweed: Relations (المتماثلان والمتقاربان والمتجانسان)">
+        <div class="card-num" aria-hidden="true">85</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 85</span>
+          <h3 class="card-title">Tajweed: Relations (المتماثلان والمتقاربان والمتجانسان)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/86.html" class="lesson-card" aria-label="الصفحة 86: Tajweed: Qalqalah & Rules (القلقلة والراء وهمزة الوصل)">
+        <div class="card-num" aria-hidden="true">86</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 86</span>
+          <h3 class="card-title">Tajweed: Qalqalah & Rules (القلقلة والراء وهمزة الوصل)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/87.html" class="lesson-card" aria-label="الصفحة 87: Tajweed: Comprehensive Review (أحكام الترتيل • مراجعة قرآنية شاملة)">
+        <div class="card-num" aria-hidden="true">87</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 87</span>
+          <h3 class="card-title">Tajweed: Comprehensive Review (أحكام الترتيل • مراجعة قرآنية شاملة)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/88.html" class="lesson-card" aria-label="الصفحة 88: Tajweed: Final Review 2 (أحكام الترتيل • مراجعة الختام ٢)">
+        <div class="card-num" aria-hidden="true">88</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 88</span>
+          <h3 class="card-title">Tajweed: Final Review 2 (أحكام الترتيل • مراجعة الختام ٢)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="stage-heading"><h2 data-i18n="stage_script_and_final_review">الرسم القرآني والإملائي والمراجعة الختامية</h2></li>
+    <li class="card-item">
+      <a href="pages/89.html" class="lesson-card" aria-label="الصفحة 89: Quranic vs Dictation 1 (الرسم القرآني والإملائي • علامات التشكيل)">
+        <div class="card-num" aria-hidden="true">89</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 89</span>
+          <h3 class="card-title">Quranic vs Dictation 1 (الرسم القرآني والإملائي • علامات التشكيل)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/90.html" class="lesson-card" aria-label="الصفحة 90: Letters Spoken Not Written (حروف تنطق ولا تكتب في الإملاء)">
+        <div class="card-num" aria-hidden="true">90</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 90</span>
+          <h3 class="card-title">Letters Spoken Not Written (حروف تنطق ولا تكتب في الإملاء)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/91.html" class="lesson-card" aria-label="الصفحة 91: Middle Hamza: Nabrah & Waw (الهمزة على النبرة والواو)">
+        <div class="card-num" aria-hidden="true">91</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 91</span>
+          <h3 class="card-title">Middle Hamza: Nabrah & Waw (الهمزة على النبرة والواو)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/92.html" class="lesson-card" aria-label="الصفحة 92: Middle & End Hamza (الهمزة المتوسطة والمتطرفة)">
+        <div class="card-num" aria-hidden="true">92</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 92</span>
+          <h3 class="card-title">Middle & End Hamza (الهمزة المتوسطة والمتطرفة)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/93.html" class="lesson-card" aria-label="الصفحة 93: General Review 1 (مراجعة عامة • آيات وأحاديث ١)">
+        <div class="card-num" aria-hidden="true">93</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 93</span>
+          <h3 class="card-title">General Review 1 (مراجعة عامة • آيات وأحاديث ١)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/94.html" class="lesson-card" aria-label="الصفحة 94: General Review 2 (مراجعة عامة • آيات وأحاديث ٢)">
+        <div class="card-num" aria-hidden="true">94</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 94</span>
+          <h3 class="card-title">General Review 2 (مراجعة عامة • آيات وأحاديث ٢)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+    <li class="card-item">
+      <a href="pages/95.html" class="lesson-card" aria-label="الصفحة 95: Final Review (مراجعة ختامية • خلق الإنسان والنجوم)">
+        <div class="card-num" aria-hidden="true">95</div>
+        <div class="card-info">
+          <span class="card-badge">الصفحة 95</span>
+          <h3 class="card-title">Final Review (مراجعة ختامية • خلق الإنسان والنجوم)</h3>
+        </div>
+        <div class="card-arrow" aria-hidden="true">←</div>
+      </a>
+    </li>
+  </ul>
+    <!-- LINKS-END -->
+  </nav>
+</main>
+
+<footer>
+  <strong>منظومة نور البيان التفاعلية</strong>
+  <p>تطوير الشيخ جهاد الصياد • نسألكم الدعاء لوالده ولأخيه محمد رحمهما الله</p>
+  <div style="margin-top: 8px;">
+    <a href="guide.html" style="color: #a7f3d0; text-decoration: underline; font-weight: 700; font-size: 0.85rem;" data-i18n="guide_nav_btn">دليل الاستخدام والشرح الشامل ↗</a>
+  </div>
+</footer>
+
+<script>
+  function updateIndexLanguage() {
+    if (typeof i18n === 'undefined') return;
+    const isAr = i18n.getLocale() === 'ar';
+    const currentLocale = i18n.getLocale();
+    const activeMeta = (typeof i18n.getActiveMeta === 'function') ? i18n.getActiveMeta() : { dir: (isAr ? 'rtl' : 'ltr') };
+
+    // 1. لغة واتجاه المستند
+    document.documentElement.lang = currentLocale;
+    document.documentElement.dir = activeMeta.dir || (isAr ? 'rtl' : 'ltr');
+
+    // 2. ترجمة تصريحية شاملة للعناصر الموسومة بـ data-i18n*
+    if (typeof i18n.translateDOM === 'function') {
+      i18n.translateDOM();
+    }
+
+    // 3. زر تبديل اللغة (ديناميكي — ليس مفتاح ثابت)
+    const langBtnText = document.getElementById('lang-switch-text');
+    const langBtn = document.getElementById('lang-switch-btn');
+    if (langBtnText) langBtnText.textContent = isAr ? 'English' : 'العربية';
+    if (langBtn) langBtn.setAttribute('aria-label', isAr ? 'التحويل إلى اللغة الإنجليزية' : 'Switch to Arabic language');
+
+    // 4. شارات وعناوين بطاقات الدروس (ديناميكية — تعتمد على رقم الصفحة)
+    const navEl = document.querySelector('nav');
+    if (navEl) {
+      navEl.setAttribute('aria-label', i18n.t('lessons_list_title'));
+      const navHeading = navEl.querySelector('h2.sr-only');
+      if (navHeading) navHeading.textContent = i18n.t('lessons_list_title');
+    }
+
+    document.querySelectorAll('.lesson-card').forEach(card => {
+      const href = card.getAttribute('href') || '';
+      const numEl = card.querySelector('.card-num');
+      const badgeEl = card.querySelector('.card-badge');
+      const titleEl = card.querySelector('.card-title');
+
+      const isRemediation = href.includes('remediation');
+      const pageMatch = href.match(/(\d+)\.html/);
+      const pageNum = isRemediation ? '0' : (pageMatch ? pageMatch[1] : (numEl ? numEl.textContent.trim() : ''));
+
+      if (badgeEl && pageNum) {
+        badgeEl.textContent = isAr ? `الصفحة ${pageNum}` : `Page ${pageNum}`;
+      }
+
+      if (titleEl) {
+        if (!titleEl.dataset.rawTitle) titleEl.dataset.rawTitle = titleEl.textContent.trim();
+        const raw = titleEl.dataset.rawTitle;
+        const parenMatch = raw.match(/\(([^)]+)\)/);
+        const partInside = parenMatch ? parenMatch[1].trim() : '';
+        const partOutside = raw.replace(/\s*\([^)]+\)/, '').trim();
+
+        let arPart = raw;
+        let enPart = raw;
+        if (partInside) {
+          const isInsideArabic = /[\u0600-\u06FF]/.test(partInside);
+          arPart = isInsideArabic ? partInside : partOutside;
+          enPart = isInsideArabic ? partOutside : partInside;
+        }
+        titleEl.textContent = isAr ? arPart : enPart;
+      }
+
+      if (pageNum) {
+        const titleText = titleEl ? titleEl.textContent.trim() : '';
+        card.setAttribute('aria-label', isAr ? `الصفحة ${pageNum}: ${titleText}` : `Page ${pageNum}: ${titleText}`);
+      }
+    });
+
+    document.querySelectorAll('.card-arrow').forEach(a => { a.textContent = isAr ? '←' : '→'; });
+
+    // 5. تذييل الصفحة (ديناميكي — يجمع أكثر من مفتاح)
+    const footerStrong = document.querySelector('footer strong');
+    if (footerStrong) footerStrong.textContent = i18n.t('app_title');
+
+    const footerP = document.querySelector('footer p');
+    if (footerP) {
+      footerP.textContent = `${i18n.t('developed_by')} ${i18n.t('author_name')} • ${i18n.t('dedication_prayer')}`;
+    }
+
+    // 6. شريط الطالب النشط
+    if (typeof rosterManager !== 'undefined' && typeof rosterManager.updateHeaderBar === 'function') {
+      rosterManager.updateHeaderBar();
+    }
+  }
+
+  function reportOfflineSetupFailure(error) {
+    console.warn('Service Worker setup failed:', error);
+    if (document.querySelector('.pwa-status')) return;
+    const status = document.createElement('p');
+    status.className = 'pwa-status';
+    status.setAttribute('role', 'alert');
+    status.textContent = typeof i18n !== 'undefined'
+      ? i18n.t('offline_setup_failed')
+      : 'تعذر تجهيز العمل دون اتصال. يمكنك متابعة الدروس وأنت متصل.';
+    document.querySelector('main')?.prepend(status);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    updateIndexLanguage();
+    window.addEventListener(NBContracts.EVENTS.LOCALE_CHANGED, updateIndexLanguage);
+
+    // تسجيل عامل الخدمة لدعم تطبيقات الويب التقدمية (PWA Offline Support)
+    // يُفعل حصرياً على بروتوكول HTTPS أو البيئات المحلية localhost لتجنب رفض المتصفح عند الفتح بـ file:///
+    const isSecureContextOrigin = window.location.protocol === 'https:' ||
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1';
+
+    if ('serviceWorker' in navigator && isSecureContextOrigin) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then((registration) => {
+          const installing = registration.installing;
+          if (!installing) return;
+          const checkState = () => {
+            if (installing.state === 'redundant' && !registration.active) {
+              reportOfflineSetupFailure(new Error('The offline cache was incomplete.'));
+            }
+          };
+          installing.addEventListener('statechange', checkState);
+          checkState();
+        }).catch(reportOfflineSetupFailure);
+      });
+    }
+  });
+</script>
+
+</body>
+</html>

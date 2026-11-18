@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نور البيان - صفحة 10</title>
+    <link rel="stylesheet" href="../shared/core.css">
+</head>
+<body class="flex flex-col items-center select-none bg-emerald-50/40">
+    <script>
+        window.PAGE_CONFIG = {
+            title: 'نور البيان',
+            subtitle: 'حركة الفتح — الكلمات المدمجة ثنائياً',
+            lessonNumber: 8,
+            pageNumber: 10,
+            fontType: 'dictation',
+            game3: 'memory'
+        };
+
+        const _themes = ["pink","green","blue","yellow"];
+        const _raw = [
+            ["صَعَـ","ـدَ","normal"],
+            ["وَلَـ","ـهَ","speed"],
+            ["فَطَـ","ـمَ","normal"],
+            ["شَغَـ","ـفَ","normal"],
+            ["مَضَـ","ـغَ","golden"],
+            ["نَفَـ","ـخَ","normal"],
+            ["شَفَـ","ـعَ","danger"],
+            ["شَرَ","حَ","normal"],
+            ["قَذَ","فَ","normal"],
+            ["سَقَـ","ـطَ","speed"],
+            ["خَلَـ","ـقَ","normal"],
+            ["كَسَـ","ـرَ","normal"],
+            ["شَكَـ","ـرَ","golden"],
+            ["مَلَـ","ـكَ","normal"],
+            ["لَطَـ","ـمَ","danger"],
+            ["حَلَـ","ـفَ","normal"],
+            ["قَفَـ","ـلَ","speed"],
+            ["مَلَـ","ـأَ","normal"],
+            ["هَمَـ","ـسَ","normal"],
+            ["هَجَـ","ـمَ","golden"],
+            ["نَشَـ","ـأَ","danger"],
+            ["مَنَـ","ـحَ","normal"],
+            ["سَكَـ","ـنَ","speed"],
+            ["هَتَـ","ـفَ","normal"],
+            ["نَهَـ","ـبَ","normal"],
+            ["نَدَ","هَ","golden"],
+            ["يَنَـ","ـعَ","normal"],
+            ["دَيَـ","ـنَ","danger"],
+            ["يَفَـ","ـعَ","speed"],
+            ["وَعَـ","ـزَ","normal"],
+            ["صَنَـ","ـعَ","normal"],
+            ["صَمَـ","ـدَ","golden"]
+        ];
+        const dataset = _raw.map((r,i)=>({
+            boxes: [[[r[0], 0]], [[r[1], 2]]],
+            t: r[2],
+            theme: _themes[Math.floor(i/4)%4],
+            w: [r[0], r[1]]
+        }));
+    </script>
+    <script src="../shared/core.js"></script>
+</body>
+</html>

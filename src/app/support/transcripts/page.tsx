@@ -115,7 +115,7 @@ export default function SupportReviewQueuePage() {
   const lessons = queueQuery.data ?? [];
 
   return (
-    <div className="min-h-screen bg-background pt-24 pb-16 text-foreground">
+    <div className="min-h-screen bg-background pt-8 pb-16 text-foreground">
       <div className="mx-auto max-w-6xl px-4 md:px-8 lg:px-16">
         <div className="mb-8">
           <h1 className="mb-2 text-4xl font-bold">Lesson review queue</h1>

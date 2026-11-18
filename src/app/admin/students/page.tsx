@@ -321,7 +321,7 @@ export default function AdminStudentsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground pt-24 pb-16">
+    <div className="min-h-screen bg-background text-foreground pt-8 pb-16">
       <div className="max-w-5xl mx-auto px-4 md:px-8 lg:px-16">
         <div className="mb-8">
           <Link

@@ -1,0 +1,80 @@
+/**
+ * Nour Al-Bayan Interactive Platform - Quranic & Arabic Typography
+ * Font family styling, Tajweed diacritic color tokens, WCAG AA contrast, and Arabic letter-spacing constraints.
+ */
+
+
+:root {
+    --font-quran: 'KFGQPC Uthmanic Hafs', 'UthmanicHafs', 'Amiri', 'Traditional Arabic', serif;
+    --font-dictation: 'Noto Naskh Arabic', 'Simplified Arabic', 'Segoe UI', serif;
+}
+
+.quran-font,
+.quran-special-font,
+.font-quran {
+    font-family: var(--font-quran);
+    font-weight: 700;
+    font-feature-settings: "calt" 1, "liga" 1, "dlig" 0, "hlig" 0, "mkmk" 1, "mark" 1, "ccmp" 1;
+    text-rendering: optimizeLegibility;
+    font-variant-ligatures: normal;
+    font-synthesis: none;
+    line-height: 2.1;
+    letter-spacing: normal !important;
+    direction: rtl;
+    unicode-bidi: isolate;
+}
+
+.dictation-font,
+.font-dictation {
+    font-family: var(--font-dictation);
+    font-weight: 600;
+    text-rendering: optimizeLegibility;
+    line-height: 2.0;
+    letter-spacing: normal !important;
+    direction: rtl;
+    unicode-bidi: isolate;
+}
+
+/* Page Root Font Inheritance */
+html.page-font-quran, body.page-font-quran {
+    font-family: var(--font-quran);
+}
+html.page-font-dictation, body.page-font-dictation {
+    font-family: var(--font-dictation);
+}
+html.page-font-mixed, body.page-font-mixed {
+    font-family: var(--font-dictation);
+}
+
+/* Word Diacritic Colors (Linked to Central Tokens) */
+.c-red, .c0, .color-0 { color: var(--color-quranic-red, #dc2626); }
+.c-blue, .c1, .color-1 { color: var(--color-quranic-blue, #1d4ed8); }
+.c-black, .c2, .color-2 { color: var(--color-quranic-black, #090d16); font-weight: 800; }
+.c-purple { color: #7e22ce; }
+.c-emerald { color: #059669; }
+.c-amber { color: #d97706; }
+.c-darkblue { color: #1e3a8a; }
+
+/* Quranic Rounded Zero (الصفر المستدير) */
+.quran-zero {
+    display: inline;
+    font-size: 0.85em;
+    vertical-align: 0.15em;
+    line-height: 0;
+    opacity: 0.9;
+}
+
+/* Separator bar with WCAG 2.1 AA compliant contrast (4.63:1 against white) */
+.sep-bar {
+    color: #64748b;
+    margin-inline: 4px;
+    font-weight: 400;
+    font-size: 0.75em;
+    vertical-align: middle;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }

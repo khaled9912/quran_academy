@@ -1,0 +1,139 @@
+/**
+ * Nour Al-Bayan Interactive Platform - Base & Font Setup
+ * Offline-first local font declarations, resets, and root layout.
+ */
+
+/* 1. Local Font Declarations */
+@font-face {
+    font-family: 'KFGQPC Uthmanic Hafs';
+    font-style: normal;
+    font-weight: 400;
+    src: local('KFGQPC Uthmanic Hafs'), local('KFGQPC Uthman Taha Naskh'), local('UthmanicHafs1Ver18'),
+         url('../vendor/fonts/kfgqpc-uthmanic-hafs.woff2') format('woff2');
+    font-display: swap;
+}
+@font-face {
+    font-family: 'KFGQPC Uthmanic Hafs';
+    font-style: normal;
+    font-weight: 700;
+    src: local('KFGQPC Uthmanic Hafs'), local('KFGQPC Uthman Taha Naskh'), local('UthmanicHafs1Ver18'),
+         url('../vendor/fonts/kfgqpc-uthmanic-hafs.woff2') format('woff2');
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Noto Naskh Arabic';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Noto Naskh Arabic'), local('Noto Naskh Arabic Regular'),
+         url('../vendor/fonts/noto-naskh-regular.woff2') format('woff2');
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Noto Naskh Arabic';
+    font-style: normal;
+    font-weight: 700;
+    src: local('Noto Naskh Arabic Bold'),
+         url('../vendor/fonts/noto-naskh-bold.woff2') format('woff2');
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Amiri';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Amiri'), local('Amiri Regular'), local('Amiri-Regular'),
+         url('../vendor/fonts/amiri-regular.woff2') format('woff2');
+    font-display: swap;
+    unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF, U+10E60-10E7E;
+}
+@font-face {
+    font-family: 'Amiri';
+    font-style: normal;
+    font-weight: 700;
+    src: local('Amiri Bold'), local('Amiri-Bold'),
+         url('../vendor/fonts/amiri-bold.woff2') format('woff2');
+    font-display: swap;
+    unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF, U+10E60-10E7E;
+}
+@font-face {
+    font-family: 'Fredoka';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Fredoka'), local('Fredoka Regular'),
+         url('../vendor/fonts/fredoka-regular.woff2') format('woff2');
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Fredoka';
+    font-style: normal;
+    font-weight: 600;
+    src: local('Fredoka SemiBold'),
+         url('../vendor/fonts/fredoka-semibold.woff2') format('woff2');
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Fredoka';
+    font-style: normal;
+    font-weight: 700;
+    src: local('Fredoka Bold'),
+         url('../vendor/fonts/fredoka-bold.woff2') format('woff2');
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Fredoka';
+    font-style: normal;
+    font-weight: 900;
+    src: local('Fredoka Black'),
+         url('../vendor/fonts/fredoka-black.woff2') format('woff2');
+    font-display: swap;
+}
+
+/* 2. Base Reset and Body */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Arabic typography constraint */
+:lang(ar),
+[dir="rtl"] {
+    letter-spacing: normal !important;
+}
+
+html, body {
+    height: 100%;
+    height: 100dvh;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: var(--font-sans);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+    background-color: var(--color-bg-green, #f0fdf4);
+}
+
+header, main, footer {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+header, footer {
+    flex-shrink: 0;
+}
+
+/* 3. Global Accessible Focus Indicator */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible {
+    outline: 3px solid var(--color-primary, #047857) !important;
+    outline-offset: 2px !important;
+}

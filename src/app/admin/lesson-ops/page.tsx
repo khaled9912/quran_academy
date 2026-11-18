@@ -638,7 +638,7 @@ export default function AdminLessonOpsPage() {
     reliabilityQuery.data?.filter((event) => !event.resolvedAt) ?? [];
 
   return (
-    <div className="min-h-screen bg-background pt-24 pb-16 text-foreground">
+    <div className="min-h-screen bg-background pt-8 pb-16 text-foreground">
       <div className="mx-auto max-w-7xl px-4 md:px-8 lg:px-12">
         <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>

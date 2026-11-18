@@ -48,7 +48,7 @@ const NotificationsPage = () => {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-background pt-24 pb-16 text-foreground">
+      <div className="min-h-screen bg-background pt-8 pb-16 text-foreground">
         <div className="mx-auto max-w-3xl px-4 md:px-8">
           <h1 className="mb-2 text-4xl font-bold">Notifications</h1>
           <p className="text-lg text-foreground opacity-75">
@@ -66,7 +66,7 @@ const NotificationsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pt-24 pb-16 text-foreground">
+    <div className="min-h-screen bg-background pt-8 pb-16 text-foreground">
       <div className="mx-auto max-w-3xl px-4 md:px-8">
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div>

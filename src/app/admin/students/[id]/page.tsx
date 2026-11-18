@@ -85,7 +85,7 @@ export default function AdminStudentProfilePage() {
   const lessons = desk?.weeklyLessons ?? [];
 
   return (
-    <div className="min-h-screen bg-background pt-24 pb-16 text-foreground">
+    <div className="min-h-screen bg-background pt-8 pb-16 text-foreground">
       <div className="mx-auto max-w-4xl px-4 md:px-8">
         <Link
           href="/admin/students"

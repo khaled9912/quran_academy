@@ -1,0 +1,405 @@
+/**
+ * Nour Al-Bayan Interactive Platform - Index Page Styles
+ * Layout, hero banner, header actions, active student chip, roster modals, and shortcuts guide.
+ * Lesson card styling is centralized in cards.css.
+ */
+
+
+
+body {
+  color: var(--text-main, #0f172a);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-font-smoothing: antialiased;
+  background-color: var(--bg, #f8fafc);
+}
+
+header {
+  background: linear-gradient(135deg, #065f46 0%, #047857 50%, #0d9488 100%);
+  color: #ffffff;
+  text-align: center;
+  padding: clamp(24px, 4vw, 40px) 20px clamp(20px, 3.5vw, 32px);
+  box-shadow: 0 4px 20px rgba(4, 120, 87, 0.15);
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+header::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #fbbf24, #10b981, #d97706);
+}
+
+header h1 {
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 900;
+  letter-spacing: normal !important;
+  margin-bottom: 6px;
+}
+
+header p {
+  font-size: clamp(0.95rem, 2vw, 1.15rem);
+  opacity: 0.95;
+  font-weight: 500;
+  letter-spacing: normal !important;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+}
+
+.stats-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 7px 18px;
+  border-radius: 9999px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+  padding: 7px 18px;
+  border-radius: 9999px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 44px;
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.action-btn:focus-visible, .lesson-card:focus-visible {
+  outline: 3px solid var(--color-primary, #047857);
+  outline-offset: 3px;
+}
+
+/* Active Student Header Chip */
+.active-student-chip {
+  background: rgba(255, 255, 255, 0.22);
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  padding: 5px 14px;
+  gap: 8px;
+  font-weight: 800;
+}
+.active-student-chip:hover {
+  background: rgba(255, 255, 255, 0.38);
+  border-color: #ffffff;
+}
+.chip-avatar {
+  font-size: 1.15rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.chip-name {
+  font-size: 0.88rem;
+  font-weight: 800;
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chip-score {
+  background: rgba(0, 0, 0, 0.25);
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  color: #fef08a;
+  font-weight: 900;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Roster Modal Styles */
+.roster-tab-btn {
+  padding: 10px 18px;
+  font-weight: 800;
+  font-size: 0.88rem;
+  color: var(--text-muted, #64748b);
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: transparent;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.roster-tab-btn:hover {
+  color: var(--color-primary, #047857);
+  background: rgba(4, 120, 87, 0.04);
+}
+.roster-tab-btn.active {
+  color: var(--color-primary, #047857);
+  border-bottom-color: var(--color-primary, #047857);
+  background: rgba(4, 120, 87, 0.08);
+}
+.roster-tab-btn:focus-visible {
+  outline: 2px solid var(--color-primary, #047857);
+  outline-offset: -2px;
+}
+
+/* Avatar Picker Grid */
+.avatar-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+.avatar-option-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 2px solid #e2e8f0;
+  background: #ffffff;
+  font-size: 1.35rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.avatar-option-btn:hover {
+  transform: scale(1.1);
+  border-color: #10b981;
+  background: #f0fdf4;
+}
+.avatar-option-btn.selected,
+#roster-letter-btn.selected {
+  border-color: var(--color-primary, #047857);
+  background: #d1fae5;
+  box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.25);
+  transform: scale(1.08);
+}
+.avatar-option-btn:focus-visible,
+#roster-letter-btn:focus-visible {
+  outline: 2px solid var(--color-primary, #047857);
+  outline-offset: 2px;
+}
+
+/* Color Swatches */
+.color-picker-grid {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.color-swatch-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.color-swatch-btn:hover {
+  transform: scale(1.18);
+}
+.color-swatch-btn.selected {
+  box-shadow: 0 0 0 3px var(--color-primary, #047857), 0 4px 10px rgba(4, 120, 87, 0.3);
+  transform: scale(1.15);
+}
+.color-swatch-btn:focus-visible {
+  outline: 2px solid var(--color-primary, #047857);
+  outline-offset: 3px;
+}
+
+/* Quranic Mistake Bank Text */
+.mistake-word-card {
+  background: var(--surface-card, #ffffff);
+  border: 2px solid #fecdd3;
+  border-radius: 18px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(244, 63, 94, 0.06);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.mistake-word-card:hover {
+  transform: translateY(-2px);
+  border-color: #f43f5e;
+  box-shadow: 0 8px 16px rgba(244, 63, 94, 0.14);
+}
+.mistake-quran-text {
+  font-family: var(--font-quran, 'Amiri', 'Traditional Arabic', serif);
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: #9f1239;
+  line-height: 1.6;
+  margin: 4px 0;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: normal !important;
+}
+
+.mistake-word-card .segmented-container {
+  display: flex;
+  flex-direction: row;
+  direction: rtl;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  max-width: 100%;
+  flex-wrap: wrap;
+  margin: 4px 0;
+}
+
+.mistake-word-card .seg-box {
+  min-width: 38px;
+  max-width: 80px;
+  height: auto;
+  min-height: 48px;
+  border-radius: 12px;
+  font-size: 1.65rem;
+  padding: 2px 6px;
+  line-height: 1.2;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.12);
+  border-width: 2px;
+}
+
+.mistake-word-card .letter-box {
+  min-height: 48px;
+  height: auto;
+  border-radius: 14px;
+  font-size: 1.65rem;
+  padding: 4px 10px;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.12);
+  width: 100%;
+  margin: 4px 0;
+  border-width: 2px;
+}
+
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding: 32px 16px 48px;
+}
+
+.pwa-status {
+  margin-block: 0 20px;
+  padding: 12px 16px;
+  border: 2px solid #b45309;
+  border-radius: 12px;
+  background: #fffbeb;
+  color: #78350f;
+  font-weight: 700;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.stage-heading {
+  grid-column: 1 / -1;
+  margin-block: 20px 0;
+  list-style: none;
+}
+
+.stage-heading:first-child {
+  margin-block-start: 0;
+}
+
+.stage-heading h2 {
+  margin: 0;
+  padding-block-end: 10px;
+  border-bottom: 2px solid var(--border-color, #e2e8f0);
+  color: var(--text-main, #0f172a);
+  font-size: clamp(1.15rem, 2vw, 1.45rem);
+}
+
+.card-item {
+  display: flex;
+}
+
+.empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--text-muted, #475569);
+  padding: 48px 20px;
+  background: var(--surface-card, #ffffff);
+  border: 2px dashed var(--border-color, #e2e8f0);
+  border-radius: 20px;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+footer {
+  text-align: center;
+  padding: 24px 20px;
+  font-size: 0.88rem;
+  color: var(--text-main, #0f172a);
+  border-top: 1px solid var(--border-color, #e2e8f0);
+  background: var(--surface-card, #ffffff);
+}
+
+footer p {
+  margin-top: 4px;
+  font-size: 0.82rem;
+  color: var(--text-muted, #475569);
+}
