@@ -16,9 +16,16 @@ export function BlogCard({ post }: { post: BlogPost }) {
           size={54}
           aria-hidden
         />
-        <span className="relative rounded-full border border-white/25 bg-white/15 px-3 py-1 text-xs font-semibold text-white">
-          {post.category}
-        </span>
+        <div className="relative flex items-center gap-2">
+          <span className="rounded-full border border-white/25 bg-white/15 px-3 py-1 text-xs font-semibold text-white">
+            {post.category}
+          </span>
+          {post.kids && (
+            <span className="rounded-full border border-[#e4c18e]/50 bg-[#e4c18e]/20 px-3 py-1 text-xs font-semibold text-[#f4e3c8]">
+              Kids + 13+
+            </span>
+          )}
+        </div>
       </div>
       <div className="flex flex-1 flex-col p-6">
         <div className="flex items-center gap-2 text-xs font-medium text-[#7a8a80] dark:text-foreground/50">

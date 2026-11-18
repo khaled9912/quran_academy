@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   ...pageMetadata({
     title: "Learn Quran Online: Guides for English Speakers",
     description:
-      "Practical guides on learning Quran online, Tajweed, memorization, and choosing an online Quran academy for English-speaking students.",
+      "Practical guides on learning Quran online, Tajweed rules, Arabic letters, prophet stories, and Islamic studies for kids and teens — for English-speaking students.",
     path: "/blog",
     image: "/blog/opengraph-image",
     imageAlt: "Ana Quran Academy Blog — Quran learning guides",
@@ -28,6 +28,10 @@ export const metadata: Metadata = {
       "Quran memorization online",
       "online Quran classes for kids",
       "online Quran academy for English speakers",
+      "stories of the prophets",
+      "Arabic alphabet for beginners",
+      "tajweed rules for beginners",
+      "Islamic studies for kids",
     ],
   }),
   alternates: {
@@ -73,9 +77,16 @@ function FeaturedPost({ post }: { post: BlogPost }) {
           <BookOpen className="text-white/25" size={42} aria-hidden />
         </div>
         <div className="relative">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#d8c29f]">
-            {post.category}
-          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#d8c29f]">
+              {post.category}
+            </p>
+            {post.kids && (
+              <span className="rounded-full border border-[#e4c18e]/50 bg-[#e4c18e]/20 px-2.5 py-0.5 text-[11px] font-semibold text-[#f4e3c8]">
+                Kids + 13+
+              </span>
+            )}
+          </div>
           <h2 className="mt-3 max-w-md text-2xl font-bold leading-tight sm:text-3xl">
             {post.title}
           </h2>
@@ -125,7 +136,10 @@ export default function BlogPage() {
           <p className="mt-6 max-w-2xl text-lg leading-8 text-[#5d726a] dark:text-foreground/70">
             Clear, practical articles for English-speaking students and parents,
             wherever you live. Learn how online lessons work, what Tajweed study
-            involves, and how to build a memorization routine that lasts.
+            involves, and how to build a memorization routine that lasts. Our
+            Islamic studies guides — all 25 prophet stories, wudu, salah, Hajj,
+            and manners — plus Arabic and Tajweed lesson guides come in two
+            reading levels: one for kids and one for ages 13 and up.
           </p>
         </div>
       </section>

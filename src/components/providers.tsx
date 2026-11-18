@@ -4,6 +4,7 @@ import { useState } from "react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { AuthProvider } from "@/providers/auth-provider";
+import { PwaProvider } from "@/providers/pwa-provider";
 import { RealtimeProvider } from "@/providers/realtime-provider";
 import { LessonRingProvider } from "@/providers/lesson-ring-provider";
 import { WebPushProvider } from "@/providers/web-push-provider";
@@ -18,13 +19,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <AuthProvider>
-          <RealtimeProvider>
-            <WebPushProvider>
-              <LessonRingProvider>
-                <NotificationAlertProvider>{children}</NotificationAlertProvider>
-              </LessonRingProvider>
-            </WebPushProvider>
-          </RealtimeProvider>
+          <PwaProvider>
+            <RealtimeProvider>
+              <WebPushProvider>
+                <LessonRingProvider>
+                  <NotificationAlertProvider>{children}</NotificationAlertProvider>
+                </LessonRingProvider>
+              </WebPushProvider>
+            </RealtimeProvider>
+          </PwaProvider>
         </AuthProvider>
       </ToastProvider>
       <ReactQueryDevtools initialIsOpen={false} position="bottom" />

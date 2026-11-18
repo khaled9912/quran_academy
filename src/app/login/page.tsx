@@ -14,6 +14,11 @@ import { FieldError } from "@/components/ui/field-error";
 import { DEFAULT_COUNTRY, countryByCode, toE164 } from "@/lib/countries";
 import { useRestrictedVisitor } from "@/hooks/use-restricted-visitor";
 
+// Build-time switch: off unless NEXT_PUBLIC_PHONE_OTP_LOGIN=true. Client-side
+// only — the API's /auth/otp/* endpoints stay reachable either way.
+const PHONE_OTP_LOGIN_ENABLED =
+  process.env.NEXT_PUBLIC_PHONE_OTP_LOGIN === "true";
+
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type Mode = "email" | "phone";
@@ -202,22 +207,24 @@ const LoginPage = () => {
           Sign in to manage classes, view your dashboard, or join live lessons.
         </p>
 
-        <div className="mb-6 grid grid-cols-2 gap-1 rounded-xl border border-card-border p-1">
-          <button
-            type="button"
-            onClick={() => switchMode("email")}
-            className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${mode === "email" ? "bg-green-500 text-white" : "text-foreground hover:bg-green-500/10"}`}
-          >
-            Email
-          </button>
-          <button
-            type="button"
-            onClick={() => switchMode("phone")}
-            className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${mode === "phone" ? "bg-green-500 text-white" : "text-foreground hover:bg-green-500/10"}`}
-          >
-            Mobile number
-          </button>
-        </div>
+        {PHONE_OTP_LOGIN_ENABLED && (
+          <div className="mb-6 grid grid-cols-2 gap-1 rounded-xl border border-card-border p-1">
+            <button
+              type="button"
+              onClick={() => switchMode("email")}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${mode === "email" ? "bg-green-500 text-white" : "text-foreground hover:bg-green-500/10"}`}
+            >
+              Email
+            </button>
+            <button
+              type="button"
+              onClick={() => switchMode("phone")}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${mode === "phone" ? "bg-green-500 text-white" : "text-foreground hover:bg-green-500/10"}`}
+            >
+              Mobile number
+            </button>
+          </div>
+        )}
 
         {mode === "email" ? (
           <form onSubmit={handleEmailSubmit} className="space-y-5">
@@ -281,9 +288,6 @@ const LoginPage = () => {
             >
               {loading ? "Signing in..." : "Sign in"}
             </button>
-            <p className="text-center text-xs text-foreground opacity-60">
-              Staff and admin accounts sign in with email and password.
-            </p>
           </form>
         ) : !codeSent ? (
           <form onSubmit={handleSendCode} className="space-y-5">

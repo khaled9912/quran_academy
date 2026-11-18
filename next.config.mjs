@@ -39,10 +39,20 @@ const nextConfig = {
         value: "strict-origin-when-cross-origin",
       },
     ];
+    // The worker must revalidate on every navigation or an update would never
+    // reach installed apps; Service-Worker-Allowed keeps its scope at the root.
+    const workerHeaders = {
+      source: "/sw.js",
+      headers: [
+        { key: "Cache-Control", value: "no-cache, must-revalidate" },
+        { key: "Service-Worker-Allowed", value: "/" },
+      ],
+    };
     if (!isPreviewDeployment) {
-      return [{ source: "/:path*", headers: securityHeaders }];
+      return [workerHeaders, { source: "/:path*", headers: securityHeaders }];
     }
     return [
+      workerHeaders,
       {
         source: "/:path*",
         headers: [

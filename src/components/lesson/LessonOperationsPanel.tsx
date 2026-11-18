@@ -14,7 +14,7 @@ import {
   Video,
   XCircle,
 } from "lucide-react";
-import { ApiError } from "@/lib/backend-client";
+import { ApiError, OfflineQueuedError } from "@/lib/backend-client";
 import { useAuth } from "@/providers/auth-provider";
 import { useToast } from "@/providers/toast-provider";
 import {
@@ -1220,11 +1220,16 @@ function IncidentSection({
         queryKey: ["lesson-ops", lesson.id],
       });
     },
-    onError: (failure) =>
+    onError: (failure) => {
+      if (failure instanceof OfflineQueuedError) {
+        showToast(failure.message, "info");
+        return;
+      }
       showToast(
         errorMessage(failure, "Unable to report the issue."),
         "error"
-      ),
+      );
+    },
   });
 
   if (!canReport) return null;
