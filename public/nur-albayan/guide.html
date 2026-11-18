@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="guide_page_title">دليل استعمال نور البيان</title>
+  <meta name="theme-color" content="#047857">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="shared/core.css">
+  <link rel="stylesheet" href="shared/css/guide.css">
+  <script src="shared/contracts.js" defer></script>
+  <script src="shared/store.js" defer></script>
+  <script src="shared/i18n.js" defer></script>
+  <script src="shared/locales/ar.js" defer></script>
+  <script src="shared/locales/en.js" defer></script>
+  <script src="shared/settings-values.js" defer></script>
+  <script src="shared/settings-dialog.js" defer></script>
+  <script src="shared/settings.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#guide-main" data-i18n="skip_to_content">تجاوز إلى المحتوى</a>
+  <header class="guide-header">
+    <div>
+      <a class="back-link" href="index.html" data-i18n="back_to_home">العودة إلى الفهرس</a>
+      <h1 data-i18n="guide_heading">دليل استعمال نور البيان</h1>
+      <p data-i18n="guide_intro">مرجع موجز للمعلم وولي الأمر: ابدأ جلسة، تابع الطالب، وعالج مواضع التعثر.</p>
+    </div>
+    <div class="guide-actions" aria-label="أدوات الدليل" data-i18n-aria="guide_tools_aria">
+      <button id="lang-switch-btn" class="action-btn" type="button" onclick="i18n.toggleLocale()">
+        <span aria-hidden="true">🌐</span> <span id="lang-switch-text">English</span>
+      </button>
+      <button class="action-btn" type="button" onclick="settingsManager.open()" data-i18n="settings">الإعدادات</button>
+    </div>
+  </header>
+
+  <nav class="guide-toc" aria-label="فهرس الدليل" data-i18n-aria="guide_toc_aria">
+    <h2 data-i18n="guide_toc_title">محتويات الدليل</h2>
+    <ol>
+      <li><a href="#start" data-i18n="guide_toc_start">البدء السريع</a></li>
+      <li><a href="#students" data-i18n="guide_toc_students">الطلاب والضيف</a></li>
+      <li><a href="#lessons" data-i18n="guide_toc_lessons">الدروس والتقويم</a></li>
+      <li><a href="#mistakes" data-i18n="guide_toc_mistakes">المعالجة</a></li>
+      <li><a href="#games" data-i18n="guide_toc_games">الألعاب</a></li>
+      <li><a href="#reports" data-i18n="guide_toc_reports">التقارير والنسخ</a></li>
+      <li><a href="#settings-help" data-i18n="guide_toc_settings">الإعدادات والنفاذية</a></li>
+      <li><a href="#shortcuts" data-i18n="guide_toc_shortcuts">اختصارات لوحة المفاتيح</a></li>
+      <li><a href="#offline" data-i18n="guide_toc_offline">العمل دون اتصال</a></li>
+      <li><a href="#troubleshooting" data-i18n="guide_toc_troubleshooting">حل المشكلات</a></li>
+    </ol>
+  </nav>
+
+  <main id="guide-main" class="guide-main">
+    <article id="start" class="guide-card">
+      <h2 data-i18n="guide_start_title">1. البدء السريع</h2>
+      <ol>
+        <li data-i18n="guide_start_1">اختر طالباً من «إدارة الطلاب»، أو تابع بصفة ضيف إن لم ترد حفظ النتائج.</li>
+        <li data-i18n="guide_start_2">افتح مرحلة من الفهرس، ثم اختر الدرس بحسب ترتيب المنهج.</li>
+        <li data-i18n="guide_start_3">اقرأ البطاقة، وسجل «صحيح» أو «حاول مرة أخرى»، ثم أنهِ الدرس لحفظ نتيجته.</li>
+      </ol>
+      <p class="guide-note" data-i18n="guide_start_note">يحفظ التطبيق بيانات الطالب على هذا الجهاز وحده؛ لا تحفظ جلسة الضيف تقدماً دائماً.</p>
+    </article>
+
+    <article id="students" class="guide-card">
+      <h2 data-i18n="guide_students_title">2. الطلاب ووضع الضيف</h2>
+      <p data-i18n="guide_students_body">أنشئ ملفاً لكل طالب، واختر اسمه قبل الدرس. تستطيع تعديل الملف أو حذفه من لوحة الطلاب. حذف الطالب يزيل سجله المحلي بعد التأكيد.</p>
+      <dl>
+        <dt data-i18n="guide_student_mode">وضع الطالب</dt>
+        <dd data-i18n="guide_student_mode_desc">يحفظ الدروس والدرجات والأخطاء، ويتيح التقرير والمعالجة.</dd>
+        <dt data-i18n="guide_guest_mode">وضع الضيف</dt>
+        <dd data-i18n="guide_guest_mode_desc">للتجربة السريعة، ولا يضيف سجلاً إلى قائمة الطلاب.</dd>
+      </dl>
+    </article>
+
+    <article id="lessons" class="guide-card">
+      <h2 data-i18n="guide_lessons_title">3. الدروس والتقويم</h2>
+      <p data-i18n="guide_lessons_body">اعرض القاعدة أولاً، ثم انتقل بين البطاقات. لا تُحتسب النتيجة النهائية حتى يُنهى الدرس بنجاح. إعادة الدرس تتبع سياسة الدرجات المختارة.</p>
+      <dl>
+        <dt data-i18n="guide_policy_best">أفضل نتيجة</dt>
+        <dd data-i18n="guide_policy_best_desc">يُعتمد أعلى تحصيل بلغه الطالب في الدرس.</dd>
+        <dt data-i18n="guide_policy_latest">آخر نتيجة</dt>
+        <dd data-i18n="guide_policy_latest_desc">يُعتمد تحصيل آخر محاولة مكتملة.</dd>
+        <dt data-i18n="guide_policy_cumulative">المجموع التراكمي</dt>
+        <dd data-i18n="guide_policy_cumulative_desc">تُجمع نتائج المحاولات المكتملة للدرس.</dd>
+      </dl>
+    </article>
+
+    <article id="mistakes" class="guide-card">
+      <h2 data-i18n="guide_mistakes_title">4. بنك الأخطاء والمعالجة</h2>
+      <p data-i18n="guide_mistakes_body">تنتقل الكلمة المتعثرة إلى بنك أخطاء الطالب. افتح «المعالجة والمراجعة» من أول الفهرس، واختر المرور المفرد أو التكرار حتى الإتقان. تزول الكلمة من البنك حين تُقرأ صحيحة.</p>
+      <p class="guide-note" data-i18n="guide_mistakes_note">المعالجة مرتبطة بالطالب النشط؛ تحقق من الاسم الظاهر قبل البدء.</p>
+    </article>
+
+    <article id="games" class="guide-card">
+      <h2 data-i18n="guide_games_title">5. الألعاب التعليمية</h2>
+      <p data-i18n="guide_games_body">الألعاب وسيلة تدريب بعد القراءة، وليست بديلاً من تقويم المعلم. ألعاب Wordwall سبعة أنماط؛ انتقل بين تبويباتها بالنقر أو بمفاتيح الأسهم، واستعمل Home وEnd للقفز إلى أول تبويب وآخره.</p>
+      <p data-i18n="guide_games_modes">تتيح ألعاب الألواح نمط المعلم أو اللعب مع الحاسوب، ومستوى سهل أو صعب. يعلن قارئ الشاشة الدور والنتيجة.</p>
+    </article>
+
+    <article id="reports" class="guide-card">
+      <h2 data-i18n="guide_reports_title">6. التقارير والنسخ الاحتياطي</h2>
+      <p data-i18n="guide_reports_body">يعرض ملف الطالب الدروس المكتملة والدقة والدرجة وبنك الأخطاء. يرافق الرسم ملخص نصي رقمي. صدّر نسخة JSON دورياً، ولا تستورد إلا ملفاً موثوقاً صادراً من التطبيق.</p>
+      <p class="guide-warning" data-i18n="guide_import_warning">الاستيراد يستبدل السجلات المحلية بعد التحقق؛ صدّر نسخة قبل الاستبدال.</p>
+    </article>
+
+    <article id="settings-help" class="guide-card">
+      <h2 data-i18n="guide_settings_title">7. الإعدادات والنفاذية</h2>
+      <p data-i18n="guide_settings_body">يمكن تغيير اللغة والسمة وحجم النص والصوت وسياسة الدرجات. تعمل الأزرار بلوحة المفاتيح، وتظهر البؤرة بوضوح، ويجوز تكبير الصفحة إلى 200% فأكثر.</p>
+      <ul>
+        <li data-i18n="guide_a11y_1">استعمل عناوين المراحل للتنقل السريع بقارئ الشاشة.</li>
+        <li data-i18n="guide_a11y_2">عطّل الحركة أو الصوت من الإعدادات عند الحاجة.</li>
+        <li data-i18n="guide_a11y_3">ألوان الحروف تعين على تمييز الموضع التعليمي، ولا تحمل وحدها معنى الإجابة أو النتيجة.</li>
+      </ul>
+    </article>
+
+    <article id="shortcuts" class="guide-card">
+      <h2 data-i18n="guide_shortcuts_title">8. اختصارات لوحة المفاتيح</h2>
+      <div class="shortcut-table-wrap" tabindex="0" role="region" aria-label="جدول اختصارات لوحة المفاتيح" data-i18n-aria="guide_shortcuts_table_aria">
+        <table>
+          <thead><tr><th scope="col" data-i18n="guide_shortcut_key">المفتاح</th><th scope="col" data-i18n="guide_shortcut_action">العمل</th></tr></thead>
+          <tbody>
+            <tr><td><kbd>Space</kbd></td><td data-i18n="guide_shortcut_space">بدء القراءة أو إيقافها مؤقتاً</td></tr>
+            <tr><td><kbd>Enter</kbd></td><td data-i18n="guide_shortcut_enter">تأكيد الزر أو البطاقة المحددة</td></tr>
+            <tr><td><kbd>←</kbd> / <kbd>→</kbd></td><td data-i18n="guide_shortcut_arrows">التنقل بين البطاقات أو تبويبات الألعاب</td></tr>
+            <tr><td><kbd>Home</kbd> / <kbd>End</kbd></td><td data-i18n="guide_shortcut_home_end">أول تبويب للألعاب أو آخره</td></tr>
+            <tr><td><kbd>Esc</kbd></td><td data-i18n="guide_shortcut_escape">إغلاق النافذة الحوارية والعودة إلى موضعك</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article id="offline" class="guide-card">
+      <h2 data-i18n="guide_offline_title">9. العمل دون اتصال والخصوصية</h2>
+      <p data-i18n="guide_offline_body">بعد اكتمال الزيارة الأولى، يحتفظ المتصفح بأصول التطبيق اللازمة للعمل دون اتصال. تبقى بيانات الطلاب في التخزين المحلي، ولا تُرسل إلى خادم من داخل التطبيق.</p>
+      <p class="guide-note" data-i18n="guide_offline_note">لا تغلق الصفحة في أثناء الزيارة الأولى إن كان الاتصال ضعيفاً. سيظهر تنبيه إن تعذر تجهيز العمل دون اتصال.</p>
+    </article>
+
+    <article id="troubleshooting" class="guide-card">
+      <h2 data-i18n="guide_troubleshooting_title">10. حل المشكلات</h2>
+      <dl>
+        <dt data-i18n="guide_problem_save">لم تُحفظ النتيجة</dt>
+        <dd data-i18n="guide_problem_save_desc">تحقق من اختيار طالب ومن سماح المتصفح بالتخزين، ثم أعد المحاولة. لا يغادر التطبيق النتيجة القديمة إذا أخفق الحفظ.</dd>
+        <dt data-i18n="guide_problem_sound">لا يُسمع الصوت</dt>
+        <dd data-i18n="guide_problem_sound_desc">فعّل الصوت من الإعدادات، ثم اضغط زرّاً في الصفحة للسماح للمتصفح بتشغيله.</dd>
+        <dt data-i18n="guide_problem_offline">لم تعمل الصفحة دون اتصال</dt>
+        <dd data-i18n="guide_problem_offline_desc">اتصل بالشبكة وافتح الفهرس مرة حتى يكتمل الحفظ، ثم أعد الاختبار.</dd>
+      </dl>
+    </article>
+  </main>
+
+  <footer class="guide-footer">
+    <p data-i18n="guide_footer">نور البيان — بياناتك التعليمية محفوظة محلياً على جهازك.</p>
+  </footer>
+  <div id="app-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  <script>
+    function updateGuideLanguage() {
+      if (typeof i18n === 'undefined') return;
+      const locale = i18n.getLocale();
+      i18n.translateDOM();
+      const switchText = document.getElementById('lang-switch-text');
+      const switchButton = document.getElementById('lang-switch-btn');
+      if (switchText) switchText.textContent = locale === 'ar' ? 'English' : 'العربية';
+      if (switchButton) switchButton.setAttribute('aria-label', locale === 'ar' ? 'Switch to English' : 'التحويل إلى العربية');
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      if (typeof i18n !== 'undefined') {
+        i18n.init();
+        updateGuideLanguage();
+      }
+      window.addEventListener(
+        window.NBContracts ? NBContracts.EVENTS.LOCALE_CHANGED : 'nb:locale-changed',
+        updateGuideLanguage
+      );
+    });
+  </script>
+</body>
+</html>

@@ -143,7 +143,7 @@ export default function LessonCallPage() {
     error instanceof ApiError && (error.status === 403 || error.status === 404);
 
   return (
-    <main className="min-h-screen bg-background text-foreground pt-24 pb-10">
+    <main className="min-h-screen bg-background text-foreground pt-8 pb-10">
       <div className="mx-auto max-w-6xl px-4 md:px-8 lg:px-16">
         <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
           <div>

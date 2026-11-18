@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نور البيان - صفحة 17</title>
+    <link rel="stylesheet" href="../shared/core.css">
+</head>
+<body class="flex flex-col items-center select-none bg-emerald-50/40">
+    <script>
+        window.PAGE_CONFIG = {
+            title: 'نور البيان',
+            subtitle: 'حركة الكسر — تدريبات وجمل',
+            lessonNumber: 5,
+            pageNumber: 17,
+            fontType: 'dictation',
+            game3: 'memory'
+        };
+
+        const dataset = [
+            // Row 1
+            {w: "<span class='c-blue'>عَطَسَ</span> <span class='c-red'>فَحَمِدَ</span>", t: "normal"},
+            {w: "<span class='c-blue'>رَكِبَ</span> <span class='c-red'>وَرَدِفَ</span>", t: "speed"},
+            {w: "<span class='c-blue'>بَرِئَ</span> <span class='c-red'>فَشَكَرَ</span>", t: "normal"},
+
+            // Row 2
+            {w: "<span class='c-blue'>سَكَتَ</span> <span class='c-red'>فَسَلِمَ</span>", t: "danger"},
+            {w: "<span class='c-blue'>ذَكَرَ</span> <span class='c-red'>فَخَشِيَ</span>", t: "normal"},
+            {w: "<span class='c-blue'>فَهِمَ</span> <span class='c-red'>وَعَلِمَ</span>", t: "golden"},
+
+            // Row 3
+            {w: "<span class='c-blue'>كَرِهَ</span> <span class='c-red'>وَسَخِطَ</span>", t: "normal"},
+            {w: "<span class='c-blue'>رَكَضَ</span> <span class='c-red'>فَتَعِبَ</span>", t: "speed"},
+            {w: "<span class='c-blue'>مَرِضَ</span> <span class='c-red'>فَصَبَرَ</span>", t: "normal"},
+
+            // Row 4
+            {w: "<span class='c-blue'>حَفِظَ</span> <span class='c-red'>فَقَوِيَ</span>", t: "danger"},
+            {w: "<span class='c-blue'>عَمِلَ</span> <span class='c-red'>فَرَبِحَ</span>", t: "normal"},
+            {w: "<span class='c-blue'>طَعِمَ</span> <span class='c-red'>فَشَبِعَ</span>", t: "golden"},
+
+            // Row 5
+            {w: "<span class='c-blue'>فَرِحَ</span> <span class='c-red'>فَضَحِكَ</span>", t: "normal"},
+            {w: "<span class='c-blue'>نَعِمَ</span> <span class='c-red'>وَأَمِنَ</span>", t: "speed"},
+            {w: "<span class='c-blue'>سَهِرَ</span> <span class='c-red'>فَتَعِبَ</span>", t: "normal"},
+
+            // Row 6
+            {w: "<span class='c-blue'>قَعَدَ</span> <span class='c-red'>وَشَهِدَ</span>", t: "danger"},
+            {w: "<span class='c-blue'>صَدَقَ</span> <span class='c-red'>فَرَبِحَ</span>", t: "normal"},
+            {w: "<span class='c-blue'>كَذَبَ</span> <span class='c-red'>فَخَسِرَ</span>", t: "golden"},
+
+            // Row 7 (3 words and 4 words)
+            {w: "<span class='c-blue'>وَلِيَ</span> <span class='c-red'>فَعَدَلَ</span> <span class='c-blue'>فَأَمِنَ</span>", t: "normal"},
+            {w: "<span class='c-blue'>عَلِمَ</span> <span class='c-red'>بِكَ</span> <span class='c-blue'>فَأَذِنَ</span> <span class='c-red'>لَكَ</span>", t: "speed"},
+
+            // Row 8 (Full long sentence)
+            {w: "<span class='c-blue'>أَكَلَ</span> <span class='c-red'>وَشَرِبَ</span> <span class='sep-bar'>-</span> <span class='c-blue'>فَحَمِدَ</span> <span class='c-red'>وَلَبِسَ</span> <span class='sep-bar'>-</span> <span class='c-blue'>وَخَرَجَ</span> <span class='c-red'>لِعَمَلِهِ</span>", t: "golden"}
+        ];
+        const _themes = ["pink","green","blue","yellow"];
+        dataset.forEach((item, i) => {
+            item.theme = _themes[Math.floor(i/4) % 4];
+        });
+    </script>
+    <script src="../shared/core.js"></script>
+</body>
+</html>

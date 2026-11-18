@@ -1,0 +1,225 @@
+/**
+ * Nour Al-Bayan Interactive Platform - Universal Quranic Word Renderer
+ * Centralized rendering engine for segmented boxes, letter groups, and color styles.
+ */
+(function (global) {
+    'use strict';
+
+    function _escapeHTML(str) {
+        if (!str && str !== 0) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    /**
+     * معالجة وترميم عيوب التجزئة في الحروف والخطوط القرآنية
+     * 1. دمج مركب اللام-ألف (لا) إذا شطرته وسوم span لمنع ظهوره كـ (لـا)
+     * 2. دمج الألف الخنجرية والمدود المعزولة مع الحرف السابق لها لمنع سقوطها على السطر
+     * 3. إزالة الكشيدات الزائدة الفاصلة قبل الألف الخنجرية (ـٰ -> ٰ)
+     * 4. تغليف الصفر المستدير (۟) بفئة quran-zero لضبط تموضعه وحجمه
+     */
+    function _healQuranicTypography(htmlStr) {
+        if (!htmlStr && htmlStr !== 0) return '';
+        let html = String(htmlStr);
+
+        // 1. دمج مركب اللام-ألف (لا) المتشظي عبر وسوم span
+        const lamAlifRegex = /<span\s+class=['"]([^'"]*)['"]>([^<]*?)ل([َُِّْ]*)<\/span><span\s+class=['"]([^'"]*)['"]>([اأإآآ][^<]*?)<\/span>/gi;
+        let prev = '';
+        while (prev !== html) {
+            prev = html;
+            html = html.replace(lamAlifRegex, (match, cls1, pre, haraka, cls2, alifAndRest) => {
+                const ligature = 'ل' + haraka + alifAndRest;
+                return pre ? (`<span class="${cls1}">${pre}</span><span class="${cls2}">${ligature}</span>`) : (`<span class="${cls2}">${ligature}</span>`);
+            });
+        }
+
+        // 2. دمج الألف الخنجرية وعلامات المد والأصفار القرآنية المعزولة مع الحرف السابق لها
+        const markRegex = /<span\s+class=['"]([^'"]*)['"]>([^<]*?)([\u0621-\u064A][\u064B-\u065F]*)ـ?<\/span><span\s+class=['"]([^'"]*)['"]>ـ?([\u0670\u06E5\u06E6\u06DF\u06E0][\u064B-\u065F]*)<\/span>/gi;
+        prev = '';
+        while (prev !== html) {
+            prev = html;
+            html = html.replace(markRegex, (match, cls1, pre, letter, cls2, mark) => {
+                const cleanMark = mark.replace(/ـ/g, '');
+                const combined = letter.replace(/ـ/g, '') + cleanMark;
+                return pre ? (`<span class="${cls1}">${pre}</span><span class="${cls2}">${combined}</span>`) : (`<span class="${cls2}">${combined}</span>`);
+            });
+        }
+
+        // 3. تطهير الكشيدات الزائدة الفاصلة قبل الألف الخنجرية وعلامات الصلة والأصفار
+        html = html.replace(/ـ([\u0670\u06E5\u06E6\u06DF\u06E0])/g, '$1');
+
+        return html;
+    }
+
+    function _sanitizeHTML(htmlStr) {
+        if (!htmlStr && htmlStr !== 0) return '';
+        const allowedTags = ['span', 'bdi', 'bdo', 'div', 'p', 'strong', 'em', 'small', 'sup', 'sub'];
+        const allowedAttrs = ['class', 'style', 'dir', 'lang', 'aria-label', 'aria-hidden'];
+        const tagPattern = /<\/?([a-zA-Z0-9]+)([^>]*)>/gi;
+
+        const clean = String(htmlStr).replace(tagPattern, (match, tagName, attrs) => {
+            const lowerTag = tagName.toLowerCase();
+            if (!allowedTags.includes(lowerTag)) return '';
+            if (match.startsWith('</')) return `</${lowerTag}>`;
+
+            let cleanAttrs = '';
+            const attrPattern = /([a-zA-Z0-9_-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi;
+            let attrMatch;
+            while ((attrMatch = attrPattern.exec(attrs)) !== null) {
+                const attrName = attrMatch[1].toLowerCase();
+                const attrValue = attrMatch[2] || attrMatch[3] || attrMatch[4] || '';
+                if (allowedAttrs.includes(attrName)) {
+                    if (attrName === 'style' && /(expression|javascript|url|behaviour|include-source)/i.test(attrValue)) {
+                        continue;
+                    }
+                    cleanAttrs += ` ${attrName}="${_escapeHTML(attrValue)}"`;
+                }
+            }
+            return `<${lowerTag}${cleanAttrs}>`;
+        });
+
+        return _healQuranicTypography(clean);
+    }
+
+    const ALLOWED_THEMES = new Set([
+        'amber', 'blue', 'danger', 'emerald', 'golden', 'green',
+        'pink', 'purple', 'yellow'
+    ]);
+
+    function _normalizeTheme(theme) {
+        const candidate = String(theme || '').trim().toLowerCase();
+        return ALLOWED_THEMES.has(candidate) ? candidate : 'pink';
+    }
+
+    const WordRenderer = {
+        /**
+         * توليد شفرة HTML نقية تمثل الكلمة بكامل صناديقها وألوانها
+         * @param {Object|string} item كائن الكلمة
+         * @param {Object} [options] خيارات إضافية (مثل السمة أو التحجيم)
+         * @returns {string} شفرة HTML
+         */
+        toHTML(item, options = {}) {
+            if (!item) return '';
+
+            const pageConfig = (typeof window !== 'undefined' && window.PAGE_CONFIG) || {};
+            const fontType = options.fontType || (item && item.fontType) || pageConfig.fontType || 'quran';
+            const fontClass = (fontType === 'dictation' || fontType === 'mixed') ? 'dictation-font' : 'quran-font';
+
+            // إذا كان المدخل نصاً بسيطاً
+            if (typeof item === 'string') {
+                const currentTheme = _normalizeTheme(options.theme);
+                return `<div class="letter-box theme-${currentTheme}"><span class="word-wrapper ${fontClass} text-center">${_sanitizeHTML(item)}</span></div>`;
+            }
+
+            const currentTheme = _normalizeTheme(item.theme || options.theme);
+            const plain = this.getPlainWord(item);
+            const cleanPlain = plain ? plain.replace(/[-ـ–—•]/g, ' ') : '';
+            const words = cleanPlain ? cleanPlain.split(/\s+/).filter(Boolean) : [];
+            const charCount = plain ? plain.replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\s-ـ–—•]/g, '').length : 0;
+            let lengthClass = '';
+            if (charCount > 18 || (words.length >= 5 && charCount > 12)) {
+                lengthClass = 'text-xlong';
+            } else if (charCount > 12 || (words.length >= 4 && charCount > 9)) {
+                lengthClass = 'text-long';
+            } else if (charCount > 7 || (words.length >= 3 && charCount > 6)) {
+                lengthClass = 'text-medium';
+            }
+
+            if (item.segs && Array.isArray(item.segs)) {
+                const colorClasses = ['c-red', 'c-blue', 'c-black'];
+                const segsHtml = item.segs.map((ch, i) => {
+                    const colorClass = colorClasses[i % 3];
+                    return `<div class="seg-box theme-${currentTheme} ${fontClass} ${colorClass}">${_escapeHTML(ch)}</div>`;
+                }).join('');
+                return `<div class="segmented-container">${segsHtml}</div>`;
+            }
+
+            if (item.boxes && Array.isArray(item.boxes)) {
+                const boxesHtml = item.boxes.map(segments => {
+                    const inner = segments.map(([t, c]) => `<span class="color-${_escapeHTML(c)}">${_escapeHTML(t)}</span>`).join('');
+                    return `<div class="seg-box theme-${currentTheme} ${fontClass}" style="direction: rtl;"><bdi style="white-space:nowrap">${inner}</bdi></div>`;
+                }).join('');
+                return `<div class="segmented-container">${boxesHtml}</div>`;
+            }
+
+            if (item.multiBox && Array.isArray(item.w)) {
+                const boxesHtml = item.w.map((char, i) => {
+                    return `<div class="seg-box theme-${currentTheme} ${fontClass} color-${i % 3}">${_escapeHTML(char)}</div>`;
+                }).join('');
+                return `<div class="segmented-container">${boxesHtml}</div>`;
+            }
+
+            if (item.groups && Array.isArray(item.groups)) {
+                const inner = item.groups.map(g => `<span class="${_escapeHTML(g[1])}" style="margin:0 .25em">${_escapeHTML(g[0])}</span>`).join('');
+                return `<div class="letter-box theme-${currentTheme} ${lengthClass}"><span class="word-wrapper ${fontClass} text-center">${inner}</span></div>`;
+            }
+
+            if (item.html) {
+                return `<div class="letter-box theme-${currentTheme} ${lengthClass}"><span class="word-wrapper ${fontClass} text-center">${_sanitizeHTML(item.html)}</span></div>`;
+            }
+
+            if (Array.isArray(item.w)) {
+                const inner = item.w.map((seg, i) => `<span class="color-${i % 3}">${_sanitizeHTML(seg)}</span>`).join('');
+                return `<div class="letter-box ${fontClass} theme-${currentTheme} ${lengthClass}" style="direction: rtl;"><bdi style="white-space:nowrap">${inner}</bdi></div>`;
+            }
+
+            if (item.w) {
+                return `<div class="letter-box theme-${currentTheme} ${lengthClass}"><span class="word-wrapper ${fontClass} text-center">${_sanitizeHTML(item.w)}</span></div>`;
+            }
+
+            return `<div class="letter-box theme-${currentTheme}"><span class="word-wrapper ${fontClass} text-center">${_escapeHTML(plain)}</span></div>`;
+        },
+
+        /**
+         * حقن الكلمة بجميع صناديقها داخل عنصر DOM
+         * @param {HTMLElement} container الحاوية
+         * @param {Object|string} item كائن الكلمة
+         * @param {Object} [options] خيارات إضافية
+         */
+        renderInto(container, item, options = {}) {
+            if (!container) return;
+            container.innerHTML = this.toHTML(item, options);
+        },
+
+        /**
+         * استخراج النص المجرد المقروء للكلمة للوصولية (Aria Labels)
+         * @param {Object|string} item كائن الكلمة
+         * @returns {string} النص المقروء
+         */
+        getPlainWord(item) {
+            if (!item) return '';
+            if (typeof item === 'string') {
+                return item.replace(/<[^>]+>/g, '').replace(/&zwj;/g, '').replace(/&nbsp;/g, ' ').trim();
+            }
+            if (item.plain) return String(item.plain).trim();
+            if (item.segs && Array.isArray(item.segs)) {
+                return item.segs.join('').replace(/<[^>]+>/g, '').replace(/&zwj;/g, '').replace(/&nbsp;/g, ' ').replace(/ـ/g, '').trim();
+            }
+            if (item.boxes && Array.isArray(item.boxes)) {
+                return item.boxes.map(b => Array.isArray(b) ? b.map(s => s[0]).join('') : '').join(' ').trim();
+            }
+            if (item.groups && Array.isArray(item.groups)) {
+                return item.groups.map(g => Array.isArray(g) ? g[0] : g).join('').trim();
+            }
+            if (Array.isArray(item.w)) {
+                return item.w.join('').replace(/<[^>]+>/g, '').replace(/&zwj;/g, '').replace(/&nbsp;/g, ' ').replace(/ـ/g, '').trim();
+            }
+            if (typeof item.w === 'string') {
+                return item.w.replace(/<[^>]+>/g, '').replace(/&zwj;/g, '').replace(/&nbsp;/g, ' ').trim();
+            }
+            if (item.html) {
+                return item.html.replace(/<[^>]+>/g, '').replace(/&zwj;/g, '').replace(/&nbsp;/g, ' ').trim();
+            }
+            return String(item.word || '').replace(/<[^>]+>/g, '').replace(/&zwj;/g, '').replace(/&nbsp;/g, ' ').trim();
+        }
+    };
+
+    global.WordRenderer = WordRenderer;
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = WordRenderer;
+    }
+})(typeof window !== 'undefined' ? window : globalThis);

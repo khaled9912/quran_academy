@@ -141,7 +141,7 @@ export default function StudentSchedulePage() {
   }
 
   return (
-    <main className="min-h-screen bg-background text-foreground pt-24 pb-16">
+    <main className="min-h-screen bg-background text-foreground pt-8 pb-16">
       <div className="mx-auto max-w-5xl px-4 md:px-8 lg:px-16">
         <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
           <div>

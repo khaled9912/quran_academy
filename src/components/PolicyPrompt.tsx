@@ -12,7 +12,7 @@ import { useAuth } from "@/providers/auth-provider";
  * API also refuses the actions behind that agreement, so this is the friendly
  * route to the same place rather than the enforcement itself.
  */
-export function PolicyPrompt() {
+export function PolicyPrompt({ attention = false }: { attention?: boolean }) {
   const { role, isAuthenticated } = useAuth();
   const query = useQuery({
     queryKey: ["policy-state"],
@@ -26,10 +26,23 @@ export function PolicyPrompt() {
   if (!state?.required || state.accepted) return null;
 
   return (
-    <div className="rounded-3xl border border-amber-300 bg-amber-500/10 p-5">
+    <div
+      id="policy-prompt"
+      className={`mb-8 scroll-mt-24 rounded-3xl border p-5 ${
+        attention
+          ? "border-red-500 bg-red-500/10 ring-2 ring-red-500/30"
+          : "border-amber-300 bg-amber-500/10"
+      }`}
+    >
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-start gap-3">
-          <Signature className="mt-0.5 text-amber-700 dark:text-amber-300" />
+          <Signature
+            className={`mt-0.5 ${
+              attention
+                ? "text-red-600 dark:text-red-400"
+                : "text-amber-700 dark:text-amber-300"
+            }`}
+          />
           <div>
             <p className="font-semibold text-foreground">
               {state.document?.title ?? "Academy agreement"}
@@ -39,6 +52,12 @@ export function PolicyPrompt() {
               academy cannot publish your times, finish your setup, or open a
               lesson room for you.
             </p>
+            {attention && (
+              <p className="mt-2 text-sm font-semibold text-red-600 dark:text-red-400">
+                This agreement is required. Review and accept it before you
+                continue.
+              </p>
+            )}
           </div>
         </div>
         <Link

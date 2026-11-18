@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نور البيان - صفحة 8</title>
+    <link rel="stylesheet" href="../shared/core.css">
+</head>
+<body class="flex flex-col items-center select-none bg-emerald-50/40">
+    <script>
+        window.PAGE_CONFIG = {
+            title: 'نور البيان',
+            subtitle: 'حركة الفتح — الحروف المجزأة',
+            lessonNumber: 6,
+            pageNumber: 8,
+            fontType: 'dictation',
+            game3: 'memory'
+        };
+
+        const _themes = ["pink","green","blue","yellow"];
+        const _raw = [
+            ["أَ", "مَـ", "ـرَ", "normal"],
+            ["سَـ", "ـأَ", "لَ", "speed"],
+            ["لَـ", "ـجَـ", "ـأَ", "normal"],
+            ["بَـ", "ـطَـ", "ـشَ", "normal"],
+            ["نَـ", "ـبَـ", "ـذَ", "golden"],
+            ["ثَـ", "ـقَـ", "ـبَ", "normal"],
+            ["تَـ", "ـجَـ", "ـرَ", "danger"],
+            ["كَـ", "ـتَـ", "ـبَ", "normal"],
+            ["ثَـ", "ـبَـ", "ـتَ", "normal"],
+            ["ثَـ", "ـرَ", "دَ", "speed"],
+            ["نَـ", "ـثَـ", "ـرَ", "normal"],
+            ["بَـ", "ـعَـ", "ـثَ", "normal"],
+            ["جَـ", "ـلَـ", "ـسَ", "golden"],
+            ["سَـ", "ـجَـ", "ـدَ", "normal"],
+            ["نَـ", "ـسَـ", "ـجَ", "danger"],
+            ["حَـ", "ـبَـ", "ـسَ", "normal"],
+            ["طَـ", "ـحَـ", "ـنَ", "speed"],
+            ["مَـ", "ـسَـ", "ـحَ", "normal"],
+            ["خَـ", "ـضَـ", "ـعَ", "normal"],
+            ["نَـ", "ـخَـ", "ـرَ", "golden"],
+            ["نَـ", "ـسَـ", "ـخَ", "danger"],
+            ["دَ", "فَـ", "ـنَ", "normal"],
+            ["صَـ", "ـدَ", "عَ", "speed"],
+            ["قَـ", "ـعَـ", "ـدَ", "normal"],
+            ["ذَ", "هَـ", "ـبَ", "normal"],
+            ["لَـ", "ـذَ", "عَ", "golden"],
+            ["أَ", "خَـ", "ـذَ", "normal"],
+            ["رَ", "زَ", "قَ", "danger"],
+            ["رَ", "كَـ", "ـعَ", "speed"],
+            ["قَـ", "ـرَ", "أَ", "normal"],
+            ["غَـ", "ـسَـ", "ـلَ", "normal"],
+            ["نَـ", "ـصَـ", "ـرَ", "golden"]
+        ];
+        const dataset = _raw.map((r,i)=>({w:[r[0],r[1],r[2]], t:r[3], multiBox: true, theme:_themes[Math.floor(i/4)%4]}));
+    </script>
+    <script src="../shared/core.js"></script>
+</body>
+</html>

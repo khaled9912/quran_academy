@@ -21,6 +21,7 @@ import { reportUnexpectedError } from "@/lib/sentry";
 import { getViewerTimeZone, timeZoneLabel } from "@/lib/weekly-time";
 import { plans } from "@/lib/plans";
 import { PolicyPrompt } from "@/components/PolicyPrompt";
+import { getPolicyState } from "@/services/policy.service";
 import { WEEKDAY_SHORT, formatTimeOfDay } from "@/lib/utils";
 import type { StudentLevel } from "@/types/onboarding";
 
@@ -100,6 +101,45 @@ const buildStudentWeeklySlots = (days: number[], startsAtTime: string) =>
     endsAtTime: addMinutes(startsAtTime, STUDENT_DURATION_MINUTES),
   }));
 
+// Partial saves are refused until the agreement is signed, so the wizard keeps
+// its own device-side record of the answers and the open step to survive a
+// refresh even when nothing has reached the server yet.
+const DRAFT_KEY = "student-onboarding-draft";
+
+type OnboardingDraft = {
+  levels: Record<LevelKey, StudentLevel | "">;
+  planDays: number;
+  selectedDays: number[];
+  preferredStart: string;
+  step: number;
+};
+
+const readDraft = (): OnboardingDraft | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(DRAFT_KEY);
+    return raw ? (JSON.parse(raw) as OnboardingDraft) : null;
+  } catch {
+    return null;
+  }
+};
+
+const writeDraft = (draft: OnboardingDraft) => {
+  try {
+    window.localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    // Storage may be unavailable (private mode); persistence is best-effort.
+  }
+};
+
+const clearDraft = () => {
+  try {
+    window.localStorage.removeItem(DRAFT_KEY);
+  } catch {
+    // ignore
+  }
+};
+
 export default function StudentOnboardingPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -120,6 +160,7 @@ export default function StudentOnboardingPage() {
   const [planDays, setPlanDays] = useState(0);
   const [saving, setSaving] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
+  const [policyAttention, setPolicyAttention] = useState(false);
   const swapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const endTime = useMemo(
     () => addMinutes(preferredStart, STUDENT_DURATION_MINUTES),
@@ -135,6 +176,15 @@ export default function StudentOnboardingPage() {
     queryFn: getAssignedWeeklyAvailability,
     enabled: role === "student",
   });
+  const policyQuery = useQuery({
+    queryKey: ["policy-state"],
+    queryFn: getPolicyState,
+    enabled: role === "student",
+  });
+
+  useEffect(() => {
+    if (policyQuery.data?.accepted) setPolicyAttention(false);
+  }, [policyQuery.data?.accepted]);
 
   // Resume wherever the student stopped rather than replaying step one.
   const hydrated = useRef(false);
@@ -142,6 +192,21 @@ export default function StudentOnboardingPage() {
     if (onboardingQuery.isLoading || hydrated.current) return;
     hydrated.current = true;
     const saved = onboardingQuery.data;
+    const draft = readDraft();
+    if (saved?.completedAt) {
+      // Updating an existing setup: prefill what they already chose so each
+      // step opens with their current answer ready to change.
+      clearDraft();
+    } else if (draft) {
+      // The device draft is the freshest record (it also holds the open step)
+      // and exists even when the agreement gate has blocked every server save.
+      setLevels(draft.levels);
+      setPlanDays(draft.planDays);
+      setSelectedDays(draft.selectedDays);
+      setPreferredStart(draft.preferredStart);
+      setStep(Math.min(Math.max(draft.step, 0), STEP_LABELS.length - 1));
+      return;
+    }
     // A tier tapped on /plans is the student's first answer, so setup opens
     // with it already chosen — before an account exists it is kept on the
     // device, and afterwards it comes back from the academy's own record.
@@ -159,13 +224,24 @@ export default function StudentOnboardingPage() {
     setSelectedDays(Array.from(new Set(saved.weeklySlots.map((slot) => slot.dayOfWeek))));
     if (saved.weeklySlots.length > 0) setPreferredStart(saved.weeklySlots[0].startsAtTime);
     setPlanDays(saved.planDaysPerWeek || tappedOnPlans);
-    if (saved.completedAt) return;
+    if (saved.completedAt) {
+      setStep(0);
+      return;
+    }
     // Resume at the first question still unanswered, so a student who only ever
     // said how often they want to learn is not sent back through the levels.
     if (SUBJECTS.some((subject) => !saved[subject.key])) setStep(0);
     else if (!saved.planDaysPerWeek) setStep(1);
     else setStep(2);
   }, [onboardingQuery.data, onboardingQuery.isLoading]);
+
+  // Persist answers + open step once hydration has run, so the write effect's
+  // first pass (default state) never clobbers the stored draft.
+  useEffect(() => {
+    if (!hydrated.current || celebrating || onboardingQuery.data?.completedAt)
+      return;
+    writeDraft({ levels, planDays, selectedDays, preferredStart, step });
+  }, [levels, planDays, selectedDays, preferredStart, step, celebrating, onboardingQuery.data?.completedAt]);
 
   useEffect(
     () => () => {
@@ -258,10 +334,21 @@ export default function StudentOnboardingPage() {
 
   const handleSubmit = async () => {
     if (!canFinish || saving) return;
+    const policy = policyQuery.data;
+    if (policy?.required && !policy.accepted) {
+      setPolicyAttention(true);
+      requestAnimationFrame(() =>
+        document
+          .getElementById("policy-prompt")
+          ?.scrollIntoView({ behavior: "smooth", block: "center" })
+      );
+      return;
+    }
     setSaving(true);
     try {
       await saveMyOnboarding(draft(true));
       clearPlanChoice();
+      clearDraft();
       queryClient.setQueryData(["onboarding", "student"], {
         ...(onboardingQuery.data ?? {}),
         ...draft(true),
@@ -311,7 +398,7 @@ export default function StudentOnboardingPage() {
 
   if (celebrating) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-4 pt-24 pb-16 text-foreground">
+      <div className="flex min-h-screen items-center justify-center bg-background px-4 pt-8 pb-16 text-foreground">
         <div className="w-full max-w-md rounded-3xl border border-card-bg bg-card-bg p-10 text-center">
           <div className="relative mx-auto flex h-24 w-24 items-center justify-center">
             <span className="halo absolute inset-0 rounded-full bg-green-500/40" />
@@ -344,7 +431,7 @@ export default function StudentOnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background px-4 pt-24 pb-16 text-foreground">
+    <div className="min-h-screen bg-background px-4 pt-8 pb-16 text-foreground">
       <div className="mx-auto w-full max-w-3xl">
         <div className="mb-6 flex items-center gap-4">
           {canLeaveSetup && (
@@ -361,7 +448,7 @@ export default function StudentOnboardingPage() {
         </div>
 
         <div className="space-y-4">
-          <PolicyPrompt />
+          <PolicyPrompt attention={policyAttention} />
 
           <div className="pt-1">
             <div className="flex items-center gap-3">

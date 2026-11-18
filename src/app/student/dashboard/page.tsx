@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  BookOpen,
   CalendarDays,
   Clock3,
   GraduationCap,
@@ -167,7 +168,7 @@ const StudentDashboard = () => {
 
   if (onboardingQuery.isLoading || availabilityQuery.isLoading) {
     return (
-      <div className="min-h-screen bg-background pb-16 pt-24">
+      <div className="min-h-screen bg-background pb-16 pt-8">
         <div className="mx-auto max-w-6xl px-4 md:px-8 lg:px-16">
           <div className="h-32 animate-pulse rounded-3xl bg-foreground/10" />
           <div className="mt-8 grid gap-4 lg:grid-cols-3">
@@ -182,9 +183,9 @@ const StudentDashboard = () => {
   const firstName = (user?.fullName ?? "").trim().split(/\s+/)[0];
 
   return (
-    <div className="min-h-screen bg-background text-foreground pt-24 pb-16">
+    <div className="min-h-screen bg-background text-foreground pt-4 pb-16">
       <div className="mx-auto max-w-6xl px-4 md:px-8 lg:px-16">
-        <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+        <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="mb-2 text-4xl font-bold">
               {firstName
@@ -438,6 +439,26 @@ const StudentDashboard = () => {
                   </Link>
                 </div>
               )}
+
+              <div className="rounded-3xl border border-card-border bg-card-bg p-6">
+                <div className="mb-2 flex items-center gap-2">
+                  <BookOpen
+                    size={20}
+                    className="text-green-600 dark:text-green-400"
+                  />
+                  <h3 className="text-lg font-semibold">Practice reading</h3>
+                </div>
+                <p className="mb-4 text-sm text-foreground opacity-70">
+                  Interactive Noor Al-Bayan lessons to practise letters,
+                  harakat and tajweed between your weekly lessons.
+                </p>
+                <Link
+                  href="/student/practice"
+                  className="block rounded-xl border border-green-500 px-4 py-2 text-center font-semibold text-green-600 transition hover:bg-green-500 hover:text-white dark:text-green-400"
+                >
+                  Start practising
+                </Link>
+              </div>
 
               <div className="rounded-3xl border border-card-border bg-card-bg p-6">
                 <h3 className="mb-2 text-lg font-semibold">Need help?</h3>

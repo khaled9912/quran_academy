@@ -80,7 +80,7 @@ export default function SuperAdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-background text-foreground pt-24 pb-16">
+    <div className="min-h-screen bg-background text-foreground pt-8 pb-16">
       <div className="max-w-6xl mx-auto px-4 md:px-8 lg:px-16">
         <div className="mb-8">
           <h1 className="text-4xl font-extrabold text-green-600 dark:text-green-400 mb-2">

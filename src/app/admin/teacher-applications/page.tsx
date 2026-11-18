@@ -171,7 +171,7 @@ export default function AdminTeacherApplicationsPage() {
   const applications = applicationsQuery.data ?? [];
 
   return (
-    <div className="min-h-screen bg-background text-foreground pt-24 pb-16">
+    <div className="min-h-screen bg-background text-foreground pt-8 pb-16">
       <div className="mx-auto max-w-6xl px-4 md:px-8 lg:px-16">
         <div className="mb-8">
           <h1 className="mb-2 text-4xl font-bold">Teacher applications</h1>

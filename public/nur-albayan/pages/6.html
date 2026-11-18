@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nour Al-Bayan - Page 6 • Letter Shapes (أشكال الحروف)</title>
+    
+    <link rel="stylesheet" href="../shared/core.css">
+    <script src="../shared/contracts.js"></script>
+    <script src="../shared/vendor-loader.js"></script>
+    <script src="../shared/store.js"></script>
+    <script src="../shared/i18n.js"></script>
+    <script src="../shared/locales/ar.js"></script>
+    <script src="../shared/locales/en.js"></script>
+    <script src="../shared/games-board.js"></script>
+    <script src="../shared/game-ai.js"></script>
+    <script src="../shared/games-extra.js"></script>
+    <script src="../shared/settings-values.js"></script>
+    <script src="../shared/settings-dialog.js"></script>
+    <script src="../shared/settings.js"></script>
+    <script src="../shared/sound.js"></script>
+    
+    <style>
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--color-bg-green, #f0fdf4);
+        }
+
+        .letter-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .letter-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .highlight {
+            color: var(--color-quranic-red, #b91c1c);
+            font-weight: bold;
+        }
+
+
+        .golden-border { border-color: #d97706; }
+    </style>
+</head>
+<body class="min-h-screen w-full flex flex-col">
+
+    <!-- Top Navigation Bar -->
+    <div class="flex-none h-16 w-full bg-white shadow-md flex justify-between items-center px-2 md:px-6 border-b-4 border-emerald-500 z-20 relative gap-2">
+        <div class="flex items-center gap-1.5">
+            <a href="../index.html" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold py-2 px-3 rounded-lg shadow flex items-center text-sm md:text-base no-underline" title="الفهرس الرئيسي" aria-label="الفهرس الرئيسي">
+                <span aria-hidden="true">🏠</span> <span class="hidden sm:inline">الفهرس</span>
+            </a>
+            <button id="prevBtn" class="bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-2 px-3 md:px-4 rounded-lg shadow flex items-center text-sm md:text-base">
+                <span aria-hidden="true">⬅️</span> <span data-i18n="page6_previous">السابق</span>
+            </button>
+        </div>
+        
+        <label for="letterSelect" class="sr-only" data-i18n="page6_select_label">اختر الحرف أو النشاط</label>
+        <select id="letterSelect" class="mx-1 md:mx-4 flex-grow min-w-0 max-w-sm text-center text-sm sm:text-lg md:text-xl py-1 px-1 sm:px-2 bg-emerald-50 border-2 border-emerald-200 rounded-lg focus:ring-2 focus:ring-emerald-400 font-bold text-emerald-800 cursor-pointer">
+            <!-- Options populated by JS -->
+        </select>
+        
+        <div class="flex items-center gap-1.5">
+            <button id="nextBtn" class="bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-2 px-3 md:px-4 rounded-lg shadow flex items-center text-sm md:text-base">
+                <span data-i18n="page6_next">التالي</span> <span aria-hidden="true">➡️</span>
+            </button>
+            <a href="7.html" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-2.5 sm:px-3.5 rounded-lg shadow flex items-center text-sm md:text-base no-underline" title="الصفحة التالية (ص 7)">
+                <span>ص 7</span> <span aria-hidden="true">»</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow flex items-center justify-center p-2 md:p-4 min-h-0 w-full relative">
+        
+        <!-- 1. HOME SLIDE -->
+        <div id="homeSlide" class="w-full flex flex-col items-center justify-center text-center max-w-4xl mx-auto py-6">
+            <div class="text-5xl md:text-7xl mb-2">🌟🎈</div>
+            <h1 class="text-3xl md:text-5xl font-black text-emerald-600 mb-2 drop-shadow-sm">
+                <span data-i18n="page6_hero_title">أبطال الحروف العربية</span> <span aria-hidden="true">🦸‍♂️</span>
+            </h1>
+            <p class="text-lg md:text-xl text-gray-600 font-bold mb-4" data-i18n="page6_hero_subtitle">هيا نتعلم أشكال الحروف في الكلمات</p>
+            
+            <div class="bg-emerald-50 border-2 border-emerald-200 rounded-2xl px-4 py-3 shadow-sm text-emerald-800 font-bold text-sm md:text-lg mb-4 w-full max-w-2xl transform transition hover:scale-105">
+                <p data-i18n="page6_prayer">نسألكم الدعاء لوالدي وأخي بالرحمة والمغفرة</p>
+            </div>
+
+            <div class="bg-white rounded-2xl p-3 md:p-4 mb-6 border border-pink-200 shadow-md inline-block text-gray-700 font-bold text-base md:text-lg w-full max-w-md">
+                <p class="mb-1 text-emerald-700 text-xl font-black">👨‍🏫 Sheikh Gehad Elsayad</p>
+                <p class="mb-1 text-gray-600">📞 01147992249</p>
+                <p class="text-gray-600">✉️ gehadnagah789@gmail.com</p>
+            </div>
+
+            <button id="startBtn" class="bg-green-600 hover:bg-green-700 text-white font-black py-3 px-8 rounded-full shadow-xl text-xl md:text-2xl ">
+                <span data-i18n="page6_start_learning">ابدأ التعلم</span> <span aria-hidden="true">🚀</span>
+            </button>
+        </div>
+
+        <!-- 2. LEARNING SECTION -->
+        <div id="learningSection" class="hidden w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6 py-4" dir="rtl" lang="ar">
+            <div class="letter-card bg-white rounded-3xl shadow-xl border-2 border-green-400 flex flex-col items-center justify-center h-full p-2 md:p-6 text-center">
+                <div class="bg-green-100 text-green-800 px-3 py-1 md:px-6 md:py-2 rounded-full font-bold text-sm md:text-lg mb-4 shadow-sm"><span data-i18n="page6_shape_start">أول الكلمة</span> <span aria-hidden="true">🏁</span></div>
+                <div id="shapeStart" class="text-5xl md:text-8xl mb-2 quran-font text-gray-800" dir="rtl"></div>
+                <div class="w-3/4 h-px bg-gray-200 my-4"></div>
+                <div id="wordStart" class="text-4xl md:text-7xl quran-font text-gray-800 mt-2" dir="rtl"></div>
+            </div>
+
+            <div class="letter-card bg-white rounded-3xl shadow-xl border-2 border-yellow-400 flex flex-col items-center justify-center h-full p-2 md:p-6 text-center">
+                <div class="bg-yellow-100 text-yellow-800 px-3 py-1 md:px-6 md:py-2 rounded-full font-bold text-sm md:text-lg mb-4 shadow-sm"><span data-i18n="page6_shape_middle">وسط الكلمة</span> <span aria-hidden="true">🔗</span></div>
+                <div id="shapeMiddle" class="text-5xl md:text-8xl mb-2 quran-font text-gray-800" dir="rtl"></div>
+                <div class="w-3/4 h-px bg-gray-200 my-4"></div>
+                <div id="wordMiddle" class="text-4xl md:text-7xl quran-font text-gray-800 mt-2" dir="rtl"></div>
+            </div>
+
+            <div class="letter-card bg-white rounded-3xl shadow-xl border-2 border-pink-400 flex flex-col items-center justify-center h-full p-2 md:p-6 text-center">
+                <div class="bg-pink-100 text-pink-800 px-3 py-1 md:px-6 md:py-2 rounded-full font-bold text-sm md:text-lg mb-4 shadow-sm"><span data-i18n="page6_shape_end">آخر الكلمة</span> <span aria-hidden="true">🛑</span></div>
+                <div id="shapeEnd" class="text-5xl md:text-8xl mb-2 quran-font text-gray-800" dir="rtl"></div>
+                <div class="w-3/4 h-px bg-gray-200 my-4"></div>
+                <div id="wordEnd" class="text-4xl md:text-7xl quran-font text-gray-800 mt-2" dir="rtl"></div>
+            </div>
+        </div>
+
+        <!-- 3. QUIZ SECTION -->
+        <div id="quizSection" class="hidden w-full max-w-4xl bg-white rounded-3xl shadow-2xl border-4 p-4 md:p-8 flex flex-col justify-center items-center relative transition-all duration-300 my-6">
+            
+            <div class="absolute top-4 left-4 md:left-8 bg-gray-100 px-4 py-2 rounded-xl shadow-inner font-black text-xl md:text-2xl text-gray-700 flex items-center gap-2">
+                <span id="timerDisplay" role="timer" aria-live="off">⏳ 10s</span>
+            </div>
+            
+            <div class="absolute top-4 right-4 md:right-8 bg-green-100 px-4 py-2 rounded-xl shadow-inner font-black text-xl md:text-2xl text-green-700 flex items-center gap-2 transition-transform" id="scoreContainer">
+                <span aria-hidden="true">🏆</span> <span data-i18n="score">الدرجة</span>: <span id="scoreDisplay">0</span>
+            </div>
+
+            <div id="qTypeBadge" class="absolute -top-5 left-1/2 transform -translate-x-1/2 text-white font-black text-lg md:text-2xl px-6 md:px-10 py-1 rounded-full shadow-md whitespace-nowrap">
+                <span data-i18n="page6_challenge">وقت التحدي</span>
+            </div>
+            
+            <div id="quizContainer" class="w-full flex flex-col items-center justify-center mt-12 md:mt-8">
+                <h3 class="text-lg md:text-2xl font-bold text-gray-600 mb-4 text-center" data-i18n="page6_choose_shape">اختر الشكل الصحيح سريعاً</h3>
+                <div id="quizWord" class="text-6xl md:text-8xl quran-font font-bold text-gray-800 mb-8 text-center" dir="rtl" lang="ar"></div>
+                <div id="quizOptions" class="flex justify-center items-center gap-3 md:gap-6 flex-wrap flex-row-reverse" dir="rtl"></div>
+                <div id="quizFeedback" class="mt-4 md:mt-8 text-2xl md:text-4xl font-bold min-h-10 transition-all text-center" role="status" aria-live="polite"></div>
+                <button id="nextQuizBtn" class="hidden mt-4 md:mt-6 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-10 rounded-full shadow-lg transition-transform hover:scale-105">
+                    <span data-i18n="page6_next_question">السؤال التالي</span> <span aria-hidden="true">➡️</span>
+                </button>
+            </div>
+
+            <div id="quizComplete" class="hidden w-full flex flex-col items-center justify-center text-center">
+                <div class="text-7xl md:text-9xl mb-4">🎉👑🎉</div>
+                <h2 class="text-4xl md:text-5xl font-black text-green-700 mb-2" data-i18n="page6_quiz_complete">أنت بطل</h2>
+                <p class="text-2xl md:text-3xl font-bold text-gray-700 mb-6"><span data-i18n="page6_final_score">الدرجة النهائية:</span> <span id="finalScoreDisplay" class="text-emerald-600">0</span> <span aria-hidden="true">🏆</span></p>
+                <button id="backToLettersFromQuizBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full shadow-lg text-xl md:text-2xl transition-transform hover:scale-105">
+                    <span data-i18n="page6_continue">واصل الرحلة</span> <span aria-hidden="true">➡️</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 4. FUN BREAK (TIC-TAC-TOE) -->
+        <div id="gameSectionTTT" class="hidden w-full max-w-2xl bg-white rounded-3xl shadow-2xl border-4 border-blue-400 p-4 md:p-8 flex flex-col justify-center items-center relative transition-all duration-300 my-6">
+            <div class="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white font-black text-xl md:text-2xl px-8 py-1 rounded-full shadow-md whitespace-nowrap">
+                <span data-i18n="page6_fun_break">استراحة ممتعة</span> <span aria-hidden="true">🎮</span>
+            </div>
+            
+            <h2 class="text-3xl md:text-4xl font-black text-emerald-600 mb-2 text-center" data-i18n="game_xo">إكس-أو</h2>
+            <div class="flex flex-wrap justify-center gap-2 mb-3" role="toolbar" data-i18n-aria="aria_game_mode_controls" aria-label="ضبط نمط اللعبة">
+                <button id="xo-mode-btn" type="button" onclick="gameAI.toggleMode('xo')" class="bg-emerald-600 text-white px-4 py-2 rounded-full font-bold" data-i18n-aria="aria_toggle_opponent" aria-label="تبديل الخصم">ضد الحاسوب</button>
+                <button id="xo-diff-btn" type="button" onclick="gameAI.toggleDifficulty()" class="bg-amber-300 text-amber-950 px-4 py-2 rounded-full font-bold" data-i18n-aria="aria_toggle_diff" aria-label="تبديل الصعوبة">سهل</button>
+            </div>
+            <div id="xo-status" class="text-xl md:text-2xl font-bold text-gray-700 mb-4" aria-live="polite">دور اللاعب X</div>
+            <div class="xo-board-container mb-4"><div id="xo-board" class="grid grid-cols-3 gap-2 md:gap-3 bg-emerald-100 p-3 rounded-3xl w-full h-full"></div></div>
+
+            <div class="flex gap-4">
+                <button id="resetGameBtnTTT" type="button" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-full shadow-lg flex items-center gap-2">
+                    <span data-i18n="page6_play_again">العب ثانية</span> <span aria-hidden="true">🔄</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 5. FUN BREAK (CONNECT FOUR) -->
+        <div id="gameSectionC4" class="hidden w-full max-w-3xl bg-white rounded-3xl shadow-2xl border-4 border-emerald-400 p-3 md:p-8 flex flex-col justify-center items-center relative transition-all duration-300 my-6">
+            <div class="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-emerald-500 text-white font-black text-xl md:text-2xl px-8 py-1 rounded-full shadow-md whitespace-nowrap">
+                <span data-i18n="page6_fun_break">استراحة ممتعة</span> <span aria-hidden="true">🎮</span>
+            </div>
+            
+            <h2 class="text-3xl md:text-4xl font-black text-emerald-600 mb-2 text-center mt-6 md:mt-0" data-i18n="game_c4">أربعة في خط</h2>
+            <div class="flex flex-wrap justify-center gap-2 mb-3" role="toolbar" data-i18n-aria="aria_game_mode_controls" aria-label="ضبط نمط اللعبة">
+                <button id="c4-mode-btn" type="button" onclick="gameAI.toggleMode('c4')" class="bg-sky-600 text-white px-4 py-2 rounded-full font-bold" data-i18n-aria="aria_toggle_opponent" aria-label="تبديل الخصم">ضد الحاسوب</button>
+                <button id="c4-diff-btn" type="button" onclick="gameAI.toggleDifficulty()" class="bg-amber-300 text-amber-950 px-4 py-2 rounded-full font-bold" data-i18n-aria="aria_toggle_diff" aria-label="تبديل الصعوبة">سهل</button>
+            </div>
+            <div id="c4-status" class="text-xl md:text-2xl font-bold text-gray-700 mb-4 text-center" aria-live="polite">دور الأحمر</div>
+            <div id="c4-board-container" class="c4-board-new grid-cols-7 mx-auto mb-4"></div>
+
+            <div class="flex gap-4">
+                <button id="resetGameBtnC4" type="button" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 md:py-3 px-6 rounded-full shadow-lg flex items-center gap-2 text-lg">
+                    <span data-i18n="page6_play_again">العب ثانية</span> <span aria-hidden="true">🔄</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 6. FUN BREAK (MEMORY PUZZLE) -->
+        <div id="gameSectionMem" class="hidden w-full max-w-3xl bg-white rounded-3xl shadow-2xl border-4 border-orange-400 p-4 md:p-8 flex flex-col justify-center items-center relative transition-all duration-300 my-6">
+            <div class="absolute -top-5 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white font-black text-xl md:text-2xl px-8 py-1 rounded-full shadow-md whitespace-nowrap">
+                <span data-i18n="page6_fun_break">استراحة ممتعة</span> <span aria-hidden="true">🧩</span>
+            </div>
+            
+            <h2 class="text-3xl md:text-4xl font-black text-orange-600 mb-2 text-center" data-i18n="game_memory">تحدي الذاكرة</h2>
+            <div id="memory-status" class="text-xl md:text-2xl font-bold text-gray-700 mb-4 text-center" aria-live="polite">ابحث عن الأزواج المتطابقة</div>
+            <div id="memory-board" class="mem-board mb-6"></div>
+
+            <div class="flex gap-4">
+                <button id="resetGameBtnMem" type="button" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-full shadow-lg flex items-center gap-2">
+                    <span data-i18n="page6_play_again">العب ثانية</span> <span aria-hidden="true">🔄</span>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const h = (letter) => `<span class="highlight">${letter}</span>`;
+        const qh = (letter) => `<span class="text-green-500">${letter}</span>`;
+
+        const alphabetData = [
+            { letter: 'أ', start: { s: 'أ', w: `${h('أ')}رنب` }, middle: { s: 'ـأ', w: `فـ${h('ـأ')}ر` }, end: { s: 'ـأ &nbsp; أ &nbsp; ء', w: `مخبـ${h('ـأ')}` } },
+            { letter: 'ب', start: { s: 'بـ', w: `${h('بـ')}قرة` }, middle: { s: 'ـبـ', w: `حـ${h('ـبـ')}ل` }, end: { s: 'ـب &nbsp; ب', w: `كلـ${h('ـب')}` } },
+            { letter: 'ت', start: { s: 'تـ', w: `${h('تـ')}فاحة` }, middle: { s: 'ـتـ', w: `كـ${h('ـتـ')}اب` }, end: { s: 'ـت &nbsp; ت', w: `بنـ${h('ـت')}` } },
+            { letter: 'ث', start: { s: 'ثـ', w: `${h('ثـ')}علب` }, middle: { s: 'ـثـ', w: `مـ${h('ـثـ')}لث` }, end: { s: 'ـث &nbsp; ث', w: `محرا${h('ث')}` } },
+            { letter: 'ج', start: { s: 'جـ', w: `${h('جـ')}مل` }, middle: { s: 'ـجـ', w: `شـ${h('ـجـ')}رة` }, end: { s: 'ـج &nbsp; ج', w: `ثلـ${h('ـج')}` } },
+            { letter: 'ح', start: { s: 'حـ', w: `${h('حـ')}صان` }, middle: { s: 'ـحـ', w: `لـ${h('ـحـ')}م` }, end: { s: 'ـح &nbsp; ح', w: `ملـ${h('ـح')}` } },
+            { letter: 'خ', start: { s: 'خـ', w: `${h('خـ')}روف` }, middle: { s: 'ـخـ', w: `نـ${h('ـخـ')}لة` }, end: { s: 'ـخ &nbsp; خ', w: `بطيـ${h('ـخ')}` } },
+            { letter: 'د', start: { s: 'د', w: `${h('د')}يك` }, middle: { s: 'ـد', w: `مـ${h('ـد')}رسة` }, end: { s: 'ـد &nbsp; د', w: `يـ${h('ـد')}` } },
+            { letter: 'ذ', start: { s: 'ذ', w: `${h('ذ')}رة` }, middle: { s: 'ـذ', w: `بـ${h('ـذ')}ور` }, end: { s: 'ـذ &nbsp; ذ', w: `قنفـ${h('ـذ')}` } },
+            { letter: 'ر', start: { s: 'ر', w: `${h('ر')}مان` }, middle: { s: 'ـر', w: `خـ${h('ـر')}وف` }, end: { s: 'ـر &nbsp; ر', w: `قـ${h('ـر')}د` } },
+            { letter: 'ز', start: { s: 'ز', w: `${h('ز')}رافة` }, middle: { s: 'ـز', w: `جـ${h('ـز')}ر` }, end: { s: 'ـز &nbsp; ز', w: `مو${h('ز')}` } },
+            { letter: 'س', start: { s: 'سـ', w: `${h('سـ')}مكة` }, middle: { s: 'ـسـ', w: `تمـ${h('ـسـ')}اح` }, end: { s: 'ـس &nbsp; س', w: `شمـ${h('ـس')}` } },
+            { letter: 'ش', start: { s: 'شـ', w: `${h('شـ')}جرة` }, middle: { s: 'ـشـ', w: `مـ${h('ـشـ')}ط` }, end: { s: 'ـش &nbsp; ش', w: `عـ${h('ـش')}` } },
+            { letter: 'ص', start: { s: 'صـ', w: `${h('صـ')}قر` }, middle: { s: 'ـصـ', w: `عـ${h('ـصـ')}فور` }, end: { s: 'ـص &nbsp; ص', w: `مقـ${h('ـص')}` } },
+            { letter: 'ض', start: { s: 'ضـ', w: `${h('ضـ')}فدع` }, middle: { s: 'ـضـ', w: `مـ${h('ـضـ')}رب` }, end: { s: 'ـض &nbsp; ض', w: `أبيـ${h('ـض')}` } },
+            { letter: 'ط', start: { s: 'طـ', w: `${h('طـ')}ائرة` }, middle: { s: 'ـطـ', w: `مـ${h('ـطـ')}ر` }, end: { s: 'ـط &nbsp; ط', w: `قـ${h('ـط')}` } },
+            { letter: 'ظ', start: { s: 'ظـ', w: `${h('ظـ')}رف` }, middle: { s: 'ـظـ', w: `مـ${h('ـظـ')}لة` }, end: { s: 'ـظ &nbsp; ظ', w: `حافـ${h('ـظ')}` } },
+            { letter: 'ع', start: { s: 'عـ', w: `${h('عـ')}نب` }, middle: { s: 'ـعـ', w: `ثـ${h('ـعـ')}لب` }, end: { s: 'ـع &nbsp; ع', w: `ضفد${h('ع')}` } },
+            { letter: 'غ', start: { s: 'غـ', w: `${h('غـ')}سالة` }, middle: { s: 'ـغـ', w: `ببـ${h('ـغـ')}اء` }, end: { s: 'ـغ &nbsp; غ', w: `صمـ${h('ـغ')}` } },
+            { letter: 'ف', start: { s: 'فـ', w: `${h('فـ')}يل` }, middle: { s: 'ـفـ', w: `تـ${h('ـفـ')}احة` }, end: { s: 'ـف &nbsp; ف', w: `هاتـ${h('ـف')}` } },
+            { letter: 'ق', start: { s: 'قـ', w: `${h('قـ')}رد` }, middle: { s: 'ـقـ', w: `صـ${h('ـقـ')}ر` }, end: { s: 'ـق &nbsp; ق', w: `طبـ${h('ـق')}` } },
+            { letter: 'ك', start: { s: 'كـ', w: `${h('كـ')}لب` }, middle: { s: 'ـكـ', w: `سـ${h('ـكـ')}ين` }, end: { s: 'ـك &nbsp; ك', w: `سمـ${h('ـك')}` } },
+            { letter: 'ل', start: { s: 'لـ', w: `${h('لـ')}يمون` }, middle: { s: 'ـلـ', w: `قـ${h('ـلـ')}م` }, end: { s: 'ـل &nbsp; ل', w: `جمـ${h('ـل')}` } },
+            { letter: 'م', start: { s: 'مـ', w: `${h('مـ')}وز` }, middle: { s: 'ـمـ', w: `شـ${h('ـمـ')}س` }, end: { s: 'ـم &nbsp; م', w: `قلـ${h('ـم')}` } },
+            { letter: 'ن', start: { s: 'نـ', w: `${h('نـ')}مر` }, middle: { s: 'ـنـ', w: `عـ${h('ـنـ')}ب` }, end: { s: 'ـن &nbsp; ن', w: `عيـ${h('ـن')}` } },
+            { letter: 'هـ', start: { s: 'هـ', w: `${h('هـ')}رم` }, middle: { s: 'ـهـ', w: `فـ${h('ـهـ')}د` }, end: { s: 'ـه &nbsp; ه &nbsp; ـة &nbsp; ة', w: `وجـ${h('ـه')}` } },
+            { letter: 'و', start: { s: 'و', w: `${h('و')}ردة` }, middle: { s: 'ـو', w: `حـ${h('ـو')}ت` }, end: { s: 'ـو &nbsp; و', w: `دلـ${h('ـو')}` } },
+            { letter: 'ي', start: { s: 'يـ', w: `${h('يـ')}د` }, middle: { s: 'ـيـ', w: `لـ${h('ـيـ')}مون` }, end: { s: 'ـي &nbsp; ي &nbsp; ـي &nbsp; ى', w: `كرسـ${h('ـي')}` } }
+        ];
+
+        const quizzes = [
+            {
+                groupName: "Group 1 Quiz (أ - ج)",
+                questions: [
+                    { word: "___ رنب", answer: "أ", options: ["أ", "ـأ", "ا"], full: `${qh('أ')}رنب` },
+                    { word: "فـ ___ ر", answer: "ـأ", options: ["أ", "ـأ", "ا"], full: `فـ${qh('ـأ')}ر` },
+                    { word: "مخبـ ___", answer: "ـأ", options: ["أ", "ـأ", "ا"], full: `مخبـ${qh('ـأ')}` },
+                    { word: "___ ـقرة", answer: "بـ", options: ["بـ", "ـبـ", "ـب"], full: `${qh('بـ')}قرة` },
+                    { word: "حـ ___ ـل", answer: "ـبـ", options: ["بـ", "ـبـ", "ـب"], full: `حـ${qh('ـبـ')}ل` },
+                    { word: "كلـ ___", answer: "ـب", options: ["بـ", "ـبـ", "ـب"], full: `كلـ${qh('ـب')}` },
+                    { word: "___ ـفاحة", answer: "تـ", options: ["تـ", "ـتـ", "ـت"], full: `${qh('تـ')}فاحة` },
+                    { word: "كـ ___ ـاب", answer: "ـتـ", options: ["تـ", "ـتـ", "ـت"], full: `كـ${qh('ـتـ')}اب` },
+                    { word: "بنـ ___", answer: "ـت", options: ["تـ", "ـتـ", "ـت"], full: `بنـ${qh('ـت')}` },
+                    { word: "___ ـعلب", answer: "ثـ", options: ["ثـ", "ـثـ", "ـث"], full: `${qh('ثـ')}علب` },
+                    { word: "مـ ___ ـلث", answer: "ـثـ", options: ["ثـ", "ـثـ", "ـث"], full: `مـ${qh('ـثـ')}لث` },
+                    { word: "محرا ___", answer: "ث", options: ["ثـ", "ـثـ", "ث"], full: `محرا${qh('ث')}` },
+                    { word: "___ ـمل", answer: "جـ", options: ["جـ", "ـجـ", "ـج"], full: `${qh('جـ')}مل` },
+                    { word: "شـ ___ ـرة", answer: "ـجـ", options: ["جـ", "ـجـ", "ـج"], full: `شـ${qh('ـجـ')}رة` },
+                    { word: "ثلـ ___", answer: "ـج", options: ["جـ", "ـجـ", "ـج"], full: `ثلـ${qh('ـج')}` }
+                ]
+            },
+            {
+                groupName: "Group 2 Quiz (ح - ر)",
+                questions: [
+                    { word: "___ ـصان", answer: "حـ", options: ["حـ", "ـحـ", "ـح"], full: `${qh('حـ')}صان` },
+                    { word: "لـ ___ ـم", answer: "ـحـ", options: ["حـ", "ـحـ", "ـح"], full: `لـ${qh('ـحـ')}م` },
+                    { word: "ملـ ___", answer: "ـح", options: ["حـ", "ـحـ", "ـح"], full: `ملـ${qh('ـح')}` },
+                    { word: "___ ـروف", answer: "خـ", options: ["خـ", "ـخـ", "ـخ"], full: `${qh('خـ')}روف` },
+                    { word: "نـ ___ ـلة", answer: "ـخـ", options: ["خـ", "ـخـ", "ـخ"], full: `نـ${qh('ـخـ')}لة` },
+                    { word: "بطيـ ___", answer: "ـخ", options: ["خـ", "ـخـ", "ـخ"], full: `بطيـ${qh('ـخ')}` },
+                    { word: "___ يك", answer: "د", options: ["د", "ـد", "دـ"], full: `${qh('د')}يك` },
+                    { word: "مـ ___ رسة", answer: "ـد", options: ["د", "ـد", "دـ"], full: `مـ${qh('ـد')}رسة` },
+                    { word: "يـ ___", answer: "ـد", options: ["د", "ـد", "دـ"], full: `يـ${qh('ـد')}` },
+                    { word: "___ رة", answer: "ذ", options: ["ذ", "ـذ", "ذـ"], full: `${qh('ذ')}رة` },
+                    { word: "بـ ___ ور", answer: "ـذ", options: ["ذ", "ـذ", "ذـ"], full: `بـ${qh('ـذ')}ور` },
+                    { word: "قنفـ ___", answer: "ـذ", options: ["ذ", "ـذ", "ذـ"], full: `قنفـ${qh('ـذ')}` },
+                    { word: "___ مان", answer: "ر", options: ["ر", "ـر", "رـ"], full: `${qh('ر')}مان` },
+                    { word: "خـ ___ وف", answer: "ـر", options: ["ر", "ـر", "رـ"], full: `خـ${qh('ـر')}وف` },
+                    { word: "قـ ___ د", answer: "ـر", options: ["ر", "ـر", "رـ"], full: `قـ${qh('ـر')}د` }
+                ]
+            },
+            {
+                groupName: "Group 3 Quiz (ز - ض)",
+                questions: [
+                    { word: "___ رافة", answer: "ز", options: ["ز", "ـز", "زـ"], full: `${qh('ز')}رافة` },
+                    { word: "جـ ___ ر", answer: "ـز", options: ["ز", "ـز", "زـ"], full: `جـ${qh('ـز')}ر` },
+                    { word: "مو ___", answer: "ز", options: ["ز", "ـز", "زـ"], full: `مو${qh('ز')}` },
+                    { word: "___ ـمكة", answer: "سـ", options: ["سـ", "ـسـ", "ـس"], full: `${qh('سـ')}مكة` },
+                    { word: "تمـ ___ ـاح", answer: "ـسـ", options: ["سـ", "ـسـ", "ـس"], full: `تمـ${qh('ـسـ')}اح` },
+                    { word: "شمـ ___", answer: "ـس", options: ["سـ", "ـسـ", "ـس"], full: `شمـ${qh('ـس')}` },
+                    { word: "___ ـجرة", answer: "شـ", options: ["شـ", "ـشـ", "ـش"], full: `${qh('شـ')}جرة` },
+                    { word: "مـ ___ ـط", answer: "ـشـ", options: ["شـ", "ـشـ", "ـش"], full: `مـ${qh('ـشـ')}ط` },
+                    { word: "عـ ___", answer: "ـش", options: ["شـ", "ـشـ", "ـش"], full: `عـ${qh('ـش')}` },
+                    { word: "___ ـقر", answer: "صـ", options: ["صـ", "ـصـ", "ـص"], full: `${qh('صـ')}قر` },
+                    { word: "عـ ___ ـفور", answer: "ـصـ", options: ["صـ", "ـصـ", "ـص"], full: `عـ${qh('ـصـ')}فور` },
+                    { word: "مقـ ___", answer: "ـص", options: ["صـ", "ـصـ", "ـص"], full: `مقـ${qh('ـص')}` },
+                    { word: "___ ـفدع", answer: "ضـ", options: ["ضـ", "ـضـ", "ـض"], full: `${qh('ضـ')}فدع` },
+                    { word: "مـ ___ ـرب", answer: "ـضـ", options: ["ضـ", "ـضـ", "ـض"], full: `مـ${qh('ـضـ')}رب` },
+                    { word: "أبيـ ___", answer: "ـض", options: ["ضـ", "ـضـ", "ـض"], full: `أبيـ${qh('ـض')}` }
+                ]
+            },
+            {
+                groupName: "Group 4 Quiz (ط - ف)",
+                questions: [
+                    { word: "___ ـائرة", answer: "طـ", options: ["طـ", "ـطـ", "ـط"], full: `${qh('طـ')}ائرة` },
+                    { word: "مـ ___ ـر", answer: "ـطـ", options: ["طـ", "ـطـ", "ـط"], full: `مـ${qh('ـطـ')}ر` },
+                    { word: "قـ ___", answer: "ـط", options: ["طـ", "ـطـ", "ـط"], full: `قـ${qh('ـط')}` },
+                    { word: "___ ـرف", answer: "ظـ", options: ["ظـ", "ـظـ", "ـظ"], full: `${qh('ظـ')}رف` },
+                    { word: "مـ ___ ـلة", answer: "ـظـ", options: ["ظـ", "ـظـ", "ـظ"], full: `مـ${qh('ـظـ')}لة` },
+                    { word: "حافـ ___", answer: "ـظ", options: ["ظـ", "ـظـ", "ـظ"], full: `حافـ${qh('ـظ')}` },
+                    { word: "___ ـنب", answer: "عـ", options: ["عـ", "ـعـ", "ع"], full: `${qh('عـ')}نب` },
+                    { word: "ثـ ___ ـلب", answer: "ـعـ", options: ["عـ", "ـعـ", "ع"], full: `ثـ${qh('ـعـ')}لب` },
+                    { word: "ضفد ___", answer: "ع", options: ["عـ", "ـعـ", "ع"], full: `ضفد${qh('ع')}` },
+                    { word: "___ ـسالة", answer: "غـ", options: ["غـ", "ـغـ", "ـغ"], full: `${qh('غـ')}سالة` },
+                    { word: "ببـ ___ ـاء", answer: "ـغـ", options: ["غـ", "ـغـ", "ـغ"], full: `ببـ${qh('ـغـ')}اء` },
+                    { word: "صمـ ___", answer: "ـغ", options: ["غـ", "ـغـ", "ـغ"], full: `صمـ${qh('ـغ')}` },
+                    { word: "___ ـيل", answer: "فـ", options: ["فـ", "ـفـ", "ـف"], full: `${qh('فـ')}يل` },
+                    { word: "تـ ___ ـاحة", answer: "ـفـ", options: ["فـ", "ـفـ", "ـف"], full: `تـ${qh('ـفـ')}احة` },
+                    { word: "هاتـ ___", answer: "ـف", options: ["فـ", "ـفـ", "ـف"], full: `هاتـ${qh('ـف')}` }
+                ]
+            },
+            {
+                groupName: "Group 5 Quiz (ق - ن)",
+                questions: [
+                    { word: "___ ـرد", answer: "قـ", options: ["قـ", "ـقـ", "ـق"], full: `${qh('قـ')}رد` },
+                    { word: "صـ ___ ـر", answer: "ـقـ", options: ["قـ", "ـقـ", "ـق"], full: `صـ${qh('ـقـ')}ر` },
+                    { word: "طبـ ___", answer: "ـق", options: ["قـ", "ـقـ", "ـق"], full: `طبـ${qh('ـق')}` },
+                    { word: "___ ـلب", answer: "كـ", options: ["كـ", "ـكـ", "ـك"], full: `${qh('كـ')}لب` },
+                    { word: "سـ ___ ـين", answer: "ـكـ", options: ["كـ", "ـكـ", "ـك"], full: `سـ${qh('ـكـ')}ين` },
+                    { word: "سمـ ___", answer: "ـك", options: ["كـ", "ـكـ", "ـك"], full: `سمـ${qh('ـك')}` },
+                    { word: "___ ـيمون", answer: "لـ", options: ["لـ", "ـلـ", "ـل"], full: `${qh('لـ')}يمون` },
+                    { word: "قـ ___ ـم", answer: "ـلـ", options: ["لـ", "ـلـ", "ـل"], full: `قـ${qh('ـلـ')}م` },
+                    { word: "جمـ ___", answer: "ـل", options: ["لـ", "ـلـ", "ـل"], full: `جمـ${qh('ـل')}` },
+                    { word: "___ ـوز", answer: "مـ", options: ["مـ", "ـمـ", "ـم"], full: `${qh('مـ')}وز` },
+                    { word: "شـ ___ ـس", answer: "ـمـ", options: ["مـ", "ـمـ", "ـم"], full: `شـ${qh('ـمـ')}س` },
+                    { word: "قلـ ___", answer: "ـم", options: ["مـ", "ـمـ", "ـم"], full: `قلـ${qh('ـم')}` },
+                    { word: "___ ـمر", answer: "نـ", options: ["نـ", "ـنـ", "ـن"], full: `${qh('نـ')}مر` },
+                    { word: "عـ ___ ـب", answer: "ـنـ", options: ["نـ", "ـنـ", "ـن"], full: `عـ${qh('ـنـ')}ب` },
+                    { word: "عيـ ___", answer: "ـن", options: ["نـ", "ـنـ", "ـن"], full: `عيـ${qh('ـن')}` }
+                ]
+            },
+            {
+                groupName: "Group 6 Quiz (هـ - ي)",
+                questions: [
+                    { word: "___ ـرم", answer: "هـ", options: ["هـ", "ـهـ", "ـه"], full: `${qh('هـ')}رم` },
+                    { word: "فـ ___ ـد", answer: "ـهـ", options: ["هـ", "ـهـ", "ـه"], full: `فـ${qh('ـهـ')}د` },
+                    { word: "وجـ ___", answer: "ـه", options: ["هـ", "ـهـ", "ـه"], full: `وجـ${qh('ـه')}` },
+                    { word: "___ ردة", answer: "و", options: ["و", "ـو", "وـ"], full: `${qh('و')}ردة` },
+                    { word: "حـ ___ ت", answer: "ـو", options: ["و", "ـو", "وـ"], full: `حـ${qh('ـو')}ت` },
+                    { word: "دلـ ___", answer: "ـو", options: ["و", "ـو", "وـ"], full: `دلـ${qh('ـو')}` },
+                    { word: "___ ـد", answer: "يـ", options: ["يـ", "ـيـ", "ـي"], full: `${qh('يـ')}د` },
+                    { word: "لـ ___ ـمون", answer: "ـيـ", options: ["يـ", "ـيـ", "ـي"], full: `لـ${qh('ـيـ')}مون` },
+                    { word: "كرسـ ___", answer: "ـي", options: ["يـ", "ـيـ", "ـي"], full: `كرسـ${qh('ـي')}` }
+                ]
+            }
+        ];
+
+        let score = 0;
+        let timerInterval;
+        let timeLeft = 10;
+        let currentQType = 'normal';
+
+        const selectEl = document.getElementById('letterSelect');
+        const homeSlide = document.getElementById('homeSlide');
+        const learningSection = document.getElementById('learningSection');
+        const quizSection = document.getElementById('quizSection');
+        const gameSectionTTT = document.getElementById('gameSectionTTT');
+        const gameSectionC4 = document.getElementById('gameSectionC4');
+        const gameSectionMem = document.getElementById('gameSectionMem');
+        
+        let currentQuizQuestions = [];
+        let currentQuestionIndex = 0;
+
+        function playTickSound(urgent = false) {
+            Sound.tone(urgent ? 1000 : 600, 0.05, 'triangle');
+        }
+
+        function playSuccessSound() {
+            Sound.playChime();
+        }
+
+        function playWrongSound() {
+            Sound.fail();
+        }
+
+        function init() {
+            populateDropdown();
+            handleSelectionChange();
+            
+            selectEl.addEventListener('change', handleSelectionChange);
+
+            document.getElementById('prevBtn').addEventListener('click', () => {
+                if (selectEl.selectedIndex > 0) {
+                    selectEl.selectedIndex--;
+                    handleSelectionChange();
+                }
+            });
+            document.getElementById('nextBtn').addEventListener('click', () => {
+                if (selectEl.selectedIndex < selectEl.options.length - 1) {
+                    selectEl.selectedIndex++;
+                    handleSelectionChange();
+                }
+            });
+            
+            document.getElementById('startBtn').addEventListener('click', () => {
+                Sound.init();
+                selectEl.selectedIndex = 1; 
+                handleSelectionChange();
+            });
+
+            document.getElementById('backToLettersFromQuizBtn').addEventListener('click', () => {
+                if (selectEl.selectedIndex < selectEl.options.length - 1) {
+                    selectEl.selectedIndex++;
+                    handleSelectionChange();
+                }
+            });
+            window.addEventListener(NBContracts.EVENTS.LOCALE_CHANGED, () => {
+                populateDropdown();
+                gameAI.updateUI();
+            });
+            Sound.setupUnlock();
+        }
+
+        function populateDropdown() {
+            const selectedValue = selectEl.value || 'home';
+            let html = `<option value="home">🏠 ${i18n.t('page6_home_option')}</option>`;
+            let quizCounter = 0;
+
+            alphabetData.forEach((item, index) => {
+                html += `<option value="letter_${index}">${i18n.t('page6_letter_option', { letter: item.letter })}</option>`;
+                if ((index + 1) % 5 === 0 || index === alphabetData.length - 1) {
+                    if (quizCounter < quizzes.length) {
+                        const groupNumber = quizCounter + 1;
+                        html += `<option value="quiz_${quizCounter}" class="font-bold text-yellow-700 bg-yellow-50">🎯 ${i18n.t('page6_quiz_option', { num: groupNumber })}</option>`;
+                        html += `<option value="game_ttt_${quizCounter}" class="font-bold text-blue-700 bg-blue-50">🎮 ${i18n.t('page6_break_ttt')}</option>`;
+                        html += `<option value="game_c4_${quizCounter}" class="font-bold text-emerald-700 bg-emerald-50">🎮 ${i18n.t('page6_break_c4')}</option>`;
+                        html += `<option value="game_mem_${quizCounter}" class="font-bold text-orange-700 bg-orange-50">🧩 ${i18n.t('page6_break_memory')}</option>`;
+                        quizCounter++;
+                    }
+                }
+            });
+            selectEl.innerHTML = html;
+            if (selectEl.querySelector(`option[value="${selectedValue}"]`)) {
+                selectEl.value = selectedValue;
+            }
+        }
+
+        function hideAllSections() {
+            homeSlide.classList.add('hidden');
+            learningSection.classList.add('hidden');
+            quizSection.classList.add('hidden');
+            gameSectionTTT.classList.add('hidden');
+            gameSectionC4.classList.add('hidden');
+            gameSectionMem.classList.add('hidden');
+            xoGame.cleanup();
+            c4Game.cleanup();
+            memoryGame.cleanup();
+        }
+
+        function handleSelectionChange() {
+            const val = selectEl.value;
+            clearInterval(timerInterval); 
+            
+            document.getElementById('prevBtn').disabled = selectEl.selectedIndex === 0;
+            document.getElementById('nextBtn').disabled = selectEl.selectedIndex === selectEl.options.length - 1;
+
+            hideAllSections();
+
+            if (val === 'home') {
+                homeSlide.classList.remove('hidden');
+            } else if (val.startsWith('letter_')) {
+                const index = parseInt(val.replace('letter_', ''));
+                showLetter(alphabetData[index]);
+            } else if (val.startsWith('quiz_')) {
+                const index = parseInt(val.replace('quiz_', ''));
+                startQuiz(quizzes[index]);
+            } else if (val.startsWith('game_ttt_')) {
+                showGameTTT();
+            } else if (val.startsWith('game_c4_')) {
+                showGameC4();
+            } else if (val.startsWith('game_mem_')) {
+                showGameMem();
+            }
+        }
+
+        function showLetter(data) {
+            learningSection.classList.remove('hidden');
+            document.getElementById('shapeStart').innerHTML = data.start.s;
+            document.getElementById('wordStart').innerHTML = data.start.w;
+            document.getElementById('shapeMiddle').innerHTML = data.middle.s;
+            document.getElementById('wordMiddle').innerHTML = data.middle.w;
+            document.getElementById('shapeEnd').innerHTML = data.end.s;
+            document.getElementById('wordEnd').innerHTML = data.end.w;
+            
+            const cards = document.querySelectorAll('.letter-card');
+            cards.forEach(card => {
+                card.classList.remove('');
+                void card.offsetWidth; 
+                card.classList.add('');
+            });
+        }
+
+        // --- Quiz Gamification Logic ---
+        function updateScoreUI(pointsAdded) {
+            const display = document.getElementById('scoreDisplay');
+            const container = document.getElementById('scoreContainer');
+            display.innerText = score;
+            
+            container.classList.remove('', 'bg-green-100', 'bg-red-100', 'text-green-700', 'text-red-700');
+            void container.offsetWidth;
+            
+            if (pointsAdded >= 0) {
+                container.classList.add('', 'bg-green-100', 'text-green-700');
+            } else {
+                container.classList.add('', 'bg-red-100', 'text-red-700');
+            }
+        }
+
+        function startQuiz(quizObj) {
+            Sound.init();
+            score = 0;
+            updateScoreUI(0);
+            
+            quizSection.classList.remove('hidden');
+            document.getElementById('quizContainer').classList.remove('hidden');
+            document.getElementById('quizComplete').classList.add('hidden');
+            
+            currentQuizQuestions = quizObj.questions;
+            currentQuestionIndex = 0;
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            clearInterval(timerInterval);
+            const q = currentQuizQuestions[currentQuestionIndex];
+            
+            document.getElementById('quizWord').innerHTML = q.word;
+            document.getElementById('quizFeedback').innerHTML = '';
+            document.getElementById('nextQuizBtn').classList.add('hidden');
+            
+            const rand = Math.random();
+            const badge = document.getElementById('qTypeBadge');
+            
+            quizSection.classList.remove('border-yellow-400', 'border-emerald-500', 'border-red-500', 'golden-border');
+            
+            if (rand < 0.15) {
+                currentQType = 'golden';
+                quizSection.classList.add('golden-border', 'border-emerald-500');
+                badge.textContent = `🌟 ${i18n.t('page6_golden_question')} 🌟`;
+                badge.className = "absolute -top-5 left-1/2 transform -translate-x-1/2 bg-emerald-500 text-white font-black text-lg md:text-2xl px-6 md:px-10 py-1 rounded-full shadow-md whitespace-nowrap animate-pulse";
+            } else if (rand < 0.30) {
+                currentQType = 'trap';
+                quizSection.classList.add('border-red-500');
+                badge.textContent = `💣 ${i18n.t('page6_trap_question')} 💣`;
+                badge.className = "absolute -top-5 left-1/2 transform -translate-x-1/2 bg-red-500 text-white font-black text-lg md:text-2xl px-6 md:px-10 py-1 rounded-full shadow-md whitespace-nowrap";
+            } else {
+                currentQType = 'normal';
+                quizSection.classList.add('border-yellow-400');
+                badge.textContent = `${i18n.t('page6_challenge')} 🏆`;
+                badge.className = "absolute -top-5 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-white font-black text-lg md:text-2xl px-6 md:px-10 py-1 rounded-full shadow-md whitespace-nowrap";
+            }
+
+            const optionsContainer = document.getElementById('quizOptions');
+            optionsContainer.innerHTML = '';
+            
+            q.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = "relative text-4xl md:text-6xl quran-font font-bold bg-white border-4 border-emerald-200 text-emerald-700 py-3 px-6 md:py-4 md:px-8 rounded-2xl hover:bg-emerald-50 hover:border-emerald-400 transition-all shadow-md";
+                btn.innerHTML = opt;
+                btn.onclick = () => checkAnswer(opt, q.answer, btn);
+                optionsContainer.appendChild(btn);
+            });
+
+            timeLeft = 10;
+            const timerDisplay = document.getElementById('timerDisplay');
+            timerDisplay.innerText = `⏳ ${timeLeft}s`;
+            timerDisplay.classList.remove('text-red-600', 'animate-pulse');
+            
+            playTickSound();
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.innerText = `⏳ ${timeLeft}s`;
+                
+                if (timeLeft <= 3 && timeLeft > 0) {
+                    timerDisplay.classList.add('text-red-600', 'animate-pulse');
+                    playTickSound(true); 
+                } else if (timeLeft > 0) {
+                    playTickSound(false); 
+                }
+                
+                if (timeLeft <= 0) handleTimeout(q.answer);
+            }, 1000);
+        }
+
+        function handleTimeout(correctAnswer) {
+            clearInterval(timerInterval);
+            const allBtns = document.querySelectorAll('#quizOptions button');
+            allBtns.forEach(b => b.disabled = true);
+            
+            let penalty = (currentQType === 'trap') ? -5 : -2;
+            score = Math.max(0, score + penalty);
+            updateScoreUI(penalty);
+
+            playWrongSound();
+            
+            const feedback = document.getElementById('quizFeedback');
+            feedback.textContent = `⏰ ${i18n.t('page6_timeout', { answer: correctAnswer })}`;
+            feedback.className = "mt-4 md:mt-8 text-2xl md:text-4xl font-bold text-red-500 transition-all text-center";
+            
+            document.getElementById('nextQuizBtn').classList.remove('hidden');
+        }
+
+        function checkAnswer(selected, correct, btnEl) {
+            clearInterval(timerInterval);
+            const feedback = document.getElementById('quizFeedback');
+            const allBtns = document.querySelectorAll('#quizOptions button');
+            allBtns.forEach(b => b.disabled = true);
+            
+            if (selected === correct) {
+                let pts = 5;
+                if (currentQType === 'golden') pts = 10;
+                else if (currentQType === 'trap') pts = 2;
+                score += pts;
+                updateScoreUI(pts);
+
+                btnEl.classList.remove('border-emerald-200', 'text-emerald-700');
+                btnEl.classList.add('bg-green-400', 'border-green-500', 'text-white', '');
+                
+                feedback.textContent = `${i18n.t('page6_praise')} 🌟`;
+                feedback.className = "mt-4 md:mt-8 text-2xl md:text-4xl font-bold text-green-500 transition-all text-center";
+                
+                playSuccessSound();
+                fireCelebration();
+                
+                const q = currentQuizQuestions[currentQuestionIndex];
+                document.getElementById('quizWord').innerHTML = q.full;
+                
+                document.getElementById('nextQuizBtn').classList.remove('hidden');
+            } else {
+                let penalty = (currentQType === 'trap') ? -5 : -2;
+                score = Math.max(0, score + penalty);
+                updateScoreUI(penalty);
+
+                btnEl.classList.remove('border-emerald-200', 'text-emerald-700');
+                btnEl.classList.add('bg-red-400', 'border-red-500', 'text-white');
+                feedback.textContent = `${i18n.t('page6_try_again')} ❌`;
+                feedback.className = "mt-4 md:mt-8 text-2xl md:text-4xl font-bold text-red-500 transition-all text-center";
+                
+                playWrongSound();
+                
+                setTimeout(() => {
+                    allBtns.forEach(b => b.disabled = false);
+                    btnEl.classList.remove('bg-red-400', 'border-red-500', 'text-white');
+                    btnEl.classList.add('border-emerald-200', 'text-emerald-700');
+                    feedback.innerHTML = '';
+                    
+                    timerInterval = setInterval(() => {
+                        timeLeft--;
+                        document.getElementById('timerDisplay').innerText = `⏳ ${timeLeft}s`;
+                        if (timeLeft <= 3 && timeLeft > 0) {
+                            document.getElementById('timerDisplay').classList.add('text-red-600', 'animate-pulse');
+                            playTickSound(true);
+                        } else if (timeLeft > 0) {
+                            playTickSound(false);
+                        }
+                        if (timeLeft <= 0) handleTimeout(correct);
+                    }, 1000);
+                }, 1500);
+            }
+        }
+
+        document.getElementById('nextQuizBtn').addEventListener('click', () => {
+            Sound.init();
+            currentQuestionIndex++;
+            if (currentQuestionIndex < currentQuizQuestions.length) {
+                loadQuestion();
+            } else {
+                document.getElementById('quizContainer').classList.add('hidden');
+                document.getElementById('quizComplete').classList.remove('hidden');
+                document.getElementById('finalScoreDisplay').innerText = score;
+                playSuccessSound();
+            }
+        });
+
+        function showGameTTT() {
+            gameSectionTTT.classList.remove('hidden');
+            xoGame.reset();
+        }
+
+        document.getElementById('resetGameBtnTTT').addEventListener('click', () => xoGame.reset());
+
+        function showGameC4() {
+            gameSectionC4.classList.remove('hidden');
+            c4Game.reset();
+        }
+
+        document.getElementById('resetGameBtnC4').addEventListener('click', () => c4Game.reset());
+
+        function showGameMem() {
+            gameSectionMem.classList.remove('hidden');
+            memoryGame.currentSetIndex = 0;
+            memoryGame.init();
+        }
+
+        memoryGame.iconSets = [['🌟', '🎈', '🦸‍♂️', '🚀', '👑', '🎯']];
+        document.getElementById('resetGameBtnMem').addEventListener('click', () => memoryGame.reset());
+
+        window.addEventListener('beforeunload', () => {
+            clearInterval(timerInterval);
+            clearTimeout(autoAdvanceTimeout);
+            xoGame.cleanup();
+            c4Game.cleanup();
+            memoryGame.cleanup();
+        });
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

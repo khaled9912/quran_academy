@@ -1,0 +1,247 @@
+/**
+ * Nour Al-Bayan Interactive Platform - UI Components
+ * Navigation progress bar (hardware-accelerated), feedback badge, chart container,
+ * active student pill, session drill banner (GPU composite pseudo-layer), and interactive modals.
+ */
+
+/* ==========================================================================
+   1. Navigation Progress Bar & Floating Feedback Badge
+   ========================================================================== */
+#progress-bar {
+    position: absolute;
+    bottom: 0;
+    inset-inline-start: 0;
+    width: 100%;
+    height: 3.5px;
+    background: linear-gradient(90deg, #10b981, #d97706);
+    border-radius: 0 3px 3px 0;
+    transform-origin: inline-start;
+    transform: scaleX(var(--progress, 0));
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+    z-index: 40;
+}
+
+.feedback-badge {
+    position: fixed;
+    top: 14vh;
+    left: 50%;
+    transform: translateX(-50%) scale(0.5);
+    z-index: 1000;
+    pointer-events: none;
+    transition: all 0.3s var(--ease-bounce, cubic-bezier(0.22, 1, 0.36, 1));
+    opacity: 0;
+}
+.feedback-badge.active {
+    transform: translateX(-50%) scale(1.1);
+    opacity: 1;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 220px;
+    margin-inline: auto;
+    height: 150px;
+}
+
+/* ==========================================================================
+   2. Top Navigation Controls (Student Pill, Navigator & Quick Arrows)
+   ========================================================================== */
+#active-student-pill {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+}
+
+#active-student-pill:hover {
+    background-color: rgba(209, 250, 229, 0.95);
+    border-color: #6ee7b7;
+}
+
+#top-nav-prev-btn,
+#top-nav-next-btn {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+}
+
+#top-nav-prev-btn:hover,
+#top-nav-next-btn:hover {
+    background-color: #e2e8f0;
+    transform: scale(1.08);
+}
+
+#top-nav-prev-btn:active,
+#top-nav-next-btn:active {
+    transform: scale(0.92);
+}
+
+#top-nav-prev-btn:focus-visible,
+#top-nav-next-btn:focus-visible {
+    outline: 2px solid #059669;
+    outline-offset: 2px;
+}
+
+#page-jumper-wrapper {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#page-jumper-wrapper:hover {
+    background-color: #ecfdf5;
+    border-color: #a7f3d0;
+}
+
+#page-jumper-wrapper:focus-within {
+    border-color: #059669;
+    box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+}
+
+#selector-wrapper {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#selector-wrapper:hover {
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+#selector-wrapper:focus-within {
+    border-color: #059669;
+    box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15);
+}
+
+/* ==========================================================================
+   3. Session Drill Banner, Early Exit Modal & Wordwall Mistake Filter
+   ========================================================================== */
+
+/* Session Drill Active Banner (Hardware-Accelerated Pseudo-Layer Motion) */
+#session-drill-banner {
+    position: relative;
+    overflow: hidden;
+    background: #e11d48;
+    box-shadow: 0 4px 14px rgba(225, 29, 72, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+}
+
+#session-drill-banner::before {
+    content: "";
+    position: absolute;
+    inset: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(135deg, #e11d48 0%, #d97706 50%, #e11d48 100%);
+    animation: drillGradientFlow 6s linear infinite;
+    will-change: transform;
+    z-index: 0;
+}
+
+#session-drill-banner > * {
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes drillGradientFlow {
+    0% { transform: translate3d(-20%, 0, 0); }
+    50% { transform: translate3d(0%, 0, 0); }
+    100% { transform: translate3d(-20%, 0, 0); }
+}
+
+#session-drill-banner #session-drill-title {
+    letter-spacing: normal !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+#session-drill-banner #session-drill-step-indicator {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+    white-space: nowrap;
+}
+
+#session-drill-banner #drill-cur {
+    color: #fef08a;
+    font-weight: 900;
+}
+
+#session-drill-banner #drill-total {
+    color: #ffffff;
+    font-weight: 800;
+}
+
+#session-drill-banner button {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+#session-drill-banner button:hover {
+    transform: scale(1.1);
+    background-color: rgba(255, 255, 255, 0.35);
+}
+
+#session-drill-banner button:active {
+    transform: scale(0.95);
+}
+
+/* Early Exit Modal & Dialog Elements */
+#early-exit-modal {
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#btn-early-exit-save {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    box-shadow: 0 4px 10px rgba(4, 120, 87, 0.28);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#btn-early-exit-save:hover {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(4, 120, 87, 0.35);
+}
+
+#btn-early-exit-cancel {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#btn-early-exit-cancel:hover {
+    background-color: #fee2e2;
+    border-color: #f87171;
+    color: #991b1b;
+    transform: translateY(-1px);
+}
+
+#btn-early-exit-resume {
+    transition: all 0.15s ease;
+}
+
+#btn-early-exit-resume:hover {
+    background-color: #e2e8f0;
+    color: #0f172a;
+}
+
+/* Wordwall Mistakes Filter Toggle Button */
+#btn-ww-mistakes-filter {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    user-select: none;
+    white-space: nowrap;
+}
+
+#btn-ww-mistakes-filter:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(217, 119, 6, 0.2);
+}
+
+#btn-ww-mistakes-filter.active,
+#btn-ww-mistakes-filter[data-active="true"] {
+    background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+    color: #ffffff;
+    border-color: #be123c;
+    box-shadow: 0 2px 8px rgba(225, 29, 72, 0.35);
+}
+
+#btn-ww-mistakes-filter.active:hover,
+#btn-ww-mistakes-filter[data-active="true"]:hover {
+    background: linear-gradient(135deg, #fb7185 0%, #f43f5e 100%);
+    box-shadow: 0 4px 14px rgba(225, 29, 72, 0.45);
+}
