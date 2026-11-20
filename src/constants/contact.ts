@@ -1,7 +1,5 @@
-// The academy's claimed WhatsApp username. Linking to a handle instead of a
-// phone number keeps the digits out of every page's HTML and out of WhatsApp's
-// handoff screen, which prints whatever identifier the link carries.
-export const ACADEMY_WHATSAPP_USERNAME = "anaquran";
+// The academy's WhatsApp username.
+export const ACADEMY_WHATSAPP_USERNAME = "ana.quran";
 
 const INTRODUCTION =
   "Assalamu alaikum, I'd like to know more about Ana Quran lessons.";

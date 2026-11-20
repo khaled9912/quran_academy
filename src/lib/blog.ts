@@ -83,7 +83,7 @@ export const blogPosts: BlogPost[] = [
       {
         heading: "Musa (Moses): calm at the edge of the sea",
         paragraphs: [
-          "Musa stood before Pharaoh with nothing but a staff and the truth, and later led his people out of Egypt. Trapped between the sea and the army, his companions despaired — but Musa answered, \"Indeed, my Lord is with me; He will guide me\" (Quran 26:62). The sea opened.",
+          "Musa stood before Pharaoh with nothing but a staff and the truth, and later led his people out of Egypt. Trapped between the sea and the army, his companions despaired — but Musa answered, \"No! Indeed, with me is my Lord; He will guide me\" (Quran 26:62). The sea opened.",
           "The lesson is not that the sea always opens. It is that certainty in Allah does not depend on seeing the exit first.",
         ],
       },
@@ -2464,7 +2464,7 @@ export const blogPosts: BlogPost[] = [
       "Musa story for kids",
     ],
     intro: [
-      "Musa is the most-mentioned prophet in the Quran, and his story has everything: a baby in a basket, a palace, a desert, a burning bush, a tyrant, a sea that opens, and a people who keep forgetting. At its centre is one sentence: \"Indeed, my Lord is with me; He will guide me\" (Quran 26:62).",
+      "Musa is the most-mentioned prophet in the Quran, and his story has everything: a baby in a basket, a palace, a desert, a burning bush, a tyrant, a sea that opens, and a people who keep forgetting. At its centre is one sentence: \"Indeed, with me is my Lord; He will guide me\" (Quran 26:62).",
       "This guide follows his life in two reading levels, with the verse references in the deeper one.",
     ],
     sections: [
@@ -2492,7 +2492,7 @@ export const blogPosts: BlogPost[] = [
       {
         heading: "The sea opened",
         paragraphs: [
-          "Trapped between the sea and the army, the people cried: \"Indeed, we are to be overtaken!\" Musa answered: \"No! Indeed, my Lord is with me; He will guide me\" (26:61-62). Then the command: strike the sea with your staff — and it parted, each side like a towering mountain (26:63).",
+          "Trapped between the sea and the army, the people cried: \"Indeed, we are to be overtaken!\" Musa answered: \"No! Indeed, with me is my Lord; He will guide me\" (26:61-62). Then the command: strike the sea with your staff — and it parted, each side like a towering mountain (26:63).",
           "The believers crossed; Pharaoh followed, and the sea closed over him. At the last moment he claimed belief, but it was the belief of a drowning man, not a choosing heart (10:90-91). The lesson is not that the sea always opens — it is that certainty does not wait to see the exit.",
         ],
       },
@@ -4617,7 +4617,7 @@ export const blogPosts: BlogPost[] = [
           "Six letters never join to the letter after them: ا د ذ ر ز و (alif, dal, dhal, ra, zay, waw). They accept a hand from the letter before them, but they keep their full shape and leave a small gap after.",
           "That gap is a reading gift: it splits long words into visible chunks. In a word like وَرَدَ (warada, \"he arrived\"), none of the three letters joins forward, so the word reads as three clear pieces. Teachers call these the \"non-connecting six\" — drill them early and students stop trying to join what cannot join.",
         ],
-        note: "Teaching tip: write one word with all six, like دَرَسَ is not possible — use وَرَدَ and مَرَرْتُ — and ask students to circle every gap. The gaps are the lesson.",
+        note: "Teaching tip: write وَرَدَ and مَرَرْتُ on the board and ask students to circle every gap after a shy letter. The gaps are the lesson.",
       },
       {
         heading: "The special pair: lam-alif",
@@ -4870,7 +4870,7 @@ export const blogPosts: BlogPost[] = [
       {
         heading: "Greetings and manners",
         paragraphs: [
-          "The greeting is a du'a: as-salamu alaykum — \"peace be upon you\" — and the reply is wa alaykumu s-salam — \"and upon you peace.\" The Prophet taught that the one who starts the greeting is the better of the two (Abu Dawud), and that spreading salam is a cause of love between people (Muslim).",
+          "The greeting is a du'a: as-salamu alaykum — \"peace be upon you\" — and the reply is wa alaykumu s-salam — \"and upon you peace.\" The Prophet taught that those nearest to Allah are those who are first to give the salam (Abu Dawud), and that spreading salam is a cause of love between people (Muslim).",
           "The manners kit: shukran (thank you), afwan (you're welcome), min fadlak (please), na'am (yes), la (no), and the beautiful reply to thanks: jazak Allahu khayran — \"may Allah reward you with good\" (Tirmidhi).",
         ],
       },
@@ -4907,7 +4907,7 @@ export const blogPosts: BlogPost[] = [
           heading: "The greeting superpower",
           paragraphs: [
             "When you meet someone, say: as-salamu alaykum! It means \"peace be upon you\" — you are giving them a gift of peace. They answer: wa alaykumu s-salam — \"and peace upon you too!\"",
-            "The Prophet said the person who says salam FIRST is the better one. So be quick — be the first to give the gift!",
+            "The Prophet said the people nearest to Allah are the ones who say salam FIRST. So be quick — be the first to give the gift!",
           ],
         },
         {
@@ -5274,7 +5274,7 @@ export const blogPosts: BlogPost[] = [
       {
         heading: "Bonus: the three meem sakinah rules",
         paragraphs: [
-          "A meem with sukun has its own three rules, all about the lips: before ب it hides with ghunnah (ikhfa shafawi — تَرْمِيهِم بِحِجَارَةٍ, 105:4); before another م it merges with ghunnah (idgham shafawi — قُلُوبِهِم مَّرَضٌ, 2:10); before any other letter it stays clear (izhar shafawi — هُمْ فِيهَا, 23:103).",
+          "A meem with sukun has its own three rules, all about the lips: before ب it hides with ghunnah (ikhfa shafawi — تَرْمِيهِم بِحِجَارَةٍ, 105:4); before another م it merges with ghunnah (idgham shafawi — قُلُوبِهِم مَّرَضٌ, 2:10); before any other letter it stays clear (izhar shafawi — هُمْ فِيهَا, 23:104).",
           "Together, the noon and meem rules cover almost every nasal moment in the Quran. Master these seven behaviours and the recitation acquires the hum-and-flow that distinguishes a trained reader.",
         ],
         note: "Next on the map: [madd](/blog/madd-rules-in-tajweed), [qalqalah and ghunnah](/blog/qalqalah-and-ghunnah), and [the full beginner's overview](/blog/tajweed-rules-for-beginners).",
@@ -5509,6 +5509,556 @@ export const blogPosts: BlogPost[] = [
       "noon-sakinah-and-tanween-rules",
       "makharij-arabic-letter-sounds",
       "tajweed-rules-for-beginners",
+    ],
+  },
+  {
+    slug: "stories-of-the-companions",
+    title: "Stories of the Companions: The People Who Carried Islam",
+    seoTitle: "Stories of the Companions of the Prophet (Kids & Teens)",
+    description:
+      "The companions of Prophet Muhammad (peace be upon him): Abu Bakr, Umar, Uthman, Ali, Khadija, Bilal, Salman and more — true stories from the Quran and authentic hadith, for kids and teens.",
+    excerpt:
+      "The prophets brought the message; the companions carried it. A freed slave, a seeker from Persia, a wealthy merchant, a teenage cousin — each one chose truth when it cost them everything.",
+    category: "Islamic studies",
+    publishedAt: "2026-11-17",
+    updatedAt: "2026-11-17",
+    readingMinutes: 7,
+    keywords: [
+      "stories of the companions",
+      "companions of the Prophet",
+      "sahaba stories for kids",
+      "ten promised paradise",
+      "Abu Bakr story",
+    ],
+    intro: [
+      "\"The first forerunners among the Muhajirun and the Ansar and those who followed them with good conduct — Allah is pleased with them, and they are pleased with Him\" (Quran 9:100). The companions (sahaba) were the people who believed, migrated, fought, traded, taught and built around the Prophet Muhammad (peace be upon him). They were not angels: they were merchants, slaves, farmers, teenagers and mothers — and their choices are the bridge between revelation and the world we live in.",
+      "This collection tells their stories from the Quran, the authentic hadith collections (Bukhari, Muslim, Tirmidhi and others) and the classical biographies — Ibn Hisham's Seerah, Ibn Sa'd's Tabaqat and Ibn al-Athir's Usd al-Ghabah. Some accounts were translated from Arabic sources such as islamweb.net. Each story comes in two reading levels: one for children, one for readers 13 and up.",
+    ],
+    sections: [
+      {
+        heading: "Why their stories matter",
+        paragraphs: [
+          "The Quran describes them in one sentence: \"Muhammad is the Messenger of Allah; and those with him are severe against disbelievers, merciful among themselves. You see them bowing and prostrating, seeking bounty from Allah and pleasure\" (48:29). Strong outward, soft inward — that is the character the stories keep showing.",
+          "And the standard they set is not perfection but honesty: \"Among the believers are men who have been true to their covenant with Allah. Of them some have completed their vow, and some still wait, but they have never changed\" (33:23). Every story below is about someone keeping a promise — to Allah, to the Prophet, or to their own conscience.",
+        ],
+      },
+      {
+        heading: "The ten promised Paradise",
+        paragraphs: [
+          "The Prophet named ten companions who would enter Paradise (Tirmidhi). Their stories form the heart of this collection:",
+        ],
+        list: [
+          "[Abu Bakr as-Siddiq](/blog/abu-bakr-story) — the first free man to believe, the companion of the cave.",
+          "[Umar ibn al-Khattab](/blog/umar-story) — the fierce opponent whose conversion opened Makkah's hearts.",
+          "[Uthman ibn Affan](/blog/uthman-story) — the modest one of two lights, who equipped an army and gathered the Quran.",
+          "[Ali ibn Abi Talib](/blog/ali-story) — the first youth to believe, who slept in the Prophet's bed on the night of the hijra.",
+          "[Talha and az-Zubayr](/blog/talha-and-zubayr-story) — the shield of Uhud and the Prophet's disciple.",
+          "[Abd al-Rahman ibn Awf](/blog/abd-al-rahman-ibn-awf-story) — the migrant who asked only for the way to the market.",
+          "[Sa'd ibn Abi Waqqas](/blog/saad-ibn-abi-waqqas-story) — the first archer of Islam, whose du'as were answered.",
+          "[Sa'id ibn Zayd](/blog/saeed-ibn-zayd-story) — the quiet brother-in-law whose prayers Allah answered.",
+          "[Abu Ubayda ibn al-Jarrah](/blog/abu-ubayda-story) — the trustworthy one of this ummah.",
+        ],
+      },
+      {
+        heading: "Beyond the ten",
+        paragraphs: [
+          "Paradise was not limited to ten, and neither is this collection. These companions carry lessons the ten cannot:",
+        ],
+        list: [
+          "[Khadija bint Khuwaylid](/blog/khadija-story) — the first believer of all, who spent everything before anyone else believed.",
+          "[Bilal ibn Rabah](/blog/bilal-story) — the enslaved man whose one word broke his torturers, and whose voice called the first adhan.",
+          "[Salman al-Farisi](/blog/salman-al-farisi-story) — the Persian seeker who crossed an empire and slavery to find the truth.",
+          "[Mus'ab ibn Umayr](/blog/musab-ibn-umayr-story) — the richest youth of Makkah, Islam's first ambassador.",
+          "[Sumayya and Ammar](/blog/sumayya-and-ammar-story) — the first martyr of Islam and her son, who was told to be patient.",
+          "[Khalid ibn al-Walid](/blog/khalid-ibn-al-walid-story) — the sword of Allah, who never lost a battle.",
+          "[Abu Dharr al-Ghifari](/blog/abu-dharr-story) — the truthful one, who owned almost nothing and feared nothing.",
+        ],
+      },
+      {
+        heading: "How to read these stories as a family",
+        paragraphs: [
+          "Read one story a week, and ask the same question the prophet stories ask: what did this person give up, and what did they gain? For children, the answer is usually simple — Bilal gave up comfort and gained a voice that still calls the adhan today. For older readers, open the hadith reference together and notice how precise the sources are: these are not legends, they are reported events with named narrators.",
+        ],
+        note: "Start with [the stories of the prophets](/blog/stories-of-the-prophets) — the companions were living what the prophets taught. Or see how the message reached them in [how the Quran was revealed](/blog/how-the-quran-was-revealed).",
+      },
+    ],
+    kids: {
+      intro: [
+        "The Prophet Muhammad (peace be upon him) had special friends called the companions. They were not superheroes — they were normal people: a shopkeeper, a slave, a rich teenager, a brave mum. But when they heard the truth, they held onto it like a treasure, even when it was very, very hard.",
+        "Here is the whole collection. Every story has a kids' version and a bigger version — use the switch above!",
+      ],
+      sections: [
+        {
+          heading: "The ten with a promise",
+          paragraphs: [
+            "The Prophet gave ten of his friends the happiest news ever: they would enter Paradise! Abu Bakr the truthful, Umar the just, Uthman the shy, Ali the brave, Talha the generous, Zubayr the helper, Abd al-Rahman the trader, Sa'd the archer, Sa'id the quiet one, and Abu Ubayda the trustworthy.",
+            "But they were not the only ones! Khadija was the very first believer, Bilal had the most beautiful voice, Salman travelled the whole world for truth, and Mus'ab gave up all his toys and treasures for Islam.",
+          ],
+        },
+        {
+          heading: "What they all had in common",
+          paragraphs: [
+            "Every companion gave something up: money, comfort, safety, even family. And every one of them gained something bigger: a heart full of faith, a family of believers, and a promise from Allah.",
+            "The Quran says Allah is pleased with them, and they are pleased with Him (9:100). That is the best deal anyone ever made!",
+          ],
+        },
+        {
+          heading: "Try it tonight",
+          paragraphs: [
+            "Pick one companion's story from the list and read it with a grown-up. Then answer one question: what did they give up, and what did they gain?",
+            "Tomorrow, try one small thing they were famous for: say salam first like Abu Bakr, share like Talha, or tell the truth like Abu Dharr — even when it is hard.",
+          ],
+        },
+      ],
+    },
+    defaultLevel: "kids",
+    related: [
+      "stories-of-the-prophets",
+      "abu-bakr-story",
+      "khadija-story",
+    ],
+  },
+  {
+    slug: "abu-bakr-story",
+    title: "Abu Bakr as-Siddiq: The Friend Who Believed First",
+    seoTitle: "Abu Bakr Story for Kids & Teens (Sahih Sources)",
+    description:
+      "The story of Abu Bakr as-Siddiq: first free man to believe, companion of the cave (Quran 9:40), freer of slaves, first caliph, and the man who gathered the Quran.",
+    excerpt:
+      "When everyone else hesitated, Abu Bakr believed without asking for a sign. When the Prophet needed a friend in a cave, he was there. When Islam needed a leader, he stepped forward — and when the Quran needed protecting, he gathered it.",
+    category: "Islamic studies",
+    publishedAt: "2026-11-17",
+    updatedAt: "2026-11-17",
+    readingMinutes: 7,
+    keywords: [
+      "Abu Bakr story",
+      "Abu Bakr as-Siddiq",
+      "companion of the cave",
+      "first caliph",
+      "Abu Bakr for kids",
+    ],
+    intro: [
+      "Before Islam, Abu Bakr was a quiet, successful cloth merchant in Makkah — known for his honesty, his knowledge of the Arab tribes, and his gentle character. When the Prophet told him about the revelation, he did not ask for a miracle or a sign. He believed immediately. That is why the Prophet called him as-Siddiq: the one who always confirms the truth.",
+      "His story is not one dramatic moment but a lifetime of being there: in the cave, in the marketplace buying slaves their freedom, in the mosque leading the prayer when the Prophet could no longer stand, and in the first years after the Prophet's death, holding the community together.",
+    ],
+    sections: [
+      {
+        heading: "The companion of the cave",
+        paragraphs: [
+          "When the Prophet migrated from Makkah to Madinah, the Quraysh put a price on his head. Abu Bakr travelled with him, and for three nights they hid in the cave of Thawr while search parties passed the entrance. The Quran records the moment: \"...when he was in the cave with his companion, when he said to his companion, 'Do not grieve; indeed Allah is with us'\" (9:40). Abu Bakr's fear was not for himself — he later said he feared for the Prophet, not for his own life.",
+          "The Prophet's love for him was open and declared: \"If I were to take an intimate friend other than my Lord, I would take Abu Bakr\" (Bukhari and Muslim). And in the final illness, when the Prophet could no longer lead the prayer, he insisted: \"Tell Abu Bakr to lead the people in prayer\" (Bukhari and Muslim).",
+        ],
+      },
+      {
+        heading: "The man who bought freedom",
+        paragraphs: [
+          "In Makkah, the weakest believers were enslaved people tortured for their faith. Abu Bakr used his wealth to buy their freedom — Bilal ibn Rabah most famously, but also Amir ibn Fuhayra, Umm Ubays and others. His father asked why he did not free strong men who could protect him; Abu Bakr answered that he was doing it for Allah, not for protection.",
+          "The Prophet said: \"The most beneficial of people to me in his companionship and his wealth was Abu Bakr\" (Bukhari). When the migration needed funds, Abu Bakr brought his entire savings — 5,000 or 6,000 dirhams — and left nothing for his family. Umar, by contrast, brought half. The Prophet asked Abu Bakr: \"What have you left for your family?\" He answered: \"Allah and His Messenger\" (Abu Dawud, Tirmidhi).",
+        ],
+      },
+      {
+        heading: "The first caliph, and the Quran's first gathering",
+        paragraphs: [
+          "When the Prophet died in 11 AH, the community nearly broke apart. Some tribes refused zakat; some claimed new prophets. Abu Bakr, the first caliph, held the line with the calm of a man who had already lost everything once and survived: \"By Allah, if they withhold from me a rope they used to give the Messenger of Allah, I will fight them for it\" (Bukhari and Muslim).",
+          "After the battle of Yamamah, where many Quran memorisers were killed, Umar urged him to gather the Quran into one written collection. Abu Bakr hesitated — how could he do something the Prophet had not done? — then agreed, and commissioned Zayd ibn Thabit to collect it from written fragments and the chests of memorisers (Bukhari). That collection, kept with Abu Bakr, then Umar, then Umar's daughter Hafsa, became the basis of Uthman's standard mushaf.",
+        ],
+        note: "Read [Uthman's story](/blog/uthman-story) for the next chapter of the Quran's preservation, and [Bilal's story](/blog/bilal-story) for the man Abu Bakr freed.",
+      },
+      {
+        heading: "The lesson: showing up",
+        paragraphs: [
+          "Abu Bakr was not the strongest, the richest or the most eloquent companion. He was the most present. He believed first, gave everything, stood in the cave, led the prayer, held the community, and gathered the Book. He died in 13 AH, two years after the Prophet, and was buried beside him — the friend who was there at the beginning and at the end.",
+          "The lesson is quiet but enormous: faith is mostly showing up. Not the dramatic moment — the thousand ordinary ones.",
+        ],
+      },
+    ],
+    kids: {
+      intro: [
+        "Abu Bakr was the Prophet's best friend. He was a kind cloth-seller in Makkah, and when the Prophet told him about Islam, he believed right away — no questions, no waiting. That is why he was called as-Siddiq, \"the one who always believes the truth.\"",
+      ],
+      sections: [
+        {
+          heading: "The cave adventure",
+          paragraphs: [
+            "When the Prophet had to travel secretly to Madinah, Abu Bakr went with him. They hid in a cave for three nights while angry men searched for them. Abu Bakr was scared — not for himself, but for the Prophet! The Prophet said: \"Do not be sad. Allah is with us\" (Quran 9:40).",
+            "Later, when the Prophet was too sick to lead the prayer, he said: \"Tell Abu Bakr to lead.\" That is how much he trusted his friend.",
+          ],
+        },
+        {
+          heading: "The freedom buyer",
+          paragraphs: [
+            "In Makkah, some cruel masters hurt their slaves for becoming Muslim. Abu Bakr used his money to buy those slaves and set them free! The most famous was Bilal — the man with the beautiful voice who later called the adhan.",
+            "When the Prophet needed money for the big journey, Abu Bakr brought ALL his money. \"What did you leave for your family?\" asked the Prophet. \"Allah and His Messenger,\" said Abu Bakr. What a friend!",
+          ],
+        },
+        {
+          heading: "Try it tonight",
+          paragraphs: [
+            "Abu Bakr's superpower was showing up — being there when someone needs you. Tonight, show up for someone: help a brother or sister, sit with a grandparent, or help a parent without being asked.",
+            "Then say: \"Allah and His Messenger\" — the answer Abu Bakr gave when he gave everything away. He knew the best treasure is not money.",
+          ],
+        },
+      ],
+    },
+    defaultLevel: "kids",
+    related: [
+      "stories-of-the-companions",
+      "umar-story",
+      "bilal-story",
+    ],
+  },
+  {
+    slug: "umar-story",
+    title: "Umar ibn al-Khattab: The Lion Who Became a Shepherd",
+    seoTitle: "Umar ibn al-Khattab Story (Kids & Teens)",
+    description:
+      "The story of Umar ibn al-Khattab: his dramatic conversion through Surah Ta-Ha, his justice as caliph, the Quran verses that matched his views, and the night he carried flour on his back.",
+    excerpt:
+      "Umar set out to kill the Prophet and came back a Muslim. The man the Quraysh feared became the caliph who carried flour to hungry strangers at night and wept over a single verse.",
+    category: "Islamic studies",
+    publishedAt: "2026-11-17",
+    updatedAt: "2026-11-17",
+    readingMinutes: 7,
+    keywords: [
+      "Umar ibn al-Khattab story",
+      "Umar conversion Surah Ta-Ha",
+      "Umar justice",
+      "second caliph",
+      "Umar for kids",
+    ],
+    intro: [
+      "Before Islam, Umar ibn al-Khattab was the man Makkah feared: tall, strong, hot-tempered, a wrestler and a drinker, the loudest opponent of the new message. The Prophet had made a du'a: \"O Allah, strengthen Islam with whichever of the two Umars is more beloved to You\" — Umar ibn al-Khattab or Amr ibn Hisham (Tirmidhi). Allah answered with the first.",
+      "His conversion is one of the most famous scenes in the Seerah, recorded by Ibn Hisham and others — and the man who emerged from it became the opposite of everything he had been: the justest ruler, the tenderest heart, the one Shaytan himself avoided.",
+    ],
+    sections: [
+      {
+        heading: "The road to his sister's house",
+        paragraphs: [
+          "In the sixth year of the prophethood, Umar left his house with his sword, intending to kill the Prophet. On the way he was told: your own sister Fatimah and her husband Sa'id ibn Zayd have become Muslims. He turned to their house first. Inside, the teacher Khabbab ibn al-Aratt was reading Surah Ta-Ha from a sheet. Umar struck his sister; seeing her blood, he softened and asked for the sheet. She made him wash first. He read: \"Ta-Ha. We have not sent down to you the Qur'an that you be distressed...\" (20:1-2).",
+          "\"How beautiful and how noble this speech is!\" he said — and went straight to the house of al-Arqam, where the Prophet was, and declared his Islam. The Muslims, who had been praying in secret, felt safe enough to pray openly in two rows behind the Prophet that day. Ibn Mas'ud said: \"We have been mighty since Umar became Muslim\" (Bukhari).",
+        ],
+      },
+      {
+        heading: "The man whose views the Quran confirmed",
+        paragraphs: [
+          "Three times Umar's judgement matched what Allah then revealed: he suggested taking the standing-place of Ibrahim as a prayer spot, and 2:125 came down; he urged the Prophet's wives to observe hijab, and the verse of hijab came down (33:53); he argued that the captives of Badr should not be ransomed, and 8:67-68 came down agreeing with him. The Prophet said: \"Allah has placed truth on Umar's tongue and in his heart\" (Abu Dawud, Tirmidhi), and: \"If there were to be a prophet after me, it would be Umar\" (Tirmidhi).",
+          "He was also the one Shaytan avoided: \"I never saw Shaytan flee from anyone more than he flees from you, Umar\" the Prophet told him (Bukhari). The fierce energy had not disappeared — it had been redirected.",
+        ],
+      },
+      {
+        heading: "The caliph who carried flour",
+        paragraphs: [
+          "As the second caliph (13-23 AH), Umar ruled an empire that grew to include Syria, Egypt, Iraq and Persia — and lived on patched clothes and barley bread. He established the diwan (state registers), the Hijri calendar, regular stipends, and judges independent of governors. He patrolled Madinah at night in disguise.",
+          "One night he found a mother cooking stones in a pot to comfort her hungry children until they slept. Umar ran to the storehouse, loaded a sack of flour and fat onto his own back, and refused to let his servant carry it: \"Will you carry my burden on the Day of Resurrection?\" He cooked for the children himself and watched them laugh before he left. When he wept over a verse, he wept until he was sick; when he remembered the Hereafter, the lines on his face were said to be from tears.",
+        ],
+        note: "His brother-in-law [Sa'id ibn Zayd](/blog/saeed-ibn-zayd-story) was in that room when Umar converted. And [Abu Bakr's story](/blog/abu-bakr-story) is the caliphate Umar inherited.",
+      },
+      {
+        heading: "The lesson: strength in the right direction",
+        paragraphs: [
+          "Umar was stabbed by a Persian slave named Abu Lu'lu'ah in 23 AH while leading Fajr. He asked his son to greet the Prophet's wife Aisha and ask permission to be buried beside the Prophet and Abu Bakr — and when permission came, he said it was the dearest wish of his life. He died three days later.",
+          "The lesson of Umar is not that strong people make good leaders. It is that strength is raw material: the same fire that made him Makkah's fiercest opponent made him Islam's most tireless servant. What changed was the direction, not the engine.",
+        ],
+      },
+    ],
+    kids: {
+      intro: [
+        "Umar was the strongest, loudest man in Makkah — and at first he hated Islam. He even set out with his sword to hurt the Prophet! But on the way, something amazing happened at his sister's house, and the lion became a lamb.",
+      ],
+      sections: [
+        {
+          heading: "The beautiful words",
+          paragraphs: [
+            "Umar heard his sister Fatimah had become Muslim, and he was very angry. But when he saw he had hurt her, he felt sorry. She was reading from a page of the Quran — Surah Ta-Ha. Umar asked to see it. He washed, then read: \"We have not sent down the Quran to make you sad...\"",
+            "\"How beautiful these words are!\" he said. And right then, his heart changed. He went straight to the Prophet and became Muslim. The Muslims were so happy — they had been hiding, but now they felt brave!",
+          ],
+        },
+        {
+          heading: "The flour on his back",
+          paragraphs: [
+            "Years later, Umar became the leader of all the Muslims — a huge job! But he still walked around at night to check on people. One night he found a mum cooking stones in a pot, just to make her hungry children think food was coming so they would fall asleep.",
+            "Umar ran to get flour and carried the heavy sack on his OWN back. His servant said, \"Let me carry it!\" Umar said, \"Will you carry my sins on Judgment Day?\" Then he cooked for the children himself and waited until they laughed. That is a real leader.",
+          ],
+        },
+        {
+          heading: "Try it tonight",
+          paragraphs: [
+            "Umar's superpower was using his strength to help, not to hurt. Tonight, use your strength for someone smaller: carry something heavy for a parent, or stand up for someone being teased.",
+            "And remember: even the fiercest person can change when they hear something beautiful and true. Never give up on anyone — not even yourself.",
+          ],
+        },
+      ],
+    },
+    defaultLevel: "kids",
+    related: [
+      "stories-of-the-companions",
+      "abu-bakr-story",
+      "saeed-ibn-zayd-story",
+    ],
+  },
+  {
+    slug: "uthman-story",
+    title: "Uthman ibn Affan: The Modest One of Two Lights",
+    seoTitle: "Uthman ibn Affan Story for Kids & Teens",
+    description:
+      "The story of Uthman ibn Affan: Dhul-Nurayn, the man the angels were shy of, who bought the well of Rumah, equipped the army of Tabuk, and gathered the Quran into one mushaf.",
+    excerpt:
+      "Uthman was so modest the angels were shy of him. He was also so generous that one gift — the army of Tabuk — made the Prophet say nothing he did afterwards could harm him.",
+    category: "Islamic studies",
+    publishedAt: "2026-11-17",
+    updatedAt: "2026-11-17",
+    readingMinutes: 7,
+    keywords: [
+      "Uthman ibn Affan story",
+      "Dhul-Nurayn",
+      "Uthman mushaf",
+      "well of Rumah",
+      "Uthman for kids",
+    ],
+    intro: [
+      "Uthman ibn Affan was a wealthy, soft-spoken merchant of the Umayyad clan — one of the first to believe, and one of the few who could read and write. He married the Prophet's daughter Ruqayyah, and after her death, her sister Umm Kulthum — which earned him the title Dhul-Nurayn, \"the one of two lights.\" No other man married two daughters of a prophet.",
+      "His modesty was legendary. Aisha reported that once the Prophet was resting with part of his body uncovered, and when Abu Bakr and Umar entered he stayed as he was — but when Uthman asked permission to enter, the Prophet sat up and arranged his clothes. When asked why, he said: \"Should I not be shy of a man of whom the angels are shy?\" (Muslim).",
+    ],
+    sections: [
+      {
+        heading: "The well of Rumah",
+        paragraphs: [
+          "When the Muslims migrated to Madinah, water was scarce. The well of Rumah belonged to a Jewish man who sold its water by the bucket, and the poor Muslims struggled. The Prophet said: \"Whoever buys the well of Rumah and makes his bucket like the buckets of the Muslims will have Paradise\" (Tirmidhi). Uthman bought it — first half, then the whole — and made it free for everyone, rich and poor, Muslim and traveller. The well's endowment still existed in Madinah centuries later, its revenues funding charity.",
+          "This was Uthman's pattern: quiet, permanent generosity. Not a gift that makes noise, but a gift that keeps giving after the giver is forgotten.",
+        ],
+      },
+      {
+        heading: "The army of difficulty",
+        paragraphs: [
+          "In 9 AH, the expedition to Tabuk faced a brutal summer, a long march, and an empty treasury. The Prophet appealed for donations. Uthman equipped a third of the army — 300 camels with their saddles, 50 horses, and 1,000 dinars poured into the Prophet's lap. The Prophet turned the coins over and said: \"Nothing Uthman does after today will harm him\" (Tirmidhi).",
+          "The Quran's \"hour of difficulty\" (9:117) remembers that expedition — and the ones who gave when giving hurt: \"...those who, when they came to you for mounts, and you said, 'I cannot find anything to give you,' turned back with their eyes overflowing with tears...\" (9:92). Uthman was the answer to those tears.",
+        ],
+      },
+      {
+        heading: "One Book for one ummah",
+        paragraphs: [
+          "As the third caliph (23-35 AH), the empire stretched from Libya to Central Asia, and new Muslims recited the Quran in differing dialects. Hudhayfah ibn al-Yaman, campaigning in Armenia, saw the disputes and warned Uthman: \"Save this ummah before they differ about the Book as the Jews and Christians differed.\" Uthman borrowed the original collection kept with Hafsa and commissioned Zayd ibn Thabit with a committee of Quraysh to copy it into standard mushafs, sent to every major city, with orders that all other copies be burned (Bukhari).",
+          "Every mushaf printed today — every copy in every mosque on earth — descends from that decision. It is arguably the most consequential act of preservation in Islamic history, and it was done by the shyest of the companions.",
+        ],
+        note: "The collection Uthman standardised began with [Abu Bakr](/blog/abu-bakr-story) after Yamamah. Read [how the Quran was revealed](/blog/how-the-quran-was-revealed) for the full story of the Book.",
+      },
+      {
+        heading: "The lesson: quiet strength",
+        paragraphs: [
+          "Uthman was killed in 35 AH by rebels who besieged his house — fasting, reading the Quran, refusing to let his defenders fight inside the Prophet's city. He was 80 or 82. The mushaf he was reading was spattered with his blood.",
+          "The lesson of Uthman is that modesty is not weakness. The man too shy to uncover his knee bought a well for a city, equipped an army, and saved a Book. Strength does not have to be loud to be enormous.",
+        ],
+      },
+    ],
+    kids: {
+      intro: [
+        "Uthman was the shyest of the Prophet's friends — so shy that even the angels felt shy around him! But being shy did not stop him from doing huge, brave, generous things. He married two of the Prophet's daughters, so they called him \"the one of two lights.\"",
+      ],
+      sections: [
+        {
+          heading: "The free water well",
+          paragraphs: [
+            "In Madinah, water was hard to find. One well belonged to a man who made everyone PAY for every bucket. Poor Muslims were thirsty. The Prophet said: \"Whoever buys that well and shares its water will get Paradise!\"",
+            "Uthman bought the whole well — and made the water FREE for everyone. Rich, poor, traveller, everyone! People still used that free well hundreds of years later. That is a gift that never stops giving.",
+          ],
+        },
+        {
+          heading: "The big bag of coins",
+          paragraphs: [
+            "Once the Muslims needed to go on a long, hard journey, but there was no money for camels and food. Uthman brought 300 camels, 50 horses, and a thousand gold coins — and poured the coins into the Prophet's lap!",
+            "The Prophet smiled and said: \"Nothing Uthman does after today will harm him.\" That is the biggest thank-you ever. Uthman did not brag about it. He just quietly kept giving.",
+          ],
+        },
+        {
+          heading: "Try it tonight",
+          paragraphs: [
+            "Uthman's superpower was quiet giving — doing good without making noise. Tonight, do one secret good deed: tidy something without being asked, or leave a kind note where someone will find it. Do not tell anyone!",
+            "And remember his well: the best gifts keep giving. Sharing your favourite book or teaching a friend something is a gift that grows.",
+          ],
+        },
+      ],
+    },
+    defaultLevel: "kids",
+    related: [
+      "stories-of-the-companions",
+      "abu-bakr-story",
+      "ali-story",
+    ],
+  },
+  {
+    slug: "ali-story",
+    title: "Ali ibn Abi Talib: The First Youth, the Lion of Khaybar",
+    seoTitle: "Ali ibn Abi Talib Story (Kids & Teens)",
+    description:
+      "The story of Ali ibn Abi Talib: first youth to believe, who slept in the Prophet's bed on the hijra night, carried the banner at Khaybar, and married Fatima.",
+    excerpt:
+      "Ali grew up in the Prophet's house, believed before any other boy, slept in the Prophet's bed when assassins surrounded it, and was given the banner at Khaybar because he loved Allah and His Messenger — and they loved him.",
+    category: "Islamic studies",
+    publishedAt: "2026-11-17",
+    updatedAt: "2026-11-17",
+    readingMinutes: 7,
+    keywords: [
+      "Ali ibn Abi Talib story",
+      "Ali Khaybar banner",
+      "first youth to believe",
+      "Ali and Fatima",
+      "Ali for kids",
+    ],
+    intro: [
+      "Ali ibn Abi Talib was the Prophet's cousin, ten years younger, raised in the Prophet's household when famine struck his father Abu Talib. He was the first youth to accept Islam — a boy of about ten, watching Khadija and the Prophet pray, asking what they were doing, and choosing it for himself. He never bowed to an idol in his life.",
+      "His courage became proverbial, but the hadith that defines him is not about fighting. It is about love: at Khaybar, the Prophet said he would give the banner to \"a man who loves Allah and His Messenger, and Allah and His Messenger love him\" (Bukhari and Muslim) — and called Ali.",
+    ],
+    sections: [
+      {
+        heading: "The night he slept in the Prophet's bed",
+        paragraphs: [
+          "On the night of the hijra, the Quraysh surrounded the Prophet's house with young men from every clan, swords drawn, waiting to strike as one so no single clan could be blamed. The Prophet told Ali to sleep in his bed, covered in his green mantle. Ali — a young man with his whole life ahead of him — lay down in the bed of a man marked for death, knowing the swords might fall on him instead.",
+          "The assassins peered in all night and saw a figure sleeping. By morning the Prophet was miles away, and Ali walked out unharmed. It was the first of a lifetime of standing where others would not.",
+        ],
+      },
+      {
+        heading: "The banner of Khaybar",
+        paragraphs: [
+          "At Khaybar in 7 AH, the fortresses held out. The Prophet said: \"Tomorrow I will give the banner to a man who loves Allah and His Messenger, and Allah and His Messenger love him; Allah will grant victory through him.\" That night every companion hoped it would be him. In the morning the Prophet called Ali, who was suffering from sore eyes; the Prophet applied his saliva to them and they were cured, and gave him the banner (Bukhari and Muslim).",
+          "Ali fought the champion Marhab and took the fortress. And the Prophet told him: \"You are to me as Harun was to Musa, except that there is no prophet after me\" (Bukhari and Muslim) — the closest possible comparison, minus prophethood itself.",
+        ],
+      },
+      {
+        heading: "The husband of Fatima, the judge, the fourth caliph",
+        paragraphs: [
+          "Ali married Fatima, the Prophet's beloved daughter. Their marriage was famously simple — a modest mahr, a household of two hands grinding grain and drawing water — and from them descend the Prophet's only surviving line, Hasan and Husayn. The Prophet said of the five under the cloak: \"These are my Ahl al-Bayt\" (Muslim).",
+          "He was sent as judge to Yemen while still young, and said: \"You send me to judge while I am young?\" The Prophet placed his hand on Ali's chest and prayed for his guidance; Ali said he never doubted a judgement afterwards. As the fourth caliph (35-40 AH), he ruled through civil war with the same austerity — patched garments, barley bread, refusing the treasury's comforts. He was killed in 40 AH by Ibn Muljam while going to Fajr.",
+        ],
+        note: "The Prophet's family line continues through [Ali and Fatima's story](/blog/ali-story) — read [Khadija's story](/blog/khadija-story) for the mother of that household.",
+      },
+      {
+        heading: "The lesson: courage rooted in love",
+        paragraphs: [
+          "Ali's bravery was real — the bed, the banner, the duels. But the hadith does not say \"the strongest man.\" It says the man who loves and is loved. His courage grew out of that love, not out of pride. That is the difference between a fighter and a lion of Allah: one fights for himself, the other for what he loves.",
+        ],
+      },
+    ],
+    kids: {
+      intro: [
+        "Ali was the Prophet's little cousin. He grew up in the Prophet's house, and when he was about ten years old, he saw the Prophet and Khadija praying and asked: \"What are you doing?\" When they told him, he became Muslim — the very first kid to believe!",
+      ],
+      sections: [
+        {
+          heading: "The bravest bedtime",
+          paragraphs: [
+            "One scary night, angry men surrounded the Prophet's house with swords, waiting to hurt him. The Prophet asked Ali to sleep in HIS bed, wearing his blanket, so the men would think the Prophet was still home.",
+            "Ali was young, but he said yes! He slept in the bed all night while swords waited outside. In the morning, the Prophet was safe far away — and Ali walked out without a scratch. That is the bravest bedtime story ever.",
+          ],
+        },
+        {
+          heading: "The special flag",
+          paragraphs: [
+            "At a place called Khaybar, the Muslims could not open the big fort. The Prophet said: \"Tomorrow I will give the flag to a man who loves Allah and His Messenger — and Allah and His Messenger love HIM!\"",
+            "Everyone hoped it would be them. But the Prophet called Ali! Ali's eyes were sore, so the Prophet gently touched them and they got better. Then Ali carried the flag and won. The best prize is not being the strongest — it is being loved by Allah.",
+          ],
+        },
+        {
+          heading: "Try it tonight",
+          paragraphs: [
+            "Ali's superpower was being brave for people he loved. Tonight, be brave for someone: tell the truth even if you might get in trouble, or stand next to a friend who feels alone.",
+            "And say thank you to the people who take care of you — Ali loved the Prophet like family, because the Prophet WAS his family. Love your family out loud tonight.",
+          ],
+        },
+      ],
+    },
+    defaultLevel: "kids",
+    related: [
+      "stories-of-the-companions",
+      "khadija-story",
+      "prophet-muhammad-story",
+    ],
+  },
+  {
+    slug: "khadija-story",
+    title: "Khadija bint Khuwaylid: The First Believer",
+    seoTitle: "Khadija Story for Kids & Teens (Sahih Sources)",
+    description:
+      "The story of Khadija bint Khuwaylid: the first person to believe in Islam, who comforted the Prophet after the first revelation, spent her wealth for the faith, and was greeted by Jibril with salam from Allah.",
+    excerpt:
+      "Before anyone else believed, Khadija believed. When the Prophet came down from the cave trembling, she did not doubt him — she wrapped him in a blanket and said the words every believer needs to hear.",
+    category: "Islamic studies",
+    publishedAt: "2026-11-17",
+    updatedAt: "2026-11-17",
+    readingMinutes: 7,
+    keywords: [
+      "Khadija story",
+      "Khadija bint Khuwaylid",
+      "first believer in Islam",
+      "Khadija and the Prophet",
+      "Khadija for kids",
+    ],
+    intro: [
+      "Khadija bint Khuwaylid was Makkah's most successful merchant — a widow who ran caravans to Syria and hired the honest young man Muhammad (peace be upon him) to trade for her. Impressed by his character, she proposed marriage through a friend. He was 25; she was 40. Their marriage lasted 25 years, and he took no other wife while she lived.",
+      "When the revelation came, she was the first human being to believe — before Abu Bakr, before Ali, before anyone. The story of that first night is recorded in Sahih al-Bukhari, the very first long hadith of the collection, narrated by Aisha.",
+    ],
+    sections: [
+      {
+        heading: "The night of the first revelation",
+        paragraphs: [
+          "The Prophet came down from the cave of Hira trembling, his heart pounding, and said to Khadija: \"Cover me! Cover me!\" She wrapped him until the fear passed. Then he told her everything — the angel, the command to read, the words pressed into his chest — and said: \"I fear for myself.\"",
+          "Her answer is one of the most important sentences in Islamic history: \"Never! By Allah, Allah will never disgrace you. You keep good relations with your kith and kin, help the poor and the destitute, serve your guests generously, and assist those stricken by calamity\" (Bukhari). She did not argue theology. She told him who he was — and that Allah does not abandon people like him. Then she took him to her cousin Waraqa ibn Nawfal, a Christian scholar, who confirmed: this is the same Namus (angel) that came to Musa.",
+        ],
+      },
+      {
+        heading: "The wealth that became Islam",
+        paragraphs: [
+          "For ten years in Makkah, while the boycott starved the believers in the valley of Abu Talib and torture broke the weak, Khadija's wealth was the shelter of the whole community. She bought freedom for enslaved believers, fed the hungry, and spent everything until nothing was left. The Prophet later said: \"She believed in me when people disbelieved, she trusted me when people called me a liar, she spent her wealth for me when people deprived me\" (Ahmad).",
+          "She died in the tenth year of the prophethood, three years before the hijra — the same year Abu Talib died. The Prophet called it the Year of Sorrow. He never stopped mentioning her: Aisha said he would slaughter a sheep and send gifts to Khadija's friends, and when Aisha once felt jealous, he said: \"Allah has not given me better than her\" (Muslim).",
+        ],
+      },
+      {
+        heading: "The salam from Allah",
+        paragraphs: [
+          "Once Jibril came to the Prophet and said: \"O Messenger of Allah, this is Khadija. When she comes to you, convey to her salam from her Lord and from me, and give her the glad tidings of a house in Paradise made of qasab (hollow pearls/reeds), in which there is no noise and no fatigue\" (Bukhari and Muslim).",
+          "A house with no noise and no fatigue — for the woman who carried the noise and fatigue of the first ten years of Islam so the Prophet could carry the message. The reward matches the service exactly.",
+        ],
+        note: "Khadija is the mother of [Fatima](/blog/ali-story), through whom the Prophet's line continues. Read [the Prophet's story](/blog/prophet-muhammad-story) for the life she sheltered.",
+      },
+      {
+        heading: "The lesson: believing before it is safe",
+        paragraphs: [
+          "Khadija believed when belief cost everything and proved nothing. No community, no mosque, no victory — just a trembling husband and an angel's words. She chose trust. Every Muslim who has ever been the only believer in a room owes something to the first woman who was.",
+        ],
+      },
+    ],
+    kids: {
+      intro: [
+        "Khadija was a clever, kind businesswoman in Makkah. She hired the Prophet to trade for her, and when she saw how honest he was, she asked him to marry her! They were very happy together. And when something amazing and scary happened to the Prophet, Khadija was the FIRST person in the whole world to believe him.",
+      ],
+      sections: [
+        {
+          heading: "\"Cover me! Cover me!\"",
+          paragraphs: [
+            "One night the Prophet came home from a cave, shaking with fear. An angel had come to him with words from Allah! \"Cover me! Cover me!\" he said. Khadija wrapped him in a warm blanket and held him until he felt safe.",
+            "Then she said the most beautiful words: \"Never! Allah will never let you down. You are kind to your family, you help the poor, you are generous to guests, and you help people in trouble.\" She knew his heart was good — so she knew Allah would take care of him. Then she became the very first Muslim!",
+          ],
+        },
+        {
+          heading: "The house with no noise",
+          paragraphs: [
+            "Khadija used all her money to help the Muslims — buying food, freeing slaves, keeping everyone safe. She did not keep any treasures for herself.",
+            "One day the angel Jibril came with a special message just for her: \"Give Khadija salam from Allah — and tell her she will have a house in Paradise with no noise and no tiredness!\" After all her hard work, Allah promised her the most peaceful home ever. What a reward!",
+          ],
+        },
+        {
+          heading: "Try it tonight",
+          paragraphs: [
+            "Khadija's superpower was believing in someone when they were scared. Tonight, be that person: if someone in your family is worried or sad, sit with them and say something kind — \"I believe in you. Allah is with you.\"",
+            "And make a blanket-fort or a cosy corner for someone who needs a safe place. Khadija's blanket is still famous 1,400 years later!",
+          ],
+        },
+      ],
+    },
+    defaultLevel: "kids",
+    related: [
+      "stories-of-the-companions",
+      "prophet-muhammad-story",
+      "ali-story",
     ],
   },
 ];
